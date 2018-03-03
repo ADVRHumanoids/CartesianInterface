@@ -33,12 +33,11 @@ else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+# Generate messages in the 'msg' folder
+add_message_files(
+  FILES
+  ReferenceStamped.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -47,18 +46,19 @@ endif()
 #   Service2.srv
 # )
 
-## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+# Generate actions in the 'action' folder
+add_action_files(
+  FILES
+  ReachPose.action
+)
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs  
+  geometry_msgs
+  actionlib_msgs
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -90,7 +90,7 @@ set(CartesianInterfaceSOT_SRC
 # Ros implementation
 set(CartesianInterfaceROS_SRC 
         src/RosImpl.cpp
-        src/CartesianActionServer.cpp
+        src/RosServerClass.cpp
     )
                 
 # Trajectory
@@ -109,6 +109,8 @@ target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
                                                 ${XBotInterface_LIBRARIES}
                                                 ${catkin_LIBRARIES}
                       )
+                      
+add_dependencies(CartesianInterface ${PROJECT_NAME}_generate_messages)
                       
 library_install(CartesianInterface 0 0 1)
 

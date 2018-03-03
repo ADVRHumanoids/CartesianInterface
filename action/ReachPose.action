@@ -1,0 +1,11 @@
+# Define the goal
+geometry_msgs/PoseStamped[] frames
+float32[] time
+---
+# Define the result
+geometry_msgs/PoseStamped final_error
+float32 position_error_norm
+float32 orientation_error_angle
+---
+# Define a feedback message
+float32 percent_complete
