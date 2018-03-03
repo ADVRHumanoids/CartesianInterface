@@ -19,6 +19,8 @@ public:
     CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
                            ProblemDescription ik_problem);
     
+    virtual const std::vector<std::string>& getTaskList() const;
+    
     virtual bool getPoseReference(const std::string& end_effector, 
                                 Eigen::Affine3d& w_T_ref, 
                                 Eigen::Vector6d& w_vel_ref, 
@@ -26,6 +28,8 @@ public:
 
     virtual bool getPoseTarget(const std::string& end_effector, 
                             Eigen::Affine3d& w_T_ref) const;
+                            
+    virtual State getTaskState(const std::string& end_effector) const {};
                             
     virtual bool setComPositionReference(const Eigen::Vector3d& w_com_ref, 
                                          const Eigen::Vector3d& w_vel_ref = Eigen::Vector3d::Zero(), 
@@ -111,6 +115,7 @@ private:
     void log_tasks();
     
     std::vector<std::pair<std::string, std::string>> _tasks_vector;
+    std::vector<std::string> _ee_list;
     
     Task::Ptr get_task(const std::string& ee_name) const;
     

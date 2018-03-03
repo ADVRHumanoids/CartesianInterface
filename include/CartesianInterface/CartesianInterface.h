@@ -44,6 +44,8 @@ public:
     virtual bool reset() = 0;
     virtual bool update(double time, double period) = 0;
     
+    virtual const std::vector<std::string>& getTaskList() const = 0;
+    
     /* Point-to-point control */
     
     virtual bool setTargetPose(const std::string& end_effector, 
@@ -105,6 +107,8 @@ public:
                           
     virtual bool getPoseTarget(const std::string& end_effector, 
                        Eigen::Affine3d& w_T_ref) const = 0;
+                       
+    virtual State getTaskState(const std::string& end_effector) const = 0;
     
     
     virtual ~CartesianInterface(){}

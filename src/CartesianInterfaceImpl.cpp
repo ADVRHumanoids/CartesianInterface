@@ -236,6 +236,8 @@ void CartesianInterfaceImpl::__construct_from_vectors()
         
         _task_map[task->distal_frame] = task;
         
+        _ee_list.push_back(task->distal_frame);
+        
     }
     
     reset();
@@ -354,6 +356,10 @@ bool CartesianInterfaceImpl::setTargetOrientation(const std::string& end_effecto
     throw std::runtime_error("unsupported function");
 }
 
+const std::vector< std::string >& CartesianInterfaceImpl::getTaskList() const
+{
+    return _ee_list;
+}
 
 
 
