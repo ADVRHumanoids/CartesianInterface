@@ -6,6 +6,8 @@
 #include <OpenSoT/tasks/velocity/Cartesian.h>
 #include <OpenSoT/tasks/velocity/CoM.h>
 #include <OpenSoT/tasks/velocity/Postural.h>
+#include <OpenSoT/Solver.h>
+#include <OpenSoT/utils/AutoStack.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -14,18 +16,7 @@ class OpenSotImpl : public CartesianInterfaceImpl
     
 public:
     
-    OpenSotImpl();
-        
-    virtual bool setComPositionReference(const Eigen::Vector3d& w_com_ref, 
-                                         const Eigen::Vector3d& w_vel_ref = Eigen::Vector3d::Zero(), 
-                                         const Eigen::Vector3d& w_acc_ref = Eigen::Vector3d::Zero(), 
-                                         ControlType control_type = ControlType::Position);
-
-    virtual bool setPoseReference(const std::string& end_effector, 
-                                  const Eigen::Affine3d& w_T_ref, 
-                                  const Eigen::Vector6d& w_vel_ref = Eigen::Vector6d::Zero(), 
-                                  const Eigen::Vector6d& w_acc_ref = Eigen::Vector6d::Zero(), 
-                                  ControlType control_type = ControlType::Position);
+    OpenSotImpl(ModelInterface::Ptr model, ProblemDescription ik_problem);
 
     virtual bool update(double time, double period);
 
@@ -37,6 +28,17 @@ protected:
     
 private:
     
+    OpenSoT::tasks::Aggregated::Ptr aggregated_from_stack(AggregatedTask stack);
+    OpenSoT::constraints::Aggregated::ConstraintPtr constraint_from_description(ConstraintDescription::Ptr constr_desc);
+    
+    Eigen::VectorXd _q, _dq, _ddq;
+    
+    std::vector<OpenSoT::tasks::velocity::Cartesian::Ptr> _cartesian_tasks;
+    
+    OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr _solver;
+    OpenSoT::AutoStack::Ptr _autostack;
+    
+    XBot::MatLogger::Ptr _logger;
     
 };
 
