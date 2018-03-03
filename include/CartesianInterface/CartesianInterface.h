@@ -22,8 +22,7 @@
 
 #include <XBotInterface/ModelInterface.h>
 
-namespace XBot
-{
+namespace XBot { namespace Cartesian {
 
 class CartesianInterface
 {
@@ -33,8 +32,8 @@ public:
     typedef std::shared_ptr<CartesianInterface> Ptr;
     typedef std::shared_ptr<const CartesianInterface> ConstPtr;
     
-    enum class State { Reaching, Online, Idle };
-    enum class ControlType { Position, Velocity };
+    enum class State { Reaching, Online };
+    enum class ControlType { Position, Velocity, Disabled };
     
     CartesianInterface() = default;
     CartesianInterface(const CartesianInterface& other) = delete;
@@ -42,7 +41,8 @@ public:
     CartesianInterface& operator=(const CartesianInterface& rhs) = delete;
     CartesianInterface& operator=(const CartesianInterface&& rhs) = delete;
     
-    virtual bool update(double time, double period);
+    virtual bool reset() = 0;
+    virtual bool update(double time, double period) = 0;
     
     /* Point-to-point control */
     
@@ -113,27 +113,11 @@ protected:
     
     
 private:
-    
-//     struct Task 
-//     {
-//         std::string ee_name;
-//         
-//         Eigen::Affine3d w_T_ref;
-//         Eigen::Vector6d vel_ref;
-//         Eigen::Vector6d acc_ref;
-//         
-//         double start_time, end_time;
-//         Eigen::Affine3d w_T_start, w_T_end;
-//         
-//         ControlType getControlType() const;
-//         
-//     };
-//     
-//     std::map<std::string, Task> _task_map;
+
     
     
 };
 
-}
+} }
 
 #endif
