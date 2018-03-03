@@ -6,7 +6,12 @@ include(MacroInstallLib)
 
 find_package(XBotInterface REQUIRED)
 find_package(OpenSoT REQUIRED)
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs geometry_msgs actionlib)
+find_package(catkin REQUIRED COMPONENTS roscpp 
+                                        std_msgs 
+                                        geometry_msgs 
+                                        actionlib 
+                                        robot_state_publisher 
+                                        tf tf_conversions)
 
 include_directories(include 
                     ${OpenSoT_INCLUDE_DIRS} 
@@ -66,35 +71,50 @@ endif()
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
    INCLUDE_DIRS include 
-#  LIBRARIES my_pkg
+   LIBRARIES CartesianInterface
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
 
+# Interface implementation
+set(CartesianInterface_SRC 
+        src/CartesianInterfaceImpl.cpp
+        src/ProblemDescription.cpp
+    )
+
+# OpenSot implementation
 set(CartesianInterfaceSOT_SRC 
+        src/OpenSotImpl.cpp
+    )
 
-                )
-                
+# Ros implementation
 set(CartesianInterfaceROS_SRC 
+        src/RosImpl.cpp
+        src/CartesianActionServer.cpp
+    )
+                
+# Trajectory
+set(Trajectory_SRC
+        src/Trajectory.cpp
+    )
 
-                )
+# libCartesianInterface
+add_library(CartesianInterface SHARED ${CartesianInterface_SRC} 
+                                      ${CartesianInterfaceSOT_SRC} 
+                                      ${CartesianInterfaceROS_SRC}
+                                      ${Trajectory_SRC}
+                                      )
+                                      
+target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES} 
+                                                ${XBotInterface_LIBRARIES}
+                                                ${catkin_LIBRARIES}
+                      )
+                      
+library_install(CartesianInterface 0 0 1)
 
-add_library(CartesianInterfaceSOT SHARED ${CartesianInterfaceSOT_SRC})
-
-target_link_libraries(CartesianInterfaceSOT PUBLIC ${OpenSoT_LIBRARIES} 
-                                                   ${XBotInterface_LIBRARIES}
-                                     )
-
-library_install(CartesianInterfaceSOT 0 0 1)
-
-
-add_library(CartesianInterfaceROS SHARED ${CartesianInterfaceROS_SRC})
-
-target_link_libraries(CartesianInterfaceROS PUBLIC ${OpenSoT_LIBRARIES} 
-                                                   ${XBotInterface_LIBRARIES}
-                                     )
-
-library_install(CartesianInterfaceROS 0 0 1)
+# Ros server 
+add_executable(ros_server_node src/RosServerNode.cpp)
+target_link_libraries(ros_server_node CartesianInterface)
 
 #######################
 # Add Testing target  #
