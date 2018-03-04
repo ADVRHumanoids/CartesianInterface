@@ -75,14 +75,15 @@ void RosServerClass::manage_reach_actions()
                 auto goal = as->acceptNewGoal();
                 
                 Eigen::Affine3d T_ref;
-                tf::poseMsgToEigen(goal->frames.back(), T_ref);
+                tf::poseMsgToEigen(get_normalized_pose(goal->frames.back()), T_ref);
                 
                 Eigen::Affine3d base_T_ee;
                  _cartesian_interface->getCurrentPose(ee_name, base_T_ee);
                  
                 if(goal->incremental)
                 {
-                    T_ref = base_T_ee *  T_ref;
+                    T_ref.linear() = base_T_ee.linear() *  T_ref.linear();
+                    T_ref.translation() = base_T_ee.translation() +  T_ref.translation();
                 }
                 
                 if(!_cartesian_interface->setTargetPose(ee_name, T_ref, goal->time.back()))
@@ -160,4 +161,19 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc):
     __generate_online_pos_topics();
     __generate_reach_pose_action_servers();
     __generate_state_broadcasting();
+}
+
+geometry_msgs::Pose RosServerClass::get_normalized_pose(const geometry_msgs::Pose& pose)
+{
+    Eigen::Vector4d coeff(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
+    coeff /= coeff.norm();
+    
+    geometry_msgs::Pose norm_pose = pose;
+    norm_pose.orientation.w = coeff[0];
+    norm_pose.orientation.x = coeff[1];
+    norm_pose.orientation.y = coeff[2];
+    norm_pose.orientation.z = coeff[3];
+    
+    return norm_pose;
+    
 }

@@ -40,6 +40,7 @@ namespace XBot { namespace Cartesian {
         
         void manage_reach_actions();
         void publish_state();
+        static geometry_msgs::Pose get_normalized_pose(const geometry_msgs::Pose& pose);
         
         void online_position_reference_cb(const geometry_msgs::PoseStampedConstPtr& msg, 
                                            const std::string& ee_name);
