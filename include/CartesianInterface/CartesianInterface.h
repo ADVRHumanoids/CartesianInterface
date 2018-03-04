@@ -49,22 +49,22 @@ public:
     /* Point-to-point control */
     
     virtual bool setTargetPose(const std::string& end_effector, 
-                       const Eigen::Affine3d& w_T_ref, 
+                       const Eigen::Affine3d& base_T_ref, 
                        double time = 0, 
                        const Eigen::Vector6d& max_velocity = Eigen::Vector6d::Zero()
                       ) = 0;
     
     virtual bool setTargetPosition(const std::string& end_effector, 
-                           const Eigen::Vector3d& w_pos_ref, 
+                           const Eigen::Vector3d& base_pos_ref, 
                            double time = 0, 
                            const Eigen::Vector3d& max_velocity = Eigen::Vector3d::Zero()) = 0;
     
-    virtual bool setTargetComPosition(const Eigen::Vector3d& w_com_ref, 
+    virtual bool setTargetComPosition(const Eigen::Vector3d& base_com_ref, 
                               double time = 0, 
                               const Eigen::Vector3d& max_velocity = Eigen::Vector3d::Zero()) = 0;
     
     virtual bool setTargetOrientation(const std::string& end_effector, 
-                              const Eigen::Vector3d& w_pos_ref, 
+                              const Eigen::Vector3d& base_pos_ref, 
                               double time = 0, 
                               const Eigen::Vector3d& max_velocity = Eigen::Vector3d::Zero()) = 0;
     
@@ -82,31 +82,34 @@ public:
     /* Online control */
 
     virtual bool setPoseReference(const std::string& end_effector, 
-                          const Eigen::Affine3d& w_T_ref, 
-                          const Eigen::Vector6d& w_vel_ref = Eigen::Vector6d::Zero(),
-                          const Eigen::Vector6d& w_acc_ref = Eigen::Vector6d::Zero(), 
+                          const Eigen::Affine3d& base_T_ref, 
+                          const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(),
+                          const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero(), 
                           ControlType control_type = ControlType::Position ) = 0;
     
     virtual bool setPositionReference(const std::string& end_effector, 
-                              const Eigen::Vector3d& w_pos_ref, 
-                              const Eigen::Vector3d& w_vel_ref = Eigen::Vector3d::Zero(),
-                              const Eigen::Vector3d& w_acc_ref = Eigen::Vector3d::Zero(), 
+                              const Eigen::Vector3d& base_pos_ref, 
+                              const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(),
+                              const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero(), 
                               ControlType control_type = ControlType::Position ) = 0;
     
-    virtual bool setComPositionReference(const Eigen::Vector3d& w_com_ref, 
-                                 const Eigen::Vector3d& w_vel_ref = Eigen::Vector3d::Zero(),
-                                 const Eigen::Vector3d& w_acc_ref = Eigen::Vector3d::Zero(), 
+    virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref, 
+                                 const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(),
+                                 const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero(), 
                                  ControlType control_type = ControlType::Position ) = 0;
     
     /* Monitoring */
     
     virtual bool getPoseReference(const std::string& end_effector, 
-                          Eigen::Affine3d& w_T_ref, 
-                          Eigen::Vector6d& w_vel_ref,
-                          Eigen::Vector6d& w_acc_ref) const = 0;
+                          Eigen::Affine3d& base_T_ref, 
+                          Eigen::Vector6d * base_vel_ref = nullptr,
+                          Eigen::Vector6d * base_acc_ref = nullptr) const = 0;
+                          
+    virtual bool getCurrentPose(const std::string& end_effector, 
+                                Eigen::Affine3d& base_T_ee) const = 0;
                           
     virtual bool getPoseTarget(const std::string& end_effector, 
-                       Eigen::Affine3d& w_T_ref) const = 0;
+                       Eigen::Affine3d& base_T_ref) const = 0;
                        
     virtual State getTaskState(const std::string& end_effector) const = 0;
     

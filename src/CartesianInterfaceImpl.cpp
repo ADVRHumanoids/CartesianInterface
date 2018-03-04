@@ -39,9 +39,9 @@ bool XBot::Cartesian::CartesianInterfaceImpl::abort(const std::string& end_effec
 }
 
 bool XBot::Cartesian::CartesianInterfaceImpl::getPoseReference(const std::string& end_effector, 
-                                                               Eigen::Affine3d& w_T_ref, 
-                                                               Eigen::Vector6d& w_vel_ref, 
-                                                               Eigen::Vector6d& w_acc_ref) const
+                          Eigen::Affine3d& base_T_ref, 
+                          Eigen::Vector6d * base_vel_ref,
+                          Eigen::Vector6d * base_acc_ref) const
 {
     auto task = get_task(end_effector);
     
@@ -50,9 +50,9 @@ bool XBot::Cartesian::CartesianInterfaceImpl::getPoseReference(const std::string
         return false;
     }
     
-    w_T_ref = task->T;
-    w_vel_ref = task->vel;
-    w_acc_ref = task->acc;
+    base_T_ref = task->T;
+    if(base_vel_ref) *base_vel_ref = task->vel;
+    if(base_acc_ref) *base_acc_ref = task->acc;
     
     return true;
 }
@@ -120,7 +120,7 @@ bool CartesianInterfaceImpl::setTargetPose(const std::string& end_effector,
     task->state = State::Reaching;
     task->trajectory->clear();
     task->trajectory->addWayPoint(get_current_time(), task->T);
-    task->trajectory->addWayPoint(time, w_T_ref);
+    task->trajectory->addWayPoint(get_current_time() + time, w_T_ref);
     task->trajectory->setVelocityLimit(max_velocity);
     
     return true;
@@ -144,7 +144,7 @@ bool CartesianInterfaceImpl::setTargetPosition(const std::string& end_effector,
     task->state = State::Reaching;
     task->trajectory->clear();
     task->trajectory->addWayPoint(get_current_time(), task->T);
-    task->trajectory->addWayPoint(time, w_T_ref);
+    task->trajectory->addWayPoint(get_current_time() + time, w_T_ref);
     
     Eigen::Vector6d vmax;
     vmax.setConstant(1.0);
@@ -247,6 +247,8 @@ void CartesianInterfaceImpl::__construct_from_vectors()
 bool CartesianInterfaceImpl::update(double time, double period)
 {
     /* Update reaching tasks */
+    
+    _current_time = time;
     
     for(auto& pair : _task_map)
     {
@@ -359,6 +361,28 @@ bool CartesianInterfaceImpl::setTargetOrientation(const std::string& end_effecto
 const std::vector< std::string >& CartesianInterfaceImpl::getTaskList() const
 {
     return _ee_list;
+}
+
+bool CartesianInterfaceImpl::getCurrentPose(const std::string& end_effector, Eigen::Affine3d& w_T_ee) const
+{
+    auto task = get_task(end_effector);
+    
+    if(!task)
+    {
+        return false;
+    }
+    
+    if(task->base_frame == "world")
+    {
+        _model->getPose(task->distal_frame, w_T_ee);
+    }
+    else
+    {
+        _model->getPose(task->distal_frame, task->base_frame,  w_T_ee);
+    }
+    
+    return true;
+    
 }
 
 

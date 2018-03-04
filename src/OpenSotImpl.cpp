@@ -128,7 +128,8 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     }
     
     /* Create solver */
-    _solver = boost::make_shared<OpenSoT::solvers::QPOases_sot>(_autostack->getStack(), _autostack->getBounds(), 1e5);
+    _solver = boost::make_shared<OpenSoT::solvers::QPOases_sot>(_autostack->getStack(), 
+                                                                _autostack->getBounds(), 1e8);
     
 }
 
@@ -145,7 +146,7 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
     {
         Eigen::Affine3d T_ref;
         Eigen::Vector6d v_ref, a_ref;
-        if(!getPoseReference(cart_task->getDistalLink(), T_ref, v_ref, a_ref))
+        if(!getPoseReference(cart_task->getDistalLink(), T_ref, &v_ref, &a_ref))
         {
             continue;
         }
