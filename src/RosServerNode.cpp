@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <XBotInterface/RobotInterface.h>
 #include <XBotInterface/Utils.h>
-#include <CartesianInterface/ros/CartesianActionServer.h>
+#include <CartesianInterface/ros/RosServerClass.h>
 #include <CartesianInterface/open_sot/OpenSotImpl.h>
 #include <robot_state_publisher/robot_state_publisher.h>
 #include <tf/transform_broadcaster.h>
@@ -16,10 +16,7 @@ int main(int argc, char **argv){
     ros::init(argc, argv, "xbot_cartesian_server");
     ros::NodeHandle nh;
     
-    
-    
-    
-    
+
     auto model = XBot::ModelInterface::getModel(XBot::Utils::getXBotConfig());
     Eigen::VectorXd qhome;
     model->getRobotState("home", qhome);
@@ -42,7 +39,9 @@ int main(int argc, char **argv){
     ProblemDescription ik_problem = obj;
     ik_problem << MakeJointLimits() << MakeVelocityLimits();
     
-    XBot::Cartesian::OpenSotImpl sot_ik_solver(model, ik_problem);
+    auto sot_ik_solver = std::make_shared<XBot::Cartesian::OpenSotImpl>(model, ik_problem);
+    
+    XBot::Cartesian::RosServerClass ros_server_class(sot_ik_solver);
     
     ros::Rate loop_rate(100);
     Eigen::VectorXd q, qdot;
@@ -50,13 +49,15 @@ int main(int argc, char **argv){
     double time = 0.0;
     double dt = loop_rate.expectedCycleTime().toSec();
     
-    sot_ik_solver.setTargetPosition("arm1_7", Eigen::Vector3d(1.2, 0.4, 1.2), 5.0);
-    
     while(ros::ok())
     {
+        /* Update references from ros */
+        ros_server_class.run();
         
-        sot_ik_solver.update(time, dt);
+        /* Solve ik */
+        sot_ik_solver->update(time, dt);
         
+        /* Integrate solution */
         model->getJointPosition(q);
         model->getJointVelocity(qdot);
         
@@ -72,6 +73,7 @@ int main(int argc, char **argv){
 
         rspub.publishTransforms(_joint_name_std_map, ros::Time::now(), "");
         
+        /* Publish world odom */
         Eigen::Affine3d w_T_pelvis;
         model->getFloatingBasePose(w_T_pelvis);
         tf::Transform transform;
@@ -79,6 +81,7 @@ int main(int argc, char **argv){
         tf_broadcaster.sendTransform(tf::StampedTransform(transform.inverse(), ros::Time::now(), "pelvis", "world_odom"));
         rspub.publishFixedTransforms("");
         
+        /* Update time and sleep */
         time += dt;
         loop_rate.sleep();
     }

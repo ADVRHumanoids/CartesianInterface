@@ -23,6 +23,7 @@ namespace XBot { namespace Cartesian {
         
         RosServerClass(CartesianInterface::Ptr intfc);
         
+        void run();
         
     private:
         
@@ -30,12 +31,15 @@ namespace XBot { namespace Cartesian {
         typedef std::shared_ptr<ActionServer> ActionServerPtr;
         
         void __generate_reach_pose_action_servers();
+        void __generate_state_broadcasting();
         void __generate_online_pos_topics();
         void __generate_online_vel_topics();
         void __generate_toggle_pos_mode_services();
         void __generate_toggle_task_services();
         void __generate_reset_service();
         
+        void manage_reach_actions();
+        void publish_state();
         
         void online_position_reference_cb(const geometry_msgs::PoseStampedConstPtr& msg, 
                                            const std::string& ee_name);
@@ -60,7 +64,9 @@ namespace XBot { namespace Cartesian {
         ros::NodeHandle _nh;
         
         std::vector<ActionServerPtr> _action_servers;
+        std::vector<bool> _is_action_active;
         std::vector<ros::Subscriber> _pos_sub, _vel_sub;
+        std::vector<ros::Publisher> _state_pub;
         std::vector<ros::ServiceServer> _toggle_pos_mode_srv, _toggle_task_srv;
         ros::ServiceServer _reset_srv;
         
@@ -73,43 +79,8 @@ namespace XBot { namespace Cartesian {
 
 #endif
 
-using namespace XBot::Cartesian;
-
-void RosServerClass::online_position_reference_cb(const geometry_msgs::PoseStampedConstPtr& msg, 
-                                                  const std::string& ee_name)
-{
-    
-    Eigen::Affine3d T;
-    tf::poseMsgToEigen(msg->pose, T);
-    
-    _cartesian_interface->setPoseReference(ee_name, T);
-}
 
 
-void RosServerClass::__generate_online_pos_topics()
-{
-    for(std::string ee_name : _cartesian_interface->getTaskList())
-    {
-        std::string topic_name = "/xbotcore/cartesian/" + ee_name + "/reference";
-        
-        auto cb = std::bind(&RosServerClass::online_position_reference_cb, this, std::placeholders::_1, ee_name);
-        
-        ros::Subscriber sub = _nh.subscribe<geometry_msgs::PoseStamped>(topic_name, 
-                                                                        1, cb);
-    }
-}
-
-void RosServerClass::__generate_reach_pose_action_servers()
-{
-    for(std::string ee_name : _cartesian_interface->getTaskList())
-    {
-        std::string action_name = "/xbotcore/cartesian/" + ee_name + "/reach";
-
-        _action_servers.emplace_back( new ActionServer(_nh, action_name, false) );
-        
-        _action_servers.back()->start();
-    }
-}
 
 
 

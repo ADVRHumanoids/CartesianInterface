@@ -112,11 +112,37 @@ target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
                       
 add_dependencies(CartesianInterface ${PROJECT_NAME}_generate_messages)
                       
-library_install(CartesianInterface 0 0 1)
 
 # Ros server 
 add_executable(ros_server_node src/RosServerNode.cpp)
 target_link_libraries(ros_server_node CartesianInterface)
+
+# Mark executables and/or libraries for installation
+install(TARGETS ros_server_node ros_server_node
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(TARGETS CartesianInterface CartesianInterface
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+# Mark cpp header files for installation
+install(DIRECTORY include/CartesianInterface/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE
+)
+
+## Mark other files for installation (e.g. launch and bag files, etc.)
+# install(FILES
+#   # myfile1
+#   # myfile2
+#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+# )
 
 #######################
 # Add Testing target  #
