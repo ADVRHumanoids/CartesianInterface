@@ -146,11 +146,25 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
     {
         Eigen::Affine3d T_ref;
         Eigen::Vector6d v_ref, a_ref;
+        
+        if(getControlMode(cart_task->getDistalLink()) == ControlType::Disabled)
+        {
+            cart_task->setActive(false);
+            continue;
+        }
+        
+        if(getControlMode(cart_task->getDistalLink()) == ControlType::Velocity)
+        {
+            
+            cart_task->setLambda(0.0);
+        }
+        
         if(!getPoseReference(cart_task->getDistalLink(), T_ref, &v_ref, &a_ref))
         {
             continue;
         }
         
+        cart_task->setActive(true);
         cart_task->setReference(T_ref.matrix(), v_ref);
     }
     
