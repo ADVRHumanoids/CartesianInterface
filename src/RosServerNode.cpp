@@ -34,11 +34,13 @@ int main(int argc, char **argv){
     std::string _tf_prefix = "/xbotcore/" + model->getUrdf().getName();
     nh.setParam(_urdf_param_name, model->getUrdfString());
     
-    auto obj = (MakeCartesian("wheel_1") + MakeCartesian("wheel_2") + MakeCartesian("wheel_3") + MakeCartesian("wheel_4")) /
-               (MakeCartesian("arm1_7") + MakeCartesian("arm2_7"));
-    ProblemDescription ik_problem = obj;
-    ik_problem << MakeJointLimits() << MakeVelocityLimits();
+//     auto obj = (MakeCartesian("wheel_1") + MakeCartesian("wheel_2") + MakeCartesian("wheel_3") + MakeCartesian("wheel_4")) /
+//                (MakeCartesian("arm1_7") + MakeCartesian("arm2_7"));
+//     ProblemDescription ik_problem = obj;
+//     ik_problem << MakeJointLimits() << MakeVelocityLimits();
     
+    auto yaml_file = YAML::LoadFile(XBot::Utils::getXBotConfig());
+    ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"]);
     auto sot_ik_solver = std::make_shared<XBot::Cartesian::OpenSotImpl>(model, ik_problem);
     
     XBot::Cartesian::RosServerClass ros_server_class(sot_ik_solver);

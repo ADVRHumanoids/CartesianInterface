@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2018 IIT-ADVR
+ * Author: Arturo Laurenzi
+ * email:  arturo.laurenzi@iit.it
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>
+*/
+
 #ifndef __XBOT_CARTESIAN_PROBLEM_DESC_H__
 #define __XBOT_CARTESIAN_PROBLEM_DESC_H__
 
@@ -6,6 +25,7 @@
 #include <list>
 #include <string>
 #include <Eigen/Dense>
+#include <yaml-cpp/yaml.h>
 
 namespace XBot { namespace Cartesian {
     
@@ -25,6 +45,9 @@ namespace XBot { namespace Cartesian {
         TaskDescription(TaskType type, int size);
         
         virtual ~TaskDescription(){}
+        
+    private:
+        
         
         
     };
@@ -73,6 +96,7 @@ namespace XBot { namespace Cartesian {
         ProblemDescription(TaskDescription::Ptr task);
         ProblemDescription(AggregatedTask task);
         ProblemDescription(Stack stack);
+        ProblemDescription(YAML::Node yaml_node);
         
         ProblemDescription& operator<<(ConstraintDescription::Ptr constraint);
         
@@ -103,7 +127,7 @@ namespace XBot { namespace Cartesian {
     
     TaskDescription::Ptr operator*(Eigen::Ref<const Eigen::MatrixXd> weight, TaskDescription::Ptr task);
     
-    TaskDescription::Ptr operator%(TaskDescription::Ptr task, std::vector<int> indices);
+    TaskDescription::Ptr operator%(std::vector<int> indices, TaskDescription::Ptr task);
     
     Stack operator/(TaskDescription::Ptr task_1, 
                     TaskDescription::Ptr task_2);

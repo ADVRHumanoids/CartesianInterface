@@ -1,4 +1,5 @@
 #include <CartesianInterface/ProblemDescription.h>
+#include <XBotInterface/Logger.hpp>
 
 using namespace XBot::Cartesian;
 
@@ -129,7 +130,8 @@ Stack XBot::Cartesian::operator/(TaskDescription::Ptr task_1, AggregatedTask tas
     return operator/(AggregatedTask(1, task_1), task_2);
 }
 
-TaskDescription::Ptr XBot::Cartesian::operator*(Eigen::Ref<const Eigen::MatrixXd> weight, TaskDescription::Ptr task)
+TaskDescription::Ptr XBot::Cartesian::operator*(Eigen::Ref<const Eigen::MatrixXd> weight, 
+                                                TaskDescription::Ptr task)
 {
     if(weight.rows() != task->weight.rows())
     {
@@ -145,10 +147,10 @@ TaskDescription::Ptr XBot::Cartesian::operator*(Eigen::Ref<const Eigen::MatrixXd
     return task;
 }
 
-TaskDescription::Ptr operator%(TaskDescription::Ptr task, std::vector<int> indices)
+TaskDescription::Ptr XBot::Cartesian::operator%(std::vector<int> indices, TaskDescription::Ptr task)
 {
     std::vector<int> new_indices;
-    for(uint idx : indices)
+    for(int idx : indices)
     {
         new_indices.push_back(task->indices[idx]);
     }
@@ -184,3 +186,91 @@ const std::vector< ConstraintDescription::Ptr >& ProblemDescription::getBounds()
     return _bounds;
 }
 
+ProblemDescription::ProblemDescription(YAML::Node yaml_node)
+{
+    if(!yaml_node["stack"])
+    {
+        throw std::runtime_error("Missing node \"stack\"");
+    }
+    
+    YAML::Node stack = yaml_node["stack"];
+    
+    for(auto stack_level : stack)
+    {
+        AggregatedTask aggr_task;
+        
+        for(auto task : stack_level)
+        {
+            std::string task_name = task.as<std::string>();
+            std::string task_type = yaml_node[task_name]["type"].as<std::string>();
+            
+            if(task_type == "Cartesian") // TBD ERROR CHECKING
+            {
+                std::string distal_link = yaml_node[task_name]["distal_link"].as<std::string>();
+                std::string base_link = "world";
+                
+                if(yaml_node[task_name]["base_link"])
+                {
+                    base_link = yaml_node[task_name]["base_link"].as<std::string>();
+                }
+                
+                auto cart_task = MakeCartesian(distal_link, base_link);
+                
+                if(yaml_node[task_name]["weight"])
+                {
+                    cart_task->weight *= yaml_node[task_name]["weight"].as<double>();
+                }
+                
+                if(yaml_node[task_name]["lambda"])
+                {
+                    cart_task->lambda = yaml_node[task_name]["lambda"].as<double>();
+                }
+                
+                if(yaml_node[task_name]["indices"])
+                {
+                    std::vector<int> indices = yaml_node[task_name]["indices"].as<std::vector<int>>();
+                    cart_task = std::dynamic_pointer_cast<CartesianTask>(indices%cart_task);
+                }
+                
+                aggr_task.push_back(cart_task);
+            }
+            else
+            {
+                XBot::Logger::error("Unsupported task type %s\n", task_type.c_str());
+                throw std::runtime_error("Bad problem description");
+            }
+            
+        }
+        
+        _stack.push_back(aggr_task);
+    }
+    
+    YAML::Node constraints = yaml_node["constraints"];
+    
+    if(constraints)
+    {
+        for(auto constr : constraints)
+        {
+            std::string constr_type = constr.as<std::string>();
+            
+            if(constr_type == "JointLimits")
+            {
+                _bounds.push_back(MakeJointLimits());
+            }
+            else if(constr_type == "VelocityLimits")
+            {
+                _bounds.push_back(MakeVelocityLimits());
+            }
+            else
+            {
+                XBot::Logger::error("Unsupported constraint type %s\n", constr_type.c_str());
+                throw std::runtime_error("Bad problem description");
+            }
+            
+        }
+    }
+    
+    
+    
+    
+}
