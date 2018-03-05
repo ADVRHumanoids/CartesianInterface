@@ -4,8 +4,9 @@ float32[] time
 bool incremental
 ---
 # Define the result
-geometry_msgs/Pose final_error
+geometry_msgs/Pose final_frame
 float32 position_error_norm
 float32 orientation_error_angle
 ---
 # Define a feedback message
+geometry_msgs/PoseStamped current_reference

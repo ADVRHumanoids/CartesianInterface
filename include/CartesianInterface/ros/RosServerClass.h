@@ -17,12 +17,23 @@
 
 namespace XBot { namespace Cartesian {
     
+    /**
+     * @brief The RosServerClass exposes a complete ROS API to the world.
+     * For instance, the internal state of the provided CartesianInterface is
+     * broadcast through ROS topics, and the user can send references to the
+     * CartesianInterface by using topics/services/actions.
+     */
     class RosServerClass {
         
     public:
         
         RosServerClass(CartesianInterface::Ptr intfc);
         
+        /**
+         * @brief This method processes callbacks (it internally calls spinOnce) and
+         * also publishes to ROS.
+         * @return void
+         */
         void run();
         
     private:

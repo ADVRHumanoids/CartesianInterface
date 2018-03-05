@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2018 IIT-ADVR
- * Author: Arturo Laurenzi, Giuseppe Rigano, Luca Muratore
- * email:  arturo.laurenzi@iit.it, giuseppe.rigano@iit.it, luca.muratore@iit.it
+ * Author: Arturo Laurenzi
+ * email:  arturo.laurenzi@iit.it
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,6 +24,11 @@
 
 namespace XBot { namespace Cartesian {
 
+/**
+* @brief The CartesianInterface class provides a generic way 
+* to perform cartesian control of floating base robots.
+* 
+*/
 class CartesianInterface
 {
 
@@ -45,34 +50,33 @@ public:
     virtual bool update(double time, double period) = 0;
     
     virtual const std::vector<std::string>& getTaskList() const = 0;
+    virtual const std::string& getBaseLink(const std::string& ee_name) const = 0;
+    
+    virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type) = 0;
+    virtual ControlType getControlMode(const std::string& ee_name) const = 0;
     
     /* Point-to-point control */
     
     virtual bool setTargetPose(const std::string& end_effector, 
                        const Eigen::Affine3d& base_T_ref, 
-                       double time = 0, 
-                       const Eigen::Vector6d& max_velocity = Eigen::Vector6d::Zero()
+                       double time = 0
                       ) = 0;
     
     virtual bool setTargetPosition(const std::string& end_effector, 
                            const Eigen::Vector3d& base_pos_ref, 
-                           double time = 0, 
-                           const Eigen::Vector3d& max_velocity = Eigen::Vector3d::Zero()) = 0;
+                           double time = 0) = 0;
     
     virtual bool setTargetComPosition(const Eigen::Vector3d& base_com_ref, 
-                              double time = 0, 
-                              const Eigen::Vector3d& max_velocity = Eigen::Vector3d::Zero()) = 0;
+                              double time = 0) = 0;
     
     virtual bool setTargetOrientation(const std::string& end_effector, 
                               const Eigen::Vector3d& base_pos_ref, 
-                              double time = 0, 
-                              const Eigen::Vector3d& max_velocity = Eigen::Vector3d::Zero()) = 0;
+                              double time = 0) = 0;
     
     virtual bool setTargetOrientation(const std::string& end_effector, 
                               const std::string& base_frame, 
                               const Eigen::Matrix3d& base_R_ref, 
-                              double time = 0, 
-                              const Eigen::Vector3d& max_velocity = Eigen::Vector3d::Zero()) = 0;
+                              double time = 0) = 0;
     
     virtual bool abort(const std::string& end_effector) = 0;
     
@@ -84,19 +88,16 @@ public:
     virtual bool setPoseReference(const std::string& end_effector, 
                           const Eigen::Affine3d& base_T_ref, 
                           const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(),
-                          const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero(), 
-                          ControlType control_type = ControlType::Position ) = 0;
+                          const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero()) = 0;
     
     virtual bool setPositionReference(const std::string& end_effector, 
                               const Eigen::Vector3d& base_pos_ref, 
                               const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(),
-                              const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero(), 
-                              ControlType control_type = ControlType::Position ) = 0;
+                              const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero()) = 0;
     
     virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref, 
                                  const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(),
-                                 const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero(), 
-                                 ControlType control_type = ControlType::Position ) = 0;
+                                 const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero()) = 0;
     
     /* Monitoring */
     

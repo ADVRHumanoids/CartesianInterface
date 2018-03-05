@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2018 IIT-ADVR
+ * Author: Arturo Laurenzi
+ * email:  arturo.laurenzi@iit.it
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>
+*/
+
 #ifndef __XBOT_CARTESIAN_IMPL_H__
 #define __XBOT_CARTESIAN_IMPL_H__
 
@@ -20,6 +39,10 @@ public:
                            ProblemDescription ik_problem);
     
     virtual const std::vector<std::string>& getTaskList() const;
+    virtual const std::string& getBaseLink(const std::string& ee_name) const;
+    
+    virtual ControlType getControlMode(const std::string& ee_name) const;
+    virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type);
     
     virtual bool getPoseReference(const std::string& end_effector, 
                           Eigen::Affine3d& base_T_ref, 
@@ -31,48 +54,40 @@ public:
                             
     virtual bool getCurrentPose(const std::string& end_effector, Eigen::Affine3d& base_T_ee) const;
                             
-    virtual State getTaskState(const std::string& end_effector) const {};
+    virtual State getTaskState(const std::string& end_effector) const;
                             
     virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref, 
                                          const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(), 
-                                         const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero(), 
-                                         ControlType control_type = ControlType::Position);
+                                         const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero());
 
     virtual bool setPoseReference(const std::string& end_effector, 
                                   const Eigen::Affine3d& base_T_ref, 
                                   const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
-                                  const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero(), 
-                                  ControlType control_type = ControlType::Position);
+                                  const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
 
     virtual bool setPositionReference(const std::string& end_effector, 
                                     const Eigen::Vector3d& base_pos_ref, 
                                     const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(), 
-                                    const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero(), 
-                                    ControlType control_type = ControlType::Position);
+                                    const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero());
 
-    virtual bool setTargetComPosition(const Eigen::Vector3d& base_com_ref, double time = 0, 
-                                    const Eigen::Vector3d& max_velocity = Eigen::Vector3d::Zero());
+    virtual bool setTargetComPosition(const Eigen::Vector3d& base_com_ref, double time = 0);
 
     virtual bool setTargetOrientation(const std::string& end_effector, 
                                     const std::string& base_frame, 
                                     const Eigen::Matrix3d& base_R_ref, 
-                                    double time = 0, 
-                                    const Eigen::Vector3d& max_velocity = Eigen::Vector3d::Zero());
+                                    double time = 0);
 
     virtual bool setTargetOrientation(const std::string& end_effector, 
                                     const Eigen::Vector3d& base_pos_ref, 
-                                    double time = 0, 
-                                    const Eigen::Vector3d& max_velocity = Eigen::Vector3d::Zero());
+                                    double time = 0);
 
     virtual bool setTargetPose(const std::string& end_effector, 
                             const Eigen::Affine3d& base_T_ref, 
-                            double time = 0, 
-                            const Eigen::Vector6d& max_velocity = Eigen::Vector6d::Zero());
+                            double time = 0);
 
     virtual bool setTargetPosition(const std::string& end_effector, 
                                 const Eigen::Vector3d& base_pos_ref, 
-                                double time = 0, 
-                                const Eigen::Vector3d& max_velocity = Eigen::Vector3d::Zero());
+                                double time = 0);
 
     ~CartesianInterfaceImpl();
 
@@ -134,6 +149,7 @@ private:
 
 
 #endif
+
 
 
 

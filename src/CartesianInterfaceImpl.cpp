@@ -82,8 +82,7 @@ bool CartesianInterfaceImpl::getPoseTarget(const std::string& end_effector, Eige
 bool CartesianInterfaceImpl::setPoseReference(const std::string& end_effector, 
                                               const Eigen::Affine3d& w_T_ref, 
                                               const Eigen::Vector6d& w_vel_ref, 
-                                              const Eigen::Vector6d& w_acc_ref, 
-                                              CartesianInterface::ControlType control_type)
+                                              const Eigen::Vector6d& w_acc_ref)
 {
     auto task = get_task(end_effector);
     
@@ -94,26 +93,37 @@ bool CartesianInterfaceImpl::setPoseReference(const std::string& end_effector,
     
     if(task->state == State::Reaching)
     {
-        XBot::Logger::error("Unable to set pose reference. Task is in REACHING mode \n");
+        XBot::Logger::error("Unable to set pose reference. Task is in REACHING state \n");
+        return false;
+    }
+    
+    if(task->control_type != ControlType::Position)
+    {
+        XBot::Logger::error("Unable to set pose reference. Task is in NOT in position mode \n");
         return false;
     }
     
     task->T = w_T_ref;
     task->vel = w_vel_ref;
     task->acc = w_acc_ref;
-    task->control_type = control_type;
     
     return true;
 }
 
 bool CartesianInterfaceImpl::setTargetPose(const std::string& end_effector, 
-                                           const Eigen::Affine3d& w_T_ref, double time, 
-                                           const Eigen::Vector6d& max_velocity)
+                                           const Eigen::Affine3d& w_T_ref, double time)
 {
     auto task = get_task(end_effector);
     
     if(!task || task->state == State::Reaching)
     {
+        XBot::Logger::error("Unable to set target pose. Task is in already in REACHING mode \n");
+        return false;
+    }
+    
+    if(task->control_type != ControlType::Position)
+    {
+        XBot::Logger::error("Unable to set pose reference. Task is in NOT in position mode \n");
         return false;
     }
     
@@ -121,20 +131,26 @@ bool CartesianInterfaceImpl::setTargetPose(const std::string& end_effector,
     task->trajectory->clear();
     task->trajectory->addWayPoint(get_current_time(), task->T);
     task->trajectory->addWayPoint(get_current_time() + time, w_T_ref);
-    task->trajectory->setVelocityLimit(max_velocity);
+
     
     return true;
 }
 
 bool CartesianInterfaceImpl::setTargetPosition(const std::string& end_effector, 
                                                const Eigen::Vector3d& w_pos_ref, 
-                                               double time, 
-                                               const Eigen::Vector3d& max_velocity)
+                                               double time)
 {
     auto task = get_task(end_effector);
     
     if(!task || task->state == State::Reaching)
     {
+        XBot::Logger::error("Unable to set target pose. Task is in already in REACHING mode \n");
+        return false;
+    }
+    
+    if(task->control_type != ControlType::Position)
+    {
+        XBot::Logger::error("Unable to set pose reference. Task is in NOT in position mode \n");
         return false;
     }
 
@@ -145,11 +161,7 @@ bool CartesianInterfaceImpl::setTargetPosition(const std::string& end_effector,
     task->trajectory->clear();
     task->trajectory->addWayPoint(get_current_time(), task->T);
     task->trajectory->addWayPoint(get_current_time() + time, w_T_ref);
-    
-    Eigen::Vector6d vmax;
-    vmax.setConstant(1.0);
-    vmax.tail<3>() = max_velocity;
-    task->trajectory->setVelocityLimit(vmax);
+
     
     return true;
 }
@@ -320,7 +332,7 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
 
 bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_com_ref, 
                                                      const Eigen::Vector3d& w_vel_ref, 
-                                                     const Eigen::Vector3d& w_acc_ref, CartesianInterface::ControlType control_type)
+                                                     const Eigen::Vector3d& w_acc_ref)
 {
     throw std::runtime_error("unsupported function");
 }
@@ -328,23 +340,20 @@ bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_co
 bool CartesianInterfaceImpl::setPositionReference(const std::string& end_effector, 
                                                   const Eigen::Vector3d& w_pos_ref,
                                                   const Eigen::Vector3d& w_vel_ref, 
-                                                  const Eigen::Vector3d& w_acc_ref, 
-                                                  CartesianInterface::ControlType control_type)
+                                                  const Eigen::Vector3d& w_acc_ref)
 {
     throw std::runtime_error("unsupported function");
 }
 
 bool CartesianInterfaceImpl::setTargetComPosition(const Eigen::Vector3d& w_com_ref, 
-                                                  double time,
-                                                  const Eigen::Vector3d& max_velocity)
+                                                  double time)
 {
     throw std::runtime_error("unsupported function");
 }
 
 bool CartesianInterfaceImpl::setTargetOrientation(const std::string& end_effector, 
                                                   const Eigen::Vector3d& w_pos_ref,
-                                                  double time, 
-                                                  const Eigen::Vector3d& max_velocity)
+                                                  double time)
 {
     throw std::runtime_error("unsupported function");
 }
@@ -352,8 +361,7 @@ bool CartesianInterfaceImpl::setTargetOrientation(const std::string& end_effecto
 bool CartesianInterfaceImpl::setTargetOrientation(const std::string& end_effector, 
                                                   const std::string& base_frame, 
                                                   const Eigen::Matrix3d& base_R_ref, 
-                                                  double time, 
-                                                  const Eigen::Vector3d& max_velocity)
+                                                  double time)
 {
     throw std::runtime_error("unsupported function");
 }
@@ -385,11 +393,69 @@ bool CartesianInterfaceImpl::getCurrentPose(const std::string& end_effector, Eig
     
 }
 
+const std::string& CartesianInterfaceImpl::getBaseLink(const std::string& ee_name) const
+{
+    auto task = get_task(ee_name);
+    
+    if(!task)
+    {
+        throw std::invalid_argument("Undefined end effector");
+    }
+    
+    return task->base_frame;
+}
+
+CartesianInterface::ControlType CartesianInterfaceImpl::getControlMode(const std::string& ee_name) const
+{
+    auto task = get_task(ee_name);
+    
+    if(!task)
+    {
+        XBot::Logger::error("Undefined end effector \n");
+        return ControlType::Disabled;
+    }
+    
+    return task->control_type;
+}
 
 
+bool CartesianInterfaceImpl::setControlMode(const std::string& ee_name, CartesianInterface::ControlType ctrl_type)
+{
+    auto task = get_task(ee_name);
+    
+    if(!task)
+    {
+        XBot::Logger::error("Undefined end effector \n");
+        return false;
+    }
+    
+    task->control_type = ctrl_type;
+    
+    if(task->base_frame == "world")
+    {
+        _model->getPose(task->distal_frame, task->T);
+    }
+    else
+    {
+        _model->getPose(task->base_frame, task->distal_frame, task->T);
+    }
+
+    return true;
+}
 
 
-
+CartesianInterface::State CartesianInterfaceImpl::getTaskState(const std::string& end_effector) const
+{
+    auto task = get_task(end_effector);
+    
+    if(!task)
+    {
+        XBot::Logger::error("Undefined end effector \n");
+        return CartesianInterface::State::Online;
+    }
+    
+    return task->state;
+}
 
 
 
