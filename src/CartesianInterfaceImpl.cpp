@@ -351,15 +351,8 @@ bool CartesianInterfaceImpl::setTargetComPosition(const Eigen::Vector3d& w_com_r
     throw std::runtime_error("unsupported function");
 }
 
-bool CartesianInterfaceImpl::setTargetOrientation(const std::string& end_effector, 
-                                                  const Eigen::Vector3d& w_pos_ref,
-                                                  double time)
-{
-    throw std::runtime_error("unsupported function");
-}
 
 bool CartesianInterfaceImpl::setTargetOrientation(const std::string& end_effector, 
-                                                  const std::string& base_frame, 
                                                   const Eigen::Matrix3d& base_R_ref, 
                                                   double time)
 {

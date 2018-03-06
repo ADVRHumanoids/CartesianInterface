@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp
                                         geometry_msgs 
                                         actionlib 
                                         robot_state_publisher 
+                                        message_generation
                                         tf tf_conversions)
 
 include_directories(include 
@@ -43,6 +44,7 @@ add_message_files(
 add_service_files(
   FILES
   TaskList.srv
+  String.srv
 )
 
 # Generate actions in the 'action' folder
