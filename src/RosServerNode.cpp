@@ -8,7 +8,7 @@
 #include <XBotInterface/SoLib.h>
 
 #include <CartesianInterface/ros/RosServerClass.h>
-#include <CartesianInterface/open_sot/OpenSotImpl.h>
+#include <CartesianInterface/ProblemDescription.h>
 
 
 using namespace XBot::Cartesian;
