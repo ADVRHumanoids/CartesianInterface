@@ -39,12 +39,11 @@ add_message_files(
   ReferenceStamped.msg
 )
 
-## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+# Generate services in the 'srv' folder
+add_service_files(
+  FILES
+  TaskList.srv
+)
 
 # Generate actions in the 'action' folder
 add_action_files(
@@ -100,22 +99,28 @@ set(Trajectory_SRC
 
 # libCartesianInterface
 add_library(CartesianInterface SHARED ${CartesianInterface_SRC} 
-                                      ${CartesianInterfaceSOT_SRC} 
                                       ${CartesianInterfaceROS_SRC}
                                       ${Trajectory_SRC}
                                       )
-                                      
 target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES} 
                                                 ${XBotInterface_LIBRARIES}
                                                 ${catkin_LIBRARIES}
                       )
-                      
 add_dependencies(CartesianInterface ${PROJECT_NAME}_generate_messages)
-                      
+
+
+# libCartesianOpenSot
+add_library(CartesianOpenSot SHARED ${CartesianInterfaceSOT_SRC})
+target_link_libraries(CartesianOpenSot PUBLIC ${OpenSoT_LIBRARIES} 
+                                              CartesianInterface
+                      )
+
+
+
 
 # Ros server 
 add_executable(ros_server_node src/RosServerNode.cpp)
-target_link_libraries(ros_server_node CartesianInterface)
+target_link_libraries(ros_server_node CartesianInterface dl)
 
 # Mark executables and/or libraries for installation
 install(TARGETS ros_server_node ros_server_node
@@ -125,6 +130,12 @@ install(TARGETS ros_server_node ros_server_node
 )
 
 install(TARGETS CartesianInterface CartesianInterface
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(TARGETS CartesianOpenSot CartesianOpenSot
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

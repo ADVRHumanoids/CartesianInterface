@@ -24,6 +24,7 @@
 #include <CartesianInterface/CartesianInterface.h>
 #include <CartesianInterface/trajectory/Trajectory.h>
 #include <CartesianInterface/ProblemDescription.h>
+#include <XBotInterface/SoLib.h>
 
 namespace XBot { namespace Cartesian {
 

@@ -34,26 +34,41 @@ class CartesianInterface
 
 public:
 
+    /* Typedefs for shared pointers */
     typedef std::shared_ptr<CartesianInterface> Ptr;
     typedef std::shared_ptr<const CartesianInterface> ConstPtr;
     
+    /**
+     * @brief Enum describing a state for each task. Available states are:
+     *  - State::Online: the task is following an online getPoseReference
+     *  - State::Reacing: the task is performing a point-to-point motion
+     */
     enum class State { Reaching, Online };
+    
+    /**
+     * @brief Enum describing a control mode for each task. Available values are:
+     *  - ControlType::Position: the task is following position references
+     *  - ControlType::Velocity: the task is following velocity references
+     *  - ControlType::Disabled: the task is disabled
+     */
     enum class ControlType { Position, Velocity, Disabled };
     
+    /* CartesianInterface cannot be copied */
     CartesianInterface() = default;
     CartesianInterface(const CartesianInterface& other) = delete;
     CartesianInterface(const CartesianInterface&& other) = delete;
     CartesianInterface& operator=(const CartesianInterface& rhs) = delete;
     CartesianInterface& operator=(const CartesianInterface&& rhs) = delete;
     
-    virtual bool reset() = 0;
     virtual bool update(double time, double period) = 0;
+    
+    virtual bool reset() = 0;
     
     virtual const std::vector<std::string>& getTaskList() const = 0;
     virtual const std::string& getBaseLink(const std::string& ee_name) const = 0;
-    
     virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type) = 0;
     virtual ControlType getControlMode(const std::string& ee_name) const = 0;
+    virtual State getTaskState(const std::string& end_effector) const = 0;
     
     /* Point-to-point control */
     
@@ -112,7 +127,7 @@ public:
     virtual bool getPoseTarget(const std::string& end_effector, 
                        Eigen::Affine3d& base_T_ref) const = 0;
                        
-    virtual State getTaskState(const std::string& end_effector) const = 0;
+    
     
     
     virtual ~CartesianInterface(){}

@@ -3,6 +3,19 @@
 #include <OpenSoT/constraints/velocity/JointLimits.h>
 #include <OpenSoT/constraints/velocity/VelocityLimits.h>
 
+
+
+extern "C" XBot::Cartesian::CartesianInterface* create_instance(XBot::ModelInterface::Ptr model,
+                                                                XBot::Cartesian::ProblemDescription pb) 
+{ 
+    return new XBot::Cartesian::OpenSotImpl(model, pb);
+}
+
+extern "C" void destroy_instance( XBot::Cartesian::CartesianInterface* instance ) 
+{ 
+    delete instance; 
+}
+
 OpenSoT::tasks::Aggregated::Ptr XBot::Cartesian::OpenSotImpl::aggregated_from_stack(XBot::Cartesian::AggregatedTask stack)
 {
     std::list<OpenSoT::tasks::Aggregated::TaskPtr> tasks_list;
