@@ -16,6 +16,31 @@ void RosServerClass::__generate_state_broadcasting()
 }
 
 
+void RosServerClass::__generate_rspub()
+{
+    KDL::Tree kdl_tree;
+    kdl_parser::treeFromUrdfModel(_model->getUrdf(), kdl_tree);
+
+    _rspub.reset(new robot_state_publisher::RobotStatePublisher(kdl_tree));
+    
+    std::string _urdf_param_name = "/xbotcore/" + _model->getUrdf().getName() + "/robot_description";
+    std::string _tf_prefix = "/xbotcore/" + _model->getUrdf().getName();
+    _nh.setParam(_urdf_param_name, _model->getUrdfString());
+    _nh.setParam("/robot_description", _model->getUrdfString());
+}
+
+void RosServerClass::publish_ref_tf()
+{
+    /* Publish TF */
+    XBot::JointNameMap _joint_name_map;
+    _model->getJointPosition(_joint_name_map);
+    std::map<std::string, double> _joint_name_std_map(_joint_name_map.begin(), _joint_name_map.end());
+
+    _rspub->publishTransforms(_joint_name_std_map, ros::Time::now(), "ci");
+    _rspub->publishFixedTransforms("ci");
+}
+
+
 
 void RosServerClass::online_position_reference_cb(const geometry_msgs::PoseStampedConstPtr& msg, 
                                                   const std::string& ee_name)
@@ -168,17 +193,42 @@ void RosServerClass::run()
     manage_reach_actions();
     
     publish_state();
+    
+    publish_ref_tf();
+    publish_world_tf();
+    
 }
 
-RosServerClass::RosServerClass(CartesianInterface::Ptr intfc):
-    _cartesian_interface(intfc)
+RosServerClass::RosServerClass(CartesianInterface::Ptr intfc, ModelInterface::ConstPtr model):
+    _cartesian_interface(intfc),
+    _model(model)
 {
     __generate_online_pos_topics();
     __generate_reach_pose_action_servers();
     __generate_state_broadcasting();
     __generate_toggle_pos_mode_services();
     __generate_toggle_task_services();
+    __generate_rspub();
+    
+    _marker_thread = std::make_shared<std::thread>(&RosServerClass::__generate_markers, this);
 }
+
+void RosServerClass::publish_world_tf()
+{
+    /* Publish world odom */
+    Eigen::Affine3d w_T_pelvis;
+    _model->getFloatingBasePose(w_T_pelvis);
+    tf::Transform transform;
+    tf::transformEigenToTF(w_T_pelvis, transform);
+    std::string fb_link;
+    _model->getFloatingBaseLink(fb_link);
+    
+    _tf_broadcaster.sendTransform(tf::StampedTransform(transform.inverse(), 
+                                                       ros::Time::now(), 
+                                                       "ci/"+fb_link, 
+                                                       "ci/world_odom"));
+}
+
 
 geometry_msgs::Pose RosServerClass::get_normalized_pose(const geometry_msgs::Pose& pose)
 {
@@ -272,4 +322,24 @@ bool RosServerClass::toggle_task_cb(std_srvs::SetBoolRequest& req,
     return true;
 }
 
+void RosServerClass::__generate_markers()
+{
+    
+    for(std::string ee_name : _cartesian_interface->getTaskList())
+    {
+        std::string base_link = _cartesian_interface->getBaseLink(ee_name);
+        base_link = base_link == "world" ? "world_odom" : base_link;
+        _markers.emplace_back( new CartesianMarker(base_link, 
+                                                   ee_name, 
+                                                   static_cast<const urdf::Model&>(_model->getUrdf()), 
+                                                   "ci/"
+                                                  )
+                              );
+    }
+}
+
+RosServerClass::~RosServerClass()
+{
+    _marker_thread->join();
+}
 

@@ -11,9 +11,14 @@
 #include <std_srvs/SetBool.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <robot_state_publisher/robot_state_publisher.h>
+#include <tf/transform_broadcaster.h>
+#include <tf_conversions/tf_eigen.h>
 #include <cartesian_interface/ReferenceStamped.h>
 
 #include <CartesianInterface/CartesianInterface.h>
+#include <CartesianInterface/markers/CartesianMarker.h>
+#include <thread>
 
 namespace XBot { namespace Cartesian {
     
@@ -27,7 +32,8 @@ namespace XBot { namespace Cartesian {
         
     public:
         
-        RosServerClass(CartesianInterface::Ptr intfc);
+        RosServerClass(CartesianInterface::Ptr intfc, 
+                       ModelInterface::ConstPtr model);
         
         /**
          * @brief This method processes callbacks (it internally calls spinOnce) and
@@ -35,6 +41,8 @@ namespace XBot { namespace Cartesian {
          * @return void
          */
         void run();
+        
+        ~RosServerClass();
         
     private:
         
@@ -48,9 +56,13 @@ namespace XBot { namespace Cartesian {
         void __generate_toggle_pos_mode_services();
         void __generate_toggle_task_services();
         void __generate_reset_service();
+        void __generate_rspub();
+        void __generate_markers();
         
         void manage_reach_actions();
         void publish_state();
+        void publish_ref_tf();
+        void publish_world_tf();
         static geometry_msgs::Pose get_normalized_pose(const geometry_msgs::Pose& pose);
         
         void online_position_reference_cb(const geometry_msgs::PoseStampedConstPtr& msg, 
@@ -72,6 +84,10 @@ namespace XBot { namespace Cartesian {
         
         
         CartesianInterface::Ptr _cartesian_interface;
+        ModelInterface::ConstPtr _model;
+        tf::TransformBroadcaster _tf_broadcaster;
+        std::unique_ptr<robot_state_publisher::RobotStatePublisher> _rspub;
+        
         
         ros::NodeHandle _nh;
         
@@ -80,9 +96,10 @@ namespace XBot { namespace Cartesian {
         std::vector<ros::Subscriber> _pos_sub, _vel_sub;
         std::vector<ros::Publisher> _state_pub;
         std::vector<ros::ServiceServer> _toggle_pos_mode_srv, _toggle_task_srv;
+        std::vector<CartesianMarker::Ptr> _markers;
         ros::ServiceServer _reset_srv;
         
-        
+        std::shared_ptr<std::thread> _marker_thread;
         
     };
     
