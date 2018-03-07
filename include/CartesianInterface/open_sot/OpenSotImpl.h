@@ -28,12 +28,16 @@ protected:
     
 private:
     
+    typedef OpenSoT::tasks::velocity::Cartesian CartesianTask;
+    
+    void set_adaptive_lambda(CartesianTask::Ptr cartesian_task);
+    
     OpenSoT::tasks::Aggregated::Ptr aggregated_from_stack(AggregatedTask stack);
     OpenSoT::constraints::Aggregated::ConstraintPtr constraint_from_description(ConstraintDescription::Ptr constr_desc);
     
     Eigen::VectorXd _q, _dq, _ddq;
     
-    std::vector<OpenSoT::tasks::velocity::Cartesian::Ptr> _cartesian_tasks;
+    std::vector<CartesianTask::Ptr> _cartesian_tasks;
     
     OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr _solver;
     OpenSoT::AutoStack::Ptr _autostack;
