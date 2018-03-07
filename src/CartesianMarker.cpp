@@ -112,7 +112,7 @@ void CartesianMarker::MarkerFeedback(const visualization_msgs::InteractiveMarker
     double qx,qy,qz,qw;
     _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
 
-    std::cout<<"_actual_pose: \n ["<<_actual_pose.p.x()<<" "<<_actual_pose.p.y()<<" "<<_actual_pose.p.z()<<"]"<<std::endl;
+    std::cout<<_int_marker.name<<" _actual_pose: \n ["<<_actual_pose.p.x()<<" "<<_actual_pose.p.y()<<" "<<_actual_pose.p.z()<<"]"<<std::endl;
     std::cout<<"["<<qx<<" "<<qy<<" "<<qz<<" "<<qw<<"]"<<std::endl;
 }
 
