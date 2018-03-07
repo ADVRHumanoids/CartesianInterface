@@ -44,7 +44,9 @@ add_message_files(
 add_service_files(
   FILES
   TaskList.srv
-  String.srv
+  GetControlMode.srv
+  SetControlMode.srv
+  GetTaskState.srv
 )
 
 # Generate actions in the 'action' folder
