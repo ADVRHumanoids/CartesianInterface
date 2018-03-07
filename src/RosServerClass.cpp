@@ -183,6 +183,12 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc):
 geometry_msgs::Pose RosServerClass::get_normalized_pose(const geometry_msgs::Pose& pose)
 {
     Eigen::Vector4d coeff(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
+    
+    if(coeff.squaredNorm() == 0)
+    {
+        coeff[0] = 1.0;
+    }
+    
     coeff /= coeff.norm();
     
     geometry_msgs::Pose norm_pose = pose;
