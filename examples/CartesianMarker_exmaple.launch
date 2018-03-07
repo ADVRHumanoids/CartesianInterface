@@ -1,0 +1,29 @@
+<launch>
+<arg name="gui" default="true" />
+
+<!-- send the coman robot XML to param server -->
+ <param name="robot_description" command="$(find xacro)/xacro.py '$(find coman_urdf)/urdf/coman.urdf'" />
+ <param name="robot_description_semantic" textfile="$(find coman_srdf)/srdf/coman.srdf" />   
+ <param name="use_gui" value="$(arg gui)"/>
+ <param name="rate" value="50.0"/>
+     
+        
+     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+     <param name="publish_default_efforts" value="True"/>
+     </node>
+
+<!-- start robot state publisher -->
+<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" >
+ <param name="publish_frequency" type="double" value="250.0" />
+</node>
+
+<arg name="base_link" value="DWYTorso" />
+<arg name="distal_link" value="LSoftHand" />
+
+<!-- CartesianMarker_example nodes -->
+<node pkg="cartesian_interface" type="Cartesian_marker_node" name="CartesianMarker_example" output="screen">
+  <param name="base_link" value="$(arg base_link)" />
+  <param name="distal_link" value="$(arg distal_link)" />
+</node>
+
+</launch>
