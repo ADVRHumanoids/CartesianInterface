@@ -69,13 +69,14 @@ namespace XBot { namespace Cartesian {
             
     private:
         
+        
         typedef actionlib::SimpleActionClient<cartesian_interface::ReachPoseAction> ActionClient;
         std::vector<ActionClient> _action_client;
         
         std::vector<ros::Publisher> _pose_ref_pub;
         std::vector<ros::Subscriber> _pose_ref_sub;
         std::vector<ros::Subscriber> _pose_state_sub;
-        std::vector<ros::ServiceClient> _ctrl_mode_srv;
+        ros::ServiceClient _get_ctrl_mode_srv, _task_state_srv;
         
     };
 
