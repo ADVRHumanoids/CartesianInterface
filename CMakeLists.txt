@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp
                                         actionlib 
                                         robot_state_publisher 
                                         message_generation
+					interactive_markers
                                         tf tf_conversions)
 
 include_directories(include 
@@ -101,10 +102,15 @@ set(Trajectory_SRC
         src/Trajectory.cpp
     )
 
+set(CartesianMarker_SRC
+        src/CartesianMarker.cpp
+    )
+
 # libCartesianInterface
 add_library(CartesianInterface SHARED ${CartesianInterface_SRC} 
                                       ${CartesianInterfaceROS_SRC}
                                       ${Trajectory_SRC}
+                                      ${CartesianMarker_SRC}
                                       )
 target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES} 
                                                 ${XBotInterface_LIBRARIES}
@@ -158,6 +164,8 @@ install(DIRECTORY include/CartesianInterface/
 #   # myfile2
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
+
+add_subdirectory(examples)
 
 #######################
 # Add Testing target  #
