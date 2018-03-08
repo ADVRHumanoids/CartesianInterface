@@ -13,7 +13,21 @@ public:
     CartesianMarker(const std::string& base_link, const std::string& distal_link,
                     const urdf::Model& robot_urdf);
     ~CartesianMarker();
+
+    /**
+     * @brief clearMarker will remove the marker from the server
+     * @param req
+     * @param res
+     * @return true
+     */
     bool clearMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
+    /**
+     * @brief spawnMarker will spawn the marker (if was cleared) in the actual pose of distal_link
+     * @param req
+     * @param res
+     * @return true
+     */
     bool spawnMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
 private:
