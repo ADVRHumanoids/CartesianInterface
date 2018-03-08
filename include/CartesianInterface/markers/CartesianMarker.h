@@ -6,12 +6,15 @@
 #include <urdf/model.h>
 #include <kdl_conversions/kdl_msg.h>
 #include <tf/transform_listener.h>
+#include <std_srvs/Empty.h>
 
 class CartesianMarker{
 public:
     CartesianMarker(const std::string& base_link, const std::string& distal_link,
                     const urdf::Model& robot_urdf);
     ~CartesianMarker();
+    bool clearMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+    bool spawnMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
 private:
     /**
@@ -62,6 +65,10 @@ private:
 
     tf::TransformListener _listener;
     tf::StampedTransform _transform;
+
+    ros::ServiceServer _clear_service;
+    ros::ServiceServer _spawn_service;
+
 
     /**
      * @brief MakeMarker

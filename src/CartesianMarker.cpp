@@ -17,11 +17,38 @@ CartesianMarker::CartesianMarker(const std::__cxx11::string &base_link,
                true);
 
     _server.applyChanges();
+
+    _clear_service = _nh.advertiseService("clear_"+_int_marker.name, &CartesianMarker::clearMarker, this);
+    _spawn_service = _nh.advertiseService("spawn_"+_int_marker.name, &CartesianMarker::spawnMarker, this);
+
 }
 
 CartesianMarker::~CartesianMarker()
 {
 
+}
+
+bool CartesianMarker::spawnMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+{
+    if(_server.empty())
+    {
+        _start_pose = getRobotActualPose();
+        MakeMarker(_distal_link, _base_link, false,
+                   visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D,
+                   true);
+        _server.applyChanges();
+    }
+    return true;
+}
+
+bool CartesianMarker::clearMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+{
+    if(!_server.empty())
+    {
+        _server.clear();
+        _server.applyChanges();
+    }
+    return true;
 }
 
 void CartesianMarker::MakeMarker(const std::__cxx11::string &distal_link, const std::__cxx11::string &base_link,
