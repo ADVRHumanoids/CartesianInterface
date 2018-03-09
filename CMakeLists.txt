@@ -11,15 +11,15 @@ find_package(catkin REQUIRED COMPONENTS roscpp
                                         geometry_msgs 
                                         actionlib 
                                         robot_state_publisher 
+                                        message_generation
+                                        interactive_markers
                                         tf tf_conversions)
-FIND_PACKAGE(interactive_markers REQUIRED)
 
 include_directories(include 
                     ${OpenSoT_INCLUDE_DIRS} 
                     ${XBotInterface_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
-                    ${interactive_markers_LIBRARIES}
                     )
 
                     
@@ -42,10 +42,13 @@ add_message_files(
 )
 
 # Generate services in the 'srv' folder
-#add_service_files(
-#  FILES
-#  TaskList.srv
-#)
+add_service_files(
+  FILES
+  TaskList.srv
+  GetControlMode.srv
+  SetControlMode.srv
+  GetTaskState.srv
+)
 
 # Generate actions in the 'action' folder
 add_action_files(
@@ -92,6 +95,7 @@ set(CartesianInterfaceSOT_SRC
 set(CartesianInterfaceROS_SRC 
         src/RosImpl.cpp
         src/RosServerClass.cpp
+        src/CartesianMarker.cpp
     )
                 
 # Trajectory
@@ -99,20 +103,14 @@ set(Trajectory_SRC
         src/Trajectory.cpp
     )
 
-set(CartesianMarker_SRC
-        src/CartesianMarker.cpp
-    )
-
 # libCartesianInterface
 add_library(CartesianInterface SHARED ${CartesianInterface_SRC} 
                                       ${CartesianInterfaceROS_SRC}
                                       ${Trajectory_SRC}
-                                      ${CartesianMarker_SRC}
                                       )
 target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES} 
                                                 ${XBotInterface_LIBRARIES}
                                                 ${catkin_LIBRARIES}
-                                                ${interactive_markers_LIBRARIES}
                       )
 add_dependencies(CartesianInterface ${PROJECT_NAME}_generate_messages)
 
@@ -130,30 +128,32 @@ target_link_libraries(CartesianOpenSot PUBLIC ${OpenSoT_LIBRARIES}
 add_executable(ros_server_node src/RosServerNode.cpp)
 target_link_libraries(ros_server_node CartesianInterface dl)
 
+add_subdirectory(examples)
+
 # Mark executables and/or libraries for installation
 install(TARGETS ros_server_node ros_server_node
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 install(TARGETS CartesianInterface CartesianInterface
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 install(TARGETS CartesianOpenSot CartesianOpenSot
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 # Mark cpp header files for installation
 install(DIRECTORY include/CartesianInterface/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.h"
-  PATTERN ".svn" EXCLUDE
+    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+    FILES_MATCHING PATTERN "*.h"
+    PATTERN ".svn" EXCLUDE
 )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
@@ -163,7 +163,6 @@ install(DIRECTORY include/CartesianInterface/
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
 
-add_subdirectory(examples)
 
 #######################
 # Add Testing target  #

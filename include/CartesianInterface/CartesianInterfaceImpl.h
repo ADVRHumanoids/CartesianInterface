@@ -74,12 +74,7 @@ public:
     virtual bool setTargetComPosition(const Eigen::Vector3d& base_com_ref, double time = 0);
 
     virtual bool setTargetOrientation(const std::string& end_effector, 
-                                    const std::string& base_frame, 
                                     const Eigen::Matrix3d& base_R_ref, 
-                                    double time = 0);
-
-    virtual bool setTargetOrientation(const std::string& end_effector, 
-                                    const Eigen::Vector3d& base_pos_ref, 
                                     double time = 0);
 
     virtual bool setTargetPose(const std::string& end_effector, 

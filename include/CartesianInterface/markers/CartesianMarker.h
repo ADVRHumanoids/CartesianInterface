@@ -9,10 +9,19 @@
 #include <tf/transform_listener.h>
 #include <std_srvs/Empty.h>
 
+namespace XBot { namespace Cartesian {
+
 class CartesianMarker{
+    
 public:
-    CartesianMarker(const std::string& base_link, const std::string& distal_link,
-                    const urdf::Model& robot_urdf);
+    
+    typedef std::shared_ptr<CartesianMarker> Ptr;
+    
+    CartesianMarker(const std::string& base_link, 
+                    const std::string& distal_link,
+                    const urdf::Model& robot_urdf,
+                    std::string tf_prefix = "");
+    
     ~CartesianMarker();
 
     /**
@@ -46,6 +55,9 @@ private:
      */
     KDL::Frame _start_pose;
     KDL::Frame _actual_pose;
+    
+    std::string _tf_prefix;
+    
     /**
      * @brief _base_link used by the marker
      */
@@ -90,6 +102,8 @@ private:
 
     tf::TransformListener _listener;
     tf::StampedTransform _transform;
+    
+    ros::Publisher _ref_pose_pub;
 
     ros::ServiceServer _clear_service;
     ros::ServiceServer _spawn_service;
@@ -137,5 +151,7 @@ private:
 
     void setControlGlobalLocal(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 };
+
+} }
 
 #endif

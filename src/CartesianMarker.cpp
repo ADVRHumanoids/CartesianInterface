@@ -1,19 +1,22 @@
 #include <CartesianInterface/markers/CartesianMarker.h>
 
+using namespace XBot::Cartesian;
 
-CartesianMarker::CartesianMarker(const std::__cxx11::string &base_link,
-                                 const std::__cxx11::string &distal_link,
-                                 const urdf::Model &robot_urdf):
+CartesianMarker::CartesianMarker(const std::string &base_link,
+                                 const std::string &distal_link,
+                                 const urdf::Model &robot_urdf,
+                                 std::string tf_prefix
+                                ):
     _nh("~"),
     _base_link(base_link),
     _distal_link(distal_link),
     _urdf(robot_urdf),
     _server(_base_link + "_Cartesian_marker_server"),
+    _tf_prefix(tf_prefix),
     _menu_entry_counter(0),
     _control_type(1)
 {
     _start_pose = getRobotActualPose();
-    _actual_pose = _start_pose;
 
     MakeMarker(_distal_link, _base_link, false,
                visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D,
@@ -27,6 +30,9 @@ CartesianMarker::CartesianMarker(const std::__cxx11::string &base_link,
     _spawn_service = _nh.advertiseService("spawn_"+_int_marker.name, &CartesianMarker::spawnMarker, this);
 //    _global_service = _nh.advertiseService("setGlobal_"+_int_marker.name, &CartesianMarker::setGlobal, this);
 //    _local_service = _nh.advertiseService("setLocal_"+_int_marker.name, &CartesianMarker::setLocal, this);
+
+    std::string topic_name = "/xbotcore/cartesian/" + distal_link + "/reference";
+    _ref_pose_pub = _nh.advertise<geometry_msgs::PoseStamped>(topic_name, 1);
 
 }
 
@@ -140,10 +146,10 @@ bool CartesianMarker::clearMarker(std_srvs::Empty::Request& req, std_srvs::Empty
     return true;
 }
 
-void CartesianMarker::MakeMarker(const std::__cxx11::string &distal_link, const std::__cxx11::string &base_link,
+void CartesianMarker::MakeMarker(const std::string &distal_link, const std::string &base_link,
                             bool fixed, unsigned int interaction_mode, bool show_6dof)
 {
-    _int_marker.header.frame_id = base_link;
+    _int_marker.header.frame_id = _tf_prefix+base_link;
     _int_marker.scale = 0.2;
 
     _int_marker.name = distal_link;
@@ -221,6 +227,7 @@ void CartesianMarker::MakeMarker(const std::__cxx11::string &distal_link, const 
 
 void CartesianMarker::MarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
+    
     //In base_link
     tf::poseMsgToKDL(feedback->pose, _actual_pose);
     double qx,qy,qz,qw;
@@ -228,6 +235,13 @@ void CartesianMarker::MarkerFeedback(const visualization_msgs::InteractiveMarker
 
     std::cout<<_int_marker.name<<" _actual_pose: \n ["<<_actual_pose.p.x()<<" "<<_actual_pose.p.y()<<" "<<_actual_pose.p.z()<<"]"<<std::endl;
     std::cout<<"["<<qx<<" "<<qy<<" "<<qz<<" "<<qw<<"]"<<std::endl;
+    
+    geometry_msgs::PoseStamped msg;
+    msg.pose = feedback->pose;
+    msg.header = feedback->header;
+    
+    _ref_pose_pub.publish(msg);
+    
 }
 
 visualization_msgs::InteractiveMarkerControl& CartesianMarker::makeSTLControl(visualization_msgs::InteractiveMarker &msg )
@@ -298,10 +312,11 @@ KDL::Frame CartesianMarker::getRobotActualPose()
     for(unsigned int i = 0; i < 10; ++i){
     try{
         ros::Time now = ros::Time::now();
-        _listener.waitForTransform(_base_link, _distal_link,now,ros::Duration(1.0));
+        _listener.waitForTransform(_tf_prefix+_base_link,
+                                   _tf_prefix+_distal_link,ros::Time(0),ros::Duration(1.0));
 
-        _listener.lookupTransform(_base_link, _distal_link,
-            ros::Time(), _transform);
+        _listener.lookupTransform(_tf_prefix+_base_link, _tf_prefix+_distal_link,
+            ros::Time(0), _transform);
     }
     catch (tf::TransformException ex){
         ROS_ERROR("%s",ex.what());
@@ -326,10 +341,10 @@ KDL::Frame CartesianMarker::getPose(const std::string& base_link, const std::str
     for(unsigned int i = 0; i < 10; ++i){
     try{
         ros::Time now = ros::Time::now();
-        _listener.waitForTransform(base_link, distal_link,now,ros::Duration(1.0));
+        _listener.waitForTransform(_tf_prefix+base_link, _tf_prefix+distal_link,ros::Time(0),ros::Duration(1.0));
 
-        _listener.lookupTransform(base_link, distal_link,
-            ros::Time(), _transform);
+        _listener.lookupTransform(_tf_prefix+base_link, _tf_prefix+distal_link,
+            ros::Time(0), _transform);
     }
     catch (tf::TransformException ex){
         ROS_ERROR("%s",ex.what());

@@ -179,6 +179,7 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
         
         cart_task->setActive(true);
         cart_task->setReference(T_ref.matrix(), v_ref);
+        
     }
     
     _autostack->update(_q);
@@ -209,4 +210,14 @@ XBot::Cartesian::OpenSotImpl::~OpenSotImpl()
     _logger->flush();
 }
 
+void XBot::Cartesian::OpenSotImpl::set_adaptive_lambda(OpenSoT::tasks::velocity::Cartesian::Ptr cartesian_task)
+{
+    Eigen::Vector6d error = cartesian_task->getError();
+    const double e_0 = 0.02;
+    const double lambda =  1.0/(1 + std::pow(error.norm() / e_0, 2.0));
+    
+    std::cout << cartesian_task->getDistalLink() << ": " << lambda << std::endl;
+    
+    cartesian_task->setLambda(lambda);
+}
 
