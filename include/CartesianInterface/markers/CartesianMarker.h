@@ -30,6 +30,10 @@ public:
      */
     bool spawnMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
+    bool setGlobal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
+    bool setLocal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
 private:
     /**
      * @brief _nh
@@ -82,6 +86,8 @@ private:
 
     ros::ServiceServer _clear_service;
     ros::ServiceServer _spawn_service;
+    ros::ServiceServer _global_service;
+    ros::ServiceServer _local_service;
 
 
     /**

@@ -20,6 +20,8 @@ CartesianMarker::CartesianMarker(const std::__cxx11::string &base_link,
 
     _clear_service = _nh.advertiseService("clear_"+_int_marker.name, &CartesianMarker::clearMarker, this);
     _spawn_service = _nh.advertiseService("spawn_"+_int_marker.name, &CartesianMarker::spawnMarker, this);
+    _global_service = _nh.advertiseService("setGlobal_"+_int_marker.name, &CartesianMarker::setGlobal, this);
+    _local_service = _nh.advertiseService("setLocal_"+_int_marker.name, &CartesianMarker::setLocal, this);
 
 }
 
@@ -28,14 +30,55 @@ CartesianMarker::~CartesianMarker()
 
 }
 
+bool CartesianMarker::setGlobal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+{
+    _int_marker.pose.position.x = _actual_pose.p.x();
+    _int_marker.pose.position.y = _actual_pose.p.y();
+    _int_marker.pose.position.z = _actual_pose.p.z();
+    double qx,qy,qz,qw; _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
+    _int_marker.pose.orientation.x = qx;
+    _int_marker.pose.orientation.y = qy;
+    _int_marker.pose.orientation.z = qz;
+    _int_marker.pose.orientation.w = qw;
+    for(unsigned int i = 1; i < _int_marker.controls.size(); ++i)
+        _int_marker.controls[i].orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
+    _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback), this, _1));
+    _server.applyChanges();
+    return true;
+}
+
+bool CartesianMarker::setLocal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+{
+    _int_marker.pose.position.x = _actual_pose.p.x();
+    _int_marker.pose.position.y = _actual_pose.p.y();
+    _int_marker.pose.position.z = _actual_pose.p.z();
+    double qx,qy,qz,qw; _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
+    _int_marker.pose.orientation.x = qx;
+    _int_marker.pose.orientation.y = qy;
+    _int_marker.pose.orientation.z = qz;
+    _int_marker.pose.orientation.w = qw;
+    for(unsigned int i = 1; i < _int_marker.controls.size(); ++i)
+        _int_marker.controls[i].orientation_mode = visualization_msgs::InteractiveMarkerControl::INHERIT;
+    _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback), this, _1));
+    _server.applyChanges();
+    return true;
+}
+
 bool CartesianMarker::spawnMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
     if(_server.empty())
     {
         _start_pose = getRobotActualPose();
-        MakeMarker(_distal_link, _base_link, false,
-                   visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D,
-                   true);
+        _int_marker.pose.position.x = _start_pose.p.x();
+        _int_marker.pose.position.y = _start_pose.p.y();
+        _int_marker.pose.position.z = _start_pose.p.z();
+        double qx,qy,qz,qw; _start_pose.M.GetQuaternion(qx,qy,qz,qw);
+        _int_marker.pose.orientation.x = qx;
+        _int_marker.pose.orientation.y = qy;
+        _int_marker.pose.orientation.z = qz;
+        _int_marker.pose.orientation.w = qw;
+
+        _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
         _server.applyChanges();
     }
     return true;
@@ -45,7 +88,7 @@ bool CartesianMarker::clearMarker(std_srvs::Empty::Request& req, std_srvs::Empty
 {
     if(!_server.empty())
     {
-        _server.clear();
+        _server.erase(_int_marker.name);
         _server.applyChanges();
     }
     return true;
@@ -127,9 +170,7 @@ void CartesianMarker::MakeMarker(const std::__cxx11::string &distal_link, const 
     _int_marker.pose.orientation.z = qz;
     _int_marker.pose.orientation.w = qw;
 
-    _server.insert(_int_marker,
-                  boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),
-                              this, _1));
+    _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
 }
 
 void CartesianMarker::MarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
