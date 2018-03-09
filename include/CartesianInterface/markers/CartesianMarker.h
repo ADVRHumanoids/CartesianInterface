@@ -2,6 +2,7 @@
 #define _CARTESIAN_MARKER_H_
 
 #include <interactive_markers/interactive_marker_server.h>
+#include <interactive_markers/menu_handler.h>
 #include <ros/ros.h>
 #include <urdf/model.h>
 #include <kdl_conversions/kdl_msg.h>
@@ -81,13 +82,19 @@ private:
      */
     visualization_msgs::Marker _marker;
 
+    interactive_markers::MenuHandler _menu_handler;
+    interactive_markers::MenuHandler::EntryHandle _global_control_entry;
+    visualization_msgs::InteractiveMarkerControl  _menu_control;
+    int _control_type;
+    int _menu_entry_counter;
+
     tf::TransformListener _listener;
     tf::StampedTransform _transform;
 
     ros::ServiceServer _clear_service;
     ros::ServiceServer _spawn_service;
-    ros::ServiceServer _global_service;
-    ros::ServiceServer _local_service;
+//    ros::ServiceServer _global_service;
+//    ros::ServiceServer _local_service;
 
 
     /**
@@ -125,6 +132,10 @@ private:
     KDL::Frame getPose(const std::string& base_link, const std::string& distal_link);
 
     void MarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void MakeMenu();
+
+    void setControlGlobalLocal(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 };
 
 #endif
