@@ -19,20 +19,41 @@ int main(int argc, char **argv){
     ros::init(argc, argv, "xbot_cartesian_server");
     ros::NodeHandle nh;
     
+    XBot::RobotInterface::Ptr robot;
+    
+    std::string param_name = "/xbotcore/cartesian/visual_mode";
+    bool visual_mode = false;
+    
+    if(nh.hasParam(param_name))
+    {
+        nh.getParam(param_name, visual_mode);
+    }
+    
+    if(!visual_mode)
+    {
+        auto robot = XBot::RobotInterface::getRobot(XBot::Utils::getXBotConfig());
+        robot->sense();
+    }
+    
     /* Get model, initialize to home */
     auto model = XBot::ModelInterface::getModel(XBot::Utils::getXBotConfig());
     Eigen::VectorXd qhome;
     model->getRobotState("home", qhome);
     model->setJointPosition(qhome);
     model->update();
+    
+    if(robot)
+    {
+        model->syncFrom(*robot, XBot::Sync::Position, XBot::Sync::MotorSide);
+    }
 
     /* Load IK problem and solver */
     auto yaml_file = YAML::LoadFile(XBot::Utils::getXBotConfig());
     ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"]);
+    std::string impl_name = yaml_file["CartesianInterface"]["solver"].as<std::string>();
     
-    
-    auto sot_ik_solver = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterface>("CartesianOpenSot.so", 
-                                                                                        "OpenSotImpl", 
+    auto sot_ik_solver = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterface>("Cartesian" + impl_name + ".so", 
+                                                                                        impl_name + "Impl", 
                                                                                         model, ik_problem);
     
     /* Obtain class to expose ROS API */
