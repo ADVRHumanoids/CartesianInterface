@@ -2,10 +2,12 @@
 #define _CARTESIAN_MARKER_H_
 
 #include <interactive_markers/interactive_marker_server.h>
+#include <interactive_markers/menu_handler.h>
 #include <ros/ros.h>
 #include <urdf/model.h>
 #include <kdl_conversions/kdl_msg.h>
 #include <tf/transform_listener.h>
+#include <std_srvs/Empty.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -21,6 +23,26 @@ public:
                     std::string tf_prefix = "");
     
     ~CartesianMarker();
+
+    /**
+     * @brief clearMarker will remove the marker from the server
+     * @param req
+     * @param res
+     * @return true
+     */
+    bool clearMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
+    /**
+     * @brief spawnMarker will spawn the marker (if was cleared) in the actual pose of distal_link
+     * @param req
+     * @param res
+     * @return true
+     */
+    bool spawnMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
+    bool setGlobal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
+    bool setLocal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
 private:
     /**
@@ -72,10 +94,22 @@ private:
      */
     visualization_msgs::Marker _marker;
 
+    interactive_markers::MenuHandler _menu_handler;
+    interactive_markers::MenuHandler::EntryHandle _global_control_entry;
+    visualization_msgs::InteractiveMarkerControl  _menu_control;
+    int _control_type;
+    int _menu_entry_counter;
+
     tf::TransformListener _listener;
     tf::StampedTransform _transform;
     
     ros::Publisher _ref_pose_pub;
+
+    ros::ServiceServer _clear_service;
+    ros::ServiceServer _spawn_service;
+//    ros::ServiceServer _global_service;
+//    ros::ServiceServer _local_service;
+
 
     /**
      * @brief MakeMarker
@@ -112,6 +146,10 @@ private:
     KDL::Frame getPose(const std::string& base_link, const std::string& distal_link);
 
     void MarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void MakeMenu();
+
+    void setControlGlobalLocal(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 };
 
 } }

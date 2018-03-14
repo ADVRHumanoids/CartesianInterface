@@ -11,8 +11,10 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _base_link(base_link),
     _distal_link(distal_link),
     _urdf(robot_urdf),
-    _server(distal_link + "_Cartesian_marker_server"),
-    _tf_prefix(tf_prefix)
+    _server(_base_link + "_Cartesian_marker_server"),
+    _tf_prefix(tf_prefix),
+    _menu_entry_counter(0),
+    _control_type(1)
 {
     _start_pose = getRobotActualPose();
 
@@ -20,15 +22,128 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
                visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D,
                true);
 
+    MakeMenu();
+
     _server.applyChanges();
-    
+
+    _clear_service = _nh.advertiseService("clear_"+_int_marker.name, &CartesianMarker::clearMarker, this);
+    _spawn_service = _nh.advertiseService("spawn_"+_int_marker.name, &CartesianMarker::spawnMarker, this);
+//    _global_service = _nh.advertiseService("setGlobal_"+_int_marker.name, &CartesianMarker::setGlobal, this);
+//    _local_service = _nh.advertiseService("setLocal_"+_int_marker.name, &CartesianMarker::setLocal, this);
+
     std::string topic_name = "/xbotcore/cartesian/" + distal_link + "/reference";
     _ref_pose_pub = _nh.advertise<geometry_msgs::PoseStamped>(topic_name, 1);
+
 }
 
 CartesianMarker::~CartesianMarker()
 {
 
+}
+
+void CartesianMarker::MakeMenu()
+{
+    _menu_entry_counter = 0;
+
+    _global_control_entry = _menu_handler.insert("Global Ctrl",boost::bind(boost::mem_fn(&CartesianMarker::setControlGlobalLocal),
+                            this, _1));
+    _menu_handler.setCheckState(_global_control_entry, interactive_markers::MenuHandler::UNCHECKED);
+    _menu_entry_counter++;
+
+
+    _menu_control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
+    _menu_control.always_visible = true;
+
+    _int_marker.controls.push_back(_menu_control);
+
+    _menu_handler.apply(_server, _int_marker.name);
+}
+
+void CartesianMarker::setControlGlobalLocal(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+{
+    std_srvs::Empty::Request req;
+    std_srvs::Empty::Response res;
+
+    _control_type *= -1;
+    if(_control_type == 1)
+    {
+        _menu_handler.setCheckState(_global_control_entry, interactive_markers::MenuHandler::UNCHECKED);
+        setLocal(req,res);
+    }
+    else if(_control_type == -1)
+    {
+        _menu_handler.setCheckState(_global_control_entry, interactive_markers::MenuHandler::CHECKED);
+        setGlobal(req, res);
+    }
+
+    _menu_handler.reApply(_server);
+    _server.applyChanges();
+}
+
+bool CartesianMarker::setGlobal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+{
+    _int_marker.pose.position.x = _actual_pose.p.x();
+    _int_marker.pose.position.y = _actual_pose.p.y();
+    _int_marker.pose.position.z = _actual_pose.p.z();
+    double qx,qy,qz,qw; _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
+    _int_marker.pose.orientation.x = qx;
+    _int_marker.pose.orientation.y = qy;
+    _int_marker.pose.orientation.z = qz;
+    _int_marker.pose.orientation.w = qw;
+    for(unsigned int i = 1; i < _int_marker.controls.size(); ++i)
+        _int_marker.controls[i].orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
+    _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback), this, _1));
+    _server.applyChanges();
+    return true;
+}
+
+bool CartesianMarker::setLocal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+{
+    _int_marker.pose.position.x = _actual_pose.p.x();
+    _int_marker.pose.position.y = _actual_pose.p.y();
+    _int_marker.pose.position.z = _actual_pose.p.z();
+    double qx,qy,qz,qw; _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
+    _int_marker.pose.orientation.x = qx;
+    _int_marker.pose.orientation.y = qy;
+    _int_marker.pose.orientation.z = qz;
+    _int_marker.pose.orientation.w = qw;
+    for(unsigned int i = 1; i < _int_marker.controls.size(); ++i)
+        _int_marker.controls[i].orientation_mode = visualization_msgs::InteractiveMarkerControl::INHERIT;
+    _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback), this, _1));
+    _server.applyChanges();
+    return true;
+}
+
+bool CartesianMarker::spawnMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+{
+    if(_server.empty())
+    {
+        _start_pose = getRobotActualPose();
+        _actual_pose = _start_pose;
+        _int_marker.pose.position.x = _start_pose.p.x();
+        _int_marker.pose.position.y = _start_pose.p.y();
+        _int_marker.pose.position.z = _start_pose.p.z();
+        double qx,qy,qz,qw; _start_pose.M.GetQuaternion(qx,qy,qz,qw);
+        _int_marker.pose.orientation.x = qx;
+        _int_marker.pose.orientation.y = qy;
+        _int_marker.pose.orientation.z = qz;
+        _int_marker.pose.orientation.w = qw;
+
+        _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
+        _menu_handler.apply(_server, _int_marker.name);
+        _server.applyChanges();
+    }
+    return true;
+}
+
+bool CartesianMarker::clearMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+{
+    if(!_server.empty())
+    {
+        _server.erase(_int_marker.name);
+        _server.applyChanges();
+    }
+    return true;
 }
 
 void CartesianMarker::MakeMarker(const std::string &distal_link, const std::string &base_link,
@@ -107,9 +222,7 @@ void CartesianMarker::MakeMarker(const std::string &distal_link, const std::stri
     _int_marker.pose.orientation.z = qz;
     _int_marker.pose.orientation.w = qw;
 
-    _server.insert(_int_marker,
-                  boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),
-                              this, _1));
+    _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
 }
 
 void CartesianMarker::MarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
