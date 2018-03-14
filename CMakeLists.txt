@@ -5,6 +5,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 include(MacroInstallLib)
 
 find_package(XBotInterface REQUIRED)
+find_package(XCM QUIET)
 find_package(OpenSoT REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp 
                                         std_msgs 
@@ -129,6 +130,10 @@ add_executable(ros_server_node src/RosServerNode.cpp)
 target_link_libraries(ros_server_node CartesianInterface dl)
 
 add_subdirectory(examples)
+
+if(${XCM_FOUND})
+    add_subdirectory(xbotcore)
+endif()
 
 # Mark executables and/or libraries for installation
 install(TARGETS ros_server_node ros_server_node
