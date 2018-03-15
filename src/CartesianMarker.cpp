@@ -11,7 +11,7 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _base_link(base_link),
     _distal_link(distal_link),
     _urdf(robot_urdf),
-    _server(_base_link + "_Cartesian_marker_server"),
+    _server(distal_link + "_Cartesian_marker_server"),
     _tf_prefix(tf_prefix),
     _menu_entry_counter(0),
     _control_type(1)

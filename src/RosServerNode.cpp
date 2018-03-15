@@ -12,6 +12,8 @@ using namespace XBot::Cartesian;
 
 int main(int argc, char **argv){
     
+    auto logger = XBot::MatLogger::getLogger("/tmp/cartesian_ros_node_log");
+    
     /* By default, MID verbosity level */
     XBot::Logger::SetVerbosityLevel(XBot::Logger::Severity::MID);
     
@@ -84,10 +86,13 @@ int main(int argc, char **argv){
         
         /* Update time and sleep */
         time += dt;
+        logger->add("loop_time", loop_rate.cycleTime().toSec()*1e6);
         loop_rate.sleep();
         
         
     }
+    
+    logger->flush();
     
     return 0;
     
