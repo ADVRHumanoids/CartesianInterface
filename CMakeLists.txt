@@ -129,6 +129,8 @@ add_executable(ros_server_node src/RosServerNode.cpp)
 target_link_libraries(ros_server_node CartesianInterface dl)
 
 add_subdirectory(examples)
+add_executable(solver_test src/BackendExample.cpp)
+target_link_libraries(solver_test ${OpenSoT_LIBRARIES})
 
 # Mark executables and/or libraries for installation
 install(TARGETS ros_server_node ros_server_node
