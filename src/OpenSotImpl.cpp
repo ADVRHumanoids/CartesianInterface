@@ -141,8 +141,11 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     }
     
     /* Create solver */
-    _solver = boost::make_shared<OpenSoT::solvers::QPOases_sot>(_autostack->getStack(), 
-                                                                _autostack->getBounds(), 1e8);
+    _solver = boost::make_shared<OpenSoT::solvers::iHQP>(_autostack->getStack(), 
+                                                         _autostack->getBounds(), 
+                                                         1e8, 
+                                                         OpenSoT::solvers::solver_back_ends::qpOASES
+                                                        );
     
 }
 
