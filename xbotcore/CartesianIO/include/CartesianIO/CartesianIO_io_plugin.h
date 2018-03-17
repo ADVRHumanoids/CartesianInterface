@@ -21,8 +21,8 @@
 #define CartesianIO_IOPLUGIN_H_
 
 #include <XCM/IOPlugin.h>
-#include <CartesianInterface/ros/RosServerClass.h>
-#include <CartesianInterface/CartesianInterfaceImpl.h>
+#include <cartesian_interface/ros/RosServerClass.h>
+#include <cartesian_interface/CartesianInterfaceImpl.h>
 
 
 namespace XBot { namespace Cartesian {

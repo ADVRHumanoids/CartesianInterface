@@ -2,7 +2,7 @@
 #define CartesianPlugin_UTILS_H_
 
 #include <XCM/XBotControlPlugin.h>
-#include <CartesianInterface/CartesianInterfaceImpl.h>
+#include <cartesian_interface/CartesianInterfaceImpl.h>
 
 namespace XBot { namespace Cartesian { namespace Utils {
  

@@ -1,4 +1,4 @@
-#include <CartesianInterface/CartesianInterfaceImpl.h>
+#include <cartesian_interface/CartesianInterfaceImpl.h>
 
 using namespace XBot::Cartesian;
 

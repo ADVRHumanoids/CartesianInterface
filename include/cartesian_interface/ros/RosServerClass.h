@@ -16,8 +16,8 @@
 #include <tf_conversions/tf_eigen.h>
 #include <cartesian_interface/ReferenceStamped.h>
 
-#include <CartesianInterface/CartesianInterface.h>
-#include <CartesianInterface/markers/CartesianMarker.h>
+#include <cartesian_interface/CartesianInterface.h>
+#include <cartesian_interface/markers/CartesianMarker.h>
 #include <thread>
 
 namespace XBot { namespace Cartesian {

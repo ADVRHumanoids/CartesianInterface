@@ -1,4 +1,4 @@
-#include <CartesianInterface/ProblemDescription.h>
+#include <cartesian_interface/ProblemDescription.h>
 #include <XBotInterface/Logger.hpp>
 
 using namespace XBot::Cartesian;

@@ -4,8 +4,8 @@
 #include <XBotInterface/Utils.h>
 #include <XBotInterface/SoLib.h>
 
-#include <CartesianInterface/ros/RosServerClass.h>
-#include <CartesianInterface/ProblemDescription.h>
+#include <cartesian_interface/ros/RosServerClass.h>
+#include <cartesian_interface/ProblemDescription.h>
 
 
 using namespace XBot::Cartesian;

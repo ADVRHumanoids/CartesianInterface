@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include <CartesianInterface/markers/CartesianMarker.h>
+#include <cartesian_interface/markers/CartesianMarker.h>
 
 int main(int argc, char** argv)
 {

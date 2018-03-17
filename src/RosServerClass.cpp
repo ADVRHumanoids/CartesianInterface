@@ -1,4 +1,4 @@
-#include <CartesianInterface/ros/RosServerClass.h>
+#include <cartesian_interface/ros/RosServerClass.h>
 
 using namespace XBot::Cartesian;
 

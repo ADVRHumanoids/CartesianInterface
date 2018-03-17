@@ -1,4 +1,4 @@
-#include <CartesianInterface/trajectory/Trajectory.h>
+#include <cartesian_interface/trajectory/Trajectory.h>
 #include <XBotInterface/Utils.h>
 
 using namespace XBot::Cartesian;

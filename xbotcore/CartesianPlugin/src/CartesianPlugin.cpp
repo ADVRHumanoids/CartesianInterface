@@ -18,7 +18,7 @@
 */
 
 #include <CartesianPlugin/CartesianPlugin.h>
-#include <CartesianInterface/open_sot/OpenSotImpl.h>
+#include <cartesian_interface/open_sot/OpenSotImpl.h>
 
 /* Specify that the class XBotPlugin::CartesianPlugin is a XBot RT plugin with name "CartesianPlugin" */
 REGISTER_XBOT_PLUGIN_(XBot::Cartesian::CartesianPlugin)

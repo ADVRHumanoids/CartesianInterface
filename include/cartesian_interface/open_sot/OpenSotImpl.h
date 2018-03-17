@@ -2,7 +2,7 @@
 #define __XBOT_CARTESIAN_OPENSOT_IMPL_H__
 
 
-#include <CartesianInterface/CartesianInterfaceImpl.h>
+#include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <OpenSoT/tasks/velocity/Cartesian.h>
 #include <OpenSoT/tasks/velocity/CoM.h>
 #include <OpenSoT/tasks/velocity/Postural.h>

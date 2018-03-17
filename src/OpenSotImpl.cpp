@@ -1,4 +1,4 @@
-#include <CartesianInterface/open_sot/OpenSotImpl.h>
+#include <cartesian_interface/open_sot/OpenSotImpl.h>
 #include <boost/make_shared.hpp>
 #include <OpenSoT/constraints/velocity/JointLimits.h>
 #include <OpenSoT/constraints/velocity/VelocityLimits.h>

@@ -21,9 +21,9 @@
 #define __XBOT_CARTESIAN_IMPL_H__
 
 
-#include <CartesianInterface/CartesianInterface.h>
-#include <CartesianInterface/trajectory/Trajectory.h>
-#include <CartesianInterface/ProblemDescription.h>
+#include <cartesian_interface/CartesianInterface.h>
+#include <cartesian_interface/trajectory/Trajectory.h>
+#include <cartesian_interface/ProblemDescription.h>
 #include <XBotInterface/SoLib.h>
 
 namespace XBot { namespace Cartesian {

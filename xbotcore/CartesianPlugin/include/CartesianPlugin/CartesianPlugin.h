@@ -21,7 +21,7 @@
 #define CartesianPlugin_PLUGIN_H_
 
 #include <XCM/XBotControlPlugin.h>
-#include <CartesianInterface/CartesianInterfaceImpl.h>
+#include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <CartesianPlugin/Utils.h>
 
 

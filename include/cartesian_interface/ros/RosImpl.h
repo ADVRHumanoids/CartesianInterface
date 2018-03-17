@@ -1,7 +1,7 @@
 #ifndef __XBOT_CARTESIAN_INTERFACE_ROSIMPL_H__
 #define __XBOT_CARTESIAN_INTERFACE_ROSIMPL_H__
 
-#include <CartesianInterface/CartesianInterface.h>
+#include <cartesian_interface/CartesianInterface.h>
 #include <string>
 #include <vector>
 #include <ros/ros.h>
