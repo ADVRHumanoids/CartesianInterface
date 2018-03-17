@@ -24,6 +24,8 @@
 REGISTER_XBOT_PLUGIN_(XBot::Cartesian::CartesianPlugin)
 
 namespace XBot { namespace Cartesian {
+    
+
 
 bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
 {
@@ -54,11 +56,8 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
 
     _logger = XBot::MatLogger::getLogger("/tmp/CartesianPlugin_log");
     
-    _ci_nrt_shobj = handle->getSharedMemory()
-                        ->getSharedObject<CartesianInterfaceImpl::Ptr>("/xbotcore/cartesian_interface");
+    _sync_from_nrt = std::make_shared<Utils::SyncFromIO>("/xbotcore/cartesian_interface", handle->getSharedMemory());
 
-    _first_sync = false;
-    
     return true;
 
 
@@ -74,7 +73,7 @@ void CartesianPlugin::on_start(double time)
     /* Save the robot starting config to a class member */
     _start_time = time;
     
-    _first_sync = false;
+    _first_sync_done = false;
     
     _model->syncFrom(*_robot);
 }
@@ -96,30 +95,27 @@ void CartesianPlugin::control_loop(double time, double period)
      * operations that are not rt-safe. */
     
     /* Try to update references from NRT */
-    if(_ci_nrt || (_ci_nrt_shobj.try_get(_ci_nrt) && _ci_nrt))
+    if(!_first_sync_done)
     {
-        if(_ci_nrt_shobj.get_mutex()->try_lock())
+        if(_sync_from_nrt->try_reset(_model))
         {
-            _ci_nrt->getModel()->syncFrom(*_model);
-            _ci_nrt->update(time, period);
-            
-            if(!_first_sync)
-            {
-                _ci_nrt->reset();
-                XBot::Logger::info(Logger::Severity::HIGH, "Resetting NRT CI \n");
-                _first_sync = true;
-            }
-            
-            _ci->syncFrom(_ci_nrt);
-            _ci_nrt_shobj.get_mutex()->unlock();
-
-            _logger->add("sync_done", 1);
+            _first_sync_done = true;
+            XBot::Logger::info(Logger::Severity::HIGH, "Resetting NRT CI \n");
         }
     }
-    else
+    
+    if(_first_sync_done)
     {
-        _logger->add("sync_done", 0);
+        if(_sync_from_nrt->try_sync(time, _ci, _model))
+        {
+            _logger->add("sync_done", 1);
+        }
+        else
+        {
+            _logger->add("sync_done", 0);
+        }
     }
+    
 
     if(!_ci->update(time, period))
     {

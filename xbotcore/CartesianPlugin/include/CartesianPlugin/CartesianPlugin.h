@@ -22,6 +22,7 @@
 
 #include <XCM/XBotControlPlugin.h>
 #include <CartesianInterface/CartesianInterfaceImpl.h>
+#include <CartesianPlugin/Utils.h>
 
 
 namespace XBot { namespace Cartesian {
@@ -34,7 +35,7 @@ class CartesianPlugin : public XBot::XBotControlPlugin
 {
 
 public:
-
+    
     virtual bool init_control_plugin(XBot::Handle::Ptr handle);
 
     virtual bool close();
@@ -54,9 +55,9 @@ private:
     XBot::RobotInterface::Ptr _robot;
     ModelInterface::Ptr _model;
     
-    CartesianInterfaceImpl::Ptr _ci, _ci_nrt;
-    SharedObject<CartesianInterfaceImpl::Ptr> _ci_nrt_shobj;
-    bool _first_sync;
+    CartesianInterfaceImpl::Ptr _ci;
+    Utils::SyncFromIO::Ptr _sync_from_nrt;
+    bool _first_sync_done;
 
     double _start_time;
 
