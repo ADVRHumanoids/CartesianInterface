@@ -45,6 +45,7 @@ void CartesianMarker::MakeMenu()
 {
     _menu_entry_counter = 0;
 
+    
     _global_control_entry = _menu_handler.insert("Global Ctrl",boost::bind(boost::mem_fn(&CartesianMarker::setControlGlobalLocal),
                             this, _1));
     _menu_handler.setCheckState(_global_control_entry, interactive_markers::MenuHandler::UNCHECKED);
@@ -233,8 +234,6 @@ void CartesianMarker::MarkerFeedback(const visualization_msgs::InteractiveMarker
     double qx,qy,qz,qw;
     _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
 
-    std::cout<<_int_marker.name<<" _actual_pose: \n ["<<_actual_pose.p.x()<<" "<<_actual_pose.p.y()<<" "<<_actual_pose.p.z()<<"]"<<std::endl;
-    std::cout<<"["<<qx<<" "<<qy<<" "<<qz<<" "<<qw<<"]"<<std::endl;
     
     geometry_msgs::PoseStamped msg;
     msg.pose = feedback->pose;
