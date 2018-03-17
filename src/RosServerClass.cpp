@@ -38,6 +38,7 @@ void RosServerClass::publish_ref_tf()
 
     _rspub->publishTransforms(_joint_name_std_map, ros::Time::now(), "ci");
     _rspub->publishFixedTransforms("ci");
+    
 }
 
 
@@ -227,6 +228,17 @@ void RosServerClass::publish_world_tf()
                                                        ros::Time::now(), 
                                                        "ci/"+fb_link, 
                                                        "ci/world_odom"));
+    
+    /* Publish ref-to-actual-robot fixed tf */
+    Eigen::Affine3d T_eye;
+    T_eye.setIdentity();
+    tf::Transform transform_eye;
+    tf::transformEigenToTF(T_eye, transform_eye);
+    
+    _tf_broadcaster.sendTransform(tf::StampedTransform(transform_eye, 
+                                                       ros::Time::now(), 
+                                                       "ci/world", 
+                                                       "world"));
 }
 
 
@@ -341,5 +353,10 @@ void RosServerClass::__generate_markers()
 RosServerClass::~RosServerClass()
 {
     _marker_thread->join();
+}
+
+XBot::ModelInterface::ConstPtr RosServerClass::getModel() const
+{
+    return _model;
 }
 

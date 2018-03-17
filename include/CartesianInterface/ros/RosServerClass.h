@@ -32,6 +32,9 @@ namespace XBot { namespace Cartesian {
         
     public:
         
+        typedef std::shared_ptr<RosServerClass> Ptr;
+        typedef std::shared_ptr<const RosServerClass> ConstPtr;
+        
         RosServerClass(CartesianInterface::Ptr intfc, 
                        ModelInterface::ConstPtr model);
         
@@ -41,6 +44,8 @@ namespace XBot { namespace Cartesian {
          * @return void
          */
         void run();
+        
+        ModelInterface::ConstPtr getModel() const;
         
         ~RosServerClass();
         
