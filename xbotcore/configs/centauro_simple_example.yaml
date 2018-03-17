@@ -50,7 +50,7 @@ MasterCommunicationInterface:
 
 XBotRTPlugins:
   plugins: ["HomingExample", "CartesianPlugin"]
-  io_plugins: []
+  io_plugins: ["CartesianIO"]
   
 NRTPlugins:
   plugins: ["HomingExample"]
