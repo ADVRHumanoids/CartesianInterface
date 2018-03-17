@@ -21,9 +21,11 @@
 #define CartesianIO_IOPLUGIN_H_
 
 #include <XCM/IOPlugin.h>
+#include <CartesianInterface/ros/RosServerClass.h>
+#include <CartesianInterface/CartesianInterfaceImpl.h>
 
 
-namespace XBotPlugin {
+namespace XBot { namespace Cartesian {
 
 /**
  * @brief CartesianIO XBot IO Plugin. This plugin extends the CommunicationHandler
@@ -35,7 +37,9 @@ class CartesianIO : public XBot::IOPlugin
 
 public:
 
-    virtual bool init(std::string path_to_config_file);
+    virtual bool init(std::string path_to_config_file, 
+                      SharedMemory::Ptr shmem
+                      );
 
     virtual void run();
 
@@ -45,11 +49,45 @@ protected:
 
 
 private:
-
+    
+    ModelInterface::Ptr _model;
+    RosServerClass::Ptr _ros_server;
+    CartesianInterfaceImpl::Ptr _ci;
+    SharedObject<CartesianInterfaceImpl::Ptr> _ci_shobj;
 
 
 };
 
-}
+} }
 
 #endif // CartesianIO_PLUGIN_H_
+
+
+bool XBot::Cartesian::CartesianIO::init(std::string path_to_config_file, XBot::SharedMemory::Ptr shmem)
+{
+    _model = ModelInterface::getModel(path_to_config_file);
+    
+    /* Load IK problem and solver */
+    auto yaml_file = YAML::LoadFile(path_to_config_file);
+    ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"]);
+    std::string impl_name = yaml_file["CartesianInterface"]["solver"].as<std::string>();
+    
+    _ci = std::make_shared<CartesianInterfaceImpl>(_model, ik_problem);
+    
+    /* Obtain class to expose ROS API */
+    _ros_server = std::make_shared<RosServerClass>(_ci, _model);
+    
+    _ci_shobj = shmem->getSharedObject<CartesianInterfaceImpl::Ptr>("/xbotcore/cartesian_interface");
+    _ci_shobj.set(_ci);
+}
+
+void XBot::Cartesian::CartesianIO::run()
+{
+    std::lock_guard<XBot::Mutex> lock_guard(*_ci_shobj.get_mutex());
+    _ros_server->run();
+}
+
+void XBot::Cartesian::CartesianIO::close()
+{
+
+}

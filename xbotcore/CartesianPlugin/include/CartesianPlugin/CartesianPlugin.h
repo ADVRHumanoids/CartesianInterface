@@ -54,7 +54,9 @@ private:
     XBot::RobotInterface::Ptr _robot;
     ModelInterface::Ptr _model;
     
-    CartesianInterface::Ptr _ci;
+    CartesianInterfaceImpl::Ptr _ci, _ci_nrt;
+    SharedObject<CartesianInterfaceImpl::Ptr> _ci_nrt_shobj;
+    bool _first_sync;
 
     double _start_time;
 

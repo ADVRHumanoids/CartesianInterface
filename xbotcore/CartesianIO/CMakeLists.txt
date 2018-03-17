@@ -49,7 +49,7 @@ if ( ${ENABLE_XENO} )
 endif()
 
 # include
-include_directories(include/${PROJECT_NAME}
+include_directories(include
                     ${XCM_INCLUDE_DIRS}
                     )
 
@@ -64,7 +64,12 @@ if ( Xenomai_FOUND )
 endif()
 
 # linking
-target_link_libraries(${PROJECT_NAME} ${XCM_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${XCM_LIBRARIES} CartesianInterface)
 
 #install
-ycm_library_install(${PROJECT_NAME} 1 0 0)
+install(TARGETS CartesianIO CartesianIO
+    EXPORT CartesianInterface
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

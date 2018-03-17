@@ -17,28 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
 */
 
-#include <CartesianIO_io_plugin.h>
+#include <CartesianIO/CartesianIO_io_plugin.h>
 
 /* Specify that the class XBotPlugin::CartesianIO is a XBot RT plugin with name "CartesianIO" */
-REGISTER_XBOT_IO_PLUGIN_(XBotPlugin::CartesianIO)
+REGISTER_XBOT_IO_PLUGIN_(XBot::Cartesian::CartesianIO)
 
-namespace XBotPlugin {
-
-bool XBotPlugin::CartesianIO::init(std::string path_to_config_file)
-{
-    return true;
-}
-
-void XBotPlugin::CartesianIO::run()
-{
-
-}
-
-void XBotPlugin::CartesianIO::close()
-{
-
-}
-
-
-
-}
