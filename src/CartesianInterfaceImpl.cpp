@@ -451,4 +451,38 @@ CartesianInterface::State CartesianInterfaceImpl::getTaskState(const std::string
 }
 
 
+void XBot::Cartesian::CartesianInterfaceImpl::syncFrom(XBot::Cartesian::CartesianInterfaceImpl::ConstPtr other)
+{
+    for(const auto& pair : other->_task_map)
+    {
+        auto it = _task_map.find(pair.first);
+        
+        if(it == _task_map.end())
+        {
+            continue;
+        }
+        
+        Task::Ptr this_task = it->second;
+        Task::ConstPtr other_task = pair.second;
+        
+        if(this_task->base_frame == other_task->base_frame)
+        {
+            this_task->acc = other_task->acc;
+            this_task->vel = other_task->vel;
+            this_task->T = other_task->T;
+            this_task->control_type = other_task->control_type;
+            this_task->state = other_task->state;
+            
+            *(this_task->trajectory) = *(other_task->trajectory);
+            
+        }
+        
+    }
+}
+
+XBot::ModelInterface::Ptr CartesianInterfaceImpl::getModel() const
+{
+    return _model;
+}
+
 

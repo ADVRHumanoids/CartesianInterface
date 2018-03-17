@@ -33,11 +33,19 @@ class CartesianInterfaceImpl : public CartesianInterface
     
 public:
     
+    /* Typedefs for shared pointers */
+    typedef std::shared_ptr<CartesianInterfaceImpl> Ptr;
+    typedef std::shared_ptr<const CartesianInterfaceImpl> ConstPtr;
+    
     CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
                            std::vector<std::pair<std::string, std::string>> tasks);
     
     CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
                            ProblemDescription ik_problem);
+    
+    void syncFrom(CartesianInterfaceImpl::ConstPtr other);
+    
+    ModelInterface::Ptr getModel() const;
     
     virtual const std::vector<std::string>& getTaskList() const;
     virtual const std::string& getBaseLink(const std::string& ee_name) const;
@@ -112,6 +120,7 @@ protected:
         Trajectory::Ptr trajectory;
         
         typedef std::shared_ptr<Task> Ptr;
+        typedef std::shared_ptr<const Task> ConstPtr;
         Task();
     };
     
