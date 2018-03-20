@@ -7,23 +7,23 @@ include(MacroInstallLib)
 find_package(XBotInterface REQUIRED)
 find_package(XCM QUIET)
 find_package(OpenSoT REQUIRED)
-find_package(catkin REQUIRED COMPONENTS roscpp 
-                                        std_msgs 
-                                        geometry_msgs 
-                                        actionlib 
-                                        robot_state_publisher 
+find_package(catkin REQUIRED COMPONENTS roscpp
+                                        std_msgs
+                                        geometry_msgs
+                                        actionlib
+                                        robot_state_publisher
                                         message_generation
                                         interactive_markers
                                         tf tf_conversions)
 
-include_directories(include 
-                    ${OpenSoT_INCLUDE_DIRS} 
+include_directories(include
+                    ${OpenSoT_INCLUDE_DIRS}
                     ${XBotInterface_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
                     )
 
-                    
+
 # C++ 11
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -46,9 +46,8 @@ add_message_files(
 add_service_files(
   FILES
   TaskList.srv
-  GetControlMode.srv
   SetControlMode.srv
-  GetTaskState.srv
+  GetTaskInfo.srv
 )
 
 # Generate actions in the 'action' folder
@@ -60,7 +59,7 @@ add_action_files(
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
-  std_msgs  
+  std_msgs
   geometry_msgs
   actionlib_msgs
 )
@@ -75,41 +74,41 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-   INCLUDE_DIRS include 
+   INCLUDE_DIRS include
    LIBRARIES CartesianInterface
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
 
 # Interface implementation
-set(CartesianInterface_SRC 
+set(CartesianInterface_SRC
         src/CartesianInterfaceImpl.cpp
         src/ProblemDescription.cpp
     )
 
 # OpenSot implementation
-set(CartesianInterfaceSOT_SRC 
+set(CartesianInterfaceSOT_SRC
         src/OpenSotImpl.cpp
     )
 
 # Ros implementation
-set(CartesianInterfaceROS_SRC 
+set(CartesianInterfaceROS_SRC
         src/RosImpl.cpp
         src/RosServerClass.cpp
         src/CartesianMarker.cpp
     )
-                
+
 # Trajectory
 set(Trajectory_SRC
         src/Trajectory.cpp
     )
 
 # libCartesianInterface
-add_library(CartesianInterface SHARED ${CartesianInterface_SRC} 
+add_library(CartesianInterface SHARED ${CartesianInterface_SRC}
                                       ${CartesianInterfaceROS_SRC}
                                       ${Trajectory_SRC}
                                       )
-target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES} 
+target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
                                                 ${XBotInterface_LIBRARIES}
                                                 ${catkin_LIBRARIES}
                       )
@@ -118,14 +117,14 @@ add_dependencies(CartesianInterface ${PROJECT_NAME}_generate_messages)
 
 # libCartesianOpenSot
 add_library(CartesianOpenSot SHARED ${CartesianInterfaceSOT_SRC})
-target_link_libraries(CartesianOpenSot PUBLIC ${OpenSoT_LIBRARIES} 
+target_link_libraries(CartesianOpenSot PUBLIC ${OpenSoT_LIBRARIES}
                                               CartesianInterface
                       )
 
 
 
 
-# Ros server 
+# Ros server
 add_executable(ros_server_node src/RosServerNode.cpp)
 target_link_libraries(ros_server_node CartesianInterface dl)
 

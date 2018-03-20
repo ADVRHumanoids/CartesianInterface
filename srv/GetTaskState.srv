@@ -1,4 +1,0 @@
-string task_name
----
-string task_state
-bool success

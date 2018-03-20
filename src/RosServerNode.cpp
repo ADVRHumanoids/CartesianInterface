@@ -58,6 +58,12 @@ int main(int argc, char **argv){
                                                                                         impl_name + "Impl", 
                                                                                         model, ik_problem);
     
+    if(!sot_ik_solver)
+    {
+        XBot::Logger::error("Unable to load solver %s \n", impl_name.c_str());
+        exit(1);
+    }
+    
     /* Obtain class to expose ROS API */
     XBot::Cartesian::RosServerClass ros_server_class(sot_ik_solver, model);
     
