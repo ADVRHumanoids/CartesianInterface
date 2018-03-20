@@ -151,7 +151,7 @@ void CartesianMarker::MakeMarker(const std::string &distal_link, const std::stri
                             bool fixed, unsigned int interaction_mode, bool show_6dof)
 {
     _int_marker.header.frame_id = _tf_prefix+base_link;
-    _int_marker.scale = 0.2;
+    _int_marker.scale = 0.5;
 
     _int_marker.name = distal_link;
     _int_marker.description = "";
