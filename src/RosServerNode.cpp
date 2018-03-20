@@ -6,9 +6,46 @@
 
 #include <cartesian_interface/ros/RosServerClass.h>
 #include <cartesian_interface/ProblemDescription.h>
+#include <cartesian_interface/LoadController.h>
+
+#define BOOST_RESULT_OF_USE_DECLTYPE
+#include <boost/function.hpp>
+
 
 
 using namespace XBot::Cartesian;
+
+XBot::ModelInterface::Ptr __g_model;
+ProblemDescription * __g_problem;
+CartesianInterface::Ptr * __g_impl_ptrptr;
+RosServerClass::Ptr * __g_ros_ptrptr;
+
+/* Loader function */
+bool loader_callback(cartesian_interface::LoadControllerRequest&  req, 
+                    cartesian_interface::LoadControllerResponse& res)
+{
+    auto tmp_ik_solver = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterface>(
+                                                        "Cartesian" + req.controller_name + ".so", 
+                                                        req.controller_name + "Impl", 
+                                                        __g_model, *__g_problem);
+    
+    if(tmp_ik_solver)
+    {
+        *__g_impl_ptrptr = tmp_ik_solver;
+        res.success = true;
+        res.message = "Successfully loaded controller";
+    }
+    else
+    {
+        res.success = false;
+        res.message = "Unable to load controller";
+        return false;
+    }
+    
+    __g_ros_ptrptr->reset();
+    *__g_ros_ptrptr = std::make_shared<XBot::Cartesian::RosServerClass>(*__g_impl_ptrptr, __g_model);
+    return true;
+};
 
 int main(int argc, char **argv){
     
@@ -65,7 +102,15 @@ int main(int argc, char **argv){
     }
     
     /* Obtain class to expose ROS API */
-    XBot::Cartesian::RosServerClass ros_server_class(sot_ik_solver, model);
+    auto ros_server_class = std::make_shared<XBot::Cartesian::RosServerClass>(sot_ik_solver, model);
+    
+    __g_model = model;
+    __g_impl_ptrptr = &sot_ik_solver;
+    __g_problem = &ik_problem;
+    __g_ros_ptrptr = &ros_server_class;
+    
+    
+    auto loader_srv = nh.advertiseService("/xbotcore/cartesian/load_controller", loader_callback);
     
     ros::Rate loop_rate(100);
     Eigen::VectorXd q, qdot;
@@ -76,7 +121,8 @@ int main(int argc, char **argv){
     while(ros::ok())
     {
         /* Update references from ros */
-        ros_server_class.run();
+        ros::spinOnce();
+        ros_server_class->run();
         
         /* Solve ik */
         sot_ik_solver->update(time, dt);

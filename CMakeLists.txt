@@ -48,6 +48,7 @@ add_service_files(
   TaskList.srv
   SetControlMode.srv
   GetTaskInfo.srv
+  LoadController.srv
 )
 
 # Generate actions in the 'action' folder
