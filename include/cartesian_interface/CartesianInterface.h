@@ -127,6 +127,9 @@ public:
     
     virtual ~CartesianInterface(){}
     
+    static std::string ControlTypeAsString(ControlType ctrl);
+    static std::string StateAsString(State state);
+    
 protected:
     
     

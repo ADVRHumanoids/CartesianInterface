@@ -2,6 +2,45 @@
 
 using namespace XBot::Cartesian;
 
+std::string CartesianInterface::ControlTypeAsString(CartesianInterface::ControlType ctrl)
+{
+    switch(ctrl)
+    {
+        case ControlType::Disabled:
+            return "Disabled";
+            break;
+            
+        case ControlType::Position:
+            return "Position";
+            break;
+            
+        case ControlType::Velocity:
+            return "Velocity";
+            break;
+            
+        default:
+            return "Invalid control type";
+    }
+}
+
+
+std::string CartesianInterface::StateAsString(CartesianInterface::State ctrl)
+{
+    switch(ctrl)
+    {
+        case State::Reaching:
+            return "Reaching";
+            break;
+            
+        case State::Online:
+            return "Online";
+            break;
+            
+        default:
+            return "Invalid state";
+    }
+}
+
 CartesianInterfaceImpl::Task::Ptr CartesianInterfaceImpl::get_task(const std::string& ee_name) const
 {
     auto it = _task_map.find(ee_name);

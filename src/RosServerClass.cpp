@@ -211,6 +211,7 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc, ModelInterface::Co
     __generate_toggle_pos_mode_services();
     __generate_toggle_task_services();
     __generate_rspub();
+    __generate_task_info_services();
 
     _marker_thread = std::make_shared<std::thread>(&RosServerClass::__generate_markers, this);
 }
@@ -327,7 +328,7 @@ void XBot::Cartesian::RosServerClass::__generate_task_info_services()
                             _2,
                             ee_name);
         ros::ServiceServer srv = _nh.advertiseService<cartesian_interface::GetTaskInfoRequest,
-                                                        cartesian_interface::GetTaskInfoResponse>(srv_name, cb);
+                                                      cartesian_interface::GetTaskInfoResponse>(srv_name, cb);
 
         _get_task_info_srv.push_back(srv);
     }
@@ -373,9 +374,14 @@ bool XBot::Cartesian::RosServerClass::get_task_info_cb(cartesian_interface::GetT
                                                        const std::string& ee_name)
 {
 
-
+    res.base_link = _cartesian_interface->getBaseLink(ee_name);
+    res.control_mode  =  CartesianInterface::ControlTypeAsString(_cartesian_interface->getControlMode(ee_name));
+    res.task_state  =  CartesianInterface::StateAsString(_cartesian_interface->getTaskState(ee_name));
+    res.distal_link = ee_name;
+    
     return true;
 }
+
 
 
 
@@ -388,4 +394,6 @@ XBot::ModelInterface::ConstPtr RosServerClass::getModel() const
 {
     return _model;
 }
+
+
 
