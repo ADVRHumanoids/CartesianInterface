@@ -39,6 +39,8 @@ public:
      * @return true
      */
     bool spawnMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+    
+    void setBaseLink(std::string base_link);
 
     bool setGlobal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 

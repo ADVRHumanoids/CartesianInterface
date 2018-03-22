@@ -69,6 +69,7 @@ public:
     virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type) = 0;
     virtual ControlType getControlMode(const std::string& ee_name) const = 0;
     virtual State getTaskState(const std::string& end_effector) const = 0;
+    virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link) = 0;
     
     /* Point-to-point control */
     

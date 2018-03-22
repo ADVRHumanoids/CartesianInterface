@@ -212,6 +212,7 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc, ModelInterface::Co
     __generate_toggle_task_services();
     __generate_rspub();
     __generate_task_info_services();
+    __generate_task_info_setters();
 
     _marker_thread = std::make_shared<std::thread>(&RosServerClass::__generate_markers, this);
 }
@@ -321,7 +322,7 @@ void XBot::Cartesian::RosServerClass::__generate_task_info_services()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string srv_name = "/xbotcore/cartesian/" + ee_name + "/get_task_info";
+        std::string srv_name = "/xbotcore/cartesian/" + ee_name + "/get_task_properties";
         auto cb = boost::bind(&RosServerClass::get_task_info_cb,
                             this,
                             _1,
@@ -360,12 +361,13 @@ void RosServerClass::__generate_markers()
     {
         std::string base_link = _cartesian_interface->getBaseLink(ee_name);
         base_link = base_link == "world" ? "world_odom" : base_link;
-        _markers.emplace_back( new CartesianMarker(base_link,
+        auto marker = std::make_shared<CartesianMarker>(base_link,
                                                    ee_name,
                                                    static_cast<const urdf::Model&>(_model->getUrdf()),
                                                    "ci/"
-                                                  )
-                              );
+                                                  );
+        
+        _markers[ee_name] = marker;
     }
 }
 
@@ -393,6 +395,41 @@ RosServerClass::~RosServerClass()
 XBot::ModelInterface::ConstPtr RosServerClass::getModel() const
 {
     return _model;
+}
+
+void XBot::Cartesian::RosServerClass::__generate_task_info_setters()
+{
+    for(std::string ee_name : _cartesian_interface->getTaskList())
+    {
+        std::string srv_name = "/xbotcore/cartesian/" + ee_name + "/set_task_properties";
+        auto cb = boost::bind(&RosServerClass::set_task_info_cb,
+                            this,
+                            _1,
+                            _2,
+                            ee_name);
+        ros::ServiceServer srv = _nh.advertiseService<cartesian_interface::SetTaskInfoRequest,
+                                                      cartesian_interface::SetTaskInfoResponse>(srv_name, cb);
+
+        _set_task_info_srv.push_back(srv);
+    }
+}
+
+bool XBot::Cartesian::RosServerClass::set_task_info_cb(cartesian_interface::SetTaskInfoRequest& req,
+                                                       cartesian_interface::SetTaskInfoResponse& res, 
+                                                       const std::string& ee_name)
+{
+    if(_cartesian_interface->setBaseLink(ee_name, req.base_link))
+    {
+        res.message = "Successfully set base link of task " + ee_name + " to " + req.base_link;
+        res.success = true;
+        _markers.at(ee_name)->setBaseLink(req.base_link);
+    }
+    else
+    {
+        res.message = "Unable to set base link of task " + ee_name + " to " + req.base_link;
+        res.success = false;
+    }
+    return true;
 }
 
 

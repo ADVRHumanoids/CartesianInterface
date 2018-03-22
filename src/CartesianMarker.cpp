@@ -361,3 +361,14 @@ KDL::Frame CartesianMarker::getPose(const std::string& base_link, const std::str
 
     return transform_KDL;
 }
+
+void XBot::Cartesian::CartesianMarker::setBaseLink(std::string base_link)
+{
+    _base_link = base_link;
+    _int_marker.header.frame_id = _tf_prefix + base_link;
+    std_srvs::EmptyRequest req;
+    std_srvs::EmptyResponse res;
+    
+    clearMarker(req, res);
+    spawnMarker(req, res);
+}

@@ -34,16 +34,17 @@ bool loader_callback(cartesian_interface::LoadControllerRequest&  req,
         *__g_impl_ptrptr = tmp_ik_solver;
         res.success = true;
         res.message = "Successfully loaded controller";
+        __g_ros_ptrptr->reset();
+        *__g_ros_ptrptr = std::make_shared<XBot::Cartesian::RosServerClass>(*__g_impl_ptrptr, __g_model);
+        
     }
     else
     {
         res.success = false;
         res.message = "Unable to load controller";
-        return false;
     }
     
-    __g_ros_ptrptr->reset();
-    *__g_ros_ptrptr = std::make_shared<XBot::Cartesian::RosServerClass>(*__g_impl_ptrptr, __g_model);
+    
     return true;
 };
 

@@ -53,6 +53,8 @@ public:
     virtual ControlType getControlMode(const std::string& ee_name) const;
     virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type);
     
+    virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link);
+    
     virtual bool getPoseReference(const std::string& end_effector, 
                           Eigen::Affine3d& base_T_ref, 
                           Eigen::Vector6d * base_vel_ref = nullptr,

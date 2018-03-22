@@ -16,6 +16,28 @@ extern "C" void destroy_instance( XBot::Cartesian::CartesianInterface* instance 
     delete instance;
 }
 
+bool XBot::Cartesian::OpenSotImpl::setBaseLink(const std::string& ee_name, const std::string& new_base_link)
+{
+    if(!XBot::Cartesian::CartesianInterfaceImpl::setBaseLink(ee_name, new_base_link))
+    {
+        return false;
+    }
+    
+    bool success = false;
+    
+    for(auto task : _cartesian_tasks)
+    {
+        if(task->getDistalLink() == ee_name)
+        {
+            task->setBaseLink(new_base_link);
+            success = true;
+        }
+    }
+    
+    return true;
+}
+
+
 OpenSoT::tasks::Aggregated::Ptr XBot::Cartesian::OpenSotImpl::aggregated_from_stack(XBot::Cartesian::AggregatedTask stack)
 {
     std::list<OpenSoT::tasks::Aggregated::TaskPtr> tasks_list;

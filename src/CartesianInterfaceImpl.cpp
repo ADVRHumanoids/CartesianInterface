@@ -41,6 +41,39 @@ std::string CartesianInterface::StateAsString(CartesianInterface::State ctrl)
     }
 }
 
+bool XBot::Cartesian::CartesianInterfaceImpl::setBaseLink(const std::string& ee_name, 
+                                                          const std::string& new_base_link)
+{
+    auto task = get_task(ee_name);
+    
+    if(!task)
+    {
+        return false;
+    }
+    
+    Eigen::Affine3d new_T_old;
+    
+    if( !_model->getPose(task->base_frame, new_base_link, new_T_old) )
+    {
+        XBot::Logger::error("New base link %s in not defined\n", new_base_link.c_str());
+        return false;
+    }
+    
+    if( task->state != State::Online )
+    {
+        XBot::Logger::error("Unable to change base link while performing a reach\n");
+        return false;
+    }
+    
+    task->base_frame = new_base_link;
+    task->T = new_T_old * task->T;
+    task->vel.setZero();
+    task->acc.setZero();
+    
+    return true;
+}
+
+
 CartesianInterfaceImpl::Task::Ptr CartesianInterfaceImpl::get_task(const std::string& ee_name) const
 {
     auto it = _task_map.find(ee_name);

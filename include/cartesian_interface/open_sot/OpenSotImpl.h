@@ -22,6 +22,7 @@ public:
 
     virtual ~OpenSotImpl();
     
+    virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link);
     
 protected:
     

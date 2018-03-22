@@ -46,7 +46,7 @@ add_message_files(
 add_service_files(
   FILES
   TaskList.srv
-  SetControlMode.srv
+  SetTaskInfo.srv
   GetTaskInfo.srv
   LoadController.srv
 )
