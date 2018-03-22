@@ -71,7 +71,7 @@ int main(int argc, char **argv){
     
     if(!visual_mode)
     {
-        auto robot = XBot::RobotInterface::getRobot(XBot::Utils::getXBotConfig());
+        robot = XBot::RobotInterface::getRobot(XBot::Utils::getXBotConfig());
         robot->sense();
     }
     
@@ -84,8 +84,9 @@ int main(int argc, char **argv){
     
     if(robot)
     {
-        model->syncFrom(*robot, XBot::Sync::Position, XBot::Sync::MotorSide);
+        model->syncFrom(*robot, XBot::Sync::Position, XBot::Sync::MotorSide, XBot::Sync::Impedance);
     }
+    
 
     /* Load IK problem and solver */
     auto yaml_file = YAML::LoadFile(XBot::Utils::getXBotConfig());
@@ -136,6 +137,12 @@ int main(int argc, char **argv){
         
         model->setJointPosition(q);
         model->update();
+        
+        if(robot)
+        {
+            robot->setReferenceFrom(*model);
+            robot->move();
+        }
         
         /* Update time and sleep */
         time += dt;
