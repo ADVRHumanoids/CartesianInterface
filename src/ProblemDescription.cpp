@@ -59,6 +59,23 @@ CartesianTask::CartesianTask(std::string distal_link, std::string base_link):
 
 }
 
+ComTask::ComTask():
+    TaskDescription(TaskType::Com, 3)
+{
+
+}
+
+ComTask::Ptr XBot::Cartesian::MakeCom()
+{
+    return std::make_shared<ComTask>();
+}
+
+ComTask::Ptr XBot::Cartesian::GetAsCom(TaskDescription::Ptr task)
+{
+    return std::dynamic_pointer_cast<ComTask>(task);
+}
+
+
 TaskDescription::TaskDescription(TaskType type, int size):
     type(type),
     weight(Eigen::MatrixXd::Identity(size,size)),
@@ -201,44 +218,62 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node)
         
         for(auto task : stack_level)
         {
+            
             std::string task_name = task.as<std::string>();
             std::string task_type = yaml_node[task_name]["type"].as<std::string>();
+            TaskDescription::Ptr task_desc;
             
             if(task_type == "Cartesian") // TBD ERROR CHECKING
             {
                 std::string distal_link = yaml_node[task_name]["distal_link"].as<std::string>();
                 std::string base_link = "world";
+                auto cart_task = MakeCartesian(distal_link, base_link);
+                task_desc = cart_task;
                 
                 if(yaml_node[task_name]["base_link"])
                 {
                     base_link = yaml_node[task_name]["base_link"].as<std::string>();
                 }
                 
-                auto cart_task = MakeCartesian(distal_link, base_link);
-                
-                if(yaml_node[task_name]["weight"])
+                if(yaml_node[task_name]["base_link"])
                 {
-                    cart_task->weight *= yaml_node[task_name]["weight"].as<double>();
+                    base_link = yaml_node[task_name]["base_link"].as<std::string>();
                 }
                 
-                if(yaml_node[task_name]["lambda"])
+                if(yaml_node[task_name]["orientation_gain"])
                 {
-                    cart_task->lambda = yaml_node[task_name]["lambda"].as<double>();
+                    cart_task->orientation_gain = yaml_node[task_name]["orientation_gain"].as<double>();
                 }
-                
-                if(yaml_node[task_name]["indices"])
-                {
-                    std::vector<int> indices = yaml_node[task_name]["indices"].as<std::vector<int>>();
-                    cart_task = std::dynamic_pointer_cast<CartesianTask>(indices%cart_task);
-                }
-                
-                aggr_task.push_back(cart_task);
+            }
+            else if(task_type == "Com")
+            {
+                task_desc = MakeCom();
             }
             else
             {
                 XBot::Logger::error("Unsupported task type %s\n", task_type.c_str());
                 throw std::runtime_error("Bad problem description");
             }
+                
+                
+            if(yaml_node[task_name]["weight"])
+            {
+                task_desc->weight *= yaml_node[task_name]["weight"].as<double>();
+            }
+            
+            if(yaml_node[task_name]["lambda"])
+            {
+                task_desc->lambda = yaml_node[task_name]["lambda"].as<double>();
+            }
+            
+            if(yaml_node[task_name]["indices"])
+            {
+                std::vector<int> indices = yaml_node[task_name]["indices"].as<std::vector<int>>();
+                task_desc = indices % task_desc;
+            }
+                
+            
+            aggr_task.push_back(task_desc);
             
         }
         

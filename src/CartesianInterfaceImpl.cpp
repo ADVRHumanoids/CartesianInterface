@@ -388,10 +388,20 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
             switch(task_desc->type)
             {
                 case TaskType::Cartesian:
-                    
+                {
                     auto cart_desc = GetAsCartesian(task_desc);
                     _tasks_vector.emplace_back(cart_desc->base_link, cart_desc->distal_link);
                     break;
+                }    
+                case TaskType::Com:
+                {   
+                    auto com_desc = GetAsCom(task_desc);
+                    _tasks_vector.emplace_back("COM", "world");
+                    break;
+                }    
+                default:
+                    
+                    throw std::runtime_error("Unsupported task type");
             }
             
             

@@ -47,7 +47,7 @@ OpenSoT::tasks::Aggregated::Ptr XBot::Cartesian::OpenSotImpl::aggregated_from_st
         switch(task_desc->type)
         {
             case TaskType::Cartesian:
-
+            {
                 auto cartesian_desc = XBot::Cartesian::GetAsCartesian(task_desc);
                 std::string distal_link = cartesian_desc->distal_link;
                 std::string base_link = cartesian_desc->base_link;
@@ -77,6 +77,28 @@ OpenSoT::tasks::Aggregated::Ptr XBot::Cartesian::OpenSotImpl::aggregated_from_st
                 }
 
                 break;
+            }
+            case TaskType::Com:
+            {
+                auto com_desc = XBot::Cartesian::GetAsCom(task_desc);
+                _com_task = boost::make_shared<CoMTask>(_q, *_model);
+                
+                _com_task->setLambda(com_desc->lambda);
+
+                std::list<uint> indices(com_desc->indices.begin(), com_desc->indices.end());
+
+                if(indices.size() == 6)
+                {
+                    tasks_list.push_back(com_desc->weight*(_com_task));
+                }
+                else
+                {
+                    tasks_list.push_back(com_desc->weight*(_com_task%indices));
+                }
+                break;
+            }
+            default:
+                throw std::runtime_error("OpenSot: task type not supported");
         }
     }
 
@@ -165,7 +187,7 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     /* Create solver */
     _solver = boost::make_shared<OpenSoT::solvers::iHQP>(_autostack->getStack(),
                                                          _autostack->getBounds(),
-                                                         1e8,
+                                                         1e6,
                                                          OpenSoT::solvers::solver_back_ends::qpOASES
                                                         );
     

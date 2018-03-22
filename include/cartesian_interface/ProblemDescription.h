@@ -55,6 +55,8 @@ namespace XBot { namespace Cartesian {
     typedef std::vector<TaskDescription::Ptr> AggregatedTask;
     typedef std::vector<AggregatedTask> Stack;
     
+    
+    
     struct CartesianTask : TaskDescription {
         
         std::string base_link, distal_link;
@@ -71,6 +73,19 @@ namespace XBot { namespace Cartesian {
     
     CartesianTask::Ptr MakeCartesian(std::string distal_link, std::string base_link = "world");
     CartesianTask::Ptr GetAsCartesian(TaskDescription::Ptr task);
+    
+    
+    struct ComTask : TaskDescription {
+        
+        typedef std::shared_ptr<ComTask> Ptr;
+        typedef std::shared_ptr<const ComTask> ConstPtr;
+        
+        ComTask();
+        
+    };
+    
+    ComTask::Ptr MakeCom();
+    ComTask::Ptr GetAsCom(TaskDescription::Ptr task);
     
     enum class ConstraintType { JointLimits, VelocityLimits };
     

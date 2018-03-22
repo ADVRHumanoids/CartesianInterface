@@ -30,6 +30,7 @@ protected:
 private:
     
     typedef OpenSoT::tasks::velocity::Cartesian CartesianTask;
+    typedef OpenSoT::tasks::velocity::CoM CoMTask;
     
     void set_adaptive_lambda(CartesianTask::Ptr cartesian_task);
     
@@ -39,6 +40,7 @@ private:
     Eigen::VectorXd _q, _dq, _ddq;
     
     std::vector<CartesianTask::Ptr> _cartesian_tasks;
+    CoMTask::Ptr _com_task;
     
     OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr _solver;
     OpenSoT::AutoStack::Ptr _autostack;
