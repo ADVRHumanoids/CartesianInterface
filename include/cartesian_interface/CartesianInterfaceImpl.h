@@ -63,6 +63,12 @@ public:
     virtual bool getPoseTarget(const std::string& end_effector, 
                             Eigen::Affine3d& base_T_ref) const;
                             
+    virtual bool getComPositionReference(Eigen::Vector3d& w_com_ref, 
+                                         Eigen::Vector3d* base_vel_ref = nullptr, 
+                                         Eigen::Vector3d* base_acc_ref = nullptr) const;
+
+    virtual bool getTargetComPosition(Eigen::Vector3d& w_com_ref) const;
+                            
     virtual bool getCurrentPose(const std::string& end_effector, Eigen::Affine3d& base_T_ee) const;
                             
     virtual State getTaskState(const std::string& end_effector) const;
@@ -128,8 +134,6 @@ protected:
     
     double get_current_time() const;
     
-    const std::map<std::string, Task::Ptr>& get_tasks() const;
-    
     XBot::ModelInterface::Ptr _model;
     
     
@@ -144,6 +148,7 @@ private:
     Task::Ptr get_task(const std::string& ee_name) const;
     
     std::map<std::string, Task::Ptr> _task_map;
+    Task::Ptr _com_task;
     
     double _current_time;
     

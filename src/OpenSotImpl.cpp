@@ -229,6 +229,28 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
         cart_task->setReference(T_ref.matrix(), v_ref);
 
     }
+    
+    /* Handle COM reference */
+    if(_com_task)
+    {
+        Eigen::Vector3d x, v, a;
+        
+        if(getComPositionReference(x, &v, &a))
+        {
+            _com_task->setReference(x, v);
+            
+            if(getControlMode("com") == ControlType::Disabled)
+            {
+                _com_task->setActive(false);
+            }
+
+            if(getControlMode("com") == ControlType::Velocity)
+            {
+
+                _com_task->setLambda(0.0);
+            }
+        }
+    }
 
     _autostack->update(_q);
     _autostack->log(_logger);

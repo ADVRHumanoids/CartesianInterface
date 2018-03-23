@@ -49,9 +49,18 @@ void RosServerClass::online_position_reference_cb(const geometry_msgs::PoseStamp
 
     Eigen::Affine3d T;
     tf::poseMsgToEigen(msg->pose, T);
-
-    _cartesian_interface->setPoseReference(ee_name, T);
+    
+    if(ee_name == "com")
+    {
+        _cartesian_interface->setComPositionReference(T.translation());
+    }
+    else
+    {
+        _cartesian_interface->setPoseReference(ee_name, T);
+    }
 }
+
+
 
 
 void RosServerClass::__generate_online_pos_topics()
@@ -111,10 +120,22 @@ void RosServerClass::manage_reach_actions()
                     T_ref.linear() = base_T_ee.linear() *  T_ref.linear();
                     T_ref.translation() = base_T_ee.translation() +  T_ref.translation();
                 }
-
-                if(!_cartesian_interface->setTargetPose(ee_name, T_ref, goal->time.back()))
+                
+                if(ee_name == "com"){
+                    
+                    if(!_cartesian_interface->setTargetComPosition(T_ref.translation(), goal->time.back()))
+                    {
+                        as->setAborted(cartesian_interface::ReachPoseResult(), "Internal error");
+                    }
+                    
+                }
+                else
                 {
-                    as->setAborted(cartesian_interface::ReachPoseResult(), "Internal error");
+                    
+                    if(!_cartesian_interface->setTargetPose(ee_name, T_ref, goal->time.back()))
+                    {
+                        as->setAborted(cartesian_interface::ReachPoseResult(), "Internal error");
+                    }
                 }
 
                 current_state = _cartesian_interface->getTaskState(ee_name);
@@ -359,6 +380,11 @@ void RosServerClass::__generate_markers()
 
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
+        if(ee_name == "com")
+        {
+            continue;
+        }
+        
         std::string base_link = _cartesian_interface->getBaseLink(ee_name);
         base_link = base_link == "world" ? "world_odom" : base_link;
         auto marker = std::make_shared<CartesianMarker>(base_link,

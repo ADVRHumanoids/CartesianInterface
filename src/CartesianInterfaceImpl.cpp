@@ -78,6 +78,19 @@ CartesianInterfaceImpl::Task::Ptr CartesianInterfaceImpl::get_task(const std::st
 {
     auto it = _task_map.find(ee_name);
     
+    if(ee_name == "com")
+    {
+        if(_com_task)
+        {
+            return _com_task;
+        }
+        else
+        {
+            it = _task_map.end();
+        }
+    }
+    
+    
     if(it == _task_map.end())
     {
         XBot::Logger::error("Task %s undefined \n", ee_name.c_str());
@@ -245,6 +258,11 @@ bool CartesianInterfaceImpl::reset()
     {
         CartesianInterfaceImpl::Task& task = *(pair.second);
         
+        if(task.distal_frame == "com")
+        {
+            continue;
+        }
+        
         if(task.base_frame == "world")
         {
             _model->getPose(task.distal_frame, task.T);
@@ -261,13 +279,18 @@ bool CartesianInterfaceImpl::reset()
         
     }
     
+    if(_com_task)
+    {
+        Eigen::Vector3d com;
+        _model->getCOM(com);
+        _com_task->T.translation() = com;
+        _com_task->vel.setZero();
+        _com_task->acc.setZero();
+        _com_task->state = State::Online;
+    }
+    
     return true;
     
-}
-
-const std::map< std::string, CartesianInterfaceImpl::Task::Ptr >& CartesianInterfaceImpl::get_tasks() const
-{
-    return _task_map;
 }
 
 CartesianInterfaceImpl::Task::Task():
@@ -302,13 +325,13 @@ void CartesianInterfaceImpl::__construct_from_vectors()
     for(auto pair : _tasks_vector)
     {
         Eigen::Affine3d T;
-        if(!_model->getPose(pair.first, T))
+        if(pair.first != "world" && !_model->getPose(pair.first, T))
         {
             XBot::Logger::error("CartesianInterface: unable to find frame %s inside URDF\n", pair.first.c_str());
             continue;
         }
         
-        if(pair.second != "world" && !_model->getPose(pair.second, T))
+        if(pair.second != "com" && !_model->getPose(pair.second, T))
         {
             XBot::Logger::error("CartesianInterface: unable to find frame %s inside URDF\n", pair.second.c_str());
             continue;
@@ -317,6 +340,12 @@ void CartesianInterfaceImpl::__construct_from_vectors()
         auto task = std::make_shared<CartesianInterfaceImpl::Task>();
         task->base_frame = pair.first;
         task->distal_frame = pair.second;
+        
+        
+        if(pair.second == "com")
+        {
+            _com_task = task;
+        }
         
         _task_map[task->distal_frame] = task;
         
@@ -396,12 +425,11 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
                 case TaskType::Com:
                 {   
                     auto com_desc = GetAsCom(task_desc);
-                    _tasks_vector.emplace_back("COM", "world");
+                    _tasks_vector.emplace_back("world", "com");
                     break;
                 }    
                 default:
-                    
-                    throw std::runtime_error("Unsupported task type");
+                    Logger::warning("Unsupported task type\n");
             }
             
             
@@ -416,7 +444,29 @@ bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_co
                                                      const Eigen::Vector3d& w_vel_ref, 
                                                      const Eigen::Vector3d& w_acc_ref)
 {
-    throw std::runtime_error("unsupported function");
+    if(!_com_task)
+    {
+        return false;
+    }
+    
+    if(_com_task->state == State::Reaching)
+    {
+        XBot::Logger::error("Unable to set pose reference. Task is in REACHING state \n");
+        return false;
+    }
+    
+    if(_com_task->control_type != ControlType::Position)
+    {
+        XBot::Logger::error("Unable to set pose reference. Task is in NOT in position mode \n");
+        return false;
+    }
+    
+    _com_task->T.translation() = w_com_ref;
+    _com_task->vel.head<3>() = w_vel_ref;
+    _com_task->acc.head<3>() = w_acc_ref;
+    _com_task->state = State::Online;
+    
+    return true;
 }
 
 bool CartesianInterfaceImpl::setPositionReference(const std::string& end_effector, 
@@ -430,7 +480,35 @@ bool CartesianInterfaceImpl::setPositionReference(const std::string& end_effecto
 bool CartesianInterfaceImpl::setTargetComPosition(const Eigen::Vector3d& w_com_ref, 
                                                   double time)
 {
-    throw std::runtime_error("unsupported function");
+    auto task = _com_task;
+    
+    if(!_com_task)
+    {
+        return false;
+    }
+    
+    if(!_com_task || _com_task->state == State::Reaching)
+    {
+        XBot::Logger::error("Unable to set target pose. Task is in already in REACHING mode \n");
+        return false;
+    }
+    
+    if(_com_task->control_type != ControlType::Position)
+    {
+        XBot::Logger::error("Unable to set pose reference. Task is in NOT in position mode \n");
+        return false;
+    }
+    
+    Eigen::Affine3d T = _com_task->T;
+    T.translation() = w_com_ref;
+    
+    _com_task->state = State::Reaching;
+    _com_task->trajectory->clear();
+    _com_task->trajectory->addWayPoint(get_current_time(), _com_task->T);
+    _com_task->trajectory->addWayPoint(get_current_time() + time, T);
+
+    
+    return true;
 }
 
 
@@ -457,7 +535,17 @@ bool CartesianInterfaceImpl::getCurrentPose(const std::string& end_effector, Eig
     
     if(task->base_frame == "world")
     {
-        _model->getPose(task->distal_frame, w_T_ee);
+        if(task->distal_frame == "com")
+        {
+            Eigen::Vector3d com;
+            w_T_ee.setIdentity();
+            _model->getCOM(com);
+            w_T_ee.translation() = com;
+        }
+        else
+        {
+            _model->getPose(task->distal_frame, w_T_ee);
+        }
     }
     else
     {
@@ -567,4 +655,38 @@ XBot::ModelInterface::Ptr CartesianInterfaceImpl::getModel() const
     return _model;
 }
 
+bool CartesianInterfaceImpl::getComPositionReference(Eigen::Vector3d& w_com_ref, 
+                                                     Eigen::Vector3d* base_vel_ref, 
+                                                     Eigen::Vector3d* base_acc_ref) const
+{
+    if(!_com_task)
+    {
+        return false;
+    }
+    
+    w_com_ref = _com_task->T.translation();
+    if(base_vel_ref) *base_vel_ref = _com_task->vel.head<3>();
+    if(base_acc_ref) *base_acc_ref = _com_task->acc.head<3>();
+    
+    return true;
+}
+
+bool CartesianInterfaceImpl::getTargetComPosition(Eigen::Vector3d& w_com_ref) const
+{
+    if(!_com_task)
+    {
+        return false;
+    }
+    
+    if(_com_task->state == State::Reaching)
+    {
+        w_com_ref = _com_task->trajectory->getWayPoints().back().frame.translation();
+        return true;
+    }
+    else
+    {
+        XBot::Logger::warning("Task com is NOT in REACHING mode \n");
+        return false;
+    }
+}
 

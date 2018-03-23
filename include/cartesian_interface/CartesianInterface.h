@@ -123,7 +123,11 @@ public:
     virtual bool getPoseTarget(const std::string& end_effector, 
                        Eigen::Affine3d& base_T_ref) const = 0;
                        
+    virtual bool getTargetComPosition(Eigen::Vector3d& w_com_ref) const = 0;
     
+    virtual bool getComPositionReference(Eigen::Vector3d& w_com_ref, 
+                          Eigen::Vector3d * base_vel_ref = nullptr,
+                          Eigen::Vector3d * base_acc_ref = nullptr ) const = 0;
     
     
     virtual ~CartesianInterface(){}
