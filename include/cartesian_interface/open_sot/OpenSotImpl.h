@@ -41,6 +41,7 @@ private:
     
     std::vector<CartesianTask::Ptr> _cartesian_tasks;
     CoMTask::Ptr _com_task;
+    OpenSoT::tasks::velocity::Postural::Ptr _postural_task;
     
     OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr _solver;
     OpenSoT::AutoStack::Ptr _autostack;

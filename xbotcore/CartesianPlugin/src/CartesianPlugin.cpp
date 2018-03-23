@@ -47,7 +47,7 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
     _qdot = _q;
     
     YAML::Node yaml_file = YAML::LoadFile(handle->getPathToConfigFile());
-    ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"]);
+    ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"], _model);
     _ci = std::make_shared<OpenSotImpl>(_model, ik_problem);
 
     /* Initialize a logger which saves to the specified file. Remember that

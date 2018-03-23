@@ -20,12 +20,7 @@
 #ifndef __XBOT_CARTESIAN_PROBLEM_DESC_H__
 #define __XBOT_CARTESIAN_PROBLEM_DESC_H__
 
-#include <vector>
-#include <memory>
-#include <list>
-#include <string>
-#include <Eigen/Dense>
-#include <yaml-cpp/yaml.h>
+#include <XBotInterface/ModelInterface.h>
 
 namespace XBot { namespace Cartesian {
     
@@ -87,6 +82,19 @@ namespace XBot { namespace Cartesian {
     ComTask::Ptr MakeCom();
     ComTask::Ptr GetAsCom(TaskDescription::Ptr task);
     
+    
+    struct PosturalTask : TaskDescription {
+        
+        typedef std::shared_ptr<PosturalTask> Ptr;
+        typedef std::shared_ptr<const PosturalTask> ConstPtr;
+        
+        PosturalTask(int ndof);
+        
+    };
+    
+    PosturalTask::Ptr MakePostural(int ndof);
+    PosturalTask::Ptr GetAsPostural(TaskDescription::Ptr task);
+    
     enum class ConstraintType { JointLimits, VelocityLimits };
     
     struct ConstraintDescription {
@@ -111,7 +119,7 @@ namespace XBot { namespace Cartesian {
         ProblemDescription(TaskDescription::Ptr task);
         ProblemDescription(AggregatedTask task);
         ProblemDescription(Stack stack);
-        ProblemDescription(YAML::Node yaml_node);
+        ProblemDescription(YAML::Node yaml_node, ModelInterface::ConstPtr model);
         
         ProblemDescription& operator<<(ConstraintDescription::Ptr constraint);
         

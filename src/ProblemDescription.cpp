@@ -39,6 +39,23 @@ CartesianTask::Ptr XBot::Cartesian::GetAsCartesian(TaskDescription::Ptr task)
     return std::dynamic_pointer_cast<CartesianTask>(task);
 }
 
+PosturalTask::Ptr XBot::Cartesian::GetAsPostural(TaskDescription::Ptr task)
+{
+    return std::dynamic_pointer_cast<PosturalTask>(task);
+}
+
+PosturalTask::PosturalTask(int ndof):
+    TaskDescription(TaskType::Postural, ndof)
+{
+    
+}
+
+PosturalTask::Ptr XBot::Cartesian::MakePostural(int ndof)
+{
+    return std::make_shared<PosturalTask>(ndof);
+}
+
+
 ConstraintDescription::Ptr XBot::Cartesian::MakeJointLimits()
 {
     return std::make_shared<ConstraintDescription>(ConstraintType::JointLimits);
@@ -203,7 +220,7 @@ const std::vector< ConstraintDescription::Ptr >& ProblemDescription::getBounds()
     return _bounds;
 }
 
-ProblemDescription::ProblemDescription(YAML::Node yaml_node)
+ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::ConstPtr model)
 {
     if(!yaml_node["stack"])
     {
@@ -249,6 +266,28 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node)
             {
                 task_desc = MakeCom();
             }
+            else if(task_type == "Postural")
+            {
+                task_desc = MakePostural(model->getJointNum());
+                auto postural_desc = GetAsPostural(task_desc);
+                
+                if(yaml_node[task_name]["weight"] && yaml_node[task_name]["weight"].IsMap())
+                {
+                    for(const auto& pair : yaml_node[task_name]["weight"])
+                    {
+                        if(!model->hasJoint(pair.first.as<std::string>()))
+                        {
+                            std::string err = "Joint " + pair.first.as<std::string>() + " is undefined";
+                            throw std::invalid_argument(err);
+                        }
+                        
+                        int idx = model->getDofIndex(pair.first.as<std::string>());
+                        task_desc->weight(idx, idx) = pair.second.as<double>();
+                        
+                    }
+                }
+                    
+            }
             else
             {
                 XBot::Logger::error("Unsupported task type %s\n", task_type.c_str());
@@ -256,7 +295,7 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node)
             }
                 
                 
-            if(yaml_node[task_name]["weight"])
+            if(yaml_node[task_name]["weight"] && yaml_node[task_name]["weight"].IsScalar())
             {
                 task_desc->weight *= yaml_node[task_name]["weight"].as<double>();
             }

@@ -97,8 +97,27 @@ OpenSoT::tasks::Aggregated::Ptr XBot::Cartesian::OpenSotImpl::aggregated_from_st
                 }
                 break;
             }
+            case TaskType::Postural:
+            {
+                auto postural_desc = XBot::Cartesian::GetAsPostural(task_desc);
+                _postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
+                
+                _postural_task->setLambda(postural_desc->lambda);
+
+                std::list<uint> indices(postural_desc->indices.begin(), postural_desc->indices.end());
+
+                if(indices.size() == _model->getJointNum())
+                {
+                    tasks_list.push_back(postural_desc->weight*(_postural_task));
+                }
+                else
+                {
+                    tasks_list.push_back(postural_desc->weight*(_postural_task%indices));
+                }
+                break;
+            }
             default:
-                throw std::runtime_error("OpenSot: task type not supported");
+                Logger::warning("OpenSot: task type not supported\n");
         }
     }
 
@@ -168,10 +187,13 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     }
 
     /* Add postural task by default */
-    auto postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
-    postural_task->setLambda(0.01);
+//     auto postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
+//     postural_task->setLambda(0.01);
 
-    _autostack = _autostack / postural_task;
+    if(_postural_task)
+    {
+        _autostack = _autostack / _postural_task;
+    }
 
     /* Parse constraints */
     for(auto constr : ik_problem.getBounds())
@@ -187,8 +209,8 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     /* Create solver */
     _solver = boost::make_shared<OpenSoT::solvers::iHQP>(_autostack->getStack(),
                                                          _autostack->getBounds(),
-                                                         1e6,
-                                                         OpenSoT::solvers::solver_back_ends::qpOASES
+                                                         1e-6,
+                                                         OpenSoT::solvers::solver_back_ends::OSQP
                                                         );
     
 

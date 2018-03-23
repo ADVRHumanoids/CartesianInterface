@@ -90,7 +90,7 @@ int main(int argc, char **argv){
 
     /* Load IK problem and solver */
     auto yaml_file = YAML::LoadFile(XBot::Utils::getXBotConfig());
-    ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"]);
+    ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"], model);
     std::string impl_name = yaml_file["CartesianInterface"]["solver"].as<std::string>();
     
     auto sot_ik_solver = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterface>("Cartesian" + impl_name + ".so", 
