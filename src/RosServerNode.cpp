@@ -57,11 +57,11 @@ int main(int argc, char **argv){
     
     /* Init ROS node */
     ros::init(argc, argv, "xbot_cartesian_server");
-    ros::NodeHandle nh;
+    ros::NodeHandle nh("xbotcore/cartesian");
     
     XBot::RobotInterface::Ptr robot;
     
-    std::string param_name = "/xbotcore/cartesian/visual_mode";
+    std::string param_name = "visual_mode";
     bool visual_mode = false;
     
     if(nh.hasParam(param_name))
@@ -112,7 +112,7 @@ int main(int argc, char **argv){
     __g_ros_ptrptr = &ros_server_class;
     
     
-    auto loader_srv = nh.advertiseService("/xbotcore/cartesian/load_controller", loader_callback);
+    auto loader_srv = nh.advertiseService("load_controller", loader_callback);
     
     ros::Rate loop_rate(100);
     Eigen::VectorXd q, qdot;
