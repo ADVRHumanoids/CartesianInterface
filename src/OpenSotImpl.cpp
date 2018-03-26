@@ -87,7 +87,7 @@ OpenSoT::tasks::Aggregated::Ptr XBot::Cartesian::OpenSotImpl::aggregated_from_st
 
                 std::list<uint> indices(com_desc->indices.begin(), com_desc->indices.end());
 
-                if(indices.size() == 6)
+                if(indices.size() == 3)
                 {
                     tasks_list.push_back(com_desc->weight*(_com_task));
                 }
