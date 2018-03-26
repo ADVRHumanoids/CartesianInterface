@@ -7,7 +7,7 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
                                  const urdf::Model &robot_urdf,
                                  std::string tf_prefix
                                 ):
-    _nh("~"),
+    _nh("xbotcore/cartesian"),
     _base_link(base_link),
     _distal_link(distal_link),
     _urdf(robot_urdf),
@@ -26,12 +26,12 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
 
     _server.applyChanges();
 
-    _clear_service = _nh.advertiseService("clear_"+_int_marker.name, &CartesianMarker::clearMarker, this);
-    _spawn_service = _nh.advertiseService("spawn_"+_int_marker.name, &CartesianMarker::spawnMarker, this);
+    _clear_service = _nh.advertiseService(_int_marker.name + "/clear_marker", &CartesianMarker::clearMarker, this);
+    _spawn_service = _nh.advertiseService(_int_marker.name + "/spawn_marker", &CartesianMarker::spawnMarker, this);
 //    _global_service = _nh.advertiseService("setGlobal_"+_int_marker.name, &CartesianMarker::setGlobal, this);
 //    _local_service = _nh.advertiseService("setLocal_"+_int_marker.name, &CartesianMarker::setLocal, this);
 
-    std::string topic_name = "/xbotcore/cartesian/" + distal_link + "/reference";
+    std::string topic_name = distal_link + "/reference";
     _ref_pose_pub = _nh.advertise<geometry_msgs::PoseStamped>(topic_name, 1);
 
 }
