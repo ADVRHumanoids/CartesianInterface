@@ -71,7 +71,7 @@ CartesianTask::CartesianTask(std::string distal_link, std::string base_link):
     TaskDescription(TaskType::Cartesian, 6),
     distal_link(distal_link),
     base_link(base_link),
-    orientation_gain(0.1)
+    orientation_gain(1.0)
 {
 
 }
