@@ -69,7 +69,7 @@ bool XBot::Cartesian::CartesianIO::init(std::string path_to_config_file, XBot::S
     
     /* Load IK problem and solver */
     auto yaml_file = YAML::LoadFile(path_to_config_file);
-    ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"]);
+    ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"], _model);
     std::string impl_name = yaml_file["CartesianInterface"]["solver"].as<std::string>();
     
     _ci = std::make_shared<CartesianInterfaceImpl>(_model, ik_problem);
