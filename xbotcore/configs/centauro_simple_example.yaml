@@ -19,6 +19,7 @@ CartesianInterface:
     stack:
       - ["Wheel_FL", "Wheel_FR", "Wheel_HR", "Wheel_HL"]
       - ["LeftArm", "RightArm"]
+      - ["Postural"]
     constraints: ["JointLimits", "VelocityLimits"]
 
     Wheel_FL:
@@ -40,10 +41,16 @@ CartesianInterface:
     LeftArm:
       type: "Cartesian"
       distal_link: "arm1_7"
+      lambda: 0.1
     
     RightArm:
       type: "Cartesian"
       distal_link: "arm2_7"
+      lambda: 0.1
+      
+    Postural:
+      type: "Postural"
+      lambda: 0.01
   
 MasterCommunicationInterface:
   framework_name: "ROS"
