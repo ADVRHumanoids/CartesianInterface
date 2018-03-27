@@ -108,11 +108,11 @@ set(Trajectory_SRC
 add_library(CartesianInterface SHARED ${CartesianInterface_SRC}
                                       ${CartesianInterfaceROS_SRC}
                                       ${Trajectory_SRC}
-                                      yaml-cpp
                                       )
 target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
                                                 ${XBotInterface_LIBRARIES}
                                                 ${catkin_LIBRARIES}
+                                                yaml-cpp
                       )
 add_dependencies(CartesianInterface ${PROJECT_NAME}_generate_messages)
 
@@ -134,7 +134,9 @@ add_subdirectory(examples)
 add_executable(solver_test src/BackendExample.cpp)
 target_link_libraries(solver_test ${OpenSoT_LIBRARIES})
 
-if(${XCM_FOUND})
+option(COMPILE_XBOT_PLUGIN OFF)
+
+if(${XCM_FOUND} AND ${COMPILE_XBOT_PLUGIN})
     add_subdirectory(xbotcore)
 endif()
 
