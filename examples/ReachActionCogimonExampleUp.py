@@ -19,13 +19,13 @@ def wholebody_client():
     # Creates a goal to send to the action server.
     goal_1 = cimsg.ReachPoseGoal()
     pose = geomsg.Pose()
-    pose.position.x = 0.20
-    pose.position.y = 0.16
-    pose.position.z = -0.8
-    pose.orientation.x = 0.0
-    pose.orientation.y = 0.0
-    pose.orientation.z = 0.0
-    pose.orientation.w = 1.0
+    pose.position.x = 0.26
+    pose.position.y = -0.16
+    pose.position.z = 0.1
+    pose.orientation.x = -0.06
+    pose.orientation.y = -0.68
+    pose.orientation.z = 0.37
+    pose.orientation.w = 0.62
 
     goal_1.frames.append(pose)
     goal_1.time.append(17.0)
@@ -33,25 +33,25 @@ def wholebody_client():
 
 
     # Sends the goal to the action server.
-    client_1.send_goal(goal_1)
+    client_2.send_goal(goal_1)
 
 
     # Sends the goal to the action server.
     goal_2 = cimsg.ReachPoseGoal()
     pose_2 = geomsg.Pose()
-    pose_2.position.x = 0.20
-    pose_2.position.y = -0.16
-    pose_2.position.z = -0.8
-    pose_2.orientation.x = 0.0
-    pose_2.orientation.y = 0.0
+    pose_2.position.x = 0.26
+    pose_2.position.y = 0.16
+    pose_2.position.z = 0.1
+    pose_2.orientation.x = -0.260
+    pose_2.orientation.y = -0.610
     pose_2.orientation.z = 0.0
-    pose_2.orientation.w = 1.0
+    pose_2.orientation.w = 0.74
 
     goal_2.frames.append(pose_2)
     goal_2.time.append(17.0)
     goal_2.incremental = False  # Move relative to current pose
 
-    client_2.send_goal(goal_2)
+    client_1.send_goal(goal_2)
 
     # Waits for the server to finish performing the action.
     client_1.wait_for_result()
