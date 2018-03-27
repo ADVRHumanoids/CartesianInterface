@@ -108,6 +108,7 @@ set(Trajectory_SRC
 add_library(CartesianInterface SHARED ${CartesianInterface_SRC}
                                       ${CartesianInterfaceROS_SRC}
                                       ${Trajectory_SRC}
+                                      yaml-cpp
                                       )
 target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
                                                 ${XBotInterface_LIBRARIES}
