@@ -10,10 +10,12 @@
 
 #define BOOST_RESULT_OF_USE_DECLTYPE
 #include <boost/function.hpp>
+#include <chrono>
 
 
 
 using namespace XBot::Cartesian;
+
 
 XBot::ModelInterface::Ptr __g_model;
 ProblemDescription * __g_problem;
@@ -22,33 +24,11 @@ RosServerClass::Ptr * __g_ros_ptrptr;
 
 /* Loader function */
 bool loader_callback(cartesian_interface::LoadControllerRequest&  req, 
-                    cartesian_interface::LoadControllerResponse& res)
-{
-    auto tmp_ik_solver = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterface>(
-                                                        "Cartesian" + req.controller_name + ".so", 
-                                                        req.controller_name + "Impl", 
-                                                        __g_model, *__g_problem);
-    
-    if(tmp_ik_solver)
-    {
-        *__g_impl_ptrptr = tmp_ik_solver;
-        res.success = true;
-        res.message = "Successfully loaded controller";
-        __g_ros_ptrptr->reset();
-        *__g_ros_ptrptr = std::make_shared<XBot::Cartesian::RosServerClass>(*__g_impl_ptrptr, __g_model);
-        
-    }
-    else
-    {
-        res.success = false;
-        res.message = "Unable to load controller";
-    }
-    
-    
-    return true;
-};
+                    cartesian_interface::LoadControllerResponse& res);
 
 int main(int argc, char **argv){
+    
+    using std::chrono::high_resolution_clock;
     
     auto logger = XBot::MatLogger::getLogger("/tmp/cartesian_ros_node_log");
     
@@ -127,7 +107,9 @@ int main(int argc, char **argv){
         ros_server_class->run();
         
         /* Solve ik */
+        auto tic =  high_resolution_clock::now();
         sot_ik_solver->update(time, dt);
+        auto toc =  high_resolution_clock::now();
         
         /* Integrate solution */
         model->getJointPosition(q);
@@ -147,6 +129,8 @@ int main(int argc, char **argv){
         /* Update time and sleep */
         time += dt;
         logger->add("loop_time", loop_rate.cycleTime().toSec()*1e6);
+        double run_time_us = std::chrono::duration_cast<std::chrono::microseconds>(toc-tic).count();
+        logger->add("run_time", run_time_us);
         loop_rate.sleep();
         
         
@@ -157,3 +141,32 @@ int main(int argc, char **argv){
     return 0;
     
 }
+
+
+bool loader_callback(cartesian_interface::LoadControllerRequest& req, cartesian_interface::LoadControllerResponse& res)
+{
+    auto tmp_ik_solver = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterface>(
+                                                        "Cartesian" + req.controller_name + ".so", 
+                                                        req.controller_name + "Impl", 
+                                                        __g_model, *__g_problem);
+    
+    if(tmp_ik_solver)
+    {
+        *__g_impl_ptrptr = tmp_ik_solver;
+        res.success = true;
+        res.message = "Successfully loaded controller";
+        __g_ros_ptrptr->reset();
+        *__g_ros_ptrptr = std::make_shared<XBot::Cartesian::RosServerClass>(*__g_impl_ptrptr, __g_model);
+        
+        XBot::Logger::success(Logger::Severity::HIGH, "Successfully loaded %s\n", req.controller_name.c_str());
+        
+    }
+    else
+    {
+        res.success = false;
+        res.message = "Unable to load controller";
+    }
+    
+    
+    return true;
+};
