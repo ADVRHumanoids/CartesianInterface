@@ -14,7 +14,7 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _server(_base_link + "_Cartesian_marker_server"),
     _tf_prefix(tf_prefix),
     _menu_entry_counter(0),
-    _control_type(1),_is_continuous(-1)
+    _control_type(1),_is_continuous(1)
 {
     _start_pose = getRobotActualPose();
 
@@ -52,7 +52,11 @@ void CartesianMarker::MakeMenu()
 
     _continuous_control_entry = _menu_handler.insert("Continuous Ctrl",boost::bind(boost::mem_fn(&CartesianMarker::setContinuousCtrl),
                                                                                    this, _1));
-    _menu_handler.setCheckState(_continuous_control_entry, interactive_markers::MenuHandler::CHECKED);
+    _menu_handler.setCheckState(_continuous_control_entry, interactive_markers::MenuHandler::UNCHECKED);
+    _menu_entry_counter++;
+
+    _way_point_entry = _menu_handler.insert("Add WayPoint");
+    _menu_handler.setVisible(_way_point_entry, true);
     _menu_entry_counter++;
 
 
@@ -73,11 +77,13 @@ void CartesianMarker::setContinuousCtrl(const visualization_msgs::InteractiveMar
     if(_is_continuous == 1)
     {
         _menu_handler.setCheckState(_continuous_control_entry, interactive_markers::MenuHandler::UNCHECKED);
+        _menu_handler.setVisible(_way_point_entry, true);
         setContinuous(req,res);
     }
     else if(_is_continuous == -1)
     {
         _menu_handler.setCheckState(_continuous_control_entry, interactive_markers::MenuHandler::CHECKED);
+        _menu_handler.setVisible(_way_point_entry, false);
         setTrj(req, res);
     }
 

@@ -112,6 +112,7 @@ private:
     visualization_msgs::Marker _marker;
 
     interactive_markers::MenuHandler _menu_handler;
+    interactive_markers::MenuHandler::EntryHandle _way_point_entry;
     interactive_markers::MenuHandler::EntryHandle _global_control_entry;
     interactive_markers::MenuHandler::EntryHandle _continuous_control_entry;
     visualization_msgs::InteractiveMarkerControl  _menu_control;
