@@ -47,6 +47,10 @@ void CartesianMarker::MakeMenu()
 {
     _menu_entry_counter = 0;
 
+    _reset_marker_entry = _menu_handler.insert("Reset Marker",boost::bind(boost::mem_fn(&CartesianMarker::resetMarker),
+                            this, _1));
+    _menu_entry_counter++;
+
     _global_control_entry = _menu_handler.insert("Global Ctrl",boost::bind(boost::mem_fn(&CartesianMarker::setControlGlobalLocal),
                             this, _1));
     _menu_handler.setCheckState(_global_control_entry, interactive_markers::MenuHandler::UNCHECKED);
@@ -83,6 +87,15 @@ void CartesianMarker::MakeMenu()
     _menu_handler.apply(_server, _int_marker.name);
 }
 
+void CartesianMarker::resetMarker(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+{
+    std_srvs::Empty::Request req;
+    std_srvs::Empty::Response res;
+
+    clearMarker(req, res);
+    spawnMarker(req,res);
+}
+
 void CartesianMarker::wayPointCallBack(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
     //In base_link
@@ -98,6 +111,8 @@ void CartesianMarker::wayPointCallBack(const visualization_msgs::InteractiveMark
         std::cout<<"["<<qx<<" "<<qy<<" "<<qz<<" "<<qw<<"]"<<std::endl;
         std::cout<<"of "<<T<<" secs"<<std::endl;
 
+        _waypoints.push_back(feedback->pose);
+        _T.push_back(T);
     }
 }
 
@@ -111,12 +126,16 @@ void CartesianMarker::setContinuousCtrl(const visualization_msgs::InteractiveMar
     {
         _menu_handler.setCheckState(_continuous_control_entry, interactive_markers::MenuHandler::UNCHECKED);
         _menu_handler.setVisible(_way_point_entry, true);
+        _waypoints.clear();
+        _T.clear();
         setContinuous(req,res);
     }
     else if(_is_continuous == -1)
     {
         _menu_handler.setCheckState(_continuous_control_entry, interactive_markers::MenuHandler::CHECKED);
         _menu_handler.setVisible(_way_point_entry, false);
+        _waypoints.clear();
+        _T.clear();
         setTrj(req, res);
     }
 

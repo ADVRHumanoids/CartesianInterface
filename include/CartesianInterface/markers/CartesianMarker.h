@@ -112,6 +112,7 @@ private:
     visualization_msgs::Marker _marker;
 
     interactive_markers::MenuHandler _menu_handler;
+    interactive_markers::MenuHandler::EntryHandle _reset_marker_entry;
     interactive_markers::MenuHandler::EntryHandle _way_point_entry;
     interactive_markers::MenuHandler::EntryHandle _T_entry;
     interactive_markers::MenuHandler::EntryHandle _T_last;
@@ -132,6 +133,15 @@ private:
     ros::ServiceServer _spawn_service;
 //    ros::ServiceServer _global_service;
 //    ros::ServiceServer _local_service;
+
+    /**
+     * @brief _waypoints contains all the waypoints BUT not the initial position!
+     */
+    std::vector<geometry_msgs::Pose> _waypoints;
+    /**
+     * @brief _T contains the times of each waypoint-trajectory
+     */
+    std::vector<double> _T;
 
 
     /**
@@ -177,6 +187,8 @@ private:
     void setContinuousCtrl(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
     void wayPointCallBack(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void resetMarker(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 };
 
 } }
