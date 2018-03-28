@@ -46,6 +46,23 @@ public:
 
     bool setLocal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
+    /**
+     * @brief setContinuous control mode
+     * @param req
+     * @param res
+     * @return
+     */
+    bool setContinuous(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
+    /**
+     * @brief setTrj control mode (enable waypoints)
+     * @param req
+     * @param res
+     * @return
+     */
+    bool setTrj(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
+
 private:
     /**
      * @brief _nh
@@ -97,10 +114,19 @@ private:
     visualization_msgs::Marker _marker;
 
     interactive_markers::MenuHandler _menu_handler;
+    interactive_markers::MenuHandler::EntryHandle _reset_marker_entry;
+    interactive_markers::MenuHandler::EntryHandle _way_point_entry;
+    interactive_markers::MenuHandler::EntryHandle _T_entry;
+    interactive_markers::MenuHandler::EntryHandle _T_last;
+    interactive_markers::MenuHandler::EntryHandle _reset_last_way_point_entry;
+    interactive_markers::MenuHandler::EntryHandle _reset_all_way_points_entry;
     interactive_markers::MenuHandler::EntryHandle _global_control_entry;
+    interactive_markers::MenuHandler::EntryHandle _continuous_control_entry;
     visualization_msgs::InteractiveMarkerControl  _menu_control;
     int _control_type;
     int _menu_entry_counter;
+    int _is_continuous;
+    int offset_menu_entry;
 
     tf::TransformListener _listener;
     tf::StampedTransform _transform;
@@ -111,6 +137,15 @@ private:
     ros::ServiceServer _spawn_service;
 //    ros::ServiceServer _global_service;
 //    ros::ServiceServer _local_service;
+
+    /**
+     * @brief _waypoints contains all the waypoints BUT not the initial position!
+     */
+    std::vector<geometry_msgs::Pose> _waypoints;
+    /**
+     * @brief _T contains the times of each waypoint-trajectory
+     */
+    std::vector<double> _T;
 
 
     /**
@@ -152,6 +187,16 @@ private:
     void MakeMenu();
 
     void setControlGlobalLocal(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void setContinuousCtrl(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void wayPointCallBack(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void resetMarker(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void resetAllWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void resetLastWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 };
 
 } }
