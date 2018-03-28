@@ -109,6 +109,7 @@ void CartesianMarker::sendWayPoints(const visualization_msgs::InteractiveMarkerF
         ///QUI INSERISCI IL TUO SPORCO CODICE///
         cartesian_interface::ReachPoseGoal goal;
         goal.frames = _waypoints;
+        std::partial_sum(_T.begin(), _T.end(), _T.begin());
         goal.time = _T;
         _waypoint_action_client.sendGoal(goal);
         ///////////////////////////////////////
