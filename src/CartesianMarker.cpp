@@ -87,6 +87,10 @@ void CartesianMarker::MakeMenu()
                                                                                                  this, _1));
     _menu_entry_counter++;
 
+    _send_way_points_entry = _menu_handler.insert(_way_point_entry, "Send",boost::bind(boost::mem_fn(&CartesianMarker::sendWayPoints),
+                                                                                                 this, _1));
+    _menu_entry_counter++;
+
 
     _menu_control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
     _menu_control.always_visible = true;
@@ -94,6 +98,20 @@ void CartesianMarker::MakeMenu()
     _int_marker.controls.push_back(_menu_control);
 
     _menu_handler.apply(_server, _int_marker.name);
+}
+
+void CartesianMarker::sendWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+{
+    if(!_waypoints.empty())
+    {
+        ///QUI INSERISCI IL TUO SPORCO CODICE///
+
+        ///////////////////////////////////////
+
+        _waypoints.clear();
+        _T.clear();
+        publishWP(_waypoints);
+    }
 }
 
 void CartesianMarker::resetLastWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
