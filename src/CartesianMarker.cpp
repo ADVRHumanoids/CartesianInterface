@@ -77,6 +77,12 @@ void CartesianMarker::MakeMenu()
         _menu_entry_counter++;
         _menu_handler.setCheckState(_T_last, interactive_markers::MenuHandler::UNCHECKED );
     }
+    _reset_all_way_points_entry = _menu_handler.insert(_way_point_entry, "Reset All",boost::bind(boost::mem_fn(&CartesianMarker::resetAllWayPoints),
+                                                                                                 this, _1));
+    _menu_entry_counter++;
+    _reset_last_way_point_entry = _menu_handler.insert(_way_point_entry, "Reset Last",boost::bind(boost::mem_fn(&CartesianMarker::resetLastWayPoints),
+                                                                                                 this, _1));
+    _menu_entry_counter++;
 
 
     _menu_control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
@@ -85,6 +91,48 @@ void CartesianMarker::MakeMenu()
     _int_marker.controls.push_back(_menu_control);
 
     _menu_handler.apply(_server, _int_marker.name);
+}
+
+void CartesianMarker::resetLastWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+{
+    _T.pop_back();
+    _waypoints.pop_back();
+    std_srvs::Empty::Request req;
+    std_srvs::Empty::Response res;
+    clearMarker(req, res);
+
+    std::cout<<"RESET LAST WAYPOINT!"<<std::endl;
+
+    if(_waypoints.empty())
+        spawnMarker(req,res);
+    else{
+        if(_server.empty())
+        {
+            tf::PoseMsgToKDL(_waypoints.back(),_start_pose);
+            _actual_pose = _start_pose;
+
+            _int_marker.pose.position.x = _start_pose.p.x();
+            _int_marker.pose.position.y = _start_pose.p.y();
+            _int_marker.pose.position.z = _start_pose.p.z();
+            double qx,qy,qz,qw; _start_pose.M.GetQuaternion(qx,qy,qz,qw);
+            _int_marker.pose.orientation.x = qx;
+            _int_marker.pose.orientation.y = qy;
+            _int_marker.pose.orientation.z = qz;
+            _int_marker.pose.orientation.w = qw;
+
+            _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
+            _menu_handler.apply(_server, _int_marker.name);
+            _server.applyChanges();
+        }
+    }
+}
+
+void CartesianMarker::resetAllWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+{
+    _T.clear();
+    _waypoints.clear();
+    resetMarker(feedback);
+    std::cout<<"RESETTING ALL WAYPOINTS!"<<std::endl;
 }
 
 void CartesianMarker::resetMarker(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
