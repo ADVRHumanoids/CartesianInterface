@@ -8,6 +8,7 @@
 #include <kdl_conversions/kdl_msg.h>
 #include <tf/transform_listener.h>
 #include <std_srvs/Empty.h>
+#include <geometry_msgs/PoseArray.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -120,6 +121,7 @@ private:
     interactive_markers::MenuHandler::EntryHandle _T_last;
     interactive_markers::MenuHandler::EntryHandle _reset_last_way_point_entry;
     interactive_markers::MenuHandler::EntryHandle _reset_all_way_points_entry;
+    interactive_markers::MenuHandler::EntryHandle _send_way_points_entry;
     interactive_markers::MenuHandler::EntryHandle _global_control_entry;
     interactive_markers::MenuHandler::EntryHandle _continuous_control_entry;
     visualization_msgs::InteractiveMarkerControl  _menu_control;
@@ -197,6 +199,11 @@ private:
     void resetAllWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
     void resetLastWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void sendWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    ros::Publisher _way_points_pub;
+    void publishWP(const std::vector<geometry_msgs::Pose>& wps);
 };
 
 } }

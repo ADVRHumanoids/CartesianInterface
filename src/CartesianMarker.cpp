@@ -35,6 +35,9 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     std::string topic_name = distal_link + "/reference";
     _ref_pose_pub = _nh.advertise<geometry_msgs::PoseStamped>(topic_name, 1);
 
+    topic_name = "/xbotcore/cartesian/" + distal_link + "/wp";
+    _way_points_pub = _nh.advertise<geometry_msgs::PoseArray>(topic_name, 1);
+
 }
 
 CartesianMarker::~CartesianMarker()
@@ -83,6 +86,10 @@ void CartesianMarker::MakeMenu()
                                                                                                  this, _1));
     _menu_entry_counter++;
 
+    _send_way_points_entry = _menu_handler.insert(_way_point_entry, "Send",boost::bind(boost::mem_fn(&CartesianMarker::sendWayPoints),
+                                                                                                 this, _1));
+    _menu_entry_counter++;
+
 
     _menu_control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
     _menu_control.always_visible = true;
@@ -90,6 +97,20 @@ void CartesianMarker::MakeMenu()
     _int_marker.controls.push_back(_menu_control);
 
     _menu_handler.apply(_server, _int_marker.name);
+}
+
+void CartesianMarker::sendWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+{
+    if(!_waypoints.empty())
+    {
+        ///QUI INSERISCI IL TUO SPORCO CODICE///
+
+        ///////////////////////////////////////
+
+        _waypoints.clear();
+        _T.clear();
+        publishWP(_waypoints);
+    }
 }
 
 void CartesianMarker::resetLastWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
@@ -124,6 +145,7 @@ void CartesianMarker::resetLastWayPoints(const visualization_msgs::InteractiveMa
             _server.applyChanges();
         }
     }
+    publishWP(_waypoints);
 }
 
 void CartesianMarker::resetAllWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
@@ -131,6 +153,7 @@ void CartesianMarker::resetAllWayPoints(const visualization_msgs::InteractiveMar
     _T.clear();
     _waypoints.clear();
     resetMarker(feedback);
+    publishWP(_waypoints);
     std::cout<<"RESETTING ALL WAYPOINTS!"<<std::endl;
 }
 
@@ -141,6 +164,18 @@ void CartesianMarker::resetMarker(const visualization_msgs::InteractiveMarkerFee
 
     clearMarker(req, res);
     spawnMarker(req,res);
+}
+
+void CartesianMarker::publishWP(const std::vector<geometry_msgs::Pose>& wps)
+{
+    geometry_msgs::PoseArray msg;
+    for(unsigned int i = 0; i < wps.size(); ++i)
+        msg.poses.push_back(wps[i]);
+
+    msg.header.frame_id = _base_link;
+    msg.header.stamp = ros::Time::now();
+
+    _way_points_pub.publish(msg);
 }
 
 void CartesianMarker::wayPointCallBack(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
@@ -160,6 +195,9 @@ void CartesianMarker::wayPointCallBack(const visualization_msgs::InteractiveMark
 
         _waypoints.push_back(feedback->pose);
         _T.push_back(T);
+
+        publishWP(_waypoints);
+
     }
 }
 
