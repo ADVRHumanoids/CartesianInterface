@@ -44,6 +44,23 @@ public:
 
     bool setLocal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
+    /**
+     * @brief setContinuous control mode
+     * @param req
+     * @param res
+     * @return
+     */
+    bool setContinuous(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
+    /**
+     * @brief setTrj control mode (enable waypoints)
+     * @param req
+     * @param res
+     * @return
+     */
+    bool setTrj(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
+
 private:
     /**
      * @brief _nh
@@ -96,9 +113,11 @@ private:
 
     interactive_markers::MenuHandler _menu_handler;
     interactive_markers::MenuHandler::EntryHandle _global_control_entry;
+    interactive_markers::MenuHandler::EntryHandle _continuous_control_entry;
     visualization_msgs::InteractiveMarkerControl  _menu_control;
     int _control_type;
     int _menu_entry_counter;
+    int _is_continuous;
 
     tf::TransformListener _listener;
     tf::StampedTransform _transform;
@@ -150,6 +169,8 @@ private:
     void MakeMenu();
 
     void setControlGlobalLocal(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void setContinuousCtrl(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 };
 
 } }

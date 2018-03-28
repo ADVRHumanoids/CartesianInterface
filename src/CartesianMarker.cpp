@@ -14,7 +14,7 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _server(_base_link + "_Cartesian_marker_server"),
     _tf_prefix(tf_prefix),
     _menu_entry_counter(0),
-    _control_type(1)
+    _control_type(1),_is_continuous(-1)
 {
     _start_pose = getRobotActualPose();
 
@@ -50,6 +50,11 @@ void CartesianMarker::MakeMenu()
     _menu_handler.setCheckState(_global_control_entry, interactive_markers::MenuHandler::UNCHECKED);
     _menu_entry_counter++;
 
+    _continuous_control_entry = _menu_handler.insert("Continuous Ctrl",boost::bind(boost::mem_fn(&CartesianMarker::setContinuousCtrl),
+                                                                                   this, _1));
+    _menu_handler.setCheckState(_continuous_control_entry, interactive_markers::MenuHandler::CHECKED);
+    _menu_entry_counter++;
+
 
     _menu_control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
     _menu_control.always_visible = true;
@@ -57,6 +62,39 @@ void CartesianMarker::MakeMenu()
     _int_marker.controls.push_back(_menu_control);
 
     _menu_handler.apply(_server, _int_marker.name);
+}
+
+void CartesianMarker::setContinuousCtrl(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+{
+    std_srvs::Empty::Request req;
+    std_srvs::Empty::Response res;
+
+    _is_continuous *= -1;
+    if(_is_continuous == 1)
+    {
+        _menu_handler.setCheckState(_continuous_control_entry, interactive_markers::MenuHandler::UNCHECKED);
+        setContinuous(req,res);
+    }
+    else if(_is_continuous == -1)
+    {
+        _menu_handler.setCheckState(_continuous_control_entry, interactive_markers::MenuHandler::CHECKED);
+        setTrj(req, res);
+    }
+
+    _menu_handler.reApply(_server);
+    _server.applyChanges();
+}
+
+bool CartesianMarker::setContinuous(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+{
+    clearMarker(req, res);
+    spawnMarker(req,res);
+}
+
+bool CartesianMarker::setTrj(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+{
+    clearMarker(req, res);
+    spawnMarker(req,res);
 }
 
 void CartesianMarker::setControlGlobalLocal(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
@@ -233,14 +271,17 @@ void CartesianMarker::MarkerFeedback(const visualization_msgs::InteractiveMarker
     double qx,qy,qz,qw;
     _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
 
-    std::cout<<_int_marker.name<<" _actual_pose: \n ["<<_actual_pose.p.x()<<" "<<_actual_pose.p.y()<<" "<<_actual_pose.p.z()<<"]"<<std::endl;
-    std::cout<<"["<<qx<<" "<<qy<<" "<<qz<<" "<<qw<<"]"<<std::endl;
-    
-    geometry_msgs::PoseStamped msg;
-    msg.pose = feedback->pose;
-    msg.header = feedback->header;
-    
-    _ref_pose_pub.publish(msg);
+    if(_is_continuous == -1)
+    {
+        std::cout<<_int_marker.name<<" _actual_pose: \n ["<<_actual_pose.p.x()<<" "<<_actual_pose.p.y()<<" "<<_actual_pose.p.z()<<"]"<<std::endl;
+        std::cout<<"["<<qx<<" "<<qy<<" "<<qz<<" "<<qw<<"]"<<std::endl;
+
+        geometry_msgs::PoseStamped msg;
+        msg.pose = feedback->pose;
+        msg.header = feedback->header;
+
+        _ref_pose_pub.publish(msg);
+    }
     
 }
 
