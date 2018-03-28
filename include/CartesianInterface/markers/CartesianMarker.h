@@ -113,12 +113,15 @@ private:
 
     interactive_markers::MenuHandler _menu_handler;
     interactive_markers::MenuHandler::EntryHandle _way_point_entry;
+    interactive_markers::MenuHandler::EntryHandle _T_entry;
+    interactive_markers::MenuHandler::EntryHandle _T_last;
     interactive_markers::MenuHandler::EntryHandle _global_control_entry;
     interactive_markers::MenuHandler::EntryHandle _continuous_control_entry;
     visualization_msgs::InteractiveMarkerControl  _menu_control;
     int _control_type;
     int _menu_entry_counter;
     int _is_continuous;
+    int offset_menu_entry;
 
     tf::TransformListener _listener;
     tf::StampedTransform _transform;
@@ -172,6 +175,8 @@ private:
     void setControlGlobalLocal(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
     void setContinuousCtrl(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void wayPointCallBack(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 };
 
 } }

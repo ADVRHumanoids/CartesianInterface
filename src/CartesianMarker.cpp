@@ -1,5 +1,7 @@
 #include <CartesianInterface/markers/CartesianMarker.h>
 
+#define SECS 5
+
 using namespace XBot::Cartesian;
 
 CartesianMarker::CartesianMarker(const std::string &base_link,
@@ -58,6 +60,19 @@ void CartesianMarker::MakeMenu()
     _way_point_entry = _menu_handler.insert("Add WayPoint");
     _menu_handler.setVisible(_way_point_entry, true);
     _menu_entry_counter++;
+    _T_entry = _menu_handler.insert(_way_point_entry, "T [sec]");
+    _menu_entry_counter++;
+    offset_menu_entry = _menu_entry_counter;
+    for ( int i=0; i<SECS; i++ )
+    {
+        std::ostringstream s;
+        s <<i+1;
+        _T_last = _menu_handler.insert( _T_entry, s.str(),
+            boost::bind(boost::mem_fn(&CartesianMarker::wayPointCallBack),
+                        this, _1));
+        _menu_entry_counter++;
+        _menu_handler.setCheckState(_T_last, interactive_markers::MenuHandler::UNCHECKED );
+    }
 
 
     _menu_control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
@@ -66,6 +81,24 @@ void CartesianMarker::MakeMenu()
     _int_marker.controls.push_back(_menu_control);
 
     _menu_handler.apply(_server, _int_marker.name);
+}
+
+void CartesianMarker::wayPointCallBack(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+{
+    //In base_link
+    tf::poseMsgToKDL(feedback->pose, _actual_pose);
+    double qx,qy,qz,qw;
+    _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
+
+    double T = double(feedback->menu_entry_id-offset_menu_entry);
+
+    if(_is_continuous == 1)
+    {
+        std::cout<<_int_marker.name<<" set waypoint @: \n ["<<_actual_pose.p.x()<<" "<<_actual_pose.p.y()<<" "<<_actual_pose.p.z()<<"]"<<std::endl;
+        std::cout<<"["<<qx<<" "<<qy<<" "<<qz<<" "<<qw<<"]"<<std::endl;
+        std::cout<<"of "<<T<<" secs"<<std::endl;
+
+    }
 }
 
 void CartesianMarker::setContinuousCtrl(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
