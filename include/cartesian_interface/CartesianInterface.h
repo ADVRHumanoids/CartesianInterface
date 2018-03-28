@@ -21,6 +21,7 @@
 #define __XBOT_CARTESIAN_INTERFACE_H__
 
 #include <XBotInterface/ModelInterface.h>
+#include <cartesian_interface/trajectory/Trajectory.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -77,16 +78,12 @@ public:
                        const Eigen::Affine3d& base_T_ref, 
                        double time = 0
                       ) = 0;
-    
-    virtual bool setTargetPosition(const std::string& end_effector, 
-                           const Eigen::Vector3d& base_pos_ref, 
-                           double time = 0) = 0;
+                      
+    virtual bool setWayPoints(const std::string& end_effector, 
+                       const Trajectory::WayPointVector& way_points
+                      ) = 0;
     
     virtual bool setTargetComPosition(const Eigen::Vector3d& base_com_ref, 
-                              double time = 0) = 0;
-    
-    virtual bool setTargetOrientation(const std::string& end_effector, 
-                              const Eigen::Matrix3d& base_R_ref, 
                               double time = 0) = 0;
     
     virtual bool abort(const std::string& end_effector) = 0;
@@ -100,11 +97,6 @@ public:
                           const Eigen::Affine3d& base_T_ref, 
                           const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(),
                           const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero()) = 0;
-    
-    virtual bool setPositionReference(const std::string& end_effector, 
-                              const Eigen::Vector3d& base_pos_ref, 
-                              const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(),
-                              const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero()) = 0;
     
     virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref, 
                                  const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(),

@@ -15,7 +15,8 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _server(distal_link + "_Cartesian_marker_server"),
     _tf_prefix(tf_prefix),
     _menu_entry_counter(0),
-    _control_type(1),_is_continuous(1)
+    _control_type(1),_is_continuous(1),
+    _waypoint_action_client("xbotcore/cartesian/" + distal_link + "/reach", true)
 {
     _start_pose = getRobotActualPose();
 
@@ -35,8 +36,10 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     std::string topic_name = distal_link + "/reference";
     _ref_pose_pub = _nh.advertise<geometry_msgs::PoseStamped>(topic_name, 1);
 
-    topic_name = "/xbotcore/cartesian/" + distal_link + "/wp";
-    _way_points_pub = _nh.advertise<geometry_msgs::PoseArray>(topic_name, 1);
+    topic_name = distal_link + "/wp";
+    _way_points_pub = _nh.advertise<geometry_msgs::PoseArray>(topic_name, 1, true);
+    
+    _waypoint_action_client.waitForServer();
 
 }
 
@@ -104,7 +107,10 @@ void CartesianMarker::sendWayPoints(const visualization_msgs::InteractiveMarkerF
     if(!_waypoints.empty())
     {
         ///QUI INSERISCI IL TUO SPORCO CODICE///
-
+        cartesian_interface::ReachPoseGoal goal;
+        goal.frames = _waypoints;
+        goal.time = _T;
+        _waypoint_action_client.sendGoal(goal);
         ///////////////////////////////////////
 
         _waypoints.clear();
@@ -172,7 +178,7 @@ void CartesianMarker::publishWP(const std::vector<geometry_msgs::Pose>& wps)
     for(unsigned int i = 0; i < wps.size(); ++i)
         msg.poses.push_back(wps[i]);
 
-    msg.header.frame_id = _base_link;
+    msg.header.frame_id = _tf_prefix+_base_link;
     msg.header.stamp = ros::Time::now();
 
     _way_points_pub.publish(msg);

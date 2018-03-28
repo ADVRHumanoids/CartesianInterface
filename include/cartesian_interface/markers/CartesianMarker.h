@@ -10,6 +10,9 @@
 #include <std_srvs/Empty.h>
 #include <geometry_msgs/PoseArray.h>
 
+#include <cartesian_interface/ReachPoseAction.h>
+#include <actionlib/client/simple_action_client.h>
+
 namespace XBot { namespace Cartesian {
 
 class CartesianMarker{
@@ -144,10 +147,11 @@ private:
      * @brief _waypoints contains all the waypoints BUT not the initial position!
      */
     std::vector<geometry_msgs::Pose> _waypoints;
+    actionlib::SimpleActionClient<cartesian_interface::ReachPoseAction> _waypoint_action_client;
     /**
      * @brief _T contains the times of each waypoint-trajectory
      */
-    std::vector<double> _T;
+    std::vector<float> _T;
 
 
     /**

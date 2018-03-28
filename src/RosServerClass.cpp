@@ -108,33 +108,57 @@ void RosServerClass::manage_reach_actions()
             if(!_is_action_active[i])
             {
                 auto goal = as->acceptNewGoal();
-
-                Eigen::Affine3d T_ref;
-                tf::poseMsgToEigen(get_normalized_pose(goal->frames.back()), T_ref);
-
+                
+                if(goal->frames.size() != goal->time.size())
+                {
+                    as->setAborted(cartesian_interface::ReachPoseResult(), "Time and frame size must match");
+                    continue;
+                }
+                
                 Eigen::Affine3d base_T_ee;
                  _cartesian_interface->getCurrentPose(ee_name, base_T_ee);
-
-                if(goal->incremental)
+                 
+                Trajectory::WayPointVector waypoints;
+                
+                for(int k = 0; k < goal->frames.size(); k++)
                 {
-                    T_ref.linear() = base_T_ee.linear() *  T_ref.linear();
-                    T_ref.translation() = base_T_ee.translation() +  T_ref.translation();
+                    Eigen::Affine3d T_ref;
+                    tf::poseMsgToEigen(get_normalized_pose(goal->frames[k]), T_ref);
+                    
+                    if(goal->incremental)
+                    {
+                        T_ref.linear() = base_T_ee.linear() *  T_ref.linear();
+                        T_ref.translation() = base_T_ee.translation() +  T_ref.translation();
+                    }
+                    
+                    Trajectory::WayPoint wp;
+                    wp.frame = T_ref;
+                    wp.time = goal->time[k];
+                    waypoints.push_back(wp);
+                    
+
                 }
+                
+                Eigen::Affine3d T_first_ref = waypoints[0].frame;
+
+                
                 
                 if(ee_name == "com"){
                     
-                    if(!_cartesian_interface->setTargetComPosition(T_ref.translation(), goal->time.back()))
+                    if(!_cartesian_interface->setTargetComPosition(T_first_ref.translation(), goal->time.back()))
                     {
                         as->setAborted(cartesian_interface::ReachPoseResult(), "Internal error");
+                        continue;
                     }
                     
                 }
                 else
                 {
                     
-                    if(!_cartesian_interface->setTargetPose(ee_name, T_ref, goal->time.back()))
+                    if(!_cartesian_interface->setWayPoints(ee_name, waypoints))
                     {
                         as->setAborted(cartesian_interface::ReachPoseResult(), "Internal error");
+                        continue;
                     }
                 }
 
