@@ -87,9 +87,9 @@ set(CartesianInterface_SRC
     )
 
 # OpenSot implementation
-#set(CartesianInterfaceSOT_SRC
-#        src/OpenSotImpl.cpp
-#    )
+set(CartesianInterfaceSOT_SRC
+       src/OpenSotImpl.cpp
+   )
 
 # Ros implementation
 set(CartesianInterfaceROS_SRC 
@@ -116,10 +116,10 @@ add_dependencies(CartesianInterface ${PROJECT_NAME}_generate_messages)
 
 
 # libCartesianOpenSot
-#add_library(CartesianOpenSot SHARED ${CartesianInterfaceSOT_SRC})
-#target_link_libraries(CartesianOpenSot PUBLIC ${OpenSoT_LIBRARIES}
-#                                              CartesianInterface
-#                      )
+add_library(CartesianOpenSot SHARED ${CartesianInterfaceSOT_SRC})
+target_link_libraries(CartesianOpenSot PUBLIC ${OpenSoT_LIBRARIES}
+                                             CartesianInterface
+                     )
 
 
 
@@ -143,11 +143,11 @@ install(TARGETS CartesianInterface CartesianInterface
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-#install(TARGETS CartesianOpenSot CartesianOpenSot
-#    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#)
+install(TARGETS CartesianOpenSot CartesianOpenSot
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 # Mark cpp header files for installation
 install(DIRECTORY include/CartesianInterface/
