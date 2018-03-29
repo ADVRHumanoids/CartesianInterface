@@ -427,7 +427,12 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
                     auto com_desc = GetAsCom(task_desc);
                     _tasks_vector.emplace_back("world", "com");
                     break;
-                }    
+                }   
+                case TaskType::Postural:
+                {   
+                    Logger::warning("Unsupported task type: Postural\n");
+                    break;
+                }   
                 default:
                     Logger::warning("Unsupported task type\n");
             }
