@@ -53,6 +53,7 @@ int main(int argc, char **argv){
     {
         robot = XBot::RobotInterface::getRobot(XBot::Utils::getXBotConfig());
         robot->sense();
+        robot->setControlMode(XBot::ControlMode::Position() + XBot::ControlMode::Velocity());
     }
     
     /* Get model, initialize to home */
