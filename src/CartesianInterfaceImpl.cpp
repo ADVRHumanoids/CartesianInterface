@@ -59,6 +59,16 @@ bool XBot::Cartesian::CartesianInterfaceImpl::setBaseLink(const std::string& ee_
         return false;
     }
     
+    if( task->base_frame == "world" )
+    {
+        _model->getPose(new_base_link, new_T_old);
+        new_T_old = new_T_old.inverse();
+    }
+    
+    // TBD MISSING NEW BASE LINK IS WORLD
+    if(new_base_link == "world")
+        throw std::runtime_error("new_base_link == world case is not handled! TBD!");
+    
     if( task->state != State::Online )
     {
         XBot::Logger::error("Unable to change base link while performing a reach\n");

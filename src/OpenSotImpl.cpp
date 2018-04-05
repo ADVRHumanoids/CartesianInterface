@@ -29,12 +29,11 @@ bool XBot::Cartesian::OpenSotImpl::setBaseLink(const std::string& ee_name, const
     {
         if(task->getDistalLink() == ee_name)
         {
-            task->setBaseLink(new_base_link);
-            success = true;
+            success = task->setBaseLink(new_base_link);
         }
     }
     
-    return true;
+    return success;
 }
 
 
