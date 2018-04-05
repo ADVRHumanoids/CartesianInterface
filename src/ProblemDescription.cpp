@@ -244,18 +244,15 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
             {
                 std::string distal_link = yaml_node[task_name]["distal_link"].as<std::string>();
                 std::string base_link = "world";
+                
+                
+                if(yaml_node[task_name]["base_link"])
+                {
+                    base_link = yaml_node[task_name]["base_link"].as<std::string>();
+                }
+
                 auto cart_task = MakeCartesian(distal_link, base_link);
                 task_desc = cart_task;
-                
-                if(yaml_node[task_name]["base_link"])
-                {
-                    base_link = yaml_node[task_name]["base_link"].as<std::string>();
-                }
-                
-                if(yaml_node[task_name]["base_link"])
-                {
-                    base_link = yaml_node[task_name]["base_link"].as<std::string>();
-                }
                 
                 if(yaml_node[task_name]["orientation_gain"])
                 {

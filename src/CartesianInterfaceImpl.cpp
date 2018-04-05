@@ -403,6 +403,10 @@ void CartesianInterfaceImpl::__construct_from_vectors()
         
         _task_map[task->distal_frame] = task;
         
+        Logger::success(Logger::Severity::HIGH) <<  "Successfully added task with\n" << 
+            "   BASE LINK:   " << XBot::bold_on << task->base_frame << XBot::bold_off  << "\n" << XBot::color_yellow <<
+            "   DISTAL LINK: " << XBot::bold_on << task->distal_frame << XBot::bold_off << Logger::endl();
+        
         _ee_list.push_back(task->distal_frame);
         
     }
