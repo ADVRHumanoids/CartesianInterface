@@ -8,6 +8,10 @@
 #include <kdl_conversions/kdl_msg.h>
 #include <tf/transform_listener.h>
 #include <std_srvs/Empty.h>
+#include <geometry_msgs/PoseArray.h>
+
+#include <cartesian_interface/ReachPoseAction.h>
+#include <actionlib/client/simple_action_client.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -45,6 +49,23 @@ public:
     bool setGlobal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
     bool setLocal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
+    /**
+     * @brief setContinuous control mode
+     * @param req
+     * @param res
+     * @return
+     */
+    bool setContinuous(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
+    /**
+     * @brief setTrj control mode (enable waypoints)
+     * @param req
+     * @param res
+     * @return
+     */
+    bool setTrj(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
 
 private:
     /**
@@ -97,10 +118,20 @@ private:
     visualization_msgs::Marker _marker;
 
     interactive_markers::MenuHandler _menu_handler;
+    interactive_markers::MenuHandler::EntryHandle _reset_marker_entry;
+    interactive_markers::MenuHandler::EntryHandle _way_point_entry;
+    interactive_markers::MenuHandler::EntryHandle _T_entry;
+    interactive_markers::MenuHandler::EntryHandle _T_last;
+    interactive_markers::MenuHandler::EntryHandle _reset_last_way_point_entry;
+    interactive_markers::MenuHandler::EntryHandle _reset_all_way_points_entry;
+    interactive_markers::MenuHandler::EntryHandle _send_way_points_entry;
     interactive_markers::MenuHandler::EntryHandle _global_control_entry;
+    interactive_markers::MenuHandler::EntryHandle _continuous_control_entry;
     visualization_msgs::InteractiveMarkerControl  _menu_control;
     int _control_type;
     int _menu_entry_counter;
+    int _is_continuous;
+    int offset_menu_entry;
 
     tf::TransformListener _listener;
     tf::StampedTransform _transform;
@@ -111,6 +142,16 @@ private:
     ros::ServiceServer _spawn_service;
 //    ros::ServiceServer _global_service;
 //    ros::ServiceServer _local_service;
+
+    /**
+     * @brief _waypoints contains all the waypoints BUT not the initial position!
+     */
+    std::vector<geometry_msgs::Pose> _waypoints;
+    actionlib::SimpleActionClient<cartesian_interface::ReachPoseAction> _waypoint_action_client;
+    /**
+     * @brief _T contains the times of each waypoint-trajectory
+     */
+    std::vector<float> _T;
 
 
     /**
@@ -152,6 +193,21 @@ private:
     void MakeMenu();
 
     void setControlGlobalLocal(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void setContinuousCtrl(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void wayPointCallBack(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void resetMarker(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void resetAllWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void resetLastWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void sendWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    ros::Publisher _way_points_pub;
+    void publishWP(const std::vector<geometry_msgs::Pose>& wps);
 };
 
 } }

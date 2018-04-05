@@ -82,20 +82,15 @@ public:
                                   const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
                                   const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
 
-    virtual bool setPositionReference(const std::string& end_effector, 
-                                    const Eigen::Vector3d& base_pos_ref, 
-                                    const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(), 
-                                    const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero());
-
     virtual bool setTargetComPosition(const Eigen::Vector3d& base_com_ref, double time = 0);
-
-    virtual bool setTargetOrientation(const std::string& end_effector, 
-                                    const Eigen::Matrix3d& base_R_ref, 
-                                    double time = 0);
 
     virtual bool setTargetPose(const std::string& end_effector, 
                             const Eigen::Affine3d& base_T_ref, 
                             double time = 0);
+    
+    virtual bool setWayPoints(const std::string& end_effector, 
+                       const Trajectory::WayPointVector& way_points
+                      );
 
     virtual bool setTargetPosition(const std::string& end_effector, 
                                 const Eigen::Vector3d& base_pos_ref, 
@@ -161,24 +156,6 @@ private:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

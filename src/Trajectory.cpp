@@ -20,9 +20,10 @@ Trajectory::Trajectory()
     _frames.reserve(10);
 }
 
-void Trajectory::addWayPoint(const Trajectory::WayPoint& way_point)
+void Trajectory::addWayPoint(const Trajectory::WayPoint& way_point, double time_offset)
 {
     _frames.push_back(way_point);
+    _frames.back().time += time_offset;
     
     sort_frames();
 }

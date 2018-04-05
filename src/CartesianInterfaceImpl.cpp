@@ -195,6 +195,37 @@ bool CartesianInterfaceImpl::setPoseReference(const std::string& end_effector,
     return true;
 }
 
+bool CartesianInterfaceImpl::setWayPoints(const std::string& end_effector, 
+                                          const Trajectory::WayPointVector& way_points)
+{
+    auto task = get_task(end_effector);
+    
+    if(!task || task->state == State::Reaching)
+    {
+        XBot::Logger::error("Unable to set target pose. Task is in already in REACHING mode \n");
+        return false;
+    }
+    
+    if(task->control_type != ControlType::Position)
+    {
+        XBot::Logger::error("Unable to set pose reference. Task is in NOT in position mode \n");
+        return false;
+    }
+    
+    task->state = State::Reaching;
+    task->trajectory->clear();
+    task->trajectory->addWayPoint(get_current_time(), task->T);
+    
+    for(const auto& wp : way_points)
+    {
+        task->trajectory->addWayPoint(wp, get_current_time());
+    }
+
+    
+    return true;
+}
+
+
 bool CartesianInterfaceImpl::setTargetPose(const std::string& end_effector, 
                                            const Eigen::Affine3d& w_T_ref, double time)
 {
@@ -474,13 +505,6 @@ bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_co
     return true;
 }
 
-bool CartesianInterfaceImpl::setPositionReference(const std::string& end_effector, 
-                                                  const Eigen::Vector3d& w_pos_ref,
-                                                  const Eigen::Vector3d& w_vel_ref, 
-                                                  const Eigen::Vector3d& w_acc_ref)
-{
-    throw std::runtime_error("unsupported function");
-}
 
 bool CartesianInterfaceImpl::setTargetComPosition(const Eigen::Vector3d& w_com_ref, 
                                                   double time)
@@ -514,14 +538,6 @@ bool CartesianInterfaceImpl::setTargetComPosition(const Eigen::Vector3d& w_com_r
 
     
     return true;
-}
-
-
-bool CartesianInterfaceImpl::setTargetOrientation(const std::string& end_effector, 
-                                                  const Eigen::Matrix3d& base_R_ref, 
-                                                  double time)
-{
-    throw std::runtime_error("unsupported function");
 }
 
 const std::vector< std::string >& CartesianInterfaceImpl::getTaskList() const

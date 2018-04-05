@@ -40,12 +40,14 @@ namespace XBot { namespace Cartesian {
             WayPoint();
         };
         
+        typedef std::vector<WayPoint> WayPointVector;
+        
         Trajectory();
         
         void addWayPoint(double time, 
                          const Eigen::Affine3d& frame);
         
-        void addWayPoint(const WayPoint& way_point);
+        void addWayPoint(const WayPoint& way_point, double time_offset = 0.0);
         
         void setVelocityLimit(const Eigen::Vector6d& vel_max);
         void setAccelerationLimit(const Eigen::Vector6d& acc_max);
