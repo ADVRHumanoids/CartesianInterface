@@ -39,7 +39,7 @@ CartesianInterface:
   problem_description:
     stack:
       - ["LeftFoot", "RightFoot", "Com"]
-      - ["LeftHand", "RightHand", "WaistZ"]
+      - ["LeftHand", "RightHand", "TorsoRotZ"]
       - ["Postural"]
     constraints: ["JointLimits", "VelocityLimits"]
 
@@ -51,10 +51,11 @@ CartesianInterface:
       type: "Cartesian"
       distal_link: "r_sole"
     
-    WaistZ:
+    TorsoRotZ:
       type: "Cartesian"
-      distal_link: "Waist"
-      indices: [2]
+      distal_link: "DWYTorso"
+      indices: [5]
+      lambda: 0.05
 
     Com:
       type: "Com"
@@ -64,9 +65,9 @@ CartesianInterface:
       type: "Postural"
       lambda: 0.01
       weight:
-        WaistLat: 5.0
-        LKneePitch: 0.1
-        RKneePitch: 0.1
+        WaistLat: 100.0
+        LKneePitch: 10.0
+        RKneePitch: 10.0
     
     LeftHand:
       type: "Cartesian"
