@@ -51,20 +51,43 @@ bool XBot::Cartesian::CartesianInterfaceImpl::setBaseLink(const std::string& ee_
         return false;
     }
     
-    Eigen::Affine3d new_T_old;
-    
-    if( !_model->getPose(task->base_frame, new_base_link, new_T_old) )
+    /* Check that new base link exists */
+    Eigen::Affine3d T;
+    if(!_model->getPose(new_base_link, T))
     {
         XBot::Logger::error("New base link %s in not defined\n", new_base_link.c_str());
         return false;
     }
     
+    /* Check that the task is not in reaching mode */
     if( task->state != State::Online )
     {
         XBot::Logger::error("Unable to change base link while performing a reach\n");
         return false;
     }
     
+    /* Recompute reference according to new base link */
+    Eigen::Affine3d new_T_old;
+    
+    if(new_base_link == task->base_frame) // base link did not actually change
+    {
+        new_T_old.setIdentity();
+    }
+    else if(new_base_link == "world") // new base link is world
+    {
+        _model->getPose(task->base_frame, new_T_old); // w_T_b1 = b2_T_b1
+    }
+    else if(task->base_frame == "world") // old base link is world
+    {
+         _model->getPose(new_base_link, new_T_old); // w_T_b2 = b1_T_b2
+         new_T_old = new_T_old.inverse();
+    }
+    else // both old and new base links are not world
+    {
+        _model->getPose(task->base_frame, new_base_link, new_T_old); // b2_T_b1
+    }
+    
+    /* Update task */
     task->base_frame = new_base_link;
     task->T = new_T_old * task->T;
     task->vel.setZero();
