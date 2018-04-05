@@ -64,7 +64,7 @@ int main(int argc, char **argv){
     
     if(robot)
     {
-        model->syncFrom(*robot, XBot::Sync::Position, XBot::Sync::MotorSide, XBot::Sync::Impedance);
+        model->syncFrom(*robot, XBot::Sync::Impedance);
     }
     
 
