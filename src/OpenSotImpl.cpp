@@ -186,15 +186,6 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
         _autostack = _autostack / aggregated_from_stack(ik_problem.getTask(i));
     }
 
-    /* Add postural task by default */
-//     auto postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
-//     postural_task->setLambda(0.01);
-
-    if(_postural_task)
-    {
-        _autostack = _autostack / _postural_task;
-    }
-
     /* Parse constraints */
     for(auto constr : ik_problem.getBounds())
     {
