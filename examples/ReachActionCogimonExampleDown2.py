@@ -20,38 +20,64 @@ def wholebody_client():
     goal_1 = cimsg.ReachPoseGoal()
     pose = geomsg.Pose()
     pose.position.x = 0.20
-    pose.position.y = -0.24
-    pose.position.z = -0.0
+    pose.position.y = 0.24
+    pose.position.z = -0.6
     pose.orientation.x = 0.0
-    pose.orientation.y = -0.70
+    pose.orientation.y = -0.4
     pose.orientation.z = 0.0
-    pose.orientation.w = 0.70
+    pose.orientation.w = 0.9
 
     goal_1.frames.append(pose)
+    pose_2 = geomsg.Pose()
+    pose_2.position.x = 0.20
+    pose_2.position.y = 0.35
+    pose_2.position.z = -0.6
+    pose_2.orientation.x = 0.0
+    pose_2.orientation.y = -0.4
+    pose_2.orientation.z = 0.0
+    pose_2.orientation.w = 0.9
+    goal_1.frames.append(pose_2)
+    
+    
+    
     goal_1.time.append(12.0)
+    goal_1.time.append(15.0)
     goal_1.incremental = False # Move relative to current pose
 
 
     # Sends the goal to the action server.
-    client_2.send_goal(goal_1)
+    client_1.send_goal(goal_1)
 
 
     # Sends the goal to the action server.
     goal_2 = cimsg.ReachPoseGoal()
     pose_2 = geomsg.Pose()
-    pose_2.position.x = 0.26
-    pose_2.position.y = 0.24
-    pose_2.position.z =-0.0
+    pose_2.position.x = 0.20
+    pose_2.position.y = -0.24
+    pose_2.position.z = -0.6
     pose_2.orientation.x = 0.0
-    pose_2.orientation.y = -0.70
+    pose_2.orientation.y = -0.4
     pose_2.orientation.z = 0.0
-    pose_2.orientation.w = 0.70
+    pose_2.orientation.w = 0.9
 
     goal_2.frames.append(pose_2)
+    
+    pose_2 = geomsg.Pose()
+    pose_2.position.x = 0.20
+    pose_2.position.y = -0.35
+    pose_2.position.z = -0.6
+    pose_2.orientation.x = 0.0
+    pose_2.orientation.y = -0.4
+    pose_2.orientation.z = 0.0
+    pose_2.orientation.w = 0.9
+    
+    goal_2.frames.append(pose_2)
+    
     goal_2.time.append(12.0)
+    goal_2.time.append(15.0)
     goal_2.incremental = False  # Move relative to current pose
 
-    client_1.send_goal(goal_2)
+    client_2.send_goal(goal_2)
 
     # Waits for the server to finish performing the action.
     client_1.wait_for_result()
