@@ -323,7 +323,7 @@ bool CartesianInterfaceImpl::reset()
         }
         else
         {
-            _model->getPose(task.base_frame, task.distal_frame, task.T);
+            _model->getPose(task.distal_frame, task.base_frame, task.T);
         }
         
         task.vel.setZero();
