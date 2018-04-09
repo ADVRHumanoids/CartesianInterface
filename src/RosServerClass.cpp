@@ -167,8 +167,9 @@ void RosServerClass::manage_reach_actions()
             }
         }
 
-        if(as->isPreemptRequested())
+        if(as->isActive() && as->isPreemptRequested())
         {
+            XBot::Logger::info(XBot::Logger::Severity::HIGH, "Goal for task %s canceled by user\n", ee_name.c_str());
             _cartesian_interface->abort(ee_name);
 
             cartesian_interface::ReachPoseResult result;
@@ -188,6 +189,7 @@ void RosServerClass::manage_reach_actions()
         {
             if(current_state == CartesianInterface::State::Online)
             {
+                
                 cartesian_interface::ReachPoseResult result;
                 Eigen::Affine3d base_T_ee, base_T_ref, ref_T_ee;
                 _cartesian_interface->getCurrentPose(ee_name, base_T_ee);
@@ -197,6 +199,9 @@ void RosServerClass::manage_reach_actions()
                 tf::poseEigenToMsg(base_T_ee, result.final_frame);
                 result.position_error_norm = ref_T_ee.translation().norm();
                 result.orientation_error_angle = Eigen::AngleAxisd(ref_T_ee.linear()).angle();
+                
+                XBot::Logger::success(XBot::Logger::Severity::HIGH, "Goal for task %s succeded\nFinal position error norm: %f m \nFinal orientation error: %f rad\n", 
+                    ee_name.c_str(), result.position_error_norm, result.orientation_error_angle);
 
                 as->setSucceeded(result);
             }
