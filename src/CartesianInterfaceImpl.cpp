@@ -141,6 +141,7 @@ bool XBot::Cartesian::CartesianInterfaceImpl::abort(const std::string& end_effec
     if(task->state == State::Reaching)
     {
         task->state = State::Online;
+        task->trajectory->clear();
     }
     
     return true;
