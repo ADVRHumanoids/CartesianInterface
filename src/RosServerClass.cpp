@@ -21,7 +21,7 @@ void RosServerClass::__generate_rspub()
     KDL::Tree kdl_tree;
     kdl_parser::treeFromUrdfModel(_model->getUrdf(), kdl_tree);
 
-    _rspub.reset(new robot_state_publisher::RobotStatePublisher(kdl_tree));
+    _rspub.reset(new RsPub(kdl_tree));
 
     std::string _urdf_param_name = "/xbotcore/" + _model->getUrdf().getName() + "/robot_description";
     std::string _tf_prefix = "/xbotcore/" + _model->getUrdf().getName();

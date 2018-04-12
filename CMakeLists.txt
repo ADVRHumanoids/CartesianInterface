@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp
                                         message_generation
                                         interactive_markers
                                         tf tf_conversions)
+                                        
 
 include_directories(include
                     ${OpenSoT_INCLUDE_DIRS}
@@ -104,6 +105,18 @@ set(Trajectory_SRC
         src/Trajectory.cpp
     )
 
+# should we use xbot internal robot state publisher?
+option(USE_XBOT_ROBOT_STATE_PUB FALSE)
+set(XBOT_RSPUB_LIBRARIES "")
+if(${USE_XBOT_ROBOT_STATE_PUB})
+    add_definitions(-DXBOT_RSPUB)
+    find_package(robot_state_publisher_advr REQUIRED)
+    include_directories(${robot_state_publisher_advr_INCLUDE_DIRS})
+    set(XBOT_RSPUB_LIBRARIES ${robot_state_publisher_advr_LIBRARIES})
+endif()
+
+message("************************** ${XBOT_RSPUB_LIBRARIES}")
+
 # libCartesianInterface
 add_library(CartesianInterface SHARED ${CartesianInterface_SRC}
                                       ${CartesianInterfaceROS_SRC}
@@ -112,9 +125,11 @@ add_library(CartesianInterface SHARED ${CartesianInterface_SRC}
 target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
                                                 ${XBotInterface_LIBRARIES}
                                                 ${catkin_LIBRARIES}
+                                                ${XBOT_RSPUB_LIBRARIES}
                                                 yaml-cpp
                       )
 add_dependencies(CartesianInterface ${PROJECT_NAME}_generate_messages)
+
 
 
 # libCartesianOpenSot
@@ -131,8 +146,8 @@ add_executable(ros_server_node src/RosServerNode.cpp)
 target_link_libraries(ros_server_node CartesianInterface dl)
 
 add_subdirectory(examples)
-add_executable(solver_test src/BackendExample.cpp)
-target_link_libraries(solver_test ${OpenSoT_LIBRARIES})
+#add_executable(solver_test src/BackendExample.cpp)
+#target_link_libraries(solver_test ${OpenSoT_LIBRARIES})
 
 option(COMPILE_XBOT_PLUGIN OFF)
 
