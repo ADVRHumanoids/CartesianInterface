@@ -67,7 +67,13 @@ endif()
 target_link_libraries(${PROJECT_NAME} ${XCM_LIBRARIES} CartesianOpenSot)
 
 #install
-# library_install(${PROJECT_NAME} 1 0 0)
+
+install(DIRECTORY include/
+    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+    FILES_MATCHING PATTERN "*.h"
+    PATTERN ".svn" EXCLUDE
+)
+
 
 install(TARGETS CartesianPlugin CartesianPlugin
     EXPORT CartesianOpenSot
