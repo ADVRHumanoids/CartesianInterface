@@ -130,6 +130,10 @@ target_link_libraries(CartesianOpenSot PUBLIC ${OpenSoT_LIBRARIES}
 add_executable(ros_server_node src/RosServerNode.cpp)
 target_link_libraries(ros_server_node CartesianInterface dl)
 
+# Marker spawner
+add_executable(marker_spawner src/MarkerSpawner.cpp)
+target_link_libraries(marker_spawner CartesianInterface)
+
 add_subdirectory(examples)
 add_executable(solver_test src/BackendExample.cpp)
 target_link_libraries(solver_test ${OpenSoT_LIBRARIES})
@@ -142,6 +146,12 @@ endif()
 
 # Mark executables and/or libraries for installation
 install(TARGETS ros_server_node ros_server_node
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(TARGETS marker_spawner marker_spawner
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
