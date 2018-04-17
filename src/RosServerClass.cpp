@@ -2,6 +2,12 @@
 
 using namespace XBot::Cartesian;
 
+RosServerClass::Options::Options():
+    spawn_markers(true)
+{
+
+}
+
 void RosServerClass::__generate_state_broadcasting()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
@@ -251,9 +257,12 @@ void RosServerClass::run()
 
 }
 
-RosServerClass::RosServerClass(CartesianInterface::Ptr intfc, ModelInterface::ConstPtr model):
+RosServerClass::RosServerClass(CartesianInterface::Ptr intfc, 
+                               ModelInterface::ConstPtr model, 
+                               Options opt):
     _cartesian_interface(intfc),
-    _model(model)
+    _model(model),
+    _opt(opt)
 {
     __generate_online_pos_topics();
     __generate_reach_pose_action_servers();
@@ -264,7 +273,10 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc, ModelInterface::Co
     __generate_task_info_services();
     __generate_task_info_setters();
 
-    _marker_thread = std::make_shared<std::thread>(&RosServerClass::__generate_markers, this);
+    if(_opt.spawn_markers)
+    {
+        _marker_thread = std::make_shared<std::thread>(&RosServerClass::__generate_markers, this);
+    }
 }
 
 void RosServerClass::publish_world_tf()
