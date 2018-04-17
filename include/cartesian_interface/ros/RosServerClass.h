@@ -36,9 +36,18 @@ namespace XBot { namespace Cartesian {
 
         typedef std::shared_ptr<RosServerClass> Ptr;
         typedef std::shared_ptr<const RosServerClass> ConstPtr;
+        
+        struct Options
+        {
+            bool spawn_markers;
+            
+            Options();
+        };
 
         RosServerClass(CartesianInterface::Ptr intfc,
-                       ModelInterface::ConstPtr model);
+                       ModelInterface::ConstPtr model, 
+                       Options opt = Options()
+                      );
 
         /**
          * @brief This method processes callbacks (it internally calls spinOnce) and
@@ -99,6 +108,7 @@ namespace XBot { namespace Cartesian {
         bool reset_cb(std_srvs::SetBoolRequest& req,
                       std_srvs::SetBoolResponse& res);
 
+        Options _opt;
 
         CartesianInterface::Ptr _cartesian_interface;
         ModelInterface::ConstPtr _model;
@@ -124,6 +134,7 @@ namespace XBot { namespace Cartesian {
 
 
 #endif
+
 
 
 
