@@ -35,15 +35,15 @@ void RosServerClass::__generate_rspub()
     _nh.setParam("/robot_description", _model->getUrdfString());
 }
 
-void RosServerClass::publish_ref_tf()
+void RosServerClass::publish_ref_tf(ros::Time time)
 {
     /* Publish TF */
     XBot::JointNameMap _joint_name_map;
     _model->getJointPosition(_joint_name_map);
     std::map<std::string, double> _joint_name_std_map(_joint_name_map.begin(), _joint_name_map.end());
 
-    _rspub->publishTransforms(_joint_name_std_map, ros::Time::now(), "ci");
-    _rspub->publishFixedTransforms("ci");
+    _rspub->publishTransforms(_joint_name_std_map, time, "ci");
+    _rspub->publishFixedTransforms("ci", true);
 
 }
 
@@ -227,13 +227,13 @@ void RosServerClass::manage_reach_actions()
     }
 }
 
-void RosServerClass::publish_state()
+void RosServerClass::publish_state(ros::Time time)
 {
     int i = 0;
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
         geometry_msgs::PoseStamped msg;
-        msg.header.stamp = ros::Time::now();
+        msg.header.stamp = time;
         msg.header.frame_id = _cartesian_interface->getBaseLink(ee_name);
         Eigen::Affine3d base_T_ee;
         _cartesian_interface->getCurrentPose(ee_name, base_T_ee);
@@ -250,10 +250,12 @@ void RosServerClass::run()
 
     manage_reach_actions();
 
-    publish_state();
+    
 
-    publish_ref_tf();
-    publish_world_tf();
+    ros::Time now = ros::Time::now();
+    publish_state(now);
+    publish_ref_tf(now);
+    publish_world_tf(now);
 
 }
 
@@ -279,7 +281,7 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     }
 }
 
-void RosServerClass::publish_world_tf()
+void RosServerClass::publish_world_tf(ros::Time time)
 {
     /* Publish world odom */
     Eigen::Affine3d w_T_pelvis;
@@ -290,7 +292,7 @@ void RosServerClass::publish_world_tf()
     _model->getFloatingBaseLink(fb_link);
 
     _tf_broadcaster.sendTransform(tf::StampedTransform(transform.inverse(),
-                                                       ros::Time::now(),
+                                                       time,
                                                        "ci/"+fb_link,
                                                        "ci/world_odom"));
 
@@ -301,7 +303,7 @@ void RosServerClass::publish_world_tf()
     tf::transformEigenToTF(T_eye, transform_eye);
 
     _tf_broadcaster.sendTransform(tf::StampedTransform(transform_eye,
-                                                       ros::Time::now(),
+                                                       time,
                                                        "ci/world",
                                                        "world"));
 }

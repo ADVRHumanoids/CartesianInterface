@@ -78,9 +78,9 @@ namespace XBot { namespace Cartesian {
         void __generate_task_info_setters();
 
         void manage_reach_actions();
-        void publish_state();
-        void publish_ref_tf();
-        void publish_world_tf();
+        void publish_state(ros::Time time);
+        void publish_ref_tf(ros::Time time);
+        void publish_world_tf(ros::Time time);
         static geometry_msgs::Pose get_normalized_pose(const geometry_msgs::Pose& pose);
 
         void online_position_reference_cb(const geometry_msgs::PoseStampedConstPtr& msg,
