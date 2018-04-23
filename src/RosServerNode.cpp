@@ -51,9 +51,21 @@ int main(int argc, char **argv){
     
     if(!visual_mode)
     {
-        robot = XBot::RobotInterface::getRobot(XBot::Utils::getXBotConfig());
-        robot->sense();
-        robot->setControlMode(XBot::ControlMode::Position() + XBot::ControlMode::Velocity());
+        try
+        {
+            robot = XBot::RobotInterface::getRobot(XBot::Utils::getXBotConfig());
+        }
+        catch(std::exception& e)
+        {
+            XBot::Logger::warning("Unable to communicate with robot (exception thrown: %s), running in visual mode\n", e.what());
+            robot.reset();
+        }
+        
+        if(robot)
+        {
+            robot->sense();
+            robot->setControlMode(XBot::ControlMode::Position() + XBot::ControlMode::Velocity());
+        }
     }
     
     /* Get model, initialize to home */
@@ -66,9 +78,9 @@ int main(int argc, char **argv){
     if(robot)
     {
         model->syncFrom(*robot, XBot::Sync::Position, XBot::Sync::MotorSide, XBot::Sync::Impedance);
+        std::cout << *model << std::endl;
     }
     
-
     /* Load IK problem and solver */
     auto yaml_file = YAML::LoadFile(XBot::Utils::getXBotConfig());
     ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"], model);
@@ -100,6 +112,7 @@ int main(int argc, char **argv){
     model->getJointPosition(q);
     double time = 0.0;
     double dt = loop_rate.expectedCycleTime().toSec();
+    
     
     while(ros::ok())
     {
