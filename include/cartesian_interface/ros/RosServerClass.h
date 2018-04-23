@@ -122,6 +122,7 @@ namespace XBot { namespace Cartesian {
         std::vector<bool> _is_action_active;
         std::vector<ros::Subscriber> _pos_sub, _vel_sub;
         std::vector<ros::Publisher> _state_pub;
+        ros::Publisher _com_pub;
         std::vector<ros::ServiceServer> _toggle_pos_mode_srv, _toggle_task_srv, _get_task_info_srv, _set_task_info_srv;
         std::map<std::string, CartesianMarker::Ptr> _markers;
         ros::ServiceServer _reset_srv;

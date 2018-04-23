@@ -33,6 +33,8 @@ void RosServerClass::__generate_rspub()
     std::string _tf_prefix = "/xbotcore/" + _model->getUrdf().getName();
     _nh.setParam(_urdf_param_name, _model->getUrdfString());
     _nh.setParam("/robot_description", _model->getUrdfString());
+    
+    _com_pub = _nh.advertise<geometry_msgs::PointStamped>("/xbotcore/cartesian/com_position", 1);
 }
 
 void RosServerClass::publish_ref_tf(ros::Time time)
@@ -44,6 +46,16 @@ void RosServerClass::publish_ref_tf(ros::Time time)
 
     _rspub->publishTransforms(_joint_name_std_map, time, "ci");
     _rspub->publishFixedTransforms("ci", true);
+    
+    /* Publish CoM position */
+    Eigen::Vector3d com;
+    _model->getCOM(com);
+    
+    geometry_msgs::PointStamped com_msg;
+    tf::pointEigenToMsg(com, com_msg.point);
+    com_msg.header.frame_id = "ci/world_odom";
+    com_msg.header.stamp = time;
+    _com_pub.publish(com_msg);
 
 }
 
