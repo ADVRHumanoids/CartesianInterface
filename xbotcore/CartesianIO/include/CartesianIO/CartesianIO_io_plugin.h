@@ -75,7 +75,9 @@ bool XBot::Cartesian::CartesianIO::init(std::string path_to_config_file, XBot::S
     _ci = std::make_shared<CartesianInterfaceImpl>(_model, ik_problem);
     
     /* Obtain class to expose ROS API */
-    _ros_server = std::make_shared<RosServerClass>(_ci, _model);
+    RosServerClass::Options options;
+    options.spawn_markers = false;
+    _ros_server = std::make_shared<RosServerClass>(_ci, _model, options);
     
     _ci_shobj = shmem->getSharedObject<CartesianInterfaceImpl::Ptr>("/xbotcore/cartesian_interface");
     _ci_shobj.set(_ci);
