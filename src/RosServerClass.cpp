@@ -45,7 +45,7 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     std::map<std::string, double> _joint_name_std_map(_joint_name_map.begin(), _joint_name_map.end());
 
     _rspub->publishTransforms(_joint_name_std_map, time, "ci");
-    _rspub->publishFixedTransforms("ci", true);
+    _rspub->publishFixedTransforms("ci");
     
     /* Publish CoM position */
     Eigen::Vector3d com;
