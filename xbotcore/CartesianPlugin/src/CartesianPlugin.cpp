@@ -36,19 +36,6 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
 
     /* Save robot to a private member. */
     _robot = handle->getRobotInterface();
-    _model = ModelInterface::getModel(handle->getPathToConfigFile());
-    
-    Eigen::VectorXd qhome;
-    _model->getRobotState("home", qhome);
-    _model->setJointPosition(qhome);
-    _model->update();
-    
-    _q.resize(_model->getJointNum());
-    _qdot = _q;
-    
-    YAML::Node yaml_file = YAML::LoadFile(handle->getPathToConfigFile());
-    ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"], _model);
-    _ci = std::make_shared<OpenSotImpl>(_model, ik_problem);
 
     /* Initialize a logger which saves to the specified file. Remember that
      * the current date/time is always appended to the provided filename,
@@ -56,7 +43,9 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
 
     _logger = XBot::MatLogger::getLogger("/tmp/CartesianPlugin_log");
     
-    _sync_from_nrt = std::make_shared<Utils::SyncFromIO>("/xbotcore/cartesian_interface", handle->getSharedMemory());
+    _ci_shobj = handle->getSharedMemory()->getSharedObject<CartesianInterfaceImpl::Ptr>("/xbotcore/cartesian_interface");
+    
+    
 
     return true;
 
@@ -75,7 +64,32 @@ void CartesianPlugin::on_start(double time)
     
     _first_sync_done = false;
     
+    while(!_ci)
+    {
+        XBot::Logger::info(Logger::Severity::HIGH, "Trying to get CI pointer.. \n");
+        
+        _ci = _ci_shobj.get();
+        
+        usleep(2e5);
+    }
+    
+    _model = _ci->getModel();
+    
+    XBot::Logger::success(Logger::Severity::HIGH, "Got CI pointer with address %p \n", _ci.get());
+    XBot::Logger::success(Logger::Severity::HIGH, "Got Model pointer with address %p \n", _model.get());
+    
+    
+    /* MODIFY MODEL AND CI INSIDE CRITICAL SECTION */
+    
+    _ci_shobj.get_mutex()->lock();
+    
     _model->syncFrom(*_robot);
+    
+    _ci->reset();
+    
+    _ci_shobj.get_mutex()->unlock();
+    
+    /* END CRITICAL SECTION */
 }
 
 void CartesianPlugin::on_stop(double time)
@@ -94,29 +108,18 @@ void CartesianPlugin::control_loop(double time, double period)
      * Since this function is called within the real-time loop, you should not perform
      * operations that are not rt-safe. */
     
-    /* Try to update references from NRT */
-    if(!_first_sync_done)
+    /* TRY TO ACQUIRE MUTEX, IF UNABLE SKIP THE LOOP */
+    
+    if(!_ci_shobj.get_mutex()->try_lock())
     {
-        if(_sync_from_nrt->try_reset(_model))
-        {
-            _first_sync_done = true;
-            XBot::Logger::info(Logger::Severity::HIGH, "Resetting NRT CI \n");
-        }
+        _logger->add("skip_loop", 1);
+        return;
     }
     
-    if(_first_sync_done)
-    {
-        if(_sync_from_nrt->try_sync(time, _ci, _model))
-        {
-            _logger->add("sync_done", 1);
-        }
-        else
-        {
-            _logger->add("sync_done", 0);
-        }
-    }
-    
+    /* WE LOCKED THE MUTEX -> ENTER CRITICAL SECTION */
 
+    _logger->add("skip_loop", 0);
+    
     if(!_ci->update(time, period))
     {
         XBot::Logger::error("CartesianInterface: unable to solve \n");
@@ -134,6 +137,10 @@ void CartesianPlugin::control_loop(double time, double period)
     
     _robot->setReferenceFrom(*_model);
     _robot->move();
+    
+    _ci_shobj.get_mutex()->unlock();
+    
+    /* END CRITICAL SECTION */
 
 }
 

@@ -67,12 +67,19 @@ bool XBot::Cartesian::CartesianIO::init(std::string path_to_config_file, XBot::S
 {
     _model = ModelInterface::getModel(path_to_config_file);
     
+    Eigen::VectorXd qhome;
+    _model->getRobotState("home", qhome);
+    _model->setJointPosition(qhome);
+    _model->update();
+    
     /* Load IK problem and solver */
     auto yaml_file = YAML::LoadFile(path_to_config_file);
     ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"], _model);
     std::string impl_name = yaml_file["CartesianInterface"]["solver"].as<std::string>();
     
-    _ci = std::make_shared<CartesianInterfaceImpl>(_model, ik_problem);
+    _ci = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterfaceImpl>("Cartesian" + impl_name + ".so", 
+                                                                         impl_name + "Impl", 
+                                                                         _model, ik_problem);
     
     /* Obtain class to expose ROS API */
     RosServerClass::Options options;

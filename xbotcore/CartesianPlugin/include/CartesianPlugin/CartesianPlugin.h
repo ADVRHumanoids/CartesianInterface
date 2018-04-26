@@ -56,7 +56,7 @@ private:
     ModelInterface::Ptr _model;
     
     CartesianInterfaceImpl::Ptr _ci;
-    Utils::SyncFromIO::Ptr _sync_from_nrt;
+    SharedObject<CartesianInterfaceImpl::Ptr> _ci_shobj;
     bool _first_sync_done;
 
     double _start_time;
