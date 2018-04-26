@@ -1,4 +1,6 @@
 #include <cartesian_interface/CartesianInterfaceImpl.h>
+#include <boost/algorithm/string.hpp>  
+
 
 using namespace XBot::Cartesian;
 
@@ -39,6 +41,35 @@ std::string CartesianInterface::StateAsString(CartesianInterface::State ctrl)
         default:
             return "Invalid state";
     }
+}
+
+
+CartesianInterface::ControlType CartesianInterface::ControlTypeFromString(const std::string& ctrl)
+{
+    
+    std::string ctrl_lower = ctrl;
+    boost::algorithm::to_lower(ctrl_lower);
+    
+    if(ctrl_lower == "disabled") return ControlType::Disabled;
+    if(ctrl_lower == "position") return ControlType::Position;
+    if(ctrl_lower == "velocity") return ControlType::Velocity;
+    
+    throw std::invalid_argument("Invalid control type '" + ctrl + "'");
+    
+    
+    
+}
+
+
+CartesianInterface::State CartesianInterface::StateFromString(const std::string& state)
+{
+    std::string state_lower = state;
+    boost::algorithm::to_lower(state_lower);
+    
+    if(state_lower == "online") return State::Online;
+    if(state_lower == "reaching") return State::Reaching;
+    
+    throw std::invalid_argument("Invalid state '" + state + "'");
 }
 
 bool XBot::Cartesian::CartesianInterfaceImpl::setBaseLink(const std::string& ee_name, 
@@ -456,7 +487,7 @@ void CartesianInterfaceImpl::log_tasks()
         CartesianInterfaceImpl::Task& task = *(pair.second);
         
         _logger->add(task.base_frame + "_to_" + task.distal_frame + "_pos", task.T.translation());
-        _logger->add(task.base_frame + "_to_" + task.distal_frame + "_or", Eigen::Quaterniond(task.T.linear()).coeffs());
+        _logger->add(task.base_frame + "_to_" + task.distal_frame + "_rot", Eigen::Quaterniond(task.T.linear()).coeffs());
         
     }
 }
