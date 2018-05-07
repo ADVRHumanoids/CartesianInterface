@@ -1,4 +1,5 @@
 #include <cartesian_interface/ros/RosServerClass.h>
+#include <cartesian_interface/GetTaskListResponse.h>
 
 using namespace XBot::Cartesian;
 
@@ -258,11 +259,9 @@ void RosServerClass::publish_state(ros::Time time)
 
 void RosServerClass::run()
 {
-    ros::spinOnce();
-
-    manage_reach_actions();
-
+    _cbk_queue.callAvailable();
     
+    manage_reach_actions();
 
     ros::Time now = ros::Time::now();
     publish_state(now);
@@ -278,6 +277,8 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     _model(model),
     _opt(opt)
 {
+    _nh.setCallbackQueue(&_cbk_queue);
+    
     __generate_online_pos_topics();
     __generate_reach_pose_action_servers();
     __generate_state_broadcasting();
@@ -286,6 +287,7 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     __generate_rspub();
     __generate_task_info_services();
     __generate_task_info_setters();
+    __generate_task_list_service();
 
     if(_opt.spawn_markers)
     {
@@ -393,6 +395,29 @@ void RosServerClass::__generate_toggle_task_services()
         _toggle_task_srv.push_back(srv);
     }
 }
+
+void XBot::Cartesian::RosServerClass::__generate_task_list_service()
+{
+    std::string srv_name = "/xbotcore/cartesian/get_task_list";
+    _tasklist_srv = _nh.advertiseService(srv_name, &RosServerClass::task_list_cb, this);
+}
+
+bool XBot::Cartesian::RosServerClass::task_list_cb(cartesian_interface::GetTaskListRequest& req,
+                                                   cartesian_interface::GetTaskListResponse& res)
+{
+    
+    for(const auto& task : _cartesian_interface->getTaskList())
+    {
+        std_msgs::String dist_str; dist_str.data = task;
+        std_msgs::String base_str; base_str.data = _cartesian_interface->getBaseLink(task);
+        res.distal_links.push_back(dist_str);
+        res.base_links.push_back(base_str);
+    }
+    
+    return true;
+}
+
+
 
 void XBot::Cartesian::RosServerClass::__generate_task_info_services()
 {

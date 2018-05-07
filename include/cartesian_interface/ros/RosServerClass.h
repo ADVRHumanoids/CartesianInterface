@@ -4,10 +4,13 @@
 #include <functional>
 
 #include <ros/ros.h>
+#include <ros/callback_queue.h>
+
 #include <eigen_conversions/eigen_msg.h>
 #include <cartesian_interface/ReachPoseAction.h>
 #include <cartesian_interface/GetTaskInfo.h>
 #include <cartesian_interface/SetTaskInfo.h>
+#include <cartesian_interface/GetTaskList.h>
 #include <actionlib/server/simple_action_server.h>
 #include <std_srvs/Empty.h>
 #include <std_srvs/SetBool.h>
@@ -76,6 +79,7 @@ namespace XBot { namespace Cartesian {
         void __generate_rspub();
         void __generate_markers();
         void __generate_task_info_setters();
+        void __generate_task_list_service();
 
         void manage_reach_actions();
         void publish_state(ros::Time time);
@@ -107,6 +111,9 @@ namespace XBot { namespace Cartesian {
 
         bool reset_cb(std_srvs::SetBoolRequest& req,
                       std_srvs::SetBoolResponse& res);
+        
+        bool task_list_cb(cartesian_interface::GetTaskListRequest& req, 
+                          cartesian_interface::GetTaskListResponse& res);
 
         Options _opt;
 
@@ -117,6 +124,7 @@ namespace XBot { namespace Cartesian {
 
 
         ros::NodeHandle _nh;
+        ros::CallbackQueue _cbk_queue;
 
         std::vector<ActionServerPtr> _action_servers;
         std::vector<bool> _is_action_active;
@@ -125,7 +133,7 @@ namespace XBot { namespace Cartesian {
         ros::Publisher _com_pub;
         std::vector<ros::ServiceServer> _toggle_pos_mode_srv, _toggle_task_srv, _get_task_info_srv, _set_task_info_srv;
         std::map<std::string, CartesianMarker::Ptr> _markers;
-        ros::ServiceServer _reset_srv;
+        ros::ServiceServer _reset_srv, _tasklist_srv;
 
         std::shared_ptr<std::thread> _marker_thread;
 

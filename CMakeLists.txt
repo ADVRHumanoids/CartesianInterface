@@ -45,10 +45,10 @@ add_message_files(
 # Generate services in the 'srv' folder
 add_service_files(
   FILES
-  TaskList.srv
   SetTaskInfo.srv
   GetTaskInfo.srv
   LoadController.srv
+  GetTaskList.srv
 )
 
 # Generate actions in the 'action' folder
@@ -135,8 +135,7 @@ add_executable(marker_spawner src/MarkerSpawner.cpp)
 target_link_libraries(marker_spawner CartesianInterface)
 
 add_subdirectory(examples)
-add_executable(solver_test src/BackendExample.cpp)
-target_link_libraries(solver_test ${OpenSoT_LIBRARIES})
+
 
 option(COMPILE_XBOT_PLUGIN OFF)
 

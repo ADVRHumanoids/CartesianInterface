@@ -1,0 +1,3 @@
+----
+std_msgs/String[] distal_links
+std_msgs/String[] base_links

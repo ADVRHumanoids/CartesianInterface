@@ -2,9 +2,7 @@
 #include <XBotInterface/Utils.h>
 #include <XBotInterface/SoLib.h>
 
-#include <cartesian_interface/CartesianInterfaceImpl.h>
-#include <cartesian_interface/ProblemDescription.h>
-#include <cartesian_interface/LoadController.h>
+#include <cartesian_interface/GetTaskList.h>
 #include <cartesian_interface/markers/CartesianMarker.h>
 
 #include <ros/ros.h>
@@ -27,43 +25,39 @@ int main(int argc, char **argv){
     ros::init(argc, argv, "xbot_cartesian_marker_spawner");
     ros::NodeHandle nh("xbotcore/cartesian");
     
-    XBot::RobotInterface::Ptr robot;
+    std::string robot_urdf_string;
+    nh.getParam("/robot_description", robot_urdf_string);
+    urdf::Model robot_urdf;
+    robot_urdf.initString(robot_urdf_string);
     
-    std::string param_name = "visual_mode";
-    bool visual_mode = false;
-    
-    if(nh.hasParam(param_name))
+    /* Get task list from cartesian server */
+    ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskListRequest, cartesian_interface::GetTaskListResponse>("/xbotcore/cartesian/get_task_list");
+    cartesian_interface::GetTaskListRequest req;
+    cartesian_interface::GetTaskListResponse res;
+    task_list_client.waitForExistence();
+    if(!task_list_client.call(req, res))
     {
-        nh.getParam(param_name, visual_mode);
+        ros::shutdown();
+        std::exit(1);
     }
-
-    auto model = XBot::ModelInterface::getModel(XBot::Utils::getXBotConfig());
-
-    Eigen::VectorXd qhome;
-    model->getRobotState("home", qhome);
-    model->setJointPosition(qhome);
-    model->update();
     
-    /* Load IK problem and solver */
-    auto yaml_file = YAML::LoadFile(XBot::Utils::getXBotConfig());
-    ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"], model);
-    
-    auto ci = std::make_shared<CartesianInterfaceImpl>(model, ik_problem);
     
     std::map<std::string, XBot::Cartesian::CartesianMarker::Ptr> markers;
 
-    for(std::string ee_name : ci->getTaskList())
+    for(int i = 0; i < res.distal_links.size(); i++)
     {
+        std::string ee_name = res.distal_links[i].data;
+        std::string base_link = res.base_links[i].data;
+        
         if(ee_name == "com")
         {
             continue;
         }
         
-        std::string base_link = ci->getBaseLink(ee_name);
         base_link = base_link == "world" ? "world_odom" : base_link;
         auto marker = std::make_shared<CartesianMarker>(base_link,
                                                    ee_name,
-                                                   static_cast<const urdf::Model&>(model->getUrdf()),
+                                                   robot_urdf,
                                                    "ci/"
                                                   );
         
