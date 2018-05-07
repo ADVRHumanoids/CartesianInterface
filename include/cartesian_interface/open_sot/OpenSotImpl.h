@@ -19,7 +19,6 @@ public:
     OpenSotImpl(ModelInterface::Ptr model, ProblemDescription ik_problem);
 
     virtual bool update(double time, double period);
-    virtual bool solve();
 
     virtual ~OpenSotImpl();
     
