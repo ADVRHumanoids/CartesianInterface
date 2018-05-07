@@ -4,6 +4,10 @@
 
 using namespace XBot::Cartesian;
 
+namespace {
+    const double DEFAULT_TTL = 0.1;
+}
+
 std::string CartesianInterface::ControlTypeAsString(CartesianInterface::ControlType ctrl)
 {
     switch(ctrl)
@@ -247,6 +251,11 @@ bool CartesianInterfaceImpl::setPoseReference(const std::string& end_effector,
     task->vel = w_vel_ref;
     task->acc = w_acc_ref;
     
+    if(w_vel_ref.squaredNorm() > 0)
+    {
+        task->vref_time_to_live = DEFAULT_TTL;
+    }
+    
     return true;
 }
 
@@ -385,7 +394,8 @@ CartesianInterfaceImpl::Task::Task():
     acc(Eigen::Vector6d::Zero()),
     trajectory(std::make_shared<Trajectory>()),
     control_type(ControlType::Position),
-    state(State::Online)
+    state(State::Online),
+    vref_time_to_live(0.0)
 {
 
 }
@@ -457,6 +467,8 @@ bool CartesianInterfaceImpl::update(double time, double period)
     {
         CartesianInterfaceImpl::Task& task = *(pair.second);
         
+        task.vref_time_to_live -= period;
+        
         if(task.state == State::Reaching)
         {
             task.T = task.trajectory->evaluate(time, &task.vel, &task.acc);
@@ -468,8 +480,12 @@ bool CartesianInterfaceImpl::update(double time, double period)
         }
         else
         {
-//             task.vel.setZero();
-//             task.acc.setZero();
+            if(task.vref_time_to_live <= 0.0)
+            {
+                task.vel.setZero();
+                task.acc.setZero();
+                task.vref_time_to_live = -1.0;
+            }
         }
         
     }

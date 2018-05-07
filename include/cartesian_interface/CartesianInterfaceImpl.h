@@ -119,6 +119,7 @@ protected:
         
         ControlType control_type;
         State state;
+        double vref_time_to_live;
         
         Trajectory::Ptr trajectory;
         
