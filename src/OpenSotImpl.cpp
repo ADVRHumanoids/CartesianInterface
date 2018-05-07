@@ -203,6 +203,17 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
                                                          OpenSoT::solvers::solver_back_ends::OSQP
                                                         );
     
+    /* Fill lambda map */
+    if(_com_task)
+    {
+        _lambda_map["com"] = _com_task->getLambda();
+    }
+    
+    for(auto t : _cartesian_tasks)
+    {
+        _lambda_map[t->getDistalLink()] = t->getLambda();
+    }
+    
 
 }
 
@@ -220,24 +231,12 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
         Eigen::Affine3d T_ref;
         Eigen::Vector6d v_ref, a_ref;
 
-        if(getControlMode(cart_task->getDistalLink()) == ControlType::Disabled)
-        {
-            cart_task->setActive(false);
-            continue;
-        }
-
-        if(getControlMode(cart_task->getDistalLink()) == ControlType::Velocity)
-        {
-
-            cart_task->setLambda(0.0);
-        }
-
         if(!getPoseReference(cart_task->getDistalLink(), T_ref, &v_ref, &a_ref))
         {
             continue;
         }
-
-        cart_task->setActive(true);
+        
+        v_ref *= period;
         cart_task->setReference(T_ref.matrix(), v_ref);
 
     }
@@ -251,16 +250,6 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
         {
             _com_task->setReference(x, v);
             
-            if(getControlMode("com") == ControlType::Disabled)
-            {
-                _com_task->setActive(false);
-            }
-
-            if(getControlMode("com") == ControlType::Velocity)
-            {
-
-                _com_task->setLambda(0.0);
-            }
         }
     }
 
@@ -286,6 +275,66 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
 
 
 }
+
+bool XBot::Cartesian::OpenSotImpl::setControlMode(const std::string& ee_name, 
+                                                  XBot::Cartesian::CartesianInterface::ControlType ctrl_type)
+{
+    if(!XBot::Cartesian::CartesianInterfaceImpl::setControlMode(ee_name, ctrl_type))
+    {
+        return false;
+    }
+    
+    OpenSoT::tasks::Aggregated::TaskPtr task_ptr;
+    
+    if(ee_name == "com" && _com_task)
+    {
+        task_ptr = task_ptr;
+    }
+    
+    for(const auto t : _cartesian_tasks)
+    {
+        if(t->getDistalLink() == ee_name)
+        {
+            task_ptr = t;
+        }
+    }
+    
+    if(task_ptr)
+    {
+        
+        switch(ctrl_type)
+        {
+            case ControlType::Disabled:
+                task_ptr->setActive(false);
+                break;
+                
+            case ControlType::Velocity:
+                task_ptr->setActive(true);
+                _lambda_map[ee_name] = task_ptr->getLambda();
+                task_ptr->setLambda(0.0);
+                break;
+                
+            case ControlType::Position:
+                if( _lambda_map.find(ee_name) == _lambda_map.end() )
+                {
+                    XBot::Logger::error("No lambda value for task %s defined, contact the developers\n", ee_name.c_str());
+                    return false;
+                }
+                task_ptr->setActive(true);
+                task_ptr->setLambda(_lambda_map.at(ee_name));
+                break;
+                
+            default:
+                break;
+            
+        }
+        
+        return true;
+    }
+    
+    return false;
+}
+
 
 XBot::Cartesian::OpenSotImpl::~OpenSotImpl()
 {

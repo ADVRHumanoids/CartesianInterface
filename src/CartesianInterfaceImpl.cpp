@@ -237,9 +237,9 @@ bool CartesianInterfaceImpl::setPoseReference(const std::string& end_effector,
         return false;
     }
     
-    if(task->control_type != ControlType::Position)
+    if(task->control_type == ControlType::Disabled)
     {
-        XBot::Logger::error("Unable to set pose reference. Task is in NOT in position mode \n");
+        XBot::Logger::error("Unable to set pose reference. Task is in DISABLED mode \n");
         return false;
     }
     
@@ -468,8 +468,8 @@ bool CartesianInterfaceImpl::update(double time, double period)
         }
         else
         {
-            task.vel.setZero();
-            task.acc.setZero();
+//             task.vel.setZero();
+//             task.acc.setZero();
         }
         
     }

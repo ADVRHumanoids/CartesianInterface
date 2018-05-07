@@ -81,6 +81,42 @@ void RosServerClass::online_position_reference_cb(const geometry_msgs::PoseStamp
 
 
 
+void RosServerClass::__generate_online_vel_topics()
+{
+    for(std::string ee_name : _cartesian_interface->getTaskList())
+    {
+        std::string topic_name = "/xbotcore/cartesian/" + ee_name + "/velocity_reference";
+
+        auto cb = std::bind(&RosServerClass::online_velocity_reference_cb, this, std::placeholders::_1, ee_name);
+
+        ros::Subscriber sub = _nh.subscribe<geometry_msgs::TwistStamped>(topic_name,
+                                                                        1, cb);
+
+        _vel_sub.push_back(sub);
+    }
+}
+
+void RosServerClass::online_velocity_reference_cb(const geometry_msgs::TwistStampedConstPtr& msg, 
+                                                  const std::string& ee_name)
+{
+    Eigen::Vector6d vel;
+    tf::twistMsgToEigen(msg->twist, vel);
+    
+    if(ee_name == "com")
+    {
+        Eigen::Vector3d com_ref, com_vref;
+        _cartesian_interface->getComPositionReference(com_ref);
+        com_vref = vel.head<3>();
+        
+        _cartesian_interface->setComPositionReference(com_ref, com_vref);
+    }
+    else
+    {
+        Eigen::Affine3d T;
+        _cartesian_interface->getPoseReference(ee_name, T);
+        _cartesian_interface->setPoseReference(ee_name, T, vel);
+    }
+}
 
 void RosServerClass::__generate_online_pos_topics()
 {
@@ -280,6 +316,7 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     _nh.setCallbackQueue(&_cbk_queue);
     
     __generate_online_pos_topics();
+    __generate_online_vel_topics();
     __generate_reach_pose_action_servers();
     __generate_state_broadcasting();
     __generate_toggle_pos_mode_services();
@@ -553,6 +590,8 @@ bool XBot::Cartesian::RosServerClass::set_task_info_cb(cartesian_interface::SetT
     
     return true;
 }
+
+
 
 
 

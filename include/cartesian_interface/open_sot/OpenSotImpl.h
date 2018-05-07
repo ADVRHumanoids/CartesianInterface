@@ -23,6 +23,7 @@ public:
     virtual ~OpenSotImpl();
     
     virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link);
+    virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type);
     
 protected:
     
@@ -40,6 +41,7 @@ private:
     Eigen::VectorXd _q, _dq, _ddq;
     
     std::vector<CartesianTask::Ptr> _cartesian_tasks;
+    std::map<std::string, double> _lambda_map;
     CoMTask::Ptr _com_task;
     OpenSoT::tasks::velocity::Postural::Ptr _postural_task;
     
