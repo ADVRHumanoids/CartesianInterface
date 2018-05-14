@@ -48,6 +48,7 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     _rspub->publishTransforms(_joint_name_std_map, time, "ci");
     _rspub->publishFixedTransforms("ci");
     
+    
     /* Publish CoM position */
     Eigen::Vector3d com;
     _model->getCOM(com);
@@ -57,6 +58,19 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     com_msg.header.frame_id = "ci/world_odom";
     com_msg.header.stamp = time;
     _com_pub.publish(com_msg);
+    
+    /* Publish CoM tf */
+    Eigen::Affine3d w_T_com;
+    _model->getFloatingBasePose(w_T_com);
+    w_T_com.translation() = com;
+    
+    tf::Transform transform;
+    tf::transformEigenToTF(w_T_com, transform);
+
+    _tf_broadcaster.sendTransform(tf::StampedTransform(transform,
+                                                       time,
+                                                       "ci/world_odom",
+                                                       "ci/com"));
 
 }
 
@@ -346,6 +360,7 @@ void RosServerClass::publish_world_tf(ros::Time time)
                                                        time,
                                                        "ci/"+fb_link,
                                                        "ci/world_odom"));
+    
 
     /* Publish ref-to-actual-robot fixed tf */
     Eigen::Affine3d T_eye;
@@ -497,9 +512,15 @@ void RosServerClass::__generate_markers()
 
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
+        unsigned int control_type;
+        
         if(ee_name == "com")
         {
-            continue;
+            control_type = visualization_msgs::InteractiveMarkerControl::MOVE_3D;
+        }
+        else
+        {
+            control_type = visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D;
         }
         
         std::string base_link = _cartesian_interface->getBaseLink(ee_name);
@@ -507,7 +528,7 @@ void RosServerClass::__generate_markers()
         auto marker = std::make_shared<CartesianMarker>(base_link,
                                                    ee_name,
                                                    static_cast<const urdf::Model&>(_model->getUrdf()),
-                                                   visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D,
+                                                   control_type,
                                                    "ci/"
                                                   );
         
