@@ -507,6 +507,7 @@ void RosServerClass::__generate_markers()
         auto marker = std::make_shared<CartesianMarker>(base_link,
                                                    ee_name,
                                                    static_cast<const urdf::Model&>(_model->getUrdf()),
+                                                   visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D,
                                                    "ci/"
                                                   );
         

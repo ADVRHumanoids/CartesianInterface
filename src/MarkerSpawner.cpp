@@ -57,7 +57,8 @@ int main(int argc, char **argv){
         base_link = base_link == "world" ? "world_odom" : base_link;
         auto marker = std::make_shared<CartesianMarker>(base_link,
                                                    ee_name,
-                                                   robot_urdf,
+                                                   static_cast<const urdf::Model&>(model->getUrdf()),
+                                                   visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D,
                                                    "ci/"
                                                   );
         
