@@ -492,12 +492,12 @@ visualization_msgs::InteractiveMarkerControl& CartesianMarker::makeSTLControl(vi
 visualization_msgs::Marker CartesianMarker::makeSphere( visualization_msgs::InteractiveMarker &msg )
 {
   _marker.type = visualization_msgs::Marker::SPHERE;
-  _marker.scale.x = msg.scale * 1.;//0.45
-  _marker.scale.y = msg.scale * 1.;
-  _marker.scale.z = msg.scale * 1.;
+  _marker.scale.x = msg.scale * 0.45;//0.45
+  _marker.scale.y = msg.scale * 0.45;
+  _marker.scale.z = msg.scale * 0.45;
   _marker.color.r = 0.5;
   _marker.color.g = 0.5;
-  _marker.color.b = 0.5;
+  _marker.color.b = 1.5;
   _marker.color.a = 1.0;
 
   return _marker;
