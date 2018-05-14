@@ -64,6 +64,7 @@ int main(int argc, char **argv){
         auto marker = std::make_shared<CartesianMarker>(base_link,
                                                    ee_name,
                                                    static_cast<const urdf::Model&>(model->getUrdf()),
+                                                   visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D,
                                                    "ci/"
                                                   );
         

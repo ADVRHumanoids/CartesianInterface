@@ -17,7 +17,7 @@ int main(int argc, char** argv)
     urdf::Model robot_urdf;
     robot_urdf.initString(robot_model);
 
-    XBot::Cartesian::CartesianMarker marker(base_link, distal_link, robot_urdf);
+    XBot::Cartesian::CartesianMarker marker(base_link, distal_link, robot_urdf,visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D);
 
     ROS_INFO("Running CartesianMarkerExample_node");
     ros::spin();

@@ -21,9 +21,21 @@ public:
     
     typedef std::shared_ptr<CartesianMarker> Ptr;
     
+    /**
+     * @brief CartesianMarker
+     * @param base_link
+     * @param distal_link
+     * @param robot_urdf
+     * @param control_type is the type of control:
+     *  visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D
+     *  visualization_msgs::InteractiveMarkerControl::MOVE_3D
+     *  visualization_msgs::InteractiveMarkerControl::ROTATE_3D
+     * @param tf_prefix
+     */
     CartesianMarker(const std::string& base_link, 
                     const std::string& distal_link,
                     const urdf::Model& robot_urdf,
+                    const unsigned int control_type,
                     std::string tf_prefix = "");
     
     ~CartesianMarker();
@@ -160,10 +172,10 @@ private:
      * @param base_link
      * @param fixed
      * @param interaction_mode
-     * @param show_6dof
+     * @param show
      */
     void MakeMarker( const std::string& distal_link, const std::string& base_link,
-                bool fixed, unsigned int interaction_mode, bool show_6dof);
+                bool fixed, unsigned int interaction_mode, bool show);
 
     /**
      * @brief makeSTLControl return an Interactive Marker Control which uses an STL
@@ -179,6 +191,8 @@ private:
      * @return  the interactive marker
      */
     visualization_msgs::Marker makeSTL( visualization_msgs::InteractiveMarker &msg );
+
+    visualization_msgs::Marker makeSphere( visualization_msgs::InteractiveMarker &msg );
 
     /**
      * @brief getRobotActualPose uses the tf to retrieve the actual pose of the robot

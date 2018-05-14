@@ -6,6 +6,7 @@ using namespace XBot::Cartesian;
 CartesianMarker::CartesianMarker(const std::string &base_link,
                                  const std::string &distal_link,
                                  const urdf::Model &robot_urdf,
+                                 const unsigned int control_type,
                                  std::string tf_prefix
                                 ):
     _nh("xbotcore/cartesian"),
@@ -20,9 +21,7 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
 {
     _start_pose = getRobotActualPose();
 
-    MakeMarker(_distal_link, _base_link, false,
-               visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D,
-               true);
+    MakeMarker(_distal_link, _base_link, false, control_type, true);
 
     MakeMenu();
 
@@ -335,7 +334,7 @@ bool CartesianMarker::clearMarker(std_srvs::Empty::Request& req, std_srvs::Empty
 }
 
 void CartesianMarker::MakeMarker(const std::string &distal_link, const std::string &base_link,
-                            bool fixed, unsigned int interaction_mode, bool show_6dof)
+                            bool fixed, unsigned int interaction_mode, bool show)
 {
     _int_marker.header.frame_id = _tf_prefix+base_link;
     _int_marker.scale = 0.5;
@@ -346,59 +345,100 @@ void CartesianMarker::MakeMarker(const std::string &distal_link, const std::stri
     // insert STL
     makeSTLControl(_int_marker);
 
+
     _int_marker.controls[0].interaction_mode = interaction_mode;
 
-    if ( fixed )
+
+    if(show)
     {
-      //int_marker.name += "_fixed";
-      _int_marker.description += "";
-      _control.orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
-    }
+        if(interaction_mode == visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D)
+        {
+          _control.orientation.w = 1;
+          _control.orientation.x = 1;
+          _control.orientation.y = 0;
+          _control.orientation.z = 0;
+          _control.name = "rotate_x";
+          _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+          _int_marker.controls.push_back(_control);
+          _control.name = "move_x";
+          _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+          _int_marker.controls.push_back(_control);
 
-    if (interaction_mode != visualization_msgs::InteractiveMarkerControl::NONE)
-    {
-        std::string mode_text;
-        if( interaction_mode == visualization_msgs::InteractiveMarkerControl::MOVE_3D )         mode_text = "MOVE_3D";
-        if( interaction_mode == visualization_msgs::InteractiveMarkerControl::ROTATE_3D )       mode_text = "ROTATE_3D";
-        if( interaction_mode == visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D )  mode_text = "MOVE_ROTATE_3D";
-        //int_marker.name += "_" + mode_text;
-        _int_marker.description = "";
-    }
+          _control.orientation.w = 1;
+          _control.orientation.x = 0;
+          _control.orientation.y = 1;
+          _control.orientation.z = 0;
+          _control.name = "rotate_z";
+          _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+          _int_marker.controls.push_back(_control);
+          _control.name = "move_z";
+          _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+          _int_marker.controls.push_back(_control);
 
-    if(show_6dof)
-    {
-      _control.orientation.w = 1;
-      _control.orientation.x = 1;
-      _control.orientation.y = 0;
-      _control.orientation.z = 0;
-      _control.name = "rotate_x";
-      _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
-      _int_marker.controls.push_back(_control);
-      _control.name = "move_x";
-      _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
-      _int_marker.controls.push_back(_control);
+          _control.orientation.w = 1;
+          _control.orientation.x = 0;
+          _control.orientation.y = 0;
+          _control.orientation.z = 1;
+          _control.name = "rotate_y";
+          _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+          _int_marker.controls.push_back(_control);
+          _control.name = "move_y";
+          _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+          _int_marker.controls.push_back(_control);
+        }
+        else if(interaction_mode == visualization_msgs::InteractiveMarkerControl::MOVE_3D)
+        {
+            _control.orientation.w = 1;
+            _control.orientation.x = 1;
+            _control.orientation.y = 0;
+            _control.orientation.z = 0;
+            _control.name = "move_x";
+            _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+            _int_marker.controls.push_back(_control);
 
-      _control.orientation.w = 1;
-      _control.orientation.x = 0;
-      _control.orientation.y = 1;
-      _control.orientation.z = 0;
-      _control.name = "rotate_z";
-      _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
-      _int_marker.controls.push_back(_control);
-      _control.name = "move_z";
-      _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
-      _int_marker.controls.push_back(_control);
+            _control.orientation.w = 1;
+            _control.orientation.x = 0;
+            _control.orientation.y = 1;
+            _control.orientation.z = 0;
+            _control.name = "move_z";
+            _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+            _int_marker.controls.push_back(_control);
 
-      _control.orientation.w = 1;
-      _control.orientation.x = 0;
-      _control.orientation.y = 0;
-      _control.orientation.z = 1;
-      _control.name = "rotate_y";
-      _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
-      _int_marker.controls.push_back(_control);
-      _control.name = "move_y";
-      _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
-      _int_marker.controls.push_back(_control);
+            _control.orientation.w = 1;
+            _control.orientation.x = 0;
+            _control.orientation.y = 0;
+            _control.orientation.z = 1;
+            _control.name = "move_y";
+            _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+            _int_marker.controls.push_back(_control);
+        }
+        else if(interaction_mode == visualization_msgs::InteractiveMarkerControl::ROTATE_3D)
+        {
+            _control.orientation.w = 1;
+            _control.orientation.x = 1;
+            _control.orientation.y = 0;
+            _control.orientation.z = 0;
+            _control.name = "rotate_x";
+            _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+            _int_marker.controls.push_back(_control);
+
+            _control.orientation.w = 1;
+            _control.orientation.x = 0;
+            _control.orientation.y = 1;
+            _control.orientation.z = 0;
+            _control.name = "rotate_z";
+            _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+            _int_marker.controls.push_back(_control);
+
+            _control.orientation.w = 1;
+            _control.orientation.x = 0;
+            _control.orientation.y = 0;
+            _control.orientation.z = 1;
+            _control.name = "rotate_y";
+            _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+            _int_marker.controls.push_back(_control);
+        }
+        else throw std::invalid_argument("Invalid interaction mode!");
     }
 
     _int_marker.pose.position.x = _start_pose.p.x();
@@ -438,10 +478,29 @@ void CartesianMarker::MarkerFeedback(const visualization_msgs::InteractiveMarker
 visualization_msgs::InteractiveMarkerControl& CartesianMarker::makeSTLControl(visualization_msgs::InteractiveMarker &msg )
 {
   _control2.always_visible = true;
-  _control2.markers.push_back( makeSTL(msg) );
+
+  if(_urdf.getLink(_distal_link) != NULL)
+    _control2.markers.push_back( makeSTL(msg) );
+  else
+    _control2.markers.push_back( makeSphere(msg) );
+
   msg.controls.push_back( _control2 );
 
   return msg.controls.back();
+}
+
+visualization_msgs::Marker CartesianMarker::makeSphere( visualization_msgs::InteractiveMarker &msg )
+{
+  _marker.type = visualization_msgs::Marker::SPHERE;
+  _marker.scale.x = msg.scale * 1.;//0.45
+  _marker.scale.y = msg.scale * 1.;
+  _marker.scale.z = msg.scale * 1.;
+  _marker.color.r = 0.5;
+  _marker.color.g = 0.5;
+  _marker.color.b = 0.5;
+  _marker.color.a = 1.0;
+
+  return _marker;
 }
 
 visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::InteractiveMarker &msg )
