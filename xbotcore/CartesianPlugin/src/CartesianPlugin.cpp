@@ -106,7 +106,7 @@ void CartesianPlugin::control_loop(double time, double period)
     
     if(_first_sync_done)
     {
-        if(_sync_from_nrt->try_sync(time, _ci, _model))
+        if(_sync_from_nrt->try_sync(time, period, _ci, _model))
         {
             _logger->add("sync_done", 1);
         }
