@@ -127,6 +127,7 @@ bool XBot::Cartesian::CartesianInterfaceImpl::setBaseLink(const std::string& ee_
     task->T = new_T_old * task->T;
     task->vel.setZero();
     task->acc.setZero();
+    task->new_data_available = true;
     
     return true;
 }
@@ -256,6 +257,8 @@ bool CartesianInterfaceImpl::setPoseReference(const std::string& end_effector,
         task->vref_time_to_live = DEFAULT_TTL;
     }
     
+    task->new_data_available = true;
+    
     return true;
 }
 
@@ -285,6 +288,7 @@ bool CartesianInterfaceImpl::setWayPoints(const std::string& end_effector,
         task->trajectory->addWayPoint(wp, get_current_time());
     }
 
+    task->new_data_available = true;
     
     return true;
 }
@@ -311,7 +315,7 @@ bool CartesianInterfaceImpl::setTargetPose(const std::string& end_effector,
     task->trajectory->clear();
     task->trajectory->addWayPoint(get_current_time(), task->T);
     task->trajectory->addWayPoint(get_current_time() + time, w_T_ref);
-
+    task->new_data_available = true;
     
     return true;
 }
@@ -341,7 +345,7 @@ bool CartesianInterfaceImpl::setTargetPosition(const std::string& end_effector,
     task->trajectory->clear();
     task->trajectory->addWayPoint(get_current_time(), task->T);
     task->trajectory->addWayPoint(get_current_time() + time, w_T_ref);
-
+    task->new_data_available = true;
     
     return true;
 }
@@ -372,6 +376,8 @@ bool CartesianInterfaceImpl::reset()
         
         task.state = State::Online;
         
+        task.new_data_available = true;
+        
     }
     
     if(_com_task)
@@ -382,6 +388,7 @@ bool CartesianInterfaceImpl::reset()
         _com_task->vel.setZero();
         _com_task->acc.setZero();
         _com_task->state = State::Online;
+        _com_task->new_data_available = true;
     }
     
     return true;
@@ -395,7 +402,8 @@ CartesianInterfaceImpl::Task::Task():
     trajectory(std::make_shared<Trajectory>()),
     control_type(ControlType::Position),
     state(State::Online),
-    vref_time_to_live(0.0)
+    vref_time_to_live(0.0),
+    new_data_available(false)
 {
 
 }
@@ -488,6 +496,7 @@ bool CartesianInterfaceImpl::update(double time, double period)
             }
         }
         
+        task.new_data_available = false;
     }
     
     log_tasks();
@@ -576,6 +585,7 @@ bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_co
     _com_task->vel.head<3>() = w_vel_ref;
     _com_task->acc.head<3>() = w_acc_ref;
     _com_task->state = State::Online;
+    _com_task->new_data_available = true;
     
     return true;
 }
@@ -610,6 +620,7 @@ bool CartesianInterfaceImpl::setTargetComPosition(const Eigen::Vector3d& w_com_r
     _com_task->trajectory->clear();
     _com_task->trajectory->addWayPoint(get_current_time(), _com_task->T);
     _com_task->trajectory->addWayPoint(get_current_time() + time, T);
+    _com_task->new_data_available = true;
 
     
     return true;
@@ -698,6 +709,8 @@ bool CartesianInterfaceImpl::setControlMode(const std::string& ee_name, Cartesia
     {
         _model->getPose(task->base_frame, task->distal_frame, task->T);
     }
+    
+    task->new_data_available = true;
 
     return true;
 }
@@ -731,17 +744,48 @@ void XBot::Cartesian::CartesianInterfaceImpl::syncFrom(XBot::Cartesian::Cartesia
         Task::Ptr this_task = it->second;
         Task::ConstPtr other_task = pair.second;
         
-        if(this_task->base_frame == other_task->base_frame)
+        if(!other_task->new_data_available)
         {
-            this_task->acc = other_task->acc;
-            this_task->vel = other_task->vel;
-            this_task->T = other_task->T;
-            this_task->control_type = other_task->control_type;
-            this_task->state = other_task->state;
-            
-            *(this_task->trajectory) = *(other_task->trajectory);
+            continue;
+        }
+        
+        if(this_task->base_frame != other_task->base_frame)
+        {
+            if(!setBaseLink(other_task->distal_frame, other_task->base_frame))
+            {
+                Logger::error("Unable to change base link for task %s (%s -> %s)\n", 
+                              this_task->distal_frame.c_str(),
+                              this_task->base_frame.c_str(),
+                              other_task->base_frame.c_str()
+                );
+                
+                continue;
+            }
             
         }
+        
+        if(this_task->control_type != other_task->control_type)
+        {
+            if(!setControlMode(other_task->distal_frame, other_task->control_type))
+            {
+                Logger::error("Unable to change control mode for task %s (%s -> %s)\n", 
+                              this_task->distal_frame.c_str(),
+                              ControlTypeAsString(this_task->control_type).c_str(),
+                              ControlTypeAsString(other_task->control_type).c_str()
+                );
+                
+                continue;
+            }
+            
+        }
+        
+        this_task->acc = other_task->acc;
+        this_task->vel = other_task->vel;
+        this_task->T = other_task->T;
+        this_task->state = other_task->state;
+        this_task->vref_time_to_live = other_task->vref_time_to_live;
+        
+        *(this_task->trajectory) = *(other_task->trajectory);
         
     }
 }

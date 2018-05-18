@@ -121,6 +121,8 @@ protected:
         State state;
         double vref_time_to_live;
         
+        bool new_data_available;
+        
         Trajectory::Ptr trajectory;
         
         typedef std::shared_ptr<Task> Ptr;
