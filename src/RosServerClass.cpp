@@ -589,7 +589,10 @@ bool XBot::Cartesian::RosServerClass::set_task_info_cb(cartesian_interface::SetT
         res.success = true;
         
         std::string new_base_link = req.base_link == "world" ? "world_odom" : req.base_link;
-        _markers.at(ee_name)->setBaseLink(new_base_link);
+        if(_markers.count(ee_name) != 0)
+        {
+            _markers.at(ee_name)->setBaseLink(new_base_link);
+        }
     }
     else if(req.base_link != "")
     {
