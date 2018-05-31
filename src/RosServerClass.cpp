@@ -589,20 +589,20 @@ bool XBot::Cartesian::RosServerClass::set_task_info_cb(cartesian_interface::SetT
         new_base_link = "world";
     }
     
-    if(req.base_link != "" && _cartesian_interface->setBaseLink(ee_name, req.base_link))
+    if(new_base_link != "" && _cartesian_interface->setBaseLink(ee_name, new_base_link))
     {
-        res.message = "Successfully set base link of task " + ee_name + " to " + req.base_link;
+        res.message = "Successfully set base link of task " + ee_name + " to " + new_base_link;
         res.success = true;
         
-        std::string new_base_link = req.base_link == "world" ? "world_odom" : req.base_link;
+        std::string __new_base_link = new_base_link == "world" ? "world_odom" : new_base_link;
         if(_markers.count(ee_name) != 0)
         {
-            _markers.at(ee_name)->setBaseLink(new_base_link);
+            _markers.at(ee_name)->setBaseLink(__new_base_link);
         }
     }
-    else if(req.base_link != "")
+    else if(new_base_link != "")
     {
-        res.message = "Unable to set base link of task " + ee_name + " to " + req.base_link;
+        res.message = "Unable to set base link of task " + ee_name + " to " + new_base_link;
         res.success = false;
     }
     
