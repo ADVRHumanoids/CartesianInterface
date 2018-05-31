@@ -1,0 +1,7 @@
+<launch>
+
+<node pkg="cartesian_interface" type="ros_server_node" name="ros_server_node" output="screen"/>
+
+<node pkg="cartesian_interface" type="marker_spawner" name="interactive_markers" output="screen"/>
+
+</launch>
