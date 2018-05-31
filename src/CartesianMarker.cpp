@@ -1,5 +1,6 @@
 #include <cartesian_interface/markers/CartesianMarker.h>
 #include <cartesian_interface/SetTaskInfo.h>
+#include <cartesian_interface/GetTaskInfo.h>
 #include <std_srvs/SetBool.h>
 
 #define SECS 5
@@ -22,6 +23,8 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _control_type(1),_is_continuous(1), _task_active(-1), _position_feedback_active(-1),
     _waypoint_action_client("xbotcore/cartesian/" + distal_link + "/reach", true)
 {
+    _urdf.getLinks(_links);
+
     _start_pose = getRobotActualPose();
 
     MakeMarker(_distal_link, _base_link, false, control_type, true);
@@ -34,7 +37,8 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _spawn_service = _nh.advertiseService(_int_marker.name + "/spawn_marker", &CartesianMarker::spawnMarker, this);
 
     _task_active_service_client = _nh.serviceClient<std_srvs::SetBool>(_distal_link + "/activate_task");
-    _properties_service_client = _nh.serviceClient<cartesian_interface::SetTaskInfo>(_distal_link + "/set_task_properties");
+    _set_properties_service_client = _nh.serviceClient<cartesian_interface::SetTaskInfo>(_distal_link + "/set_task_properties");
+    _get_properties_service_client = _nh.serviceClient<cartesian_interface::GetTaskInfo>(_distal_link + "/get_task_properties");
 
 //    _global_service = _nh.advertiseService("setGlobal_"+_int_marker.name, &CartesianMarker::setGlobal, this);
 //    _local_service = _nh.advertiseService("setLocal_"+_int_marker.name, &CartesianMarker::setLocal, this);
@@ -109,6 +113,30 @@ void CartesianMarker::MakeMenu()
                                                                                                       this, _1));
     _menu_entry_counter++;
     _menu_handler.setCheckState(_position_feedback_is_active_entry, interactive_markers::MenuHandler::CHECKED );
+
+
+
+
+    _base_link_entry = _menu_handler.insert(_properties_entry, "Base Link");
+    _menu_entry_counter++;
+    for(unsigned int i = 0; i < _links.size(); ++i)
+    {
+        interactive_markers::MenuHandler::EntryHandle link_entry = _menu_handler.insert(_base_link_entry,
+            _links.at(i)->name, boost::bind(boost::mem_fn(&CartesianMarker::changeBaseLink), this, _1));
+        _menu_entry_counter++;
+
+        if(_base_link.compare("world_odom") == 0 && (_links.at(i)->name).compare("world") == 0){
+            _menu_handler.setCheckState(link_entry, interactive_markers::MenuHandler::CHECKED );
+            _base_link_entry_active = link_entry;}
+        else if(_base_link.compare(_links.at(i)->name) == 0){
+            _menu_handler.setCheckState(link_entry, interactive_markers::MenuHandler::CHECKED );
+            _base_link_entry_active = link_entry;}
+        else
+            _menu_handler.setCheckState(link_entry, interactive_markers::MenuHandler::UNCHECKED );
+
+        _link_entries.push_back(link_entry);
+    }
+
 
     _menu_control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
     _menu_control.always_visible = true;
@@ -186,6 +214,20 @@ void CartesianMarker::resetMarker(const visualization_msgs::InteractiveMarkerFee
     std_srvs::Empty::Request req;
     std_srvs::Empty::Response res;
 
+    cartesian_interface::GetTaskInfo srv;
+    _get_properties_service_client.call(srv);
+
+    if(srv.response.control_mode.compare("Disabled") == 0)
+        _activateTask(false);
+    else
+    {
+        _activateTask(true);
+        if(srv.response.control_mode.compare("Position") == 0)
+            _activatePositionFeedBack(true);
+        else
+            _activatePositionFeedBack(false);
+    }
+
     clearMarker(req, res);
     spawnMarker(req,res);
 }
@@ -211,6 +253,7 @@ void CartesianMarker::wayPointCallBack(const visualization_msgs::InteractiveMark
 
     double T = double(feedback->menu_entry_id-offset_menu_entry);
 
+
     if(_is_continuous == 1)
     {
         std::cout<<_int_marker.name<<" set waypoint @: \n ["<<_actual_pose.p.x()<<" "<<_actual_pose.p.y()<<" "<<_actual_pose.p.z()<<"]"<<std::endl;
@@ -225,6 +268,51 @@ void CartesianMarker::wayPointCallBack(const visualization_msgs::InteractiveMark
     }
 }
 
+void CartesianMarker::changeBaseLink(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+{
+    int entry_id = feedback->menu_entry_id;
+
+    std::string new_base_link;
+    _menu_handler.getTitle(entry_id, new_base_link);
+
+    if(new_base_link.compare("world") == 0)
+        new_base_link = "world_odom";
+
+
+    if(new_base_link.compare(_base_link) == 0)
+        return;
+
+    cartesian_interface::SetTaskInfo srv;
+    srv.request.base_link = new_base_link;
+    if(!_set_properties_service_client.call(srv) || srv.response.success == false){
+        ROS_WARN("%s", srv.response.message.c_str());
+        return;}
+
+    setBaseLink(new_base_link);
+
+
+    _menu_handler.setCheckState(_base_link_entry_active, interactive_markers::MenuHandler::UNCHECKED );
+    _base_link_entry_active = entry_id;
+    _menu_handler.setCheckState(_base_link_entry_active, interactive_markers::MenuHandler::CHECKED );
+
+    _menu_handler.reApply(_server);
+    _server.applyChanges();
+
+}
+
+void CartesianMarker::_activatePositionFeedBack(const bool is_active)
+{
+    if(is_active){
+        _position_feedback_active = -1;
+        _menu_handler.setCheckState(_position_feedback_is_active_entry, interactive_markers::MenuHandler::CHECKED);}
+    else{
+        _position_feedback_active = 1;
+        _menu_handler.setCheckState(_position_feedback_is_active_entry, interactive_markers::MenuHandler::UNCHECKED);}
+
+    _menu_handler.reApply(_server);
+    _server.applyChanges();
+}
+
 void CartesianMarker::activatePositionFeedBack(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
     cartesian_interface::SetTaskInfo srv;
@@ -234,14 +322,27 @@ void CartesianMarker::activatePositionFeedBack(const visualization_msgs::Interac
     {
         _menu_handler.setCheckState(_position_feedback_is_active_entry, interactive_markers::MenuHandler::UNCHECKED);
         srv.request.control_mode = "Velocity";
-        _properties_service_client.call(srv);
+        _set_properties_service_client.call(srv);
     }
     else if(_position_feedback_active == -1)
     {
         _menu_handler.setCheckState(_position_feedback_is_active_entry, interactive_markers::MenuHandler::CHECKED);
         srv.request.control_mode = "Position";
-        _properties_service_client.call(srv);
+        _set_properties_service_client.call(srv);
     }
+
+    _menu_handler.reApply(_server);
+    _server.applyChanges();
+}
+
+void CartesianMarker::_activateTask(const bool is_active)
+{
+    if(is_active){
+        _task_active = -1;
+        _menu_handler.setCheckState(_task_is_active_entry, interactive_markers::MenuHandler::CHECKED);}
+    else{
+        _task_active = 1;
+        _menu_handler.setCheckState(_task_is_active_entry, interactive_markers::MenuHandler::UNCHECKED);}
 
     _menu_handler.reApply(_server);
     _server.applyChanges();

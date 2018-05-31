@@ -142,6 +142,8 @@ private:
     interactive_markers::MenuHandler::EntryHandle _properties_entry;
     interactive_markers::MenuHandler::EntryHandle _task_is_active_entry;
     interactive_markers::MenuHandler::EntryHandle _position_feedback_is_active_entry;
+    interactive_markers::MenuHandler::EntryHandle _base_link_entry;
+    std::vector<interactive_markers::MenuHandler::EntryHandle> _link_entries;
     visualization_msgs::InteractiveMarkerControl  _menu_control;
     int _control_type;
     int _menu_entry_counter;
@@ -158,7 +160,8 @@ private:
     ros::ServiceServer _clear_service;
     ros::ServiceServer _spawn_service;
     ros::ServiceClient _task_active_service_client;
-    ros::ServiceClient _properties_service_client;
+    ros::ServiceClient _set_properties_service_client;
+    ros::ServiceClient _get_properties_service_client;
 //    ros::ServiceServer _global_service;
 //    ros::ServiceServer _local_service;
 
@@ -172,6 +175,8 @@ private:
      */
     std::vector<float> _T;
 
+    std::vector<urdf::LinkSharedPtr> _links;
+    int _base_link_entry_active;
 
     /**
      * @brief MakeMarker
@@ -227,9 +232,13 @@ private:
 
     void sendWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
+    void _activateTask(const bool is_active);
     void activateTask(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
+    void _activatePositionFeedBack(const bool is_active);
     void activatePositionFeedBack(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void changeBaseLink(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
     ros::Publisher _way_points_pub;
     void publishWP(const std::vector<geometry_msgs::Pose>& wps);
