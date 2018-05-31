@@ -134,7 +134,8 @@ void CartesianMarker::resetLastWayPoints(const visualization_msgs::InteractiveMa
     else{
         if(_server.empty())
         {
-            tf::PoseMsgToKDL(_waypoints.back(),_start_pose);
+            tf::poseMsgToKDL(_waypoints.back(),_start_pose);
+            //tf::PoseMsgToKDL(_waypoints.back(),_start_pose);
             _actual_pose = _start_pose;
 
             _int_marker.pose.position.x = _start_pose.p.x();
