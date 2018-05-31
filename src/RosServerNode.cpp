@@ -97,7 +97,9 @@ int main(int argc, char **argv){
     }
     
     /* Obtain class to expose ROS API */
-    auto ros_server_class = std::make_shared<XBot::Cartesian::RosServerClass>(sot_ik_solver, model);
+    XBot::Cartesian::RosServerClass::Options opt;
+    opt.spawn_markers = false;
+    auto ros_server_class = std::make_shared<XBot::Cartesian::RosServerClass>(sot_ik_solver, model, opt);
     
     __g_model = model;
     __g_impl_ptrptr = &sot_ik_solver;

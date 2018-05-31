@@ -24,12 +24,7 @@ int main(int argc, char **argv){
     /* Init ROS node */
     ros::init(argc, argv, "xbot_cartesian_marker_spawner");
     ros::NodeHandle nh("xbotcore/cartesian");
-    
-    std::string robot_urdf_string;
-    nh.getParam("/robot_description", robot_urdf_string);
-    urdf::Model robot_urdf;
-    robot_urdf.initString(robot_urdf_string);
-    
+
     /* Get task list from cartesian server */
     ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskListRequest, cartesian_interface::GetTaskListResponse>("/xbotcore/cartesian/get_task_list");
     cartesian_interface::GetTaskListRequest req;
@@ -40,6 +35,11 @@ int main(int argc, char **argv){
         ros::shutdown();
         std::exit(1);
     }
+    
+    std::string robot_urdf_string;
+    nh.getParam("/robot_description", robot_urdf_string);
+    urdf::Model robot_urdf;
+    robot_urdf.initString(robot_urdf_string);
     
     
     std::map<std::string, XBot::Cartesian::CartesianMarker::Ptr> markers;
@@ -71,4 +71,4 @@ int main(int argc, char **argv){
     }
     
     ros::spin();
-};
+}

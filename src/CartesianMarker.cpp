@@ -1,4 +1,7 @@
 #include <cartesian_interface/markers/CartesianMarker.h>
+#include <cartesian_interface/SetTaskInfo.h>
+#include <std_srvs/SetBool.h>
+
 #define SECS 5
 
 using namespace XBot::Cartesian;
@@ -16,7 +19,7 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _server(distal_link + "_Cartesian_marker_server"),
     _tf_prefix(tf_prefix),
     _menu_entry_counter(0),
-    _control_type(1),_is_continuous(1),
+    _control_type(1),_is_continuous(1), _task_active(-1), _position_feedback_active(-1),
     _waypoint_action_client("xbotcore/cartesian/" + distal_link + "/reach", true)
 {
     _start_pose = getRobotActualPose();
@@ -29,6 +32,10 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
 
     _clear_service = _nh.advertiseService(_int_marker.name + "/clear_marker", &CartesianMarker::clearMarker, this);
     _spawn_service = _nh.advertiseService(_int_marker.name + "/spawn_marker", &CartesianMarker::spawnMarker, this);
+
+    _task_active_service_client = _nh.serviceClient<std_srvs::SetBool>(_distal_link + "/activate_task");
+    _properties_service_client = _nh.serviceClient<cartesian_interface::SetTaskInfo>(_distal_link + "/set_task_properties");
+
 //    _global_service = _nh.advertiseService("setGlobal_"+_int_marker.name, &CartesianMarker::setGlobal, this);
 //    _local_service = _nh.advertiseService("setLocal_"+_int_marker.name, &CartesianMarker::setLocal, this);
 
@@ -92,6 +99,16 @@ void CartesianMarker::MakeMenu()
                                                                                                  this, _1));
     _menu_entry_counter++;
 
+    _properties_entry = _menu_handler.insert("Properties");
+    _menu_entry_counter++;
+    _task_is_active_entry = _menu_handler.insert(_properties_entry, "Task Active",boost::bind(boost::mem_fn(&CartesianMarker::activateTask),
+                                                                                this, _1));
+    _menu_entry_counter++;
+    _menu_handler.setCheckState(_task_is_active_entry, interactive_markers::MenuHandler::CHECKED );
+    _position_feedback_is_active_entry = _menu_handler.insert(_properties_entry, "Position FeedBack Active",boost::bind(boost::mem_fn(&CartesianMarker::activatePositionFeedBack),
+                                                                                                      this, _1));
+    _menu_entry_counter++;
+    _menu_handler.setCheckState(_position_feedback_is_active_entry, interactive_markers::MenuHandler::CHECKED );
 
     _menu_control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
     _menu_control.always_visible = true;
@@ -206,6 +223,50 @@ void CartesianMarker::wayPointCallBack(const visualization_msgs::InteractiveMark
         publishWP(_waypoints);
 
     }
+}
+
+void CartesianMarker::activatePositionFeedBack(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+{
+    cartesian_interface::SetTaskInfo srv;
+
+    _position_feedback_active *= -1;
+    if(_position_feedback_active == 1)
+    {
+        _menu_handler.setCheckState(_position_feedback_is_active_entry, interactive_markers::MenuHandler::UNCHECKED);
+        srv.request.control_mode = "Velocity";
+        _properties_service_client.call(srv);
+    }
+    else if(_position_feedback_active == -1)
+    {
+        _menu_handler.setCheckState(_position_feedback_is_active_entry, interactive_markers::MenuHandler::CHECKED);
+        srv.request.control_mode = "Position";
+        _properties_service_client.call(srv);
+    }
+
+    _menu_handler.reApply(_server);
+    _server.applyChanges();
+}
+
+void CartesianMarker::activateTask(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+{
+    std_srvs::SetBool srv;
+
+    _task_active *= -1;
+    if(_task_active == 1)
+    {
+        _menu_handler.setCheckState(_task_is_active_entry, interactive_markers::MenuHandler::UNCHECKED);
+        srv.request.data = false;
+        _task_active_service_client.call(srv);
+    }
+    else if(_task_active == -1)
+    {
+        _menu_handler.setCheckState(_task_is_active_entry, interactive_markers::MenuHandler::CHECKED);
+        srv.request.data = true;
+        _task_active_service_client.call(srv);
+    }
+
+    _menu_handler.reApply(_server);
+    _server.applyChanges();
 }
 
 void CartesianMarker::setContinuousCtrl(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)

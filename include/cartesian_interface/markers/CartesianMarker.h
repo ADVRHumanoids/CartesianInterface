@@ -139,11 +139,16 @@ private:
     interactive_markers::MenuHandler::EntryHandle _send_way_points_entry;
     interactive_markers::MenuHandler::EntryHandle _global_control_entry;
     interactive_markers::MenuHandler::EntryHandle _continuous_control_entry;
+    interactive_markers::MenuHandler::EntryHandle _properties_entry;
+    interactive_markers::MenuHandler::EntryHandle _task_is_active_entry;
+    interactive_markers::MenuHandler::EntryHandle _position_feedback_is_active_entry;
     visualization_msgs::InteractiveMarkerControl  _menu_control;
     int _control_type;
     int _menu_entry_counter;
     int _is_continuous;
     int offset_menu_entry;
+    int _task_active;
+    int _position_feedback_active;
 
     tf::TransformListener _listener;
     tf::StampedTransform _transform;
@@ -152,6 +157,8 @@ private:
 
     ros::ServiceServer _clear_service;
     ros::ServiceServer _spawn_service;
+    ros::ServiceClient _task_active_service_client;
+    ros::ServiceClient _properties_service_client;
 //    ros::ServiceServer _global_service;
 //    ros::ServiceServer _local_service;
 
@@ -219,6 +226,10 @@ private:
     void resetLastWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
     void sendWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void activateTask(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+    void activatePositionFeedBack(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
     ros::Publisher _way_points_pub;
     void publishWP(const std::vector<geometry_msgs::Pose>& wps);
