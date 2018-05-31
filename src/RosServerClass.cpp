@@ -583,6 +583,12 @@ bool XBot::Cartesian::RosServerClass::set_task_info_cb(cartesian_interface::SetT
                                                        cartesian_interface::SetTaskInfoResponse& res, 
                                                        const std::string& ee_name)
 {
+    std::string new_base_link = req.base_link;
+    if(new_base_link == "world_odom")
+    {
+        new_base_link = "world";
+    }
+    
     if(req.base_link != "" && _cartesian_interface->setBaseLink(ee_name, req.base_link))
     {
         res.message = "Successfully set base link of task " + ee_name + " to " + req.base_link;
