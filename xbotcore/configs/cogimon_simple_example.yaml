@@ -17,8 +17,8 @@ MasterCommunicationInterface:
   framework_name: "ROS"
 
 XBotRTPlugins:
-  plugins: ["HomingExample", "CartesianPlugin"] #, "XBotRTCommunication"] 
-  io_plugins: ["CartesianIO"]
+  plugins: ["HomingExample"] ## , "CartesianPlugin"]
+  io_plugins: [] ## "CartesianIO"]
   
 NRTPlugins:
   plugins: [] #"HomingExample"]

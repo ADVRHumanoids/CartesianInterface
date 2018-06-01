@@ -199,8 +199,8 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     /* Create solver */
     _solver = boost::make_shared<OpenSoT::solvers::iHQP>(_autostack->getStack(),
                                                          _autostack->getBounds(),
-                                                         1e-6,
-                                                         OpenSoT::solvers::solver_back_ends::OSQP
+                                                         1e6,
+                                                         OpenSoT::solvers::solver_back_ends::qpOASES
                                                         );
     
     /* Fill lambda map */
