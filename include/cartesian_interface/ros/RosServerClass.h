@@ -16,7 +16,13 @@
 #include <std_srvs/SetBool.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
-#include <robot_state_publisher/robot_state_publisher.h>
+
+#ifndef XBOT_RSPUB
+    #include <robot_state_publisher/robot_state_publisher.h>
+#else
+    #include <robot_state_publisher_advr/robot_state_publisher_advr.h>
+#endif
+
 #include <tf/transform_broadcaster.h>
 #include <tf_conversions/tf_eigen.h>
 #include <cartesian_interface/ReferenceStamped.h>
@@ -67,6 +73,12 @@ namespace XBot { namespace Cartesian {
 
         typedef actionlib::SimpleActionServer<cartesian_interface::ReachPoseAction> ActionServer;
         typedef std::shared_ptr<ActionServer> ActionServerPtr;
+        
+#ifndef XBOT_RSPUB
+        typedef robot_state_publisher::RobotStatePublisher RsPub;
+#else
+        typedef robot_state_publisher_advr::RobotStatePublisher RsPub;
+#endif
 
         void __generate_reach_pose_action_servers();
         void __generate_state_broadcasting();
@@ -120,7 +132,7 @@ namespace XBot { namespace Cartesian {
         CartesianInterface::Ptr _cartesian_interface;
         ModelInterface::ConstPtr _model;
         tf::TransformBroadcaster _tf_broadcaster;
-        std::unique_ptr<robot_state_publisher::RobotStatePublisher> _rspub;
+        std::unique_ptr<RsPub> _rspub;
 
 
         ros::NodeHandle _nh;
