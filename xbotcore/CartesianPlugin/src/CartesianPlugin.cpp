@@ -75,7 +75,7 @@ void CartesianPlugin::on_start(double time)
     
     _first_sync_done = false;
     
-    _model->syncFrom(*_robot);
+    _model->syncFrom(*_robot, Sync::Position, Sync::MotorSide);
 }
 
 void CartesianPlugin::on_stop(double time)
@@ -132,7 +132,7 @@ void CartesianPlugin::control_loop(double time, double period)
     _model->setJointPosition(_q);
     _model->update();
     
-    _robot->setReferenceFrom(*_model);
+    _robot->setReferenceFrom(*_model, Sync::Position);
     _robot->move();
 
 }

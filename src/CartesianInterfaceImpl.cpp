@@ -513,8 +513,10 @@ void CartesianInterfaceImpl::log_tasks()
         
         _logger->add(task.base_frame + "_to_" + task.distal_frame + "_pos", task.T.translation());
         _logger->add(task.base_frame + "_to_" + task.distal_frame + "_rot", Eigen::Quaterniond(task.T.linear()).coeffs());
-        
+        _logger->add(task.base_frame + "_to_" + task.distal_frame + "_state", task.state == State::Reaching ? 1 : 0);
     }
+    
+    _logger->add("ci_time", _current_time);
 }
 
 
