@@ -1,7 +1,18 @@
 <launch>
 
-<node pkg="cartesian_interface" type="ros_server_node" name="ros_server_node" output="screen"/>
+    <arg name="solver" default="OpenSot"/>
+    <arg name="prefix" default=""/>
 
-<node pkg="cartesian_interface" type="marker_spawner" name="interactive_markers" output="screen"/>
+    <node pkg="cartesian_interface" type="ros_server_node" name="ros_server_node" required="true" output="screen" launch-prefix="$(arg prefix)">
+        <remap from="robot_description" to="xbotcore/cogimon/robot_description"/>
+        <remap from="robot_description_semantic" to="xbotcore/cogimon/robot_description_semantic"/>
+        <remap from="robot_description_joint_id_map" to="xbotcore/cogimon/robot_description_joint_id_map"/>
+        <param name="problem_description" textfile="$(find cartesian_interface)/examples/configs/cogimon_simple_stack.yaml"/>
+        <param name="is_model_floating_base" type="bool" value="true"/>
+        <param name="model_type" value="RBDL"/>
+        <param name="solver" value="$(arg solver)"/>
+    </node>
+
+    <node pkg="cartesian_interface" type="marker_spawner" name="interactive_markers" output="screen"/>
 
 </launch>
