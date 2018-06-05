@@ -3,6 +3,7 @@
 #include <XBotInterface/RobotInterface.h>
 #include <XBotInterface/Utils.h>
 #include <XBotInterface/SoLib.h>
+#include <RobotInterfaceROS/ConfigFromParam.h>
 
 #include <cartesian_interface/ros/RosServerClass.h>
 #include <cartesian_interface/ProblemDescription.h>
@@ -11,8 +12,6 @@
 #define BOOST_RESULT_OF_USE_DECLTYPE
 #include <boost/function.hpp>
 #include <chrono>
-
-
 
 using namespace XBot::Cartesian;
 
@@ -38,6 +37,7 @@ int main(int argc, char **argv){
     /* Init ROS node */
     ros::init(argc, argv, "xbot_cartesian_server");
     ros::NodeHandle nh("xbotcore/cartesian");
+    ros::NodeHandle nh_private("~");
     
     XBot::RobotInterface::Ptr robot;
     
@@ -49,11 +49,13 @@ int main(int argc, char **argv){
         nh.getParam(param_name, visual_mode);
     }
     
+    auto xbot_cfg = XBot::ConfigOptionsFromParamServer();
+    
     if(!visual_mode)
     {
         try
         {
-            robot = XBot::RobotInterface::getRobot(XBot::Utils::getXBotConfig());
+            robot = XBot::RobotInterface::getRobot(xbot_cfg);
         }
         catch(std::exception& e)
         {
@@ -69,7 +71,7 @@ int main(int argc, char **argv){
     }
     
     /* Get model, initialize to home */
-    auto model = XBot::ModelInterface::getModel(XBot::Utils::getXBotConfig());
+    auto model = XBot::ModelInterface::getModel(xbot_cfg);
     Eigen::VectorXd qhome;
     model->getRobotState("home", qhome);
     model->setJointPosition(qhome);
@@ -82,9 +84,21 @@ int main(int argc, char **argv){
     }
     
     /* Load IK problem and solver */
-    auto yaml_file = YAML::LoadFile(XBot::Utils::getXBotConfig());
-    ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"], model);
-    std::string impl_name = yaml_file["CartesianInterface"]["solver"].as<std::string>();
+    std::string problem_description_string;
+    if(!nh_private.hasParam("problem_description") || !nh_private.getParam("problem_description", problem_description_string))
+    {
+        throw std::runtime_error("problem_description private parameter missing");
+    }
+    
+    std::string impl_name;
+    if(!nh_private.hasParam("solver") || !nh_private.getParam("solver", impl_name))
+    {
+        throw std::runtime_error("solver private parameter missing");
+    }    
+    
+    
+    auto problem_yaml = YAML::Load(problem_description_string);
+    ProblemDescription ik_problem(problem_yaml, model);
     
     auto sot_ik_solver = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterface>("Cartesian" + impl_name + ".so", 
                                                                                         impl_name + "Impl", 

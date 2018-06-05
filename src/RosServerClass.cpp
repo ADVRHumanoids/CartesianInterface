@@ -554,7 +554,7 @@ bool XBot::Cartesian::RosServerClass::get_task_info_cb(cartesian_interface::GetT
 
 RosServerClass::~RosServerClass()
 {
-    _marker_thread->join();
+    if(_marker_thread) _marker_thread->join();
 }
 
 XBot::ModelInterface::ConstPtr RosServerClass::getModel() const
