@@ -195,6 +195,12 @@ install(DIRECTORY launch/
   FILES_MATCHING PATTERN "*.launch"
 )
 
+install(DIRECTORY examples/configs/
+#   # myfile2
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/examples/configs
+  FILES_MATCHING PATTERN "*.yaml"
+)
+
 
 #######################
 # Add Testing target  #
