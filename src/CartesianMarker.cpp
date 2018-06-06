@@ -1,4 +1,6 @@
 #include <cartesian_interface/markers/CartesianMarker.h>
+#include <numeric> 
+
 #define SECS 5
 
 using namespace XBot::Cartesian;
