@@ -306,6 +306,35 @@ void RosServerClass::publish_state(ros::Time time)
     }
 }
 
+void XBot::Cartesian::RosServerClass::publish_posture_state(ros::Time time)
+{
+    sensor_msgs::JointState msg;
+    Eigen::VectorXd _posture_ref;
+    
+    if(!_cartesian_interface->getReferencePosture(_posture_ref))
+    {
+        return;
+    }
+    
+    if(_posture_pub.getNumSubscribers() == 0)
+    {
+        return;
+    }
+    
+    msg.header.stamp = time;
+    msg.name.reserve(_model->getJointNum());
+    msg.position.reserve(_model->getJointNum());
+    int i = 0;
+    for(const std::string jname : _model->getEnabledJointNames())
+    {
+        msg.name.push_back(jname);
+        msg.position.push_back(_posture_ref[i]);
+        i++;
+    }
+    
+    _posture_pub.publish(msg);
+}   
+
 
 void RosServerClass::run()
 {
@@ -317,6 +346,7 @@ void RosServerClass::run()
     publish_state(now);
     publish_ref_tf(now);
     publish_world_tf(now);
+    publish_posture_state(now);
 
 }
 
@@ -339,6 +369,7 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     __generate_task_info_services();
     __generate_task_info_setters();
     __generate_task_list_service();
+    __generate_postural_task_topics_and_services();
 
     if(_opt.spawn_markers)
     {
@@ -622,6 +653,61 @@ bool XBot::Cartesian::RosServerClass::set_task_info_cb(cartesian_interface::SetT
     return true;
 }
 
+
+void XBot::Cartesian::RosServerClass::__generate_postural_task_topics_and_services()
+{
+    std::string postural_ref_topic_name = "/xbotcore/cartesian/posture/reference";
+    std::string postural_state_topic_name = "/xbotcore/cartesian/posture/state";
+    std::string postural_srv_name = "/xbotcore/cartesian/posture/reset";
+    
+    _posture_sub = _nh.subscribe(postural_ref_topic_name, 1, &RosServerClass::online_posture_reference_cb, this);
+    _posture_pub = _nh.advertise<sensor_msgs::JointState>(postural_state_topic_name, 1);
+    _reset_posture_srv = _nh.advertiseService(postural_srv_name, &RosServerClass::reset_posture_cb, this);
+    
+    std_srvs::TriggerRequest req;
+    std_srvs::TriggerResponse res;
+    reset_posture_cb(req, res);
+}
+
+void XBot::Cartesian::RosServerClass::online_posture_reference_cb(const sensor_msgs::JointStateConstPtr& msg)
+{
+    JointNameMap posture_ref;
+    
+    for(int i = 0; i < msg->name.size(); i++)
+    {
+        if(msg->position.size() <= i)
+        {
+            continue;
+        }
+        
+        posture_ref[msg->name[i]] = msg->position[i];
+    }
+    
+    _cartesian_interface->setReferencePosture(posture_ref);
+}
+
+bool XBot::Cartesian::RosServerClass::reset_posture_cb(std_srvs::TriggerRequest& req, 
+                                                       std_srvs::TriggerResponse& res)
+{
+    JointNameMap posture_ref;
+    _model->getJointPosition(posture_ref);
+    
+    if(_cartesian_interface->setReferencePosture(posture_ref))
+    {
+        res.message = "Reference posture reset successfully";
+        res.success = true;
+    }
+    else
+    {
+        res.message = "Unable to reset reference posture (no postural task defined?)";
+        res.success = false;
+    }
+    
+    std::map<std::string, double> zeros_map(posture_ref.begin(), posture_ref.end());
+    _nh.setParam("/xbotcore/cartesian/posture/home", zeros_map);
+    
+    return true;
+}
 
 
 

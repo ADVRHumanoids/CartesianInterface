@@ -60,8 +60,6 @@ CartesianInterface::ControlType CartesianInterface::ControlTypeFromString(const 
     
     throw std::invalid_argument("Invalid control type '" + ctrl + "'");
     
-    
-    
 }
 
 
@@ -523,7 +521,7 @@ void CartesianInterfaceImpl::log_tasks()
 CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, ProblemDescription ik_problem):
     _model(model),
     _current_time(0.0),
-    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_logger"))
+    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_logger")),
     _solver_options(ik_problem.getSolverOptions())
 {
     
@@ -548,7 +546,10 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
                 }   
                 case TaskType::Postural:
                 {   
-                    Logger::warning("Unsupported task type: Postural\n");
+                    if(!_model->getRobotState("home", _q_ref))
+                    {
+                        Logger::warning("Group state \"home\" undefined inside SRDF: setting posture reference to zero\n");
+                    }
                     break;
                 }   
                 default:

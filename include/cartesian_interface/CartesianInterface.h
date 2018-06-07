@@ -101,6 +101,9 @@ public:
     virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref, 
                                  const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(),
                                  const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero()) = 0;
+                                 
+                                 
+    virtual bool setReferencePosture(const JointNameMap& qref) = 0;
     
     /* Monitoring */
     
@@ -121,7 +124,9 @@ public:
                           Eigen::Vector3d * base_vel_ref = nullptr,
                           Eigen::Vector3d * base_acc_ref = nullptr ) const = 0;
     
-    
+    virtual bool getReferencePosture(Eigen::VectorXd& qref) const = 0;      
+    virtual bool getReferencePosture(JointNameMap& qref) const = 0;
+                          
     virtual ~CartesianInterface(){}
     
     static std::string ControlTypeAsString(ControlType ctrl);

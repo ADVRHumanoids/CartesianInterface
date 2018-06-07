@@ -66,6 +66,9 @@ public:
     virtual bool getComPositionReference(Eigen::Vector3d& w_com_ref, 
                                          Eigen::Vector3d* base_vel_ref = nullptr, 
                                          Eigen::Vector3d* base_acc_ref = nullptr) const;
+                                         
+    virtual bool getReferencePosture(Eigen::VectorXd& qref) const;                                     
+    virtual bool getReferencePosture(JointNameMap& qref) const;
 
     virtual bool getTargetComPosition(Eigen::Vector3d& w_com_ref) const;
                             
@@ -95,6 +98,8 @@ public:
     virtual bool setTargetPosition(const std::string& end_effector, 
                                 const Eigen::Vector3d& base_pos_ref, 
                                 double time = 0);
+    
+    virtual bool setReferencePosture(const JointNameMap& qref);
 
     ~CartesianInterfaceImpl();
 

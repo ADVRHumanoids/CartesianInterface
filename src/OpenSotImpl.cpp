@@ -285,6 +285,12 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
             
         }
     }
+    
+    /* Postural task */
+    if(_postural_task && getReferencePosture(_qref))
+    {
+        _postural_task->setReference(_qref);
+    }
 
     _autostack->update(_q);
     _autostack->log(_logger);

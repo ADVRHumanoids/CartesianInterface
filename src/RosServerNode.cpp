@@ -94,7 +94,7 @@ int main(int argc, char **argv){
     if(!nh_private.hasParam("solver") || !nh_private.getParam("solver", impl_name))
     {
         throw std::runtime_error("solver private parameter missing");
-    }    
+    }
     
     
     auto problem_yaml = YAML::Load(problem_description_string);

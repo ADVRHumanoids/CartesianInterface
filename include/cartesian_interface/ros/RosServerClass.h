@@ -14,8 +14,10 @@
 #include <actionlib/server/simple_action_server.h>
 #include <std_srvs/Empty.h>
 #include <std_srvs/SetBool.h>
+#include <std_srvs/Trigger.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <sensor_msgs/JointState.h>
 
 #ifndef XBOT_RSPUB
     #include <robot_state_publisher/robot_state_publisher.h>
@@ -92,8 +94,10 @@ namespace XBot { namespace Cartesian {
         void __generate_markers();
         void __generate_task_info_setters();
         void __generate_task_list_service();
+        void __generate_postural_task_topics_and_services();
 
         void manage_reach_actions();
+        void publish_posture_state(ros::Time time);
         void publish_state(ros::Time time);
         void publish_ref_tf(ros::Time time);
         void publish_world_tf(ros::Time time);
@@ -101,6 +105,8 @@ namespace XBot { namespace Cartesian {
 
         void online_position_reference_cb(const geometry_msgs::PoseStampedConstPtr& msg,
                                            const std::string& ee_name);
+        
+        void online_posture_reference_cb(const sensor_msgs::JointStateConstPtr& msg);
 
         void online_velocity_reference_cb(const geometry_msgs::TwistStampedConstPtr& msg,
                                            const std::string& ee_name);
@@ -124,6 +130,9 @@ namespace XBot { namespace Cartesian {
         bool reset_cb(std_srvs::SetBoolRequest& req,
                       std_srvs::SetBoolResponse& res);
         
+        bool reset_posture_cb(std_srvs::TriggerRequest& req,
+                              std_srvs::TriggerResponse& res);
+        
         bool task_list_cb(cartesian_interface::GetTaskListRequest& req, 
                           cartesian_interface::GetTaskListResponse& res);
 
@@ -142,10 +151,11 @@ namespace XBot { namespace Cartesian {
         std::vector<bool> _is_action_active;
         std::vector<ros::Subscriber> _pos_sub, _vel_sub;
         std::vector<ros::Publisher> _state_pub;
-        ros::Publisher _com_pub;
+        ros::Publisher _com_pub, _posture_pub;
+        ros::Subscriber _posture_sub;
         std::vector<ros::ServiceServer> _toggle_pos_mode_srv, _toggle_task_srv, _get_task_info_srv, _set_task_info_srv;
         std::map<std::string, CartesianMarker::Ptr> _markers;
-        ros::ServiceServer _reset_srv, _tasklist_srv;
+        ros::ServiceServer _reset_srv, _tasklist_srv, _reset_posture_srv;
 
         std::shared_ptr<std::thread> _marker_thread;
 
