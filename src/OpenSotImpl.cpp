@@ -195,12 +195,43 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
             _autostack << constr_ptr;
         }
     }
+    
+    /* Parse solver configs (if any) */
+    using BackEnd = OpenSoT::solvers::solver_back_ends;
+    double eps_regularization = 1e6;
+    BackEnd solver_backend = BackEnd::qpOASES;
+    
+    if(has_config() && get_config()["back_end"])
+    {
+        std::string back_end_string = get_config()["back_end"].as<std::string>();
+        
+        if(back_end_string != "osqp" && back_end_string != "qpoases")
+        {
+            Logger::warning("OpenSot: unrecognised solver %s, falling back to qpOASES (available options: qpoases, osqp)\n", back_end_string.c_str());
+        }
+        
+        solver_backend = back_end_string == "qpoases" ? BackEnd::qpOASES : BackEnd::OSQP;
+    }
+    
+    if(has_config() && get_config()["regularization"])
+    {
+        eps_regularization = get_config()["regularization"].as<double>();
+        if(solver_backend == BackEnd::qpOASES)
+        {
+            eps_regularization *= 1e12;
+        }
+    }
+    
+    std::string back_end = solver_backend == BackEnd::qpOASES ? "qpOASES" : "OSQP";
+    
+    Logger::info(Logger::Severity::HIGH, "OpenSot: using back-end %s\n", back_end.c_str());
+    Logger::info(Logger::Severity::HIGH, "OpenSot: regularization value is %.1e\n", eps_regularization);
 
     /* Create solver */
     _solver = boost::make_shared<OpenSoT::solvers::iHQP>(_autostack->getStack(),
                                                          _autostack->getBounds(),
-                                                         1e-6,
-                                                         OpenSoT::solvers::solver_back_ends::OSQP
+                                                         eps_regularization,
+                                                         solver_backend
                                                         );
     
     /* Fill lambda map */
@@ -213,6 +244,8 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     {
         _lambda_map[t->getDistalLink()] = t->getLambda();
     }
+    
+    
     
 
 }

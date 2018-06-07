@@ -220,12 +220,20 @@ const std::vector< ConstraintDescription::Ptr >& ProblemDescription::getBounds()
     return _bounds;
 }
 
+const YAML::Node& XBot::Cartesian::ProblemDescription::getSolverOptions() const
+{
+    return _solver_options_node;
+}
+
+
 ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::ConstPtr model)
 {
     if(!yaml_node["stack"])
     {
         throw std::runtime_error("Missing node \"stack\"");
     }
+    
+    _solver_options_node = yaml_node["solver_options"];
     
     YAML::Node stack = yaml_node["stack"];
     

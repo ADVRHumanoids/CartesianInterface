@@ -524,6 +524,7 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
     _model(model),
     _current_time(0.0),
     _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_logger"))
+    _solver_options(ik_problem.getSolverOptions())
 {
     
     for(int i = 0; i < ik_problem.getNumTasks(); i++)
@@ -831,4 +832,55 @@ bool CartesianInterfaceImpl::getTargetComPosition(Eigen::Vector3d& w_com_ref) co
         return false;
     }
 }
+
+const YAML::Node& XBot::Cartesian::CartesianInterfaceImpl::get_config() const
+{
+    return _solver_options;
+}
+
+
+bool XBot::Cartesian::CartesianInterfaceImpl::has_config() const
+{
+    return _solver_options;
+}
+
+bool XBot::Cartesian::CartesianInterfaceImpl::postural_task_defined() const
+{
+    return _q_ref.size() != 0;
+}
+
+
+bool XBot::Cartesian::CartesianInterfaceImpl::getReferencePosture(Eigen::VectorXd& qref) const
+{
+    if(!postural_task_defined())
+    {
+        return false;
+    }
+    
+    qref = _q_ref;
+    
+    return true;
+}
+
+bool XBot::Cartesian::CartesianInterfaceImpl::getReferencePosture(XBot::JointNameMap& qref) const
+{
+    if(!postural_task_defined())
+    {
+        return false;
+    }
+    
+    return _model->eigenToMap(_q_ref, qref);;
+}
+
+bool XBot::Cartesian::CartesianInterfaceImpl::setReferencePosture(const XBot::JointNameMap& qref)
+{
+    if(!postural_task_defined())
+    {
+        return false;
+    }
+    
+    _model->mapToEigen(qref, _q_ref);
+    return true;
+}
+
 

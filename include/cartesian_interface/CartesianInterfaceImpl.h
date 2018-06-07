@@ -132,6 +132,9 @@ protected:
     
     double get_current_time() const;
     
+    bool has_config() const;
+    const YAML::Node& get_config() const;
+    
     XBot::ModelInterface::Ptr _model;
     
     
@@ -144,13 +147,17 @@ private:
     std::vector<std::string> _ee_list;
     
     Task::Ptr get_task(const std::string& ee_name) const;
+    bool postural_task_defined() const;
     
     std::map<std::string, Task::Ptr> _task_map;
     Task::Ptr _com_task;
+    Eigen::VectorXd _q_ref;
     
     double _current_time;
     
     XBot::MatLogger::Ptr _logger;
+    
+    YAML::Node _solver_options;
     
 };
 

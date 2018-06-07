@@ -280,10 +280,19 @@ namespace XBot { namespace Cartesian {
          */
         const std::vector< ConstraintDescription::Ptr >& getBounds() const;
         
+        /**
+         * @brief Getter to the "solver_options" node inside the YAML file.
+         * If such field did not exist, a null node is returned
+         * 
+         * @return const YAML::Node&
+         */
+        const YAML::Node& getSolverOptions() const;
+        
     private:
         
         std::vector< std::vector<TaskDescription::Ptr> > _stack;
         std::vector< ConstraintDescription::Ptr > _bounds;
+        YAML::Node _solver_options_node;
         
     };
     

@@ -1,3 +1,6 @@
+solver_options:
+    regularization: 1e-6
+    back_end: "osqp"
 
 stack:
     - ["LeftFoot", "RightFoot", "Com"]
@@ -28,9 +31,9 @@ Postural:
     type: "Postural"
     lambda: 0.01
     weight:
-    WaistLat: 100.0
-    LKneePitch: 10.0
-    RKneePitch: 10.0
+        WaistLat: 100.0
+        LKneePitch: 10.0
+        RKneePitch: 10.0
 
 LeftHand:
     type: "Cartesian"
