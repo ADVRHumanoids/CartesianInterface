@@ -36,7 +36,7 @@ int main(int argc, char **argv){
     
     /* Init ROS node */
     ros::init(argc, argv, "xbot_cartesian_server");
-    ros::NodeHandle nh("xbotcore/cartesian");
+    ros::NodeHandle nh;
     ros::NodeHandle nh_private("~");
     
     XBot::RobotInterface::Ptr robot;
@@ -102,9 +102,9 @@ int main(int argc, char **argv){
     
     /* Load IK problem and solver */
     std::string problem_description_string;
-    if(!nh_private.hasParam("problem_description") || !nh_private.getParam("problem_description", problem_description_string))
+    if(!nh.hasParam("problem_description") || !nh.getParam("problem_description", problem_description_string))
     {
-        throw std::runtime_error("problem_description private parameter missing");
+        throw std::runtime_error("problem_description parameter missing");
     }
     
     std::string impl_name;
