@@ -83,6 +83,23 @@ int main(int argc, char **argv){
         std::cout << *model << std::endl;
     }
     
+    /* Change world frame to the specified link */
+    std::string world_frame;
+    if(nh_private.hasParam("world_frame") && nh_private.getParam("world_frame", world_frame))
+    {
+        Eigen::Affine3d w_T_l;
+        if(model->getPose(world_frame, w_T_l))
+        {
+            model->setFloatingBasePose(w_T_l.inverse());
+            model->update();
+            Logger::success(Logger::Severity::HIGH, "World frame set to link %s\n", world_frame.c_str());
+        }
+        else
+        {
+            Logger::warning("Unable to set world frame to link %s (undefined frame)\n", world_frame.c_str());
+        }
+    }
+    
     /* Load IK problem and solver */
     std::string problem_description_string;
     if(!nh_private.hasParam("problem_description") || !nh_private.getParam("problem_description", problem_description_string))
@@ -134,7 +151,9 @@ int main(int argc, char **argv){
     {
         /* Update references from ros */
         ros::spinOnce();
+        auto tic_ros = high_resolution_clock::now();
         ros_server_class->run();
+        auto toc_ros = high_resolution_clock::now();
         
         /* Solve ik */
         auto tic =  high_resolution_clock::now();
@@ -161,6 +180,8 @@ int main(int argc, char **argv){
         logger->add("loop_time", loop_rate.cycleTime().toSec()*1e6);
         double run_time_us = std::chrono::duration_cast<std::chrono::microseconds>(toc-tic).count();
         logger->add("run_time", run_time_us);
+        double ros_time_us = std::chrono::duration_cast<std::chrono::microseconds>(toc_ros-tic_ros).count();
+        logger->add("ros_time", ros_time_us);
         loop_rate.sleep();
         
         
