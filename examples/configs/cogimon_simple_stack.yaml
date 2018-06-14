@@ -44,3 +44,4 @@ RightHand:
     type: "Cartesian"
     distal_link: "RWrMot3"
     lambda: 0.1
+

@@ -3,6 +3,9 @@
     <arg name="solver" default="OpenSot"/>
     <arg name="prefix" default=""/>
 
+
+    <param name="problem_description" textfile="$(find cartesian_interface)/examples/configs/cogimon_simple_stack.yaml"/>
+
     <node pkg="cartesian_interface" type="ros_server_node" 
                                     name="ros_server_node" 
                                     required="true" 
@@ -11,8 +14,6 @@
                                     
         <remap from="robot_description" to="xbotcore/cogimon/robot_description"/>
         <remap from="robot_description_semantic" to="xbotcore/cogimon/robot_description_semantic"/>
-        <remap from="robot_description_joint_id_map" to="xbotcore/cogimon/robot_description_joint_id_map"/>
-        <param name="problem_description" textfile="$(find cartesian_interface)/examples/configs/cogimon_simple_stack.yaml"/>
         <param name="is_model_floating_base" type="bool" value="true"/>
         <param name="model_type" value="RBDL"/>
         <param name="solver" value="$(arg solver)"/>

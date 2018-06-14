@@ -4,11 +4,13 @@
     <arg name="prefix" default=""/>
     <arg name="model_type" default="RBDL"/>
     <arg name="is_model_floating_base" default="true"/>
-
+    <arg name="world_frame" default=""/>
+    
     <node pkg="cartesian_interface" type="ros_server_node" name="ros_server_node" required="true" output="screen" launch-prefix="$(arg prefix)">
         <param name="is_model_floating_base" type="bool" value="$(arg is_model_floating_base)"/>
         <param name="model_type" value="$(arg model_type)"/>
         <param name="solver" value="$(arg solver)"/>
+        <param name="world_frame" value="$(arg world_frame)"/>
     </node>
 
     <node pkg="cartesian_interface" type="marker_spawner" name="interactive_markers" output="screen"/>
