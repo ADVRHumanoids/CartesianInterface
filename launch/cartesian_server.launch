@@ -3,6 +3,7 @@
     <arg name="solver" default="OpenSot"/>
     <arg name="prefix" default=""/>
     <param name="problem_description" textfile="$(find cartesian_interface)/examples/configs/centauro_simple_stack.yaml"/>
+    <arg name="use_xbot_config" default="false"/>
 
     <node pkg="cartesian_interface" type="ros_server_node" 
                                     name="ros_server_node" 
@@ -16,7 +17,7 @@
         <param name="is_model_floating_base" type="bool" value="true"/>
         <param name="model_type" value="RBDL"/>
         <param name="solver" value="$(arg solver)"/>
-        <param name="world_frame" value="l_sole"/>
+        <param name="use_xbot_config" value="$(arg use_xbot_config)"/>
         
     </node>
 
