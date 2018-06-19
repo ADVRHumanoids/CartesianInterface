@@ -604,6 +604,11 @@ bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_co
     _com_task->state = State::Online;
     _com_task->new_data_available = true;
     
+    if(w_vel_ref.squaredNorm() > 0)
+    {
+        _com_task->vref_time_to_live = DEFAULT_TTL;
+    }
+    
     return true;
 }
 
@@ -825,6 +830,7 @@ bool CartesianInterfaceImpl::getComPositionReference(Eigen::Vector3d& w_com_ref,
 {
     if(!_com_task)
     {
+        Logger::error("Undefined task com\n");
         return false;
     }
     
