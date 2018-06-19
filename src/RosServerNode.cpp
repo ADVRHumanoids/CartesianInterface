@@ -3,11 +3,12 @@
 #include <XBotInterface/RobotInterface.h>
 #include <XBotInterface/Utils.h>
 #include <XBotInterface/SoLib.h>
-#include <RobotInterfaceROS/ConfigFromParam.h>
+
 
 #include <cartesian_interface/ros/RosServerClass.h>
 #include <cartesian_interface/ProblemDescription.h>
 #include <cartesian_interface/LoadController.h>
+#include <cartesian_interface/utils/LoadConfig.h>
 
 #define BOOST_RESULT_OF_USE_DECLTYPE
 #include <boost/function.hpp>
@@ -41,6 +42,7 @@ int main(int argc, char **argv){
     
     XBot::RobotInterface::Ptr robot;
     
+    /* Should we run in visual mode? */
     std::string param_name = "visual_mode";
     bool visual_mode = false;
     
@@ -49,7 +51,19 @@ int main(int argc, char **argv){
         nh.getParam(param_name, visual_mode);
     }
     
-    auto xbot_cfg = XBot::ConfigOptionsFromParamServer();
+    /* Obtain xbot config object */
+    bool use_xbot_config = nh_private.param("use_xbot_config", false);
+    XBot::ConfigOptions xbot_cfg;
+    YAML::Node problem_yaml;
+    
+    if(use_xbot_config)
+    {
+        xbot_cfg = XBot::Cartesian::Utils::LoadOptionsFromConfig(problem_yaml);
+    }
+    else
+    {
+        xbot_cfg = XBot::Cartesian::Utils::LoadOptionsFromParamServer(problem_yaml);
+    }
     
     if(!visual_mode)
     {
@@ -85,7 +99,7 @@ int main(int argc, char **argv){
     
     /* Change world frame to the specified link */
     std::string world_frame;
-    if(nh_private.hasParam("world_frame") && nh_private.getParam("world_frame", world_frame))
+    if(xbot_cfg.get_parameter("world_frame", world_frame))
     {
         Eigen::Affine3d w_T_l;
         if(model->getPose(world_frame, w_T_l))
@@ -101,20 +115,12 @@ int main(int argc, char **argv){
     }
     
     /* Load IK problem and solver */
-    std::string problem_description_string;
-    if(!nh.hasParam("problem_description") || !nh.getParam("problem_description", problem_description_string))
-    {
-        throw std::runtime_error("problem_description parameter missing");
-    }
-    
     std::string impl_name;
-    if(!nh_private.hasParam("solver") || !nh_private.getParam("solver", impl_name))
+    if(!xbot_cfg.get_parameter("solver", impl_name))
     {
-        throw std::runtime_error("solver private parameter missing");
+        throw std::runtime_error("solver parameter missing");
     }
     
-    
-    auto problem_yaml = YAML::Load(problem_description_string);
     ProblemDescription ik_problem(problem_yaml, model);
     
     auto sot_ik_solver = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterface>("Cartesian" + impl_name + ".so", 
@@ -138,7 +144,7 @@ int main(int argc, char **argv){
     __g_ros_ptrptr = &ros_server_class;
     
     
-    auto loader_srv = nh.advertiseService("load_controller", loader_callback);
+    auto loader_srv = nh.advertiseService("/xbotcore/cartesian/load_controller", loader_callback);
     
     ros::Rate loop_rate(100);
     Eigen::VectorXd q, qdot;
@@ -207,7 +213,9 @@ bool loader_callback(cartesian_interface::LoadControllerRequest& req, cartesian_
         res.success = true;
         res.message = "Successfully loaded controller";
         __g_ros_ptrptr->reset();
-        *__g_ros_ptrptr = std::make_shared<XBot::Cartesian::RosServerClass>(*__g_impl_ptrptr, __g_model);
+        XBot::Cartesian::RosServerClass::Options opt;
+        opt.spawn_markers = false;
+        *__g_ros_ptrptr = std::make_shared<XBot::Cartesian::RosServerClass>(*__g_impl_ptrptr, __g_model, opt);
         
         XBot::Logger::success(Logger::Severity::HIGH, "Successfully loaded %s\n", req.controller_name.c_str());
         
