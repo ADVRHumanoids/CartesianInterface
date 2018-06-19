@@ -8,8 +8,8 @@
 using namespace XBot::Cartesian;
 
 JoyStick::JoyStick(const std::vector<std::string> &distal_links, std::string tf_prefix):
-    //_nh("xbotcore/cartesian"),
-    _nh(), _tf_prefix(tf_prefix),
+    _nh("xbotcore/cartesian"),
+    _tf_prefix(tf_prefix),
     _distal_links(distal_links),
     _selected_task(0),
     _linear_speed_sf(0.1),
@@ -23,20 +23,20 @@ JoyStick::JoyStick(const std::vector<std::string> &distal_links, std::string tf_
     ros::ServiceClient srv_client;
     for(unsigned int i = 0; i < distal_links.size(); ++i)
     {
-        srv_client = _nh.serviceClient<cartesian_interface::SetTaskInfo>("xbotcore/cartesian/" + _distal_links[i] + "/set_task_properties");
+        srv_client = _nh.serviceClient<cartesian_interface::SetTaskInfo>(_distal_links[i] + "/set_task_properties");
         _set_properties_service_clients.push_back(srv_client);
     }
 
     for(unsigned int i = 0; i < distal_links.size(); ++i)
     {
-        srv_client = _nh.serviceClient<cartesian_interface::GetTaskInfo>("xbotcore/cartesian/" + _distal_links[i] + "/get_task_properties");
+        srv_client = _nh.serviceClient<cartesian_interface::GetTaskInfo>(_distal_links[i] + "/get_task_properties");
         _get_properties_service_clients.push_back(srv_client);
     }
 
     ros::Publisher ref_pose_pub;
     for(unsigned int i = 0; i < distal_links.size(); ++i)
     {
-        std::string topic_name = "xbotcore/cartesian/" + _distal_links[i] + "/velocity_reference";
+        std::string topic_name = _distal_links[i] + "/velocity_reference";
         ref_pose_pub = _nh.advertise<geometry_msgs::TwistStamped>(topic_name, 1);
         _ref_pose_pubs.push_back(ref_pose_pub);
     }
