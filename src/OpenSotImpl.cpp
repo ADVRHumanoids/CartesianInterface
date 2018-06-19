@@ -281,7 +281,7 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
         
         if(getComPositionReference(x, &v, &a))
         {
-            _com_task->setReference(x, v);
+            _com_task->setReference(x, v*period);
             
         }
     }
