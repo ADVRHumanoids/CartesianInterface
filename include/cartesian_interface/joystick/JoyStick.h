@@ -1,13 +1,15 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <eigen3/Eigen/Dense>
+#include <tf/transform_listener.h>
 
 namespace XBot { namespace Cartesian {
 class JoyStick{
 public:
     typedef boost::shared_ptr<JoyStick> Ptr;
 
-    JoyStick(const std::vector<std::string>& distal_links);
+    JoyStick(const std::vector<std::string>& distal_links, std::string tf_prefix = "");
 
     ~JoyStick();
 
@@ -19,21 +21,31 @@ private:
      */
     ros::NodeHandle _nh;
 
+    std::string _tf_prefix;
+
     std::vector<std::string> _distal_links;
 
     ros::Subscriber _joy_sub;
 
     void joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
     void setVelocityCtrl();
+    void localCtrl();
     int _selected_task;
 
     std::vector<ros::ServiceClient> _set_properties_service_clients;
+    std::vector<ros::ServiceClient> _get_properties_service_clients;
     std::vector<ros::Publisher> _ref_pose_pubs;
 
     double _linear_speed_sf;
     double _angular_speed_sf;
 
     geometry_msgs::TwistStamped _desired_twist;
+    Eigen::VectorXd _twist;
+
+    tf::TransformListener _listener;
+    tf::StampedTransform _transform;
+
+    int _local_ctrl;
 };
 }
 }
