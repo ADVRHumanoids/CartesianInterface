@@ -327,7 +327,7 @@ bool XBot::Cartesian::OpenSotImpl::setControlMode(const std::string& ee_name,
     
     if(ee_name == "com" && _com_task)
     {
-        task_ptr = task_ptr;
+        task_ptr = _com_task;
     }
     
     for(const auto t : _cartesian_tasks)
