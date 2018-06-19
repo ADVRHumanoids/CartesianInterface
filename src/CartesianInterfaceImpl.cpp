@@ -699,13 +699,19 @@ bool CartesianInterfaceImpl::setControlMode(const std::string& ee_name, Cartesia
     
     if(!task)
     {
-        XBot::Logger::error("Undefined end effector \n");
+        XBot::Logger::error("Undefined end effector %s\n", ee_name.c_str());
         return false;
     }
     
     task->control_type = ctrl_type;
     
-    if(task->base_frame == "world")
+    if(ee_name == "com")
+    {
+        Eigen::Vector3d com;
+        _model->getCOM(com);
+        task->T.translation() = com;
+    }
+    else if(task->base_frame == "world")
     {
         _model->getPose(task->distal_frame, task->T);
     }
