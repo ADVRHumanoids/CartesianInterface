@@ -62,6 +62,9 @@ OpenSoT::tasks::Aggregated::Ptr XBot::Cartesian::OpenSotImpl::aggregated_from_st
                 cartesian_task->setLambda(cartesian_desc->lambda);
                 cartesian_task->setOrientationErrorGain(cartesian_desc->orientation_gain);
 
+                ///// TEST
+                cartesian_task->setWeightIsDiagonalFlag(true);
+
                 std::list<uint> indices(cartesian_desc->indices.begin(), cartesian_desc->indices.end());
 
                 _cartesian_tasks.push_back(cartesian_task);
@@ -84,6 +87,9 @@ OpenSoT::tasks::Aggregated::Ptr XBot::Cartesian::OpenSotImpl::aggregated_from_st
                 
                 _com_task->setLambda(com_desc->lambda);
 
+                ///// TEST
+                _com_task->setWeightIsDiagonalFlag(true);
+
                 std::list<uint> indices(com_desc->indices.begin(), com_desc->indices.end());
 
                 if(indices.size() == 3)
@@ -102,6 +108,9 @@ OpenSoT::tasks::Aggregated::Ptr XBot::Cartesian::OpenSotImpl::aggregated_from_st
                 _postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
                 
                 _postural_task->setLambda(postural_desc->lambda);
+
+                ///// TEST
+                _postural_task->setWeightIsDiagonalFlag(true);
 
                 std::list<uint> indices(postural_desc->indices.begin(), postural_desc->indices.end());
 
