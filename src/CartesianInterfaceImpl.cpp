@@ -246,7 +246,16 @@ bool CartesianInterfaceImpl::setPoseReference(const std::string& end_effector,
         return false;
     }
     
-    task->T = w_T_ref;
+    if((task->T.translation() - w_T_ref.translation()).norm() > 0.01)
+    {
+        XBot::Logger::warning("Task %s: jump detected in reference \n", task->distal_frame.c_str());
+    }
+    
+    if(task->control_type == ControlType::Position)
+    {
+        task->T = w_T_ref;
+    }
+    
     task->vel = w_vel_ref;
     task->acc = w_acc_ref;
     
@@ -579,13 +588,17 @@ bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_co
         return false;
     }
     
-    if(_com_task->control_type != ControlType::Position)
+    if(_com_task->control_type == ControlType::Disabled)
     {
-        XBot::Logger::error("Unable to set pose reference. Task is in NOT in position mode \n");
+        XBot::Logger::error("Unable to set pose reference. Task is DISABLED \n");
         return false;
     }
     
-    _com_task->T.translation() = w_com_ref;
+    if(_com_task->control_type == ControlType::Position)
+    {
+        _com_task->T.translation() = w_com_ref;
+    }
+    
     _com_task->vel.head<3>() = w_vel_ref;
     _com_task->acc.head<3>() = w_acc_ref;
     _com_task->state = State::Online;
@@ -758,6 +771,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::syncFrom(XBot::Cartesian::Cartesia
         {
             continue;
         }
+        
         
         if(this_task->base_frame != other_task->base_frame)
         {
