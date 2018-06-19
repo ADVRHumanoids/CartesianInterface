@@ -10,6 +10,7 @@ find_package(OpenSoT REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp
                                         std_msgs
                                         geometry_msgs
+                                        sensor_msgs
                                         actionlib
                                         robot_state_publisher
                                         message_generation
@@ -62,6 +63,7 @@ generate_messages(
   DEPENDENCIES
   std_msgs
   geometry_msgs
+  sensor_msgs
   actionlib_msgs
 )
 
@@ -97,6 +99,7 @@ set(CartesianInterfaceROS_SRC
         src/RosImpl.cpp
         src/RosServerClass.cpp
         src/CartesianMarker.cpp
+        src/JoyStick.cpp
     )
 
 # Trajectory
@@ -147,6 +150,10 @@ target_link_libraries(ros_server_node CartesianInterface dl)
 add_executable(marker_spawner src/MarkerSpawner.cpp)
 target_link_libraries(marker_spawner CartesianInterface)
 
+# JoyStick spawner
+add_executable(joystick_spawner src/JoyStickSpawner.cpp)
+target_link_libraries(joystick_spawner CartesianInterface)
+
 add_subdirectory(examples)
 
 
@@ -164,6 +171,12 @@ install(TARGETS ros_server_node ros_server_node
 )
 
 install(TARGETS marker_spawner marker_spawner
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(TARGETS joystick_spawner joystick_spawner
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

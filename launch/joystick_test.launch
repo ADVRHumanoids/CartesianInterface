@@ -1,0 +1,23 @@
+<launch>
+
+    <arg name="solver" default="OpenSot"/>
+    <arg name="prefix" default=""/>
+    <param name="robot_description" textfile="$(find RDC2018)/robot_urdf/coman.urdf"/>
+    <param name="robot_description_semantic" textfile="$(find RDC2018)/robot_srdf/coman.srdf"/>
+    <param name="problem_description" textfile="$(find RDC2018)/stacks/robot_simple_stack.yaml"/>
+    
+
+    <node pkg="cartesian_interface" type="ros_server_node" name="ros_server_node" required="true" output="screen" launch-prefix="$(arg prefix)">
+        <param name="is_model_floating_base" type="bool" value="true"/>
+        <param name="model_type" value="RBDL"/>
+        <param name="solver" value="$(arg solver)"/>
+        <param name="control_message_type" value="StdCommandMessage"/>
+        <param name="jointstate_message_type" value="StdJointStateMessage"/>
+        <param name="world_frame" value="l_sole"/>
+    </node>
+
+    <node pkg="cartesian_interface" type="marker_spawner" name="interactive_markers" output="screen"/>
+
+    <node pkg="cartesian_interface" type="joystick_spawner" name="joystick" output="screen"/>
+
+</launch>
