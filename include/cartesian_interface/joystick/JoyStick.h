@@ -15,6 +15,26 @@ public:
 
     void sendVelRefs();
 
+    std::string Doc()
+    {
+        std::stringstream doc;
+        doc<<
+        "JoyStick Control:\n \n"
+        "   Select button:                  Print this documentation\n"
+        "   Start button:                   Enable velocity control in task\n"
+        "   Left Analog:                    UP/DOWN    -> X Global Coordinates\n"
+        "                                   LEFT/RIGHT -> Y Global Coordinates\n"
+        "   Right Analog:                   UP/DOWN    -> PITCH Global Coordinates\n"
+        "                                   LEFT/RIGHT -> YAW Global Coordinates\n"
+        "   D-pad:                          UP/DOWN    -> Z Global Coordinates\n"
+        "                                   LEFT/RIGHT -> ROLL Global Coordinates\n"
+        "   A button:                       Set GLOBAL/LOCAL control\n"
+        "   Left Trigger + X/Y button:      Decrease/Increase linear speed\n"
+        "   RIght Trigger + X/Y button:     Decrease/Increase angular speed\n";
+
+        return doc.str();
+    }
+
 private:
     /**
      * @brief _nh

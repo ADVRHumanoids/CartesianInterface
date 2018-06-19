@@ -5,6 +5,9 @@
 #include <geometry_msgs/Transform.h>
 
 
+#define MAX_SPEED_SF 1.0
+#define MIN_SPEED_SF 0.0
+
 using namespace XBot::Cartesian;
 
 JoyStick::JoyStick(const std::vector<std::string> &distal_links, std::string tf_prefix):
@@ -51,6 +54,9 @@ JoyStick::~JoyStick()
 
 void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
+    if(joy->buttons[6])
+        ROS_INFO(Doc().c_str());
+
     if(joy->buttons[4])
         _selected_task--;
 
@@ -64,6 +70,36 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 
     if(joy->buttons[7])
         setVelocityCtrl();
+
+    if(joy->axes[2] <= -0.99)
+    {
+        if(joy->buttons[2])
+            _linear_speed_sf -= 0.05;
+        if(joy->buttons[3])
+            _linear_speed_sf += 0.05;
+
+        if(_linear_speed_sf < MIN_SPEED_SF)
+            _linear_speed_sf = MIN_SPEED_SF;
+        if(_linear_speed_sf > MAX_SPEED_SF)
+            _linear_speed_sf = MAX_SPEED_SF;
+
+        ROS_INFO("_linear_speed_sf: %f", _linear_speed_sf);
+    }
+
+    if(joy->axes[5] <= -0.99)
+    {
+        if(joy->buttons[2])
+            _angular_speed_sf -= 0.05;
+        if(joy->buttons[3])
+            _angular_speed_sf += 0.05;
+
+        if(_angular_speed_sf < MIN_SPEED_SF)
+            _angular_speed_sf = MIN_SPEED_SF;
+        if(_angular_speed_sf > MAX_SPEED_SF)
+            _angular_speed_sf = MAX_SPEED_SF;
+
+        ROS_INFO("_angular_speed_sf: %f", _angular_speed_sf);
+    }
 
 
     _twist.setZero(6);
