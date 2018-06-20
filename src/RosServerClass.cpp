@@ -13,7 +13,7 @@ void RosServerClass::__generate_state_broadcasting()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string topic_name = "/xbotcore/cartesian/" + ee_name + "/state";
+        std::string topic_name = ee_name + "/state";
 
         ros::Publisher pub = _nh.advertise<geometry_msgs::PoseStamped>(topic_name,
                                                                         1);
@@ -30,12 +30,12 @@ void RosServerClass::__generate_rspub()
 
     _rspub.reset(new RsPub(kdl_tree));
 
-    std::string _urdf_param_name = "/xbotcore/" + _model->getUrdf().getName() + "/robot_description";
-    std::string _tf_prefix = "/xbotcore/" + _model->getUrdf().getName();
+    std::string _urdf_param_name = _model->getUrdf().getName() + "/robot_description";
+    std::string _tf_prefix = _model->getUrdf().getName();
     _nh.setParam(_urdf_param_name, _model->getUrdfString());
     _nh.setParam("/robot_description", _model->getUrdfString());
     
-    _com_pub = _nh.advertise<geometry_msgs::PointStamped>("/xbotcore/cartesian/com_position", 1);
+    _com_pub = _nh.advertise<geometry_msgs::PointStamped>("/com_position", 1);
 }
 
 void RosServerClass::publish_ref_tf(ros::Time time)
@@ -99,7 +99,7 @@ void RosServerClass::__generate_online_vel_topics()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string topic_name = "/xbotcore/cartesian/" + ee_name + "/velocity_reference";
+        std::string topic_name = ee_name + "/velocity_reference";
 
         auto cb = std::bind(&RosServerClass::online_velocity_reference_cb, this, std::placeholders::_1, ee_name);
 
@@ -136,7 +136,7 @@ void RosServerClass::__generate_online_pos_topics()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string topic_name = "/xbotcore/cartesian/" + ee_name + "/reference";
+        std::string topic_name = ee_name + "/reference";
 
         auto cb = std::bind(&RosServerClass::online_position_reference_cb, this, std::placeholders::_1, ee_name);
 
@@ -151,7 +151,7 @@ void RosServerClass::__generate_reach_pose_action_servers()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string action_name = "/xbotcore/cartesian/" + ee_name + "/reach";
+        std::string action_name = ee_name + "/reach";
 
         _action_servers.emplace_back( new ActionServer(_nh, action_name, false) );
 
@@ -431,7 +431,7 @@ void RosServerClass::__generate_toggle_pos_mode_services()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string srv_name = "/xbotcore/cartesian/" + ee_name + "/toggle_position_mode";
+        std::string srv_name = ee_name + "/toggle_position_mode";
         auto cb = boost::bind(&RosServerClass::toggle_position_mode_cb,
                             this,
                             _1,
@@ -467,7 +467,7 @@ void RosServerClass::__generate_toggle_task_services()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string srv_name = "/xbotcore/cartesian/" + ee_name + "/activate_task";
+        std::string srv_name = ee_name + "/activate_task";
         auto cb = boost::bind(&RosServerClass::toggle_task_cb,
                             this,
                             _1,
@@ -481,7 +481,7 @@ void RosServerClass::__generate_toggle_task_services()
 
 void XBot::Cartesian::RosServerClass::__generate_task_list_service()
 {
-    std::string srv_name = "/xbotcore/cartesian/get_task_list";
+    std::string srv_name = "/get_task_list";
     _tasklist_srv = _nh.advertiseService(srv_name, &RosServerClass::task_list_cb, this);
 }
 
@@ -506,7 +506,7 @@ void XBot::Cartesian::RosServerClass::__generate_task_info_services()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string srv_name = "/xbotcore/cartesian/" + ee_name + "/get_task_properties";
+        std::string srv_name = ee_name + "/get_task_properties";
         auto cb = boost::bind(&RosServerClass::get_task_info_cb,
                             this,
                             _1,
@@ -597,7 +597,7 @@ void XBot::Cartesian::RosServerClass::__generate_task_info_setters()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string srv_name = "/xbotcore/cartesian/" + ee_name + "/set_task_properties";
+        std::string srv_name = ee_name + "/set_task_properties";
         auto cb = boost::bind(&RosServerClass::set_task_info_cb,
                             this,
                             _1,
@@ -656,9 +656,9 @@ bool XBot::Cartesian::RosServerClass::set_task_info_cb(cartesian_interface::SetT
 
 void XBot::Cartesian::RosServerClass::__generate_postural_task_topics_and_services()
 {
-    std::string postural_ref_topic_name = "/xbotcore/cartesian/posture/reference";
-    std::string postural_state_topic_name = "/xbotcore/cartesian/posture/state";
-    std::string postural_srv_name = "/xbotcore/cartesian/posture/reset";
+    std::string postural_ref_topic_name = "/posture/reference";
+    std::string postural_state_topic_name = "/posture/state";
+    std::string postural_srv_name = "/posture/reset";
     
     _posture_sub = _nh.subscribe(postural_ref_topic_name, 1, &RosServerClass::online_posture_reference_cb, this);
     _posture_pub = _nh.advertise<sensor_msgs::JointState>(postural_state_topic_name, 1);
@@ -704,7 +704,7 @@ bool XBot::Cartesian::RosServerClass::reset_posture_cb(std_srvs::TriggerRequest&
     }
     
     std::map<std::string, double> zeros_map(posture_ref.begin(), posture_ref.end());
-    _nh.setParam("/xbotcore/cartesian/posture/home", zeros_map);
+    _nh.setParam("/posture/home", zeros_map);
     
     return true;
 }

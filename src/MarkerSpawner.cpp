@@ -22,11 +22,11 @@ int main(int argc, char **argv){
     XBot::Logger::SetVerbosityLevel(XBot::Logger::Severity::MID);
     
     /* Init ROS node */
-    ros::init(argc, argv, "xbot_cartesian_marker_spawner");
-    ros::NodeHandle nh("xbotcore/cartesian");
+    ros::init(argc, argv, "marker_spawner");
+    ros::NodeHandle nh;
 
     /* Get task list from cartesian server */
-    ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskListRequest, cartesian_interface::GetTaskListResponse>("/xbotcore/cartesian/get_task_list");
+    ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskListRequest, cartesian_interface::GetTaskListResponse>("/get_task_list");
     cartesian_interface::GetTaskListRequest req;
     cartesian_interface::GetTaskListResponse res;
     task_list_client.waitForExistence();

@@ -169,7 +169,7 @@ OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr XBot::Car
 XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
                                           XBot::Cartesian::ProblemDescription ik_problem):
     CartesianInterfaceImpl(model, ik_problem),
-    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_opensot_log"))
+    _logger(XBot::MatLogger::getLogger("/tmp/ci_opensot_log"))
 {
     _model->getJointPosition(_q);
     _dq.setZero(_q.size());

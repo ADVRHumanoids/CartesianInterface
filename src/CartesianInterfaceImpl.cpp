@@ -426,7 +426,7 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model,
     _model(model),
     _tasks_vector(tasks),
     _current_time(0.0),
-    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_logger_" + std::to_string(rand())))
+    _logger(XBot::MatLogger::getLogger("/tmp/ci_logger_" + std::to_string(rand())))
 {
     __construct_from_vectors();
 }
@@ -530,7 +530,7 @@ void CartesianInterfaceImpl::log_tasks()
 CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, ProblemDescription ik_problem):
     _model(model),
     _current_time(0.0),
-    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_logger_" + std::to_string(rand()))),
+    _logger(XBot::MatLogger::getLogger("/tmp/ci_logger_" + std::to_string(rand()))),
     _solver_options(ik_problem.getSolverOptions())
 {
     

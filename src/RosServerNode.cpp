@@ -36,7 +36,7 @@ int main(int argc, char **argv){
     XBot::Logger::SetVerbosityLevel(XBot::Logger::Severity::MID);
     
     /* Init ROS node */
-    ros::init(argc, argv, "xbot_cartesian_server");
+    ros::init(argc, argv, "cartesian_server");
     ros::NodeHandle nh;
     ros::NodeHandle nh_private("~");
     
@@ -144,7 +144,7 @@ int main(int argc, char **argv){
     __g_ros_ptrptr = &ros_server_class;
     
     
-    auto loader_srv = nh.advertiseService("/xbotcore/cartesian/load_controller", loader_callback);
+    auto loader_srv = nh.advertiseService("/load_controller", loader_callback);
     
     ros::Rate loop_rate(100);
     Eigen::VectorXd q, qdot;
