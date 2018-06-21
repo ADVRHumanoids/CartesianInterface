@@ -1,0 +1,85 @@
+XBotCore:
+  config_path: "configs/ADVR_shared/centauro/configs/centauro.yaml"
+
+XBotInterface:
+  urdf_path: "configs/ADVR_shared/centauro/urdf/centauro.urdf"
+  srdf_path: "configs/ADVR_shared/centauro/srdf/centauro.srdf"
+  joint_map_path: "configs/ADVR_shared/centauro/joint_map/centauro_joint_map.yaml"
+
+RobotInterface:
+  framework_name: "ROS"
+
+ModelInterface:
+  model_type: "RBDL"
+  is_model_floating_base: "true"
+  
+CartesianInterface:
+  solver: "OpenSot"
+  problem_description:
+    stack:
+      - ["Wheel_FL", "Wheel_FR", "Wheel_HR", "Wheel_HL"]
+      - ["LeftArm", "RightArm"]
+      - ["Postural", "Com"]
+    constraints: ["JointLimits", "VelocityLimits"]
+
+    Wheel_FL:
+      type: "Cartesian"
+      distal_link: "wheel_1"
+    
+    Wheel_FR:
+      type: "Cartesian"
+      distal_link: "wheel_2"
+    
+    Wheel_HL:
+      type: "Cartesian"
+      distal_link: "wheel_3"
+    
+    Wheel_HR:
+      type: "Cartesian"
+      distal_link: "wheel_4"
+    
+    LeftArm:
+      type: "Cartesian"
+      distal_link: "arm1_8"
+      lambda: 0.1
+    
+    RightArm:
+      type: "Cartesian"
+      distal_link: "arm2_8"
+      lambda: 0.1
+      
+    Postural:
+      type: "Postural"
+      lambda: 0.01
+      weight:
+        VIRTUALJOINT_1: 0.0
+        VIRTUALJOINT_2: 0.0
+        VIRTUALJOINT_3: 0.0
+        VIRTUALJOINT_4: 0.0
+        VIRTUALJOINT_5: 0.0
+        VIRTUALJOINT_6: 0.0
+
+      
+    Com:
+      type: "Com"
+      lambda: 0.05
+      indices: [0, 1]
+      weight: 10
+  
+MasterCommunicationInterface:
+  framework_name: "ROS"
+
+XBotRTPlugins:
+  plugins: ["HomingExample"]
+  io_plugins: []
+  
+NRTPlugins:
+  plugins: []
+  
+WebServer:
+  enable: "true"
+  address: "127.0.0.1"
+  port: "8081"
+
+SimulationOptions:
+  verbose_mode: "true"
