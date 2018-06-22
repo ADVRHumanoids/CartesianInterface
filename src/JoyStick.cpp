@@ -145,6 +145,8 @@ void JoyStick::localCtrl()
     _get_properties_service_clients[_selected_task].call(srv);
 
     std::string _base_link = srv.response.base_link;
+    if(_base_link == "world")
+        _base_link = "world_odom";
 
     try{
         ros::Time now = ros::Time::now();
