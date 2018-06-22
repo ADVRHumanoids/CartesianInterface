@@ -29,8 +29,9 @@ public:
         "   D-pad:                          UP/DOWN    -> Z Global Coordinates\n"
         "                                   LEFT/RIGHT -> ROLL Global Coordinates\n"
         "   A button:                       Set GLOBAL/LOCAL control\n"
-        "   Left Trigger + X/Y button:      Decrease/Increase linear speed\n"
-        "   RIght Trigger + X/Y button:     Decrease/Increase angular speed\n";
+        "   L2 + X/Y button:                Decrease/Increase linear speed\n"
+        "   R2 + X/Y button:                Decrease/Increase angular speed\n"
+        "   L1/R1:                          Previous/Next Task\n";
 
         return doc.str();
     }
