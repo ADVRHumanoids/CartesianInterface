@@ -2,6 +2,7 @@
 #include <cartesian_interface/SetTaskInfo.h>
 #include <cartesian_interface/GetTaskInfo.h>
 #include <std_srvs/SetBool.h>
+#include <numeric> 
 
 #define SECS 5
 
