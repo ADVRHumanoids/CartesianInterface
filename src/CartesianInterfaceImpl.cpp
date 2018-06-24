@@ -519,6 +519,7 @@ void CartesianInterfaceImpl::log_tasks()
         CartesianInterfaceImpl::Task& task = *(pair.second);
         
         _logger->add(task.base_frame + "_to_" + task.distal_frame + "_pos", task.T.translation());
+        _logger->add(task.base_frame + "_to_" + task.distal_frame + "_vel", task.vel);
         _logger->add(task.base_frame + "_to_" + task.distal_frame + "_rot", Eigen::Quaterniond(task.T.linear()).coeffs());
         _logger->add(task.base_frame + "_to_" + task.distal_frame + "_state", task.state == State::Reaching ? 1 : 0);
     }
