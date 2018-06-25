@@ -357,8 +357,9 @@ bool CartesianInterfaceImpl::setTargetPosition(const std::string& end_effector,
     return true;
 }
 
-bool CartesianInterfaceImpl::reset()
+bool CartesianInterfaceImpl::reset(double time)
 {
+    _current_time = time;
     
     for(auto& pair : _task_map)
     {
@@ -468,7 +469,7 @@ void CartesianInterfaceImpl::__construct_from_vectors()
         
     }
     
-    reset();
+    reset(0.0);
 }
 
 

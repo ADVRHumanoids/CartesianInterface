@@ -63,7 +63,7 @@ public:
     
     virtual bool update(double time, double period) = 0;
     
-    virtual bool reset() = 0;
+    virtual bool reset(double time) = 0;
     
     virtual const std::vector<std::string>& getTaskList() const = 0;
     virtual const std::string& getBaseLink(const std::string& ee_name) const = 0;

@@ -97,7 +97,7 @@ void CartesianPlugin::control_loop(double time, double period)
     /* Try to update references from NRT */
     if(!_first_sync_done)
     {
-        if(_sync_from_nrt->try_reset(_model))
+        if(_sync_from_nrt->try_reset(_model, time))
         {
             _first_sync_done = true;
             XBot::Logger::info(Logger::Severity::HIGH, "Resetting NRT CI \n");
