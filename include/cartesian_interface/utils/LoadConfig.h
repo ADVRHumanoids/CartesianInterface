@@ -84,6 +84,12 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromParamServer(YA
         problem_description = YAML::Load(problem_description_string);
     }
     
+    std::string js_msg_type = nh_private.param<std::string>("jointstate_message_type", "AdvrJointStateMessage");
+    std::string ctrl_msg_type = nh_private.param<std::string>("control_message_type", "AdvrCommandMessage");
+    
+    xbot_cfg.set_parameter("jointstate_message_type", js_msg_type);
+    xbot_cfg.set_parameter("control_message_type", ctrl_msg_type);
+    
     return xbot_cfg;
 }
 
