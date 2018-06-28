@@ -17,7 +17,7 @@ namespace XBot { namespace Cartesian { namespace Utils {
         
         bool try_sync(double time, double period, CartesianInterfaceImpl::Ptr ci, ModelInterface::ConstPtr model);
         
-        bool try_reset(ModelInterface::ConstPtr model);
+        bool try_reset(ModelInterface::ConstPtr model, double time);
         
         
         
@@ -37,14 +37,14 @@ inline XBot::Cartesian::Utils::SyncFromIO::SyncFromIO(std::string shared_object_
 
 }
 
-inline bool XBot::Cartesian::Utils::SyncFromIO::try_reset(XBot::ModelInterface::ConstPtr model)
+inline bool XBot::Cartesian::Utils::SyncFromIO::try_reset(XBot::ModelInterface::ConstPtr model, double time)
 {
     if(_ci_nrt || (_ci_shobj.try_get(_ci_nrt) && _ci_nrt))
     {
         if(_ci_shobj.get_mutex()->try_lock())
         {
                 _ci_nrt->getModel()->syncFrom(*model);
-                _ci_nrt->reset();
+                _ci_nrt->reset(time);
                 _ci_shobj.get_mutex()->unlock();
                 return true;
         }

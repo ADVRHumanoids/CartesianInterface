@@ -107,7 +107,7 @@ public:
 
     virtual bool abort(const std::string& end_effector);
     
-    virtual bool reset();
+    virtual bool reset(double time);
 
 
     
