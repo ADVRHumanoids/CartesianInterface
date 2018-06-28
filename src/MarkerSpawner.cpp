@@ -2,8 +2,11 @@
 #include <XBotInterface/Utils.h>
 #include <XBotInterface/SoLib.h>
 
+#include <std_srvs/Trigger.h>
 #include <cartesian_interface/GetTaskList.h>
 #include <cartesian_interface/markers/CartesianMarker.h>
+
+#include <functional>
 
 #include <ros/ros.h>
 
@@ -14,7 +17,12 @@
 
 
 using namespace XBot::Cartesian;
+typedef std::map<std::string, XBot::Cartesian::CartesianMarker::Ptr> MarkerMap;
 
+MarkerMap __g_markers;
+
+void construct_markers(ros::NodeHandle nh, MarkerMap& markers);
+bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res, ros::NodeHandle nh);
 
 int main(int argc, char **argv){
     
@@ -24,7 +32,31 @@ int main(int argc, char **argv){
     /* Init ROS node */
     ros::init(argc, argv, "xbot_cartesian_marker_spawner");
     ros::NodeHandle nh("xbotcore/cartesian");
+    
+    /* Reset service */
+    auto srv_cbk = std::bind(reset_callback, std::placeholders::_1, std::placeholders::_2, nh);
+    auto srv = nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>("markers/reset", srv_cbk);
+    
+    construct_markers(nh, __g_markers);
+    
+    ros::spin();
+}
 
+
+bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res, ros::NodeHandle nh)
+{
+    MarkerMap new_markers;
+    construct_markers(nh, new_markers); // will THROW on failure
+    __g_markers = new_markers;
+    
+    res.message = "Successfully reset markers";
+    res.success = true;
+    
+    return true;
+}
+
+void construct_markers(ros::NodeHandle nh, MarkerMap& markers)
+{
     /* Get task list from cartesian server */
     ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskListRequest, cartesian_interface::GetTaskListResponse>("/xbotcore/cartesian/get_task_list");
     cartesian_interface::GetTaskListRequest req;
@@ -32,8 +64,7 @@ int main(int argc, char **argv){
     task_list_client.waitForExistence();
     if(!task_list_client.call(req, res))
     {
-        ros::shutdown();
-        std::exit(1);
+        throw std::runtime_error("Unable to call /xbotcore/cartesian/get_task_list");
     }
     
     std::string robot_urdf_string;
@@ -41,8 +72,6 @@ int main(int argc, char **argv){
     urdf::Model robot_urdf;
     robot_urdf.initString(robot_urdf_string);
     
-    
-    std::map<std::string, XBot::Cartesian::CartesianMarker::Ptr> markers;
 
     for(int i = 0; i < res.distal_links.size(); i++)
     {
@@ -69,6 +98,5 @@ int main(int argc, char **argv){
         
         markers[ee_name] = marker;
     }
-    
-    ros::spin();
 }
+
