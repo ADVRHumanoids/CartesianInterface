@@ -23,6 +23,7 @@
 #include <XCM/XBotControlPlugin.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <CartesianPlugin/Utils.h>
+#include <compliant_stabilizer/compliantstabilizer.h>
 
 
 namespace XBot { namespace Cartesian {
@@ -64,6 +65,9 @@ private:
     Eigen::VectorXd _q, _qdot;
 
     XBot::MatLogger::Ptr _logger;
+
+    boost::shared_ptr<CompliantStabilizer> _stabilizer;
+    Eigen::Vector3d _com_ref;
 
 };
 

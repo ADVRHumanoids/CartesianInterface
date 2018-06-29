@@ -42,6 +42,8 @@ include(MacroInstallLib)
 # find required packages
 find_package(XCM REQUIRED)
 
+find_package(compliant_stabilizer REQUIRED)
+
 # XENOMAI
 set(ENABLE_XENO CACHE BOOL "ON")
 if ( ${ENABLE_XENO} )
@@ -50,7 +52,7 @@ endif()
 
 # include
 include_directories(include
-                    ${XCM_INCLUDE_DIRS}
+                    ${XCM_INCLUDE_DIRS} ${compliant_stabilizer_INCLUDE_DIRS}
                     )
 
 # lib
@@ -64,7 +66,7 @@ if ( Xenomai_FOUND )
 endif()
 
 # linking
-target_link_libraries(${PROJECT_NAME} ${XCM_LIBRARIES} CartesianOpenSot)
+target_link_libraries(${PROJECT_NAME} ${XCM_LIBRARIES} ${compliant_stabilizer_LIBRARIES} CartesianOpenSot)
 
 #install
 
