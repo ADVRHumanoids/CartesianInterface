@@ -32,15 +32,16 @@ int main(int argc, char **argv){
     
     auto logger = XBot::MatLogger::getLogger("/tmp/cartesian_ros_node_log");
     
-    /* By default, MID verbosity level */
-    XBot::Logger::SetVerbosityLevel(XBot::Logger::Severity::MID);
+    
     
     /* Init ROS node */
     ros::init(argc, argv, "xbot_cartesian_server");
     ros::NodeHandle nh;
     ros::NodeHandle nh_private("~");
     
-    XBot::RobotInterface::Ptr robot;
+    /* By default, MID verbosity level */
+    const int verbosity = nh_private.param("verbosity", (int)XBot::Logger::Severity::MID);
+    XBot::Logger::SetVerbosityLevel((XBot::Logger::Severity)verbosity);
     
     /* Should we run in visual mode? */
     std::string param_name = "visual_mode";
@@ -58,13 +59,16 @@ int main(int argc, char **argv){
     
     if(use_xbot_config)
     {
+        Logger::info("Configuring from file %s\n", XBot::Utils::getXBotConfig().c_str());
         xbot_cfg = XBot::Cartesian::Utils::LoadOptionsFromConfig(problem_yaml);
     }
     else
     {
+        Logger::info("Configuring from ROS parameter server\n"); 
         xbot_cfg = XBot::Cartesian::Utils::LoadOptionsFromParamServer(problem_yaml);
     }
     
+    XBot::RobotInterface::Ptr robot;
     if(!visual_mode)
     {
         try
@@ -83,6 +87,10 @@ int main(int argc, char **argv){
             robot->setControlMode(XBot::ControlMode::Position() + XBot::ControlMode::Velocity());
         }
     }
+    else
+    {
+        Logger::info(Logger::Severity::HIGH, "Running in visual mode: no commands sent to robot\n");
+    }
     
     /* Get model, initialize to home */
     auto model = XBot::ModelInterface::getModel(xbot_cfg);
@@ -94,7 +102,6 @@ int main(int argc, char **argv){
     if(robot)
     {
         model->syncFrom(*robot, XBot::Sync::Position, XBot::Sync::MotorSide, XBot::Sync::Impedance);
-        std::cout << *model << std::endl;
     }
     
     /* Change world frame to the specified link */
@@ -120,6 +127,7 @@ int main(int argc, char **argv){
     {
         throw std::runtime_error("solver parameter missing");
     }
+    Logger::info("Cartesian solver %s will be loaded\n", impl_name.c_str());
     
     ProblemDescription ik_problem(problem_yaml, model);
     
@@ -146,12 +154,16 @@ int main(int argc, char **argv){
     
     auto loader_srv = nh.advertiseService("/xbotcore/cartesian/load_controller", loader_callback);
     
-    ros::Rate loop_rate(100);
+    /* Get loop frequency */
+    const double freq = nh_private.param("rate", 100);
+    ros::Rate loop_rate(freq);
+    
     Eigen::VectorXd q, qdot;
     model->getJointPosition(q);
     double time = 0.0;
     double dt = loop_rate.expectedCycleTime().toSec();
     
+    Logger::info("Started looping @%f Hz\n", freq);
     
     while(ros::ok())
     {

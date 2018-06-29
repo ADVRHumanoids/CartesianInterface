@@ -104,14 +104,17 @@ bool XBot::Cartesian::CartesianInterfaceImpl::setBaseLink(const std::string& ee_
     
     if(new_base_link == task->base_frame) // base link did not actually change
     {
+        Logger::info(Logger::Severity::DEBUG, "Base link did not change\n");
         new_T_old.setIdentity();
     }
     else if(new_base_link == "world") // new base link is world
     {
+        Logger::info(Logger::Severity::DEBUG, "New base link is world\n");
         _model->getPose(task->base_frame, new_T_old); // w_T_b1 = b2_T_b1
     }
     else if(task->base_frame == "world") // old base link is world
     {
+        Logger::info(Logger::Severity::DEBUG, "Old base link is world\n");
          _model->getPose(new_base_link, new_T_old); // w_T_b2 = b1_T_b2
          new_T_old = new_T_old.inverse();
     }
@@ -119,6 +122,8 @@ bool XBot::Cartesian::CartesianInterfaceImpl::setBaseLink(const std::string& ee_
     {
         _model->getPose(task->base_frame, new_base_link, new_T_old); // b2_T_b1
     }
+    
+    Logger::success(Logger::Severity::HIGH, "Base link changed to %s for task %s\n", new_base_link, task->base_frame);
     
     /* Update task */
     task->base_frame = new_base_link;
@@ -741,6 +746,9 @@ bool CartesianInterfaceImpl::setControlMode(const std::string& ee_name, Cartesia
     }
     
     task->new_data_available = true;
+    
+    Logger::success("Control mode changed to %s for task %s\n", 
+                    ControlTypeAsString(ctrl_type).c_str(), task->distal_frame.c_str());
 
     return true;
 }
@@ -778,6 +786,8 @@ void XBot::Cartesian::CartesianInterfaceImpl::syncFrom(XBot::Cartesian::Cartesia
         {
             continue;
         }
+        
+        Logger::info(Logger::Severity::DEBUG, "New data available for task %s\n", other_task->distal_frame.c_str());
         
         
         if(this_task->base_frame != other_task->base_frame)
