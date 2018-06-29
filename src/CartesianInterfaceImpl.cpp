@@ -123,7 +123,9 @@ bool XBot::Cartesian::CartesianInterfaceImpl::setBaseLink(const std::string& ee_
         _model->getPose(task->base_frame, new_base_link, new_T_old); // b2_T_b1
     }
     
-    Logger::success(Logger::Severity::HIGH, "Base link changed to %s for task %s\n", new_base_link, task->base_frame);
+    Logger::success(Logger::Severity::HIGH, "Base link changed to %s for task %s\n", 
+                    new_base_link.c_str(), 
+                    task->distal_frame.c_str());
     
     /* Update task */
     task->base_frame = new_base_link;

@@ -4,7 +4,9 @@
     <arg name="prefix" default=""/>
     <param name="problem_description" textfile="$(find cartesian_interface)/examples/configs/centauro_simple_stack.yaml"/>
     <arg name="use_xbot_config" default="false"/>
-
+    <arg name="verbosity" default="2"/>
+    <arg name="rate" default="100.0"/>
+    
     <node pkg="cartesian_interface" type="ros_server_node" 
                                     name="ros_server_node" 
                                     required="true" 
@@ -18,6 +20,8 @@
         <param name="model_type" value="RBDL"/>
         <param name="solver" value="$(arg solver)"/>
         <param name="use_xbot_config" value="$(arg use_xbot_config)"/>
+        <param name="verbosity" value="$(arg verbosity)"/>
+        <param name="rate" value="$(arg rate)"/>
         
     </node>
 
