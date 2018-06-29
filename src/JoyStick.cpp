@@ -3,6 +3,7 @@
 #include <cartesian_interface/GetTaskInfo.h>
 #include <tf_conversions/tf_eigen.h>
 #include <geometry_msgs/Transform.h>
+#include <std_srvs/SetBool.h>
 
 
 #define MAX_SPEED_SF 1.0
@@ -34,6 +35,12 @@ JoyStick::JoyStick(const std::vector<std::string> &distal_links, std::string tf_
     {
         srv_client = _nh.serviceClient<cartesian_interface::GetTaskInfo>(_distal_links[i] + "/get_task_properties");
         _get_properties_service_clients.push_back(srv_client);
+    }
+
+    for(unsigned int i = 0; i < distal_links.size(); ++i)
+    {
+        srv_client = _nh.serviceClient<std_srvs::SetBool>(_distal_links[i] + "/activate_task");
+        _task_active_service_client.push_back(srv_client);
     }
 
     ros::Publisher ref_pose_pub;
@@ -123,11 +130,17 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     _desired_twist.twist.angular.y = _twist[4];
     _desired_twist.twist.angular.z = _twist[5];
 
+    if(joy->buttons[1])
+        activateDeactivateTask();
+
 }
 
 void JoyStick::sendVelRefs()
 {
-    _ref_pose_pubs[_selected_task].publish(_desired_twist);
+    cartesian_interface::GetTaskInfo srv;
+    _get_properties_service_clients[_selected_task].call(srv);
+    if(srv.response.control_mode.compare("Disabled") != 0)
+        _ref_pose_pubs[_selected_task].publish(_desired_twist);
 }
 
 void JoyStick::setVelocityCtrl()
@@ -145,6 +158,8 @@ void JoyStick::localCtrl()
     _get_properties_service_clients[_selected_task].call(srv);
 
     std::string _base_link = srv.response.base_link;
+    if(_base_link == "world")
+        _base_link = "world_odom";
 
     try{
         ros::Time now = ros::Time::now();
@@ -166,5 +181,20 @@ void JoyStick::localCtrl()
        Eigen::MatrixXd::Zero(3,3),T.linear();
 
     _twist = A*_twist;
+}
+
+void JoyStick::activateDeactivateTask()
+{
+    cartesian_interface::GetTaskInfo srv;
+    _get_properties_service_clients[_selected_task].call(srv);
+
+    std_srvs::SetBool srv2;
+
+    if(srv.response.control_mode.compare("Disabled") == 0)
+        srv2.request.data = true;
+    else
+        srv2.request.data = false;
+
+    _task_active_service_client[_selected_task].call(srv2);
 }
 

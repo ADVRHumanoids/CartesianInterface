@@ -29,8 +29,10 @@ public:
         "   D-pad:                          UP/DOWN    -> Z Global Coordinates\n"
         "                                   LEFT/RIGHT -> ROLL Global Coordinates\n"
         "   A button:                       Set GLOBAL/LOCAL control\n"
-        "   Left Trigger + X/Y button:      Decrease/Increase linear speed\n"
-        "   RIght Trigger + X/Y button:     Decrease/Increase angular speed\n";
+        "   B button:                       Activate/Deactivate Task\n"
+        "   L2 + X/Y button:                Decrease/Increase linear speed\n"
+        "   R2 + X/Y button:                Decrease/Increase angular speed\n"
+        "   L1/R1:                          Previous/Next Task\n";
 
         return doc.str();
     }
@@ -50,11 +52,13 @@ private:
     void joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
     void setVelocityCtrl();
     void localCtrl();
+    void activateDeactivateTask();
     int _selected_task;
 
     std::vector<ros::ServiceClient> _set_properties_service_clients;
     std::vector<ros::ServiceClient> _get_properties_service_clients;
     std::vector<ros::Publisher> _ref_pose_pubs;
+    std::vector<ros::ServiceClient> _task_active_service_client;
 
     double _linear_speed_sf;
     double _angular_speed_sf;

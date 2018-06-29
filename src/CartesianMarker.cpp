@@ -122,20 +122,24 @@ void CartesianMarker::MakeMenu()
     _menu_entry_counter++;
     for(unsigned int i = 0; i < _links.size(); ++i)
     {
-        interactive_markers::MenuHandler::EntryHandle link_entry = _menu_handler.insert(_base_link_entry,
-            _links.at(i)->name, boost::bind(boost::mem_fn(&CartesianMarker::changeBaseLink), this, _1));
-        _menu_entry_counter++;
+        if(_distal_link != _links.at(i)->name)
+        {
+            interactive_markers::MenuHandler::EntryHandle link_entry = _menu_handler.insert(_base_link_entry,
+                _links.at(i)->name, boost::bind(boost::mem_fn(&CartesianMarker::changeBaseLink), this, _1));
 
-        if(_base_link.compare("world_odom") == 0 && (_links.at(i)->name).compare("world") == 0){
-            _menu_handler.setCheckState(link_entry, interactive_markers::MenuHandler::CHECKED );
-            _base_link_entry_active = link_entry;}
-        else if(_base_link.compare(_links.at(i)->name) == 0){
-            _menu_handler.setCheckState(link_entry, interactive_markers::MenuHandler::CHECKED );
-            _base_link_entry_active = link_entry;}
-        else
-            _menu_handler.setCheckState(link_entry, interactive_markers::MenuHandler::UNCHECKED );
+            _menu_entry_counter++;
 
-        _link_entries.push_back(link_entry);
+            if(_base_link.compare("world_odom") == 0 && (_links.at(i)->name).compare("world") == 0){
+                _menu_handler.setCheckState(link_entry, interactive_markers::MenuHandler::CHECKED );
+                _base_link_entry_active = link_entry;}
+            else if(_base_link.compare(_links.at(i)->name) == 0){
+                _menu_handler.setCheckState(link_entry, interactive_markers::MenuHandler::CHECKED );
+                _base_link_entry_active = link_entry;}
+            else
+                _menu_handler.setCheckState(link_entry, interactive_markers::MenuHandler::UNCHECKED );
+
+            _link_entries.push_back(link_entry);
+        }
     }
 
 
