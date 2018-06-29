@@ -61,8 +61,23 @@ public:
     CartesianInterface& operator=(const CartesianInterface& rhs) = delete;
     CartesianInterface& operator=(const CartesianInterface&& rhs) = delete;
     
+    
+    /**
+     * @brief Update function. It must be called periodically inside the user
+     * control loop
+     * 
+     * @param time current time [s]
+     * @param period period between last call and current one [s]
+     * @return true if no errors occurred
+     */
     virtual bool update(double time, double period) = 0;
     
+    /**
+     * @brief Reset all cartesian references to current model pose.
+     * It also resets time.
+     * 
+     * @param time Current time
+     */
     virtual bool reset(double time) = 0;
     
     virtual const std::vector<std::string>& getTaskList() const = 0;
@@ -134,13 +149,6 @@ public:
     
     static ControlType ControlTypeFromString(const std::string& ctrl);
     static State StateFromString(const std::string& state);
-    
-protected:
-    
-    
-private:
-
-    
     
 };
 
