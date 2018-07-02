@@ -27,4 +27,6 @@
 
     <node pkg="cartesian_interface" type="marker_spawner" name="interactive_markers" output="screen"/>
 
+    <node pkg="tf" type="static_transform_publisher" name="ci_to_perception_broadcaster" args="0 0 -0.926 0 0 0 1 base_link ci/world 10"/>
+
 </launch>
