@@ -22,6 +22,17 @@ ProblemDescription * __g_problem;
 CartesianInterface::Ptr * __g_impl_ptrptr;
 RosServerClass::Ptr * __g_ros_ptrptr;
 
+void set_blacklist(XBot::RobotInterface::Ptr robot, const XBot::ConfigOptions& xbot_cfg) {
+    std::vector<std::string> blacklist;
+    xbot_cfg.get_parameter("joint_blacklist", blacklist);
+    std::map<std::string, XBot::ControlMode> ctrl_map;
+    for ( auto j : blacklist ) {
+        ctrl_map[j] = XBot::ControlMode::Idle();
+    }
+    robot->setControlMode(ctrl_map);
+}
+
+
 /* Loader function */
 bool loader_callback(cartesian_interface::LoadControllerRequest&  req, 
                     cartesian_interface::LoadControllerResponse& res);
@@ -85,6 +96,7 @@ int main(int argc, char **argv){
         {
             robot->sense();
             robot->setControlMode(XBot::ControlMode::Position() + XBot::ControlMode::Velocity());
+	    set_blacklist(robot, xbot_cfg);
         }
     }
     else

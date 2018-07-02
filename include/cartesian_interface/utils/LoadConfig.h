@@ -37,6 +37,12 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromConfig(YAML::N
         xbot_cfg.set_parameter("solver", solver);
     }
     
+    if(ci_node["joint_blacklist"])
+    {
+        std::vector<std::string> joint_blacklist = ci_node["joint_blacklist"].as<std::vector<std::string>>();
+        xbot_cfg.set_parameter("joint_blacklist", joint_blacklist);
+    }
+    
     if(ci_node["world_frame"])
     {
         std::string world_frame = ci_node["world_frame"].as<std::string>();
