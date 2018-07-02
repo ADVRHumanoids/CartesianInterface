@@ -27,6 +27,17 @@ double __g_period;
 double *__g_time;
 ros::Publisher __g_reset_pub;
 
+void set_blacklist(XBot::RobotInterface::Ptr robot, const XBot::ConfigOptions& xbot_cfg) {
+    std::vector<std::string> blacklist;
+    xbot_cfg.get_parameter("joint_blacklist", blacklist);
+    std::map<std::string, XBot::ControlMode> ctrl_map;
+    for ( auto j : blacklist ) {
+        ctrl_map[j] = XBot::ControlMode::Idle();
+    }
+    robot->setControlMode(ctrl_map);
+}
+
+
 /* Loader function */
 bool loader_callback(cartesian_interface::LoadControllerRequest&  req, 
                      cartesian_interface::LoadControllerResponse& res);
@@ -90,6 +101,7 @@ int main(int argc, char **argv){
         {
             robot->sense();
             robot->setControlMode(XBot::ControlMode::Position() + XBot::ControlMode::Velocity());
+	    set_blacklist(robot, xbot_cfg);
         }
     }
     else
