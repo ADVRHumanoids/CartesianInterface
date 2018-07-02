@@ -70,5 +70,7 @@ int main(int argc, char **argv){
         markers[ee_name] = marker;
     }
     
+    Logger::success(Logger::Severity::HIGH, "Marker spawner: started spinning...\n");
+    
     ros::spin();
 }
