@@ -25,12 +25,6 @@ REGISTER_XBOT_PLUGIN_(XBot::Cartesian::CartesianPlugin)
 
 namespace XBot { namespace Cartesian {
     
-Eigen::Vector3d getGains(const double x, const double y, const double z)
-{
-    Eigen::Vector3d tmp;
-    tmp<<x,y,z;
-    return tmp;
-}
 
 bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
 {
@@ -64,7 +58,7 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
     _sync_from_nrt = std::make_shared<Utils::SyncFromIO>("/xbotcore/cartesian_interface", handle->getSharedMemory());
 
     ///STABILIZER
-    double dT = 0.001;
+    double dT = 0.002;
     Eigen::Affine3d ankle;
     _model->getPose("l_ankle", "l_sole", ankle);
     Eigen::Vector2d foot_size;
@@ -72,9 +66,9 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
     double Fzmin = 10.;
     _stabilizer.reset(new CompliantStabilizer(dT, _model->getMass(), fabs(ankle(2,3)),
                                               foot_size, Fzmin,
-                                              getGains(0.1,0.1,0.), getGains(-0.005,-0.005,0.),
-                                              getGains(DEFAULT_MaxLimsx, DEFAULT_MaxLimsy, DEFAULT_MaxLimsz),
-                                              getGains(DEFAULT_MinLimsx, DEFAULT_MinLimsy, DEFAULT_MinLimsz)));
+                                              Eigen::Vector3d(0.09,0.09,0.), Eigen::Vector3d(-0.005,-0.005,0.),
+                                              Eigen::Vector3d(DEFAULT_MaxLimsx, DEFAULT_MaxLimsy, DEFAULT_MaxLimsz),
+                                              Eigen::Vector3d(DEFAULT_MinLimsx, DEFAULT_MinLimsy, DEFAULT_MinLimsz)));
     ///
 
 
@@ -96,6 +90,7 @@ void CartesianPlugin::on_start(double time)
     _first_sync_done = false;
     
     _model->syncFrom(*_robot, Sync::Position, Sync::MotorSide);
+    _ci->reset(time);
 
     ///STABILIZER
     _ci->getComPositionReference(_com_ref);
@@ -157,14 +152,19 @@ void CartesianPlugin::control_loop(double time, double period)
     _robot->getForceTorque().at("l_leg_ft")->getWrench(left_wrench);
     Eigen::Vector6d right_wrench;
     _robot->getForceTorque().at("r_leg_ft")->getWrench(right_wrench);
+    
+    left_wrench *= -1;
+    right_wrench *= -1;
 
     Eigen::Vector3d delta_com = _stabilizer->update(left_wrench, right_wrench,
                                                    CopPos_L, CopPos_R,
                                                    lsole.matrix().col(3).head(3), rsole.matrix().col(3).head(3));
 
-    _ci->setComPositionReference(_com_ref + delta_com);
-    ///
-    
+    double lambda = (time - _start_time)/3.0;
+    lambda = std::min(std::max(lambda, 0.0), 1.0);
+    _ci->setComPositionReference(_com_ref + lambda*delta_com);
+
+    _logger->add("delta_com", delta_com);
 
     if(!_ci->update(time, period))
     {
