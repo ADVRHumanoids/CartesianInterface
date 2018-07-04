@@ -21,14 +21,14 @@ XBotRTPlugins:
   io_plugins: ["CartesianIO"]
   
 NRTPlugins:
-  plugins: [] #"HomingExample"]
+  plugins: ["HomingExample"]
   
 TransmissionPlugins:
   plugins: ["CogimonAnkles"] #CogimonImpedanceAnkles CogimonAnkles
   
 WebServer:
   enable: "true"
-  address: "127.0.0.1"
+  address: "10.24.5.100"
   port: "8081"
 
 SimulationOptions:
@@ -37,6 +37,8 @@ SimulationOptions:
 CartesianInterface:
   solver: "OpenSot"
   problem_description:
+    solver_options:
+      regularization: 0.001
     stack:
       - ["LeftFoot", "RightFoot", "Com"]
       - ["LeftHand", "RightHand", "TorsoRotZ"]
@@ -68,6 +70,7 @@ CartesianInterface:
         WaistLat: 100.0
         LKneePitch: 10.0
         RKneePitch: 10.0
+        
     
     LeftHand:
       type: "Cartesian"
