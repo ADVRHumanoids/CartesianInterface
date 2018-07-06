@@ -30,6 +30,7 @@ int main(int argc, char **argv){
     cartesian_interface::GetTaskListRequest req;
     cartesian_interface::GetTaskListResponse res;
     task_list_client.waitForExistence();
+    Logger::info(Logger::Severity::HIGH, "Marker spawner: retrieving task list\n");
     if(!task_list_client.call(req, res))
     {
         ros::shutdown();
