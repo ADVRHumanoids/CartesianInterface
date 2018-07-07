@@ -26,5 +26,16 @@
     </node>
 
     <node pkg="cartesian_interface" type="marker_spawner" name="interactive_markers" output="screen"/>
+    
+    <!--
+    <param name="joy_node/dev" type="str" value="/dev/input/js0" />
+    <node pkg="joy" type="joy_node" name="joy_node" output="screen">
+        <remap from="joy" to="xbotcore/cartesian/joy/"/>
+    </node>
+
+    <node pkg="cartesian_interface" type="joystick_spawner" name="joystick" output="screen"/>
+
+    -->
+    
 
 </launch>
