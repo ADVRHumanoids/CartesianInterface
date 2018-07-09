@@ -7,6 +7,7 @@ include(MacroInstallLib)
 find_package(XBotInterface REQUIRED)
 find_package(XCM QUIET)
 find_package(OpenSoT REQUIRED)
+find_package(ReflexxesTypeII REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp
                                         std_msgs
                                         geometry_msgs
@@ -22,6 +23,7 @@ include_directories(include
                     ${XBotInterface_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
+                    ${ReflexxesTypeII_INCLUDE_DIRS}
                     )
 
 
@@ -129,6 +131,7 @@ target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
                                                 ${catkin_LIBRARIES}
                                                 ${XBOT_RSPUB_LIBRARIES}
                                                 yaml-cpp
+                                                ${ReflexxesTypeII_LIBRARIES}
                       )
 add_dependencies(CartesianInterface ${PROJECT_NAME}_generate_messages)
 

@@ -152,7 +152,7 @@ bool XBot::Cartesian::CartesianInterfaceImpl::getPoseReference(const std::string
         return false;
     }
     
-    base_T_ref = task->get_pose();
+    base_T_ref = task->get_pose_otg();
     if(base_vel_ref) *base_vel_ref = task->get_velocity();
     if(base_acc_ref) *base_acc_ref = task->get_acceleration();
     
@@ -260,9 +260,15 @@ CartesianInterfaceImpl::Task::Task():
     control_type(ControlType::Position),
     state(State::Online),
     vref_time_to_live(0.0),
-    new_data_available(false)
+    new_data_available(false),
+    __otg_ref(EigenVector7d::Zero()),
+    __otg_des(EigenVector7d::Zero()),
+    __otg_maxvel(EigenVector7d::Constant(1.0)),
+    __otg_maxacc(EigenVector7d::Constant(5.0)),
+    otg(std::make_shared<Reflexxes::Utils::TrajectoryGenerator>(7, 0.01, Eigen::VectorXd::Zero(7)))
 {
-
+    otg->setVelocityLimits(__otg_maxvel);
+    otg->setAccelerationLimits(__otg_maxacc);
 }
 
 CartesianInterfaceImpl::~CartesianInterfaceImpl()
@@ -855,6 +861,8 @@ void CartesianInterfaceImpl::Task::reset(XBot::ModelInterface::ConstPtr model)
     state = State::Online;
     
     new_data_available = true;
+    
+    reset_otg();
 }
 
 CartesianInterfaceImpl::Task::Task(const std::string& base, const std::string& distal):
@@ -886,6 +894,8 @@ void CartesianInterfaceImpl::Task::update(double time, double period)
             vref_time_to_live = -1.0;
         }
     }
+    
+    apply_otg();
     
     new_data_available = false;
 }
@@ -958,4 +968,37 @@ const Eigen::Vector6d& CartesianInterfaceImpl::Task::get_velocity() const
     return vel;
 }
 
+void XBot::Cartesian::CartesianInterfaceImpl::Task::apply_otg()
+{
+    // TBD: also velocity level
+    __otg_des << T.translation(), Eigen::Quaterniond(T.linear()).coeffs();
+    
+    if(otg)
+    {
+        otg->setReference(__otg_des);
+        otg->update(__otg_ref, __otg_vref);
+    }
+    
+}
+
+void CartesianInterfaceImpl::Task::reset_otg()
+{
+    __otg_des << T.translation(), Eigen::Quaterniond(T.linear()).coeffs();
+    __otg_ref = __otg_des;
+    otg->reset(__otg_des);
+}
+
+const Eigen::Affine3d CartesianInterfaceImpl::Task::get_pose_otg() const
+{
+    Eigen::Quaterniond q(__otg_ref.tail<4>());
+    q.normalize();
+    Eigen::Affine3d Totg;
+    Totg.setIdentity();
+    
+    Totg.translation() = __otg_ref.head<3>();
+    Totg.linear() = q.toRotationMatrix();
+    
+    return Totg;
+    
+}
 
