@@ -113,8 +113,48 @@ public:
     
 protected:
     
-    struct Task
+    class Task
     {
+        
+    public:
+        
+        typedef std::shared_ptr<Task> Ptr;
+        typedef std::shared_ptr<const Task> ConstPtr;
+        
+        Task();
+        Task(const std::string& base, const std::string& distal);
+        
+        void update(double time, double period);
+        
+        const std::string& get_name() const;
+        const std::string& get_base() const;
+        const std::string& get_distal() const;
+        State get_state() const;
+        ControlType get_ctrl() const;
+        const Eigen::Affine3d& get_pose() const;
+        const Eigen::Vector6d& get_velocity() const;
+        const Eigen::Vector6d& get_acceleration() const;
+        bool get_pose_target(Eigen::Affine3d& pose_target) const;
+        bool is_new_data_available() const;
+        
+        
+        void set_ctrl(ControlType ctrl, ModelInterface::ConstPtr model);
+        bool set_reference(const Eigen::Affine3d& pose, 
+                           const Eigen::Vector6d& vel, 
+                           const Eigen::Vector6d& acc);
+        
+        bool set_waypoints(double current_time, const Trajectory::WayPointVector& wp);
+        bool set_target_pose(double current_time, double target_time, const Eigen::Affine3d& pose);
+        void reset(ModelInterface::ConstPtr model);
+        void sync_from(const Task& other);
+        
+        void abort();
+        bool change_base_link(const std::string& new_base_link, ModelInterface::ConstPtr model);
+        
+    private:
+        
+        bool check_reach() const;
+        
         std::string base_frame;
         std::string distal_frame;
         
@@ -130,9 +170,7 @@ protected:
         
         Trajectory::Ptr trajectory;
         
-        typedef std::shared_ptr<Task> Ptr;
-        typedef std::shared_ptr<const Task> ConstPtr;
-        Task();
+        
     };
     
     double get_current_time() const;
