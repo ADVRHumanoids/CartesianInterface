@@ -103,7 +103,7 @@ public:
     
     virtual bool abort(const std::string& end_effector) = 0;
     
-    
+    virtual void setVelocityLimits(const std::string& ee_name, double max_vel_lin, double max_vel_ang) = 0;
     
     
     /* Online control */

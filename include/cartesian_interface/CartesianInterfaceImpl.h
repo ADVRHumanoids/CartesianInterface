@@ -53,6 +53,7 @@ public:
     
     virtual ControlType getControlMode(const std::string& ee_name) const;
     virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type);
+    virtual void setVelocityLimits(const std::string& ee_name, double max_vel_lin, double max_vel_ang){};
     
     virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link);
     

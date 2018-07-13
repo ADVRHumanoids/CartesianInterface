@@ -27,7 +27,7 @@ TransmissionPlugins:
   plugins: ["CogimonAnkles"] #CogimonImpedanceAnkles CogimonAnkles
   
 WebServer:
-  enable: "true"
+  enable: "false"
   address: "10.24.5.100"
   port: "8081"
 
