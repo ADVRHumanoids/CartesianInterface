@@ -1,0 +1,54 @@
+/xbotcore/cartesian/joy: 
+    IncrLinSpeed: 
+        buttons: 
+            - 4
+            - 9
+    DecrLinSpeed: 
+        buttons: 
+            - 5
+        axes: 
+            - 6
+    IncrAngSpeed: 
+        buttons: 
+            - 6
+        axes: 
+            - 7
+    DecrAngSpeed: 
+        buttons: 
+            - 7
+        axes: 
+            - 7 
+    NextTask: 
+        buttons: 
+            - 2  
+    PrevTask: 
+        buttons: 
+            - 2 
+    X: 
+        axes: 
+            - 0 
+    Y: 
+        axes: 
+            - 1  
+    Z: 
+        axes: 
+            - 2 
+    Roll: 
+        axes: 
+            - 3
+    Pitch: 
+         axes: 
+            - 4
+    Yaw: 
+        axes: 
+            - 5
+    select:  
+        buttons: 
+            - 1
+    start: 
+        buttons: 
+            - 2
+    LocalGlobal: 
+        buttons: 
+            - 3
+

@@ -53,6 +53,31 @@ int main(int argc, char **argv){
 
     auto joystick = std::make_shared<XBot::Cartesian::JoyStick>(distal_links,"ci/");
 
+
+    /* REMAP JOYSTICK EVENTUALLY */
+    XmlRpc::XmlRpcValue list;
+    JoyStickRemap jremap;
+    bool remap = nh.getParam("/xbotcore/cartesian/joy/", list);
+    if(remap)
+    {
+        for(unsigned int i = 0; i < JoyStickRemap::actions().size(); ++i)
+        {
+            if(!list.hasMember(JoyStickRemap::actions()[i]))
+            {
+                ROS_ERROR("%s is missing in /xbot/cartesian/joy/ param", JoyStickRemap::actions()[i].c_str());
+                return 0;
+            }
+            else
+            {
+                XmlRpc::XmlRpcValue mapping = list[JoyStickRemap::actions()[i]];
+                ROS_INFO("%s mapped as %s", JoyStickRemap::actions()[i].c_str(), std::string(mapping).c_str());
+
+                std::cout<<mapping.toXml()<<std::endl;
+            }
+        }
+    }
+
+
     ros::Rate loop_rate(100);
     while(ros::ok())
     {

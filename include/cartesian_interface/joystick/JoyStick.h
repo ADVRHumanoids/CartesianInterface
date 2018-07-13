@@ -3,8 +3,69 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <eigen3/Eigen/Dense>
 #include <tf/transform_listener.h>
+#include <initializer_list>
+
 
 namespace XBot { namespace Cartesian {
+
+class JoyStickRemap{
+public:
+    typedef std::vector<int> axes;
+    typedef std::vector<int> buttons;
+    typedef std::pair<axes, buttons> comand;
+    typedef std::string action;
+    typedef std::map<action, comand> map_comand;
+
+
+    static const std::vector<action> actions()
+    {
+        char* c[] = {
+                         "IncrLinSpeed",
+                         "DecrLinSpeed",
+                         "IncrAngSpeed",
+                         "DecrAngSpeed",
+                         "NextTask",
+                         "PrevTask",
+                         "X",
+                         "Y",
+                         "Z",
+                         "Roll",
+                         "Pitch",
+                         "Yaw",
+                         "select",
+                         "start",
+                         "LocalGlobal"
+                    };
+        int s = sizeof(c) / sizeof(c[0]);
+        return std::vector<action>(c, c+s);}
+
+
+    comand getComand(const action act)
+    {
+        return _map_actions[act];
+    }
+
+    buttons getAxes(const action act)
+    {
+        return _map_actions[act].first;
+    }
+
+    buttons getButtons(const action act)
+    {
+        return _map_actions[act].second;
+    }
+
+    void setMapping(const axes& ax, const buttons& but, const action& act)
+    {
+        comand cmd(ax, but);
+        _map_actions[act] = cmd;
+    }
+
+private:
+    map_comand _map_actions;
+
+};
+
 class JoyStick{
 public:
     typedef boost::shared_ptr<JoyStick> Ptr;
@@ -70,6 +131,8 @@ private:
     tf::StampedTransform _transform;
 
     int _local_ctrl;
+
+
 };
 }
 }
