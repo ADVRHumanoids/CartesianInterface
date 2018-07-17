@@ -53,7 +53,9 @@ public:
     
     virtual ControlType getControlMode(const std::string& ee_name) const;
     virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type);
-    virtual void setVelocityLimits(const std::string& ee_name, double max_vel_lin, double max_vel_ang){};
+    virtual void setVelocityLimits(const std::string& ee_name, double max_vel_lin, double max_vel_ang);
+    virtual void setAccelerationLimits(const std::string& ee_name, double max_acc_lin, double max_acc_ang);
+    virtual void enableOtg(double expected_dt);
     
     virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link);
     
@@ -122,6 +124,7 @@ protected:
         
         typedef std::shared_ptr<Task> Ptr;
         typedef std::shared_ptr<const Task> ConstPtr;
+        typedef Reflexxes::Utils::TrajectoryGenerator OtgType;
         
         Task();
         Task(const std::string& base, const std::string& distal);
@@ -141,6 +144,7 @@ protected:
         bool is_new_data_available() const;
         
         
+        
         void set_ctrl(ControlType ctrl, ModelInterface::ConstPtr model);
         bool set_reference(const Eigen::Affine3d& pose, 
                            const Eigen::Vector6d& vel, 
@@ -150,6 +154,9 @@ protected:
         bool set_target_pose(double current_time, double target_time, const Eigen::Affine3d& pose);
         void reset(ModelInterface::ConstPtr model);
         void sync_from(const Task& other);
+        void set_otg_dt(double expected_dt);
+        void set_otg_vel_limits(double linear, double angular);
+        void set_otg_acc_limits(double linear, double angular);
         
         void abort();
         bool change_base_link(const std::string& new_base_link, ModelInterface::ConstPtr model);

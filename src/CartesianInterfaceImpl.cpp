@@ -264,12 +264,42 @@ CartesianInterfaceImpl::Task::Task():
     __otg_ref(EigenVector7d::Zero()),
     __otg_des(EigenVector7d::Zero()),
     __otg_maxvel(EigenVector7d::Constant(1.0)),
-    __otg_maxacc(EigenVector7d::Constant(5.0)),
-    otg(std::make_shared<Reflexxes::Utils::TrajectoryGenerator>(7, 0.01, Eigen::VectorXd::Zero(7)))
+    __otg_maxacc(EigenVector7d::Constant(5.0))
 {
+    
+}
+
+void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_dt(double expected_dt)
+{
+    otg = std::make_shared<Reflexxes::Utils::TrajectoryGenerator>(7, expected_dt, EigenVector7d::Zero());
+    reset_otg();
     otg->setVelocityLimits(__otg_maxvel);
     otg->setAccelerationLimits(__otg_maxacc);
 }
+
+void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_acc_limits(double linear, double angular)
+{
+    __otg_maxacc.head<3>().setConstant(linear);
+    __otg_maxacc.head<4>().setConstant(angular/4.0);
+    
+    if(otg)
+    {
+        otg->setAccelerationLimits(__otg_maxacc);
+    }
+}
+
+void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_vel_limits(double linear, double angular)
+{
+    __otg_maxvel.head<3>().setConstant(linear);
+    __otg_maxvel.head<4>().setConstant(angular/2.0);
+    
+    if(otg)
+    {
+        otg->setVelocityLimits(__otg_maxvel);
+    }
+}
+
+
 
 CartesianInterfaceImpl::~CartesianInterfaceImpl()
 {
@@ -305,7 +335,6 @@ void CartesianInterfaceImpl::__construct_from_vectors()
         }
         
         auto task = std::make_shared<CartesianInterfaceImpl::Task>(pair.first, pair.second);
-        
         
         if(pair.second == "com")
         {
@@ -925,7 +954,7 @@ void CartesianInterfaceImpl::Task::sync_from(const CartesianInterfaceImpl::Task&
     state = other.state;
     vref_time_to_live = other.vref_time_to_live;
     
-    *(trajectory) = *(other.trajectory);
+    *(trajectory) = *(other.trajectory); // TBD better implementation
 }
 
 bool CartesianInterfaceImpl::Task::is_new_data_available() const
@@ -970,29 +999,43 @@ const Eigen::Vector6d& CartesianInterfaceImpl::Task::get_velocity() const
 
 void XBot::Cartesian::CartesianInterfaceImpl::Task::apply_otg()
 {
+    
+    if(!otg) return;
+    
     // TBD: also velocity level
     __otg_des << T.translation(), Eigen::Quaterniond(T.linear()).coeffs();
-    
-    if(otg)
-    {
-        otg->setReference(__otg_des);
-        otg->update(__otg_ref, __otg_vref);
-    }
+
+    otg->setReference(__otg_des, EigenVector7d::Zero());
+    otg->update(__otg_ref, __otg_vref);
+
     
 }
 
 void CartesianInterfaceImpl::Task::reset_otg()
 {
+    
+    if(!otg) return;
+    
     __otg_des << T.translation(), Eigen::Quaterniond(T.linear()).coeffs();
     __otg_ref = __otg_des;
+    
+
     otg->reset(__otg_des);
+
 }
 
 const Eigen::Affine3d CartesianInterfaceImpl::Task::get_pose_otg() const
 {
+    
+    if(!otg)
+    {
+        return get_pose();
+    }
+    
+    Eigen::Affine3d Totg;
     Eigen::Quaterniond q(__otg_ref.tail<4>());
     q.normalize();
-    Eigen::Affine3d Totg;
+    
     Totg.setIdentity();
     
     Totg.translation() = __otg_ref.head<3>();
@@ -1001,4 +1044,57 @@ const Eigen::Affine3d CartesianInterfaceImpl::Task::get_pose_otg() const
     return Totg;
     
 }
+
+void XBot::Cartesian::CartesianInterfaceImpl::enableOtg(double expected_dt)
+{
+    XBot::Logger::info(Logger::Severity::LOW, "Online trajectory generator enabled\n");
+    
+    for(auto tpair : _task_map)
+    {
+        tpair.second->set_otg_dt(expected_dt);
+    }
+}
+
+
+void XBot::Cartesian::CartesianInterfaceImpl::setAccelerationLimits(const std::string& ee_name, 
+                                                                    double max_acc_lin, 
+                                                                    double max_acc_ang)
+{
+    auto task = get_task(ee_name);
+    
+    if(!task)
+    {
+        return;
+    }
+    
+    XBot::Logger::info(Logger::Severity::LOW, "Setting acceleration limits for task %s (lin: %f, ang: %f)\n", 
+        ee_name.c_str(),
+        max_acc_lin,
+        max_acc_ang
+    );
+    
+    task->set_otg_acc_limits(max_acc_lin, max_acc_ang);
+}
+
+
+void XBot::Cartesian::CartesianInterfaceImpl::setVelocityLimits(const std::string& ee_name, 
+                                                                double max_vel_lin, 
+                                                                double max_vel_ang)
+{
+    auto task = get_task(ee_name);
+    
+    if(!task)
+    {
+        return;
+    }
+    
+    XBot::Logger::info(Logger::Severity::LOW, "Setting velocity limits for task %s (lin: %f, ang: %f)\n", 
+        ee_name.c_str(),
+        max_vel_lin,
+        max_vel_ang
+    );
+    
+    task->set_otg_vel_limits(max_vel_lin, max_vel_ang);
+}   
+
 
