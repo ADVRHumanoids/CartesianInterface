@@ -69,10 +69,34 @@ int main(int argc, char **argv){
             }
             else
             {
-                XmlRpc::XmlRpcValue mapping = list[JoyStickRemap::actions()[i]];
-                ROS_INFO("%s mapped as %s", JoyStickRemap::actions()[i].c_str(), std::string(mapping).c_str());
+                XmlRpc::XmlRpcValue sub_list = list[JoyStickRemap::actions()[i]];
 
-                std::cout<<mapping.toXml()<<std::endl;
+                ROS_INFO("%s mapping: ", JoyStickRemap::actions()[i].c_str());
+
+                JoyStickRemap::buttons buttons;
+                if(sub_list.hasMember(JoyStickRemap::buttons_string()))
+                {
+                    ROS_INFO("  buttons: ");
+                    XmlRpc::XmlRpcValue button_list = sub_list[JoyStickRemap::buttons_string()];
+
+                    for(unsigned int i = 0; i < button_list.size(); ++i){
+                        buttons.push_back(static_cast<int>(button_list[i]));
+                        ROS_INFO("      %i", buttons.back());
+                    }
+                }
+
+
+
+//                JoyStickRemap::axes axes;
+//                if(sub_list.hasMember(JoyStickRemap::axes_string))
+//                {
+//                    XmlRpc::XmlRpcValue axes_list = sub_list[JoyStickRemap::axes_string];
+//                    for(XmlRpc::XmlRpcValue::iterator it = axes_list.begin(); it != axes_list.end(); it++)
+//                        axes.push_back(it->asInt());
+//                }
+
+
+
             }
         }
     }

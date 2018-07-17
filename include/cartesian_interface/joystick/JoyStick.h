@@ -16,6 +16,12 @@ public:
     typedef std::string action;
     typedef std::map<action, comand> map_comand;
 
+    static const std::string buttons_string(){
+
+        return "buttons";
+
+    }
+
 
     static const std::vector<action> actions()
     {
