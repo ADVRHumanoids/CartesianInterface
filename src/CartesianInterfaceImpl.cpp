@@ -853,7 +853,7 @@ bool CartesianInterfaceImpl::Task::set_target_pose(double current_time, double t
     state = State::Reaching;
     trajectory->clear();
     trajectory->addWayPoint(current_time, T);
-    trajectory->addWayPoint(target_time, pose);
+    trajectory->addWayPoint(current_time + target_time, pose);
     new_data_available = true;
     
     return true;
