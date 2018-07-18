@@ -137,7 +137,9 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     }
     else
     {
-
+        JoyStickRemap::comand joy_cmd = JoyStickRemap::getComandFromMsg(joy, 0.2);
+        JoyStickRemap::action desired_action = _jremap.getAction(joy_cmd);
+        std::cout<<desired_action<<std::endl;
     }
 
 }

@@ -19,6 +19,24 @@ public:
     static const std::string buttons_string(){ return "buttons";}
     static const std::string axes_string(){ return "axes";}
 
+    static comand getComandFromMsg(const sensor_msgs::Joy::ConstPtr& joy, const double sens = 0.99)
+    {
+        axes a;
+        for(unsigned int i = 0; i < joy->axes.size(); ++i)
+        {
+            if(fabs(joy->axes[i]) >= sens)
+                a.push_back(i);
+        }
+
+        buttons b;
+        for(unsigned int i = 0; i < joy->buttons.size(); ++i)
+        {
+            if(joy->buttons[i] == 1)
+                b.push_back(i);
+        }
+
+        return std::pair<axes,buttons>(a,b);
+    }
 
     static const std::vector<action> actions()
     {
@@ -41,6 +59,44 @@ public:
                     };
         int s = sizeof(c) / sizeof(c[0]);
         return std::vector<action>(c, c+s);}
+
+    bool compareComands(const comand& A, const comand& B)
+    {
+        axes Aa = A.first;
+        buttons Ab = A.second;
+        axes Ba = B.first;
+        buttons Bb = B.second;
+
+        return compare<axes>(Aa, Ba) && compare<buttons>(Ab, Bb);
+    }
+
+    template<typename T>
+    bool compare(const T& A, const T& B)
+    {
+        if(A.size() != B.size())
+            return false;
+
+        //check if all the elments in A are in B
+        for(unsigned int i = 0; i < A.size(); ++i)
+        {
+            if(!(std::find(B.begin(), B.end(), A[i]) != B.end()))
+                return false;
+        }
+        return true;
+    }
+
+    action getAction(const comand& cmd)
+    {
+        action act = "";
+
+        for(unsigned int i = 0; i < actions().size(); ++i)
+        {
+            if(compareComands(cmd, getComand(actions()[i]))){
+                act = actions()[i];
+                break;}
+        }
+        return act;
+    }
 
 
     comand getComand(const action act)
