@@ -1098,3 +1098,43 @@ void XBot::Cartesian::CartesianInterfaceImpl::setVelocityLimits(const std::strin
 }   
 
 
+void XBot::Cartesian::CartesianInterfaceImpl::Task::get_otg_acc_limits(double& linear, double& angular) const
+{
+    linear = __otg_maxacc[0];
+    angular = __otg_maxacc[3]*4;
+}
+
+void XBot::Cartesian::CartesianInterfaceImpl::Task::get_otg_vel_limits(double& linear, double& angular) const
+{
+    linear = __otg_maxvel[0];
+    angular = __otg_maxvel[3]*2;
+}
+
+void XBot::Cartesian::CartesianInterfaceImpl::getAccelerationLimits(const std::string& ee_name, 
+                                                                    double& max_acc_lin, 
+                                                                    double& max_acc_ang) const
+{
+    auto task = get_task(ee_name);
+    
+    if(!task)
+    {
+        return;
+    }
+    
+    task->get_otg_acc_limits(max_acc_lin, max_acc_ang);
+}
+
+void XBot::Cartesian::CartesianInterfaceImpl::getVelocityLimits(const std::string& ee_name, 
+                                                                double& max_vel_lin, 
+                                                                double& max_vel_ang) const
+{
+    auto task = get_task(ee_name);
+    
+    if(!task)
+    {
+        return;
+    }
+    
+    task->get_otg_vel_limits(max_vel_lin, max_vel_ang);
+}
+

@@ -53,6 +53,8 @@ public:
     
     virtual ControlType getControlMode(const std::string& ee_name) const;
     virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type);
+    virtual void getVelocityLimits(const std::string& ee_name, double& max_vel_lin, double& max_vel_ang) const;
+    virtual void getAccelerationLimits(const std::string& ee_name, double& max_acc_lin, double& max_acc_ang) const;
     virtual void setVelocityLimits(const std::string& ee_name, double max_vel_lin, double max_vel_ang);
     virtual void setAccelerationLimits(const std::string& ee_name, double max_acc_lin, double max_acc_ang);
     virtual void enableOtg(double expected_dt);
@@ -155,6 +157,8 @@ protected:
         void reset(ModelInterface::ConstPtr model);
         void sync_from(const Task& other);
         void set_otg_dt(double expected_dt);
+        void get_otg_vel_limits(double& linear, double& angular) const;
+        void get_otg_acc_limits(double& linear, double& angular) const;
         void set_otg_vel_limits(double linear, double angular);
         void set_otg_acc_limits(double linear, double angular);
         

@@ -103,6 +103,8 @@ public:
     
     virtual bool abort(const std::string& end_effector) = 0;
     
+    virtual void getVelocityLimits(const std::string& ee_name, double& max_vel_lin, double& max_vel_ang) const = 0;
+    virtual void getAccelerationLimits(const std::string& ee_name, double& max_acc_lin, double& max_acc_ang) const = 0;
     virtual void setVelocityLimits(const std::string& ee_name, double max_vel_lin, double max_vel_ang) = 0;
     virtual void setAccelerationLimits(const std::string& ee_name, double max_acc_lin, double max_acc_ang) = 0;
     
