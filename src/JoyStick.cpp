@@ -61,77 +61,84 @@ JoyStick::~JoyStick()
 
 void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
-    if(joy->buttons[6])
-        ROS_INFO(Doc().c_str());
-
-    if(joy->buttons[4])
-        _selected_task--;
-
-    if(joy->buttons[5])
-        _selected_task++;
-
-    _selected_task = _selected_task%_distal_links.size();
-
-    if(joy->buttons[4] || joy->buttons[5])
-        ROS_INFO("Selected Task \n    distal_link: %s",_distal_links[_selected_task].c_str());
-
-    if(joy->buttons[7])
-        setVelocityCtrl();
-
-    if(joy->axes[2] <= -0.99)
+    if(!_remapped)
     {
-        if(joy->buttons[2])
-            _linear_speed_sf -= 0.05;
-        if(joy->buttons[3])
-            _linear_speed_sf += 0.05;
+        if(joy->buttons[6])
+            ROS_INFO(Doc().c_str());
 
-        if(_linear_speed_sf < MIN_SPEED_SF)
-            _linear_speed_sf = MIN_SPEED_SF;
-        if(_linear_speed_sf > MAX_SPEED_SF)
-            _linear_speed_sf = MAX_SPEED_SF;
+        if(joy->buttons[4])
+            _selected_task--;
 
-        ROS_INFO("_linear_speed_sf: %f", _linear_speed_sf);
+        if(joy->buttons[5])
+            _selected_task++;
+
+        _selected_task = _selected_task%_distal_links.size();
+
+        if(joy->buttons[4] || joy->buttons[5])
+            ROS_INFO("Selected Task \n    distal_link: %s",_distal_links[_selected_task].c_str());
+
+        if(joy->buttons[7])
+            setVelocityCtrl();
+
+        if(joy->axes[2] <= -0.99)
+        {
+            if(joy->buttons[2])
+                _linear_speed_sf -= 0.05;
+            if(joy->buttons[3])
+                _linear_speed_sf += 0.05;
+
+            if(_linear_speed_sf < MIN_SPEED_SF)
+                _linear_speed_sf = MIN_SPEED_SF;
+            if(_linear_speed_sf > MAX_SPEED_SF)
+                _linear_speed_sf = MAX_SPEED_SF;
+
+            ROS_INFO("_linear_speed_sf: %f", _linear_speed_sf);
+        }
+
+        if(joy->axes[5] <= -0.99)
+        {
+            if(joy->buttons[2])
+                _angular_speed_sf -= 0.05;
+            if(joy->buttons[3])
+                _angular_speed_sf += 0.05;
+
+            if(_angular_speed_sf < MIN_SPEED_SF)
+                _angular_speed_sf = MIN_SPEED_SF;
+            if(_angular_speed_sf > MAX_SPEED_SF)
+                _angular_speed_sf = MAX_SPEED_SF;
+
+            ROS_INFO("_angular_speed_sf: %f", _angular_speed_sf);
+        }
+
+
+        _twist.setZero(6);
+        _twist[0] = _linear_speed_sf * joy->axes[1];
+        _twist[1] = _linear_speed_sf * joy->axes[0];
+        _twist[2] = _linear_speed_sf * joy->axes[7];
+        _twist[3] = _angular_speed_sf * joy->axes[6];
+        _twist[4] = _angular_speed_sf * joy->axes[4];
+        _twist[5] = _angular_speed_sf * joy->axes[3];
+
+        if(joy->buttons[0])
+            _local_ctrl *= -1;
+        if(_local_ctrl == 1)
+            localCtrl();
+
+
+        _desired_twist.twist.linear.x = _twist[0];
+        _desired_twist.twist.linear.y = _twist[1];
+        _desired_twist.twist.linear.z = _twist[2];
+        _desired_twist.twist.angular.x = _twist[3];
+        _desired_twist.twist.angular.y = _twist[4];
+        _desired_twist.twist.angular.z = _twist[5];
+
+        if(joy->buttons[1])
+            activateDeactivateTask();
     }
-
-    if(joy->axes[5] <= -0.99)
+    else
     {
-        if(joy->buttons[2])
-            _angular_speed_sf -= 0.05;
-        if(joy->buttons[3])
-            _angular_speed_sf += 0.05;
 
-        if(_angular_speed_sf < MIN_SPEED_SF)
-            _angular_speed_sf = MIN_SPEED_SF;
-        if(_angular_speed_sf > MAX_SPEED_SF)
-            _angular_speed_sf = MAX_SPEED_SF;
-
-        ROS_INFO("_angular_speed_sf: %f", _angular_speed_sf);
     }
-
-
-    _twist.setZero(6);
-    _twist[0] = _linear_speed_sf * joy->axes[1];
-    _twist[1] = _linear_speed_sf * joy->axes[0];
-    _twist[2] = _linear_speed_sf * joy->axes[7];
-    _twist[3] = _angular_speed_sf * joy->axes[6];
-    _twist[4] = _angular_speed_sf * joy->axes[4];
-    _twist[5] = _angular_speed_sf * joy->axes[3];
-
-    if(joy->buttons[0])
-        _local_ctrl *= -1;
-    if(_local_ctrl == 1)
-        localCtrl();
-
-
-    _desired_twist.twist.linear.x = _twist[0];
-    _desired_twist.twist.linear.y = _twist[1];
-    _desired_twist.twist.linear.z = _twist[2];
-    _desired_twist.twist.angular.x = _twist[3];
-    _desired_twist.twist.angular.y = _twist[4];
-    _desired_twist.twist.angular.z = _twist[5];
-
-    if(joy->buttons[1])
-        activateDeactivateTask();
 
 }
 
@@ -196,5 +203,11 @@ void JoyStick::activateDeactivateTask()
         srv2.request.data = false;
 
     _task_active_service_client[_selected_task].call(srv2);
+}
+
+bool JoyStick::remap(XmlRpc::XmlRpcValue list)
+{
+    _remapped = _jremap.remapCommands(list);
+    return _remapped;
 }
 

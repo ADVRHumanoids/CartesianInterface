@@ -56,49 +56,13 @@ int main(int argc, char **argv){
 
     /* REMAP JOYSTICK EVENTUALLY */
     XmlRpc::XmlRpcValue list;
-    JoyStickRemap jremap;
     bool remap = nh.getParam("/xbotcore/cartesian/joy/", list);
     if(remap)
     {
-        for(unsigned int i = 0; i < JoyStickRemap::actions().size(); ++i)
-        {
-            if(!list.hasMember(JoyStickRemap::actions()[i]))
-            {
-                ROS_ERROR("%s is missing in /xbot/cartesian/joy/ param", JoyStickRemap::actions()[i].c_str());
-                return 0;
-            }
-            else
-            {
-                XmlRpc::XmlRpcValue sub_list = list[JoyStickRemap::actions()[i]];
-
-                ROS_INFO("%s mapping: ", JoyStickRemap::actions()[i].c_str());
-
-                JoyStickRemap::buttons buttons;
-                if(sub_list.hasMember(JoyStickRemap::buttons_string()))
-                {
-                    ROS_INFO("  buttons: ");
-                    XmlRpc::XmlRpcValue button_list = sub_list[JoyStickRemap::buttons_string()];
-
-                    for(unsigned int i = 0; i < button_list.size(); ++i){
-                        buttons.push_back(static_cast<int>(button_list[i]));
-                        ROS_INFO("      %i", buttons.back());
-                    }
-                }
-
-
-
-//                JoyStickRemap::axes axes;
-//                if(sub_list.hasMember(JoyStickRemap::axes_string))
-//                {
-//                    XmlRpc::XmlRpcValue axes_list = sub_list[JoyStickRemap::axes_string];
-//                    for(XmlRpc::XmlRpcValue::iterator it = axes_list.begin(); it != axes_list.end(); it++)
-//                        axes.push_back(it->asInt());
-//                }
-
-
-
-            }
-        }
+        if(!joystick->remap(list))
+            ROS_ERROR("Problems when remapping commands, standard mapping will be used");
+        else
+            ROS_INFO("Command remapped");
     }
 
 

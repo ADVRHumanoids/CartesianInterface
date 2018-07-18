@@ -16,11 +16,8 @@ public:
     typedef std::string action;
     typedef std::map<action, comand> map_comand;
 
-    static const std::string buttons_string(){
-
-        return "buttons";
-
-    }
+    static const std::string buttons_string(){ return "buttons";}
+    static const std::string axes_string(){ return "axes";}
 
 
     static const std::vector<action> actions()
@@ -67,6 +64,80 @@ public:
         _map_actions[act] = cmd;
     }
 
+    bool remapCommands(XmlRpc::XmlRpcValue& list)
+    {
+        for(unsigned int i = 0; i < JoyStickRemap::actions().size(); ++i)
+        {
+            if(!list.hasMember(JoyStickRemap::actions()[i]))
+            {
+                ROS_ERROR("%s is missing in /xbot/cartesian/joy/ param", JoyStickRemap::actions()[i].c_str());
+                return false;
+            }
+            else
+            {
+                XmlRpc::XmlRpcValue sub_list = list[JoyStickRemap::actions()[i]];
+
+                //ROS_INFO("%s mapping: ", JoyStickRemap::actions()[i].c_str());
+
+                JoyStickRemap::buttons buttons;
+                if(sub_list.hasMember(JoyStickRemap::buttons_string()))
+                {
+                    //ROS_INFO("  buttons: ");
+                    XmlRpc::XmlRpcValue button_list = sub_list[JoyStickRemap::buttons_string()];
+
+                    for(unsigned int i = 0; i < button_list.size(); ++i){
+                        buttons.push_back(static_cast<int>(button_list[i]));
+                        //ROS_INFO("      %i", buttons.back());
+                    }
+                }
+
+                JoyStickRemap::axes axes;
+                if(sub_list.hasMember(JoyStickRemap::axes_string()))
+                {
+                    //ROS_INFO("  axes: ");
+                    XmlRpc::XmlRpcValue axes_list = sub_list[JoyStickRemap::axes_string()];
+
+                    for(unsigned int i = 0; i < axes_list.size(); ++i){
+                        axes.push_back(static_cast<int>(axes_list[i]));
+                        //ROS_INFO("      %i", axes.back());
+                    }
+                }
+
+                setMapping(axes,buttons,JoyStickRemap::actions()[i]);
+
+            }
+        }
+        ROS_INFO(Doc().c_str());
+        return true;
+    }
+
+    std::string Doc()
+    {
+        std::stringstream doc;
+        for(unsigned int i = 0; i < JoyStickRemap::actions().size(); ++i)
+        {
+            doc<<"\n"<<JoyStickRemap::actions()[i]<<"\n";
+            if(!(getButtons(JoyStickRemap::actions()[i]).empty()))
+            {
+                doc<<"  buttons: [ ";
+                buttons b = getButtons(JoyStickRemap::actions()[i]);
+                for(unsigned int j = 0; j < b.size(); ++j)
+                    doc<<b[j]<<" ";
+                doc<<"]\n";
+            }
+
+            if(!(getAxes(JoyStickRemap::actions()[i]).empty()))
+            {
+                doc<<"  axes: [ ";
+                axes a = getAxes(JoyStickRemap::actions()[i]);
+                for(unsigned int j = 0; j < a.size(); ++j)
+                    doc<<a[j]<<" ";
+                doc<<"]\n";
+            }
+        }
+        return doc.str();
+    }
+
 private:
     map_comand _map_actions;
 
@@ -82,27 +153,7 @@ public:
 
     void sendVelRefs();
 
-    std::string Doc()
-    {
-        std::stringstream doc;
-        doc<<
-        "JoyStick Control:\n \n"
-        "   Select button:                  Print this documentation\n"
-        "   Start button:                   Enable velocity control in task\n"
-        "   Left Analog:                    UP/DOWN    -> X Global Coordinates\n"
-        "                                   LEFT/RIGHT -> Y Global Coordinates\n"
-        "   Right Analog:                   UP/DOWN    -> PITCH Global Coordinates\n"
-        "                                   LEFT/RIGHT -> YAW Global Coordinates\n"
-        "   D-pad:                          UP/DOWN    -> Z Global Coordinates\n"
-        "                                   LEFT/RIGHT -> ROLL Global Coordinates\n"
-        "   A button:                       Set GLOBAL/LOCAL control\n"
-        "   B button:                       Activate/Deactivate Task\n"
-        "   L2 + X/Y button:                Decrease/Increase linear speed\n"
-        "   R2 + X/Y button:                Decrease/Increase angular speed\n"
-        "   L1/R1:                          Previous/Next Task\n";
-
-        return doc.str();
-    }
+    bool remap(XmlRpc::XmlRpcValue list);
 
 private:
     /**
@@ -137,6 +188,31 @@ private:
     tf::StampedTransform _transform;
 
     int _local_ctrl;
+
+    JoyStickRemap _jremap;
+    bool _remapped = false;
+
+    std::string Doc()
+    {
+        std::stringstream doc;
+        doc<<
+        "JoyStick Control:\n \n"
+        "   Select button:                  Print this documentation\n"
+        "   Start button:                   Enable velocity control in task\n"
+        "   Left Analog:                    UP/DOWN    -> X Global Coordinates\n"
+        "                                   LEFT/RIGHT -> Y Global Coordinates\n"
+        "   Right Analog:                   UP/DOWN    -> PITCH Global Coordinates\n"
+        "                                   LEFT/RIGHT -> YAW Global Coordinates\n"
+        "   D-pad:                          UP/DOWN    -> Z Global Coordinates\n"
+        "                                   LEFT/RIGHT -> ROLL Global Coordinates\n"
+        "   A button:                       Set GLOBAL/LOCAL control\n"
+        "   B button:                       Activate/Deactivate Task\n"
+        "   L2 + X/Y button:                Decrease/Increase linear speed\n"
+        "   R2 + X/Y button:                Decrease/Increase angular speed\n"
+        "   L1/R1:                          Previous/Next Task\n";
+
+        return doc.str();
+    }
 
 
 };
