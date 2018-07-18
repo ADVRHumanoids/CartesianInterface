@@ -381,6 +381,7 @@ void CartesianInterfaceImpl::log_tasks()
         CartesianInterfaceImpl::Task& task = *(pair.second);
         
         _logger->add(task.get_distal() + "_pos", task.get_pose().translation());
+        _logger->add(task.get_distal() + "_pos_otg", task.get_pose_otg().translation());
         _logger->add(task.get_distal() + "_vel", task.get_velocity());
         _logger->add(task.get_distal() + "_rot", Eigen::Quaterniond(task.get_pose().linear()).coeffs());
         _logger->add(task.get_distal() + "_state", task.get_state() == State::Reaching ? 1 : 0);
