@@ -9,6 +9,7 @@
 #include <cartesian_interface/ProblemDescription.h>
 #include <cartesian_interface/LoadController.h>
 #include <cartesian_interface/utils/LoadConfig.h>
+#include <cartesian_interface/CartesianInterfaceImpl.h>
 
 #define BOOST_RESULT_OF_USE_DECLTYPE
 #include <boost/function.hpp>
@@ -19,8 +20,9 @@ using namespace XBot::Cartesian;
 
 XBot::ModelInterface::Ptr __g_model;
 ProblemDescription * __g_problem;
-CartesianInterface::Ptr * __g_impl_ptrptr;
+CartesianInterfaceImpl::Ptr * __g_impl_ptrptr;
 RosServerClass::Ptr * __g_ros_ptrptr;
+double __g_period;
 
 /* Loader function */
 bool loader_callback(cartesian_interface::LoadControllerRequest&  req, 
@@ -131,7 +133,7 @@ int main(int argc, char **argv){
     
     ProblemDescription ik_problem(problem_yaml, model);
     
-    auto sot_ik_solver = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterface>("Cartesian" + impl_name + ".so", 
+    auto sot_ik_solver = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterfaceImpl>("Cartesian" + impl_name + ".so", 
                                                                                         impl_name + "Impl", 
                                                                                         model, ik_problem);
     
@@ -156,6 +158,8 @@ int main(int argc, char **argv){
     
     /* Get loop frequency */
     const double freq = nh_private.param("rate", 100);
+    __g_period = 1.0/freq;
+    sot_ik_solver->enableOtg(1.0/freq);
     ros::Rate loop_rate(freq);
     
     Eigen::VectorXd q, qdot;
@@ -214,13 +218,14 @@ int main(int argc, char **argv){
 
 bool loader_callback(cartesian_interface::LoadControllerRequest& req, cartesian_interface::LoadControllerResponse& res)
 {
-    auto tmp_ik_solver = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterface>(
+    auto tmp_ik_solver = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterfaceImpl>(
                                                         "Cartesian" + req.controller_name + ".so", 
                                                         req.controller_name + "Impl", 
                                                         __g_model, *__g_problem);
     
     if(tmp_ik_solver)
     {
+        tmp_ik_solver->enableOtg(__g_period);
         *__g_impl_ptrptr = tmp_ik_solver;
         res.success = true;
         res.message = "Successfully loaded controller";

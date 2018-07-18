@@ -95,6 +95,7 @@ namespace XBot { namespace Cartesian {
         void __generate_task_info_setters();
         void __generate_task_list_service();
         void __generate_postural_task_topics_and_services();
+        void __generate_update_param_services();
 
         void manage_reach_actions();
         void publish_posture_state(ros::Time time);
@@ -130,6 +131,9 @@ namespace XBot { namespace Cartesian {
         bool reset_cb(std_srvs::SetBoolRequest& req,
                       std_srvs::SetBoolResponse& res);
         
+        bool reset_params_cb(std_srvs::TriggerRequest& req,
+                             std_srvs::TriggerResponse& res);
+        
         bool reset_posture_cb(std_srvs::TriggerRequest& req,
                               std_srvs::TriggerResponse& res);
         
@@ -155,7 +159,7 @@ namespace XBot { namespace Cartesian {
         ros::Subscriber _posture_sub;
         std::vector<ros::ServiceServer> _toggle_pos_mode_srv, _toggle_task_srv, _get_task_info_srv, _set_task_info_srv;
         std::map<std::string, CartesianMarker::Ptr> _markers;
-        ros::ServiceServer _reset_srv, _tasklist_srv, _reset_posture_srv;
+        ros::ServiceServer _reset_srv, _tasklist_srv, _reset_posture_srv, _update_limits_srv;
 
         std::shared_ptr<std::thread> _marker_thread;
 

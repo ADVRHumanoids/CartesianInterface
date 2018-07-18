@@ -3,6 +3,7 @@
 #include <cartesian_interface/GetTaskInfo.h>
 #include <std_srvs/SetBool.h>
 #include <numeric> 
+#include <XBotInterface/RtLog.hpp>
 
 #define SECS 5
 
@@ -504,6 +505,7 @@ bool CartesianMarker::clearMarker(std_srvs::Empty::Request& req, std_srvs::Empty
 void CartesianMarker::MakeMarker(const std::string &distal_link, const std::string &base_link,
                             bool fixed, unsigned int interaction_mode, bool show)
 {
+    XBot::Logger::info(XBot::Logger::Severity::HIGH, "Creating marker %s -> %s\n", base_link.c_str(), distal_link.c_str());
     _int_marker.header.frame_id = _tf_prefix+base_link;
     _int_marker.scale = 0.5;
 
