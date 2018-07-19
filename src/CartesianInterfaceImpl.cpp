@@ -384,6 +384,7 @@ void CartesianInterfaceImpl::log_tasks()
         _logger->add(task.get_distal() + "_pos_otg", task.get_pose_otg().translation());
         _logger->add(task.get_distal() + "_vel", task.get_velocity());
         _logger->add(task.get_distal() + "_rot", Eigen::Quaterniond(task.get_pose().linear()).coeffs());
+        _logger->add(task.get_distal() + "_rot_otg", Eigen::Quaterniond(task.get_pose_otg().linear()).coeffs());
         _logger->add(task.get_distal() + "_state", task.get_state() == State::Reaching ? 1 : 0);
     }
     
@@ -1004,10 +1005,23 @@ void XBot::Cartesian::CartesianInterfaceImpl::Task::apply_otg()
     if(!otg) return;
     
     // TBD: also velocity level
-    __otg_des << T.translation(), Eigen::Quaterniond(T.linear()).coeffs();
+    Eigen::Quaterniond q_actual(__otg_des.tail<4>());
+    Eigen::Quaterniond q_des(T.linear());
+    Eigen::Vector4d q_des_coeffs = q_des.coeffs();
+    if(q_actual.dot(q_des) < 0)
+    {
+        q_des_coeffs = -q_des_coeffs;
+    }
+    
+    __otg_des << T.translation(), q_des_coeffs;
 
     otg->setReference(__otg_des, EigenVector7d::Zero());
     otg->update(__otg_ref, __otg_vref);
+    
+    if(__otg_ref.tail<4>().norm() < 0.01)
+    {
+        Logger::warning("Experimental orientation otg: norm < 0.01 for task %s\n", get_distal().c_str());
+    }
 
     
 }
