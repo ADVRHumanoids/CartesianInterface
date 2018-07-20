@@ -20,13 +20,16 @@ using namespace XBot::Cartesian;
 
 XBot::ModelInterface::Ptr __g_model;
 ProblemDescription * __g_problem;
-CartesianInterfaceImpl::Ptr * __g_impl_ptrptr;
+std::map<std::string, CartesianInterfaceImpl::Ptr>  __g_impl_map;
+CartesianInterfaceImpl::Ptr __g_current_impl;
 RosServerClass::Ptr * __g_ros_ptrptr;
 double __g_period;
+double *__g_time;
+ros::Publisher __g_reset_pub;
 
 /* Loader function */
 bool loader_callback(cartesian_interface::LoadControllerRequest&  req, 
-                    cartesian_interface::LoadControllerResponse& res);
+                     cartesian_interface::LoadControllerResponse& res);
 
 int main(int argc, char **argv){
     
@@ -133,11 +136,11 @@ int main(int argc, char **argv){
     
     ProblemDescription ik_problem(problem_yaml, model);
     
-    auto sot_ik_solver = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterfaceImpl>("Cartesian" + impl_name + ".so", 
+    __g_current_impl = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterfaceImpl>("Cartesian" + impl_name + ".so", 
                                                                                         impl_name + "Impl", 
                                                                                         model, ik_problem);
     
-    if(!sot_ik_solver)
+    if(!__g_current_impl)
     {
         XBot::Logger::error("Unable to load solver %s \n", impl_name.c_str());
         exit(1);
@@ -146,25 +149,28 @@ int main(int argc, char **argv){
     /* Obtain class to expose ROS API */
     XBot::Cartesian::RosServerClass::Options opt;
     opt.spawn_markers = false;
-    auto ros_server_class = std::make_shared<XBot::Cartesian::RosServerClass>(sot_ik_solver, model, opt);
+    auto ros_server_class = std::make_shared<XBot::Cartesian::RosServerClass>(__g_current_impl, model, opt);
     
     __g_model = model;
-    __g_impl_ptrptr = &sot_ik_solver;
+    __g_impl_map[impl_name] = __g_current_impl;
     __g_problem = &ik_problem;
     __g_ros_ptrptr = &ros_server_class;
     
     
+    
     auto loader_srv = nh.advertiseService("/xbotcore/cartesian/load_controller", loader_callback);
+    __g_reset_pub = nh.advertise<std_msgs::Empty>("/xbotcore/cartesian/changed_controller_event", 1);
     
     /* Get loop frequency */
     const double freq = nh_private.param("rate", 100);
     __g_period = 1.0/freq;
-    sot_ik_solver->enableOtg(1.0/freq);
+    __g_current_impl->enableOtg(1.0/freq);
     ros::Rate loop_rate(freq);
     
     Eigen::VectorXd q, qdot;
     model->getJointPosition(q);
     double time = 0.0;
+    __g_time = &time;
     double dt = loop_rate.expectedCycleTime().toSec();
     
     Logger::info("Started looping @%f Hz\n", freq);
@@ -179,7 +185,7 @@ int main(int argc, char **argv){
         
         /* Solve ik */
         auto tic =  high_resolution_clock::now();
-        sot_ik_solver->update(time, dt);
+        __g_current_impl->update(time, dt);
         auto toc =  high_resolution_clock::now();
         
         /* Integrate solution */
@@ -216,23 +222,45 @@ int main(int argc, char **argv){
 }
 
 
-bool loader_callback(cartesian_interface::LoadControllerRequest& req, cartesian_interface::LoadControllerResponse& res)
+bool loader_callback(cartesian_interface::LoadControllerRequest& req, 
+                     cartesian_interface::LoadControllerResponse& res)
 {
-    auto tmp_ik_solver = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterfaceImpl>(
+    auto ik_it = __g_impl_map.find(req.controller_name);
+    CartesianInterfaceImpl::Ptr current_impl;
+    
+    if(ik_it == __g_impl_map.end())
+    {
+        current_impl = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterfaceImpl>(
                                                         "Cartesian" + req.controller_name + ".so", 
                                                         req.controller_name + "Impl", 
                                                         __g_model, *__g_problem);
-    
-    if(tmp_ik_solver)
+        
+        if(current_impl)
+        {
+            __g_impl_map[req.controller_name] = current_impl;
+        }
+    }
+    else
     {
-        tmp_ik_solver->enableOtg(__g_period);
-        *__g_impl_ptrptr = tmp_ik_solver;
+        Logger::info(Logger::Severity::HIGH, "Requested controller is already loaded\n");
+        current_impl = ik_it->second;
+    }
+    
+    if(current_impl)
+    {
+        
+        current_impl->enableOtg(__g_period);
+        current_impl->reset(*__g_time);
         res.success = true;
         res.message = "Successfully loaded controller";
         __g_ros_ptrptr->reset();
         XBot::Cartesian::RosServerClass::Options opt;
         opt.spawn_markers = false;
-        *__g_ros_ptrptr = std::make_shared<XBot::Cartesian::RosServerClass>(*__g_impl_ptrptr, __g_model, opt);
+        *__g_ros_ptrptr = std::make_shared<XBot::Cartesian::RosServerClass>(current_impl, __g_model, opt);
+        __g_current_impl = current_impl;
+        
+        std_msgs::Empty msg;
+        __g_reset_pub.publish(msg);
         
         XBot::Logger::success(Logger::Severity::HIGH, "Successfully loaded %s\n", req.controller_name.c_str());
         
