@@ -548,11 +548,11 @@ bool XBot::Cartesian::RosServerClass::reset_params_cb(std_srvs::TriggerRequest& 
         double max_vel_lin, max_vel_ang, max_acc_lin, max_acc_ang;
         _cartesian_interface->getVelocityLimits(task, max_vel_lin, max_vel_ang);
         _cartesian_interface->getAccelerationLimits(task, max_acc_lin, max_acc_ang);
-        
-        _nh.param(task + "/max_velocity_linear", max_vel_lin);
-        _nh.param(task + "/max_velocity_angular", max_vel_ang);
-        _nh.param(task + "/max_acceleration_linear", max_acc_lin);
-        _nh.param(task + "/max_acceleration_angular", max_acc_ang);
+
+        _nh.getParam(task + "/max_velocity_linear", max_vel_lin);
+        _nh.getParam(task + "/max_velocity_angular", max_vel_ang);
+        _nh.getParam(task + "/max_acceleration_linear", max_acc_lin);
+        _nh.getParam(task + "/max_acceleration_angular", max_acc_ang);
         
         _cartesian_interface->setVelocityLimits(task, max_vel_lin, max_vel_ang);
         _cartesian_interface->setAccelerationLimits(task, max_acc_lin, max_acc_ang);
@@ -566,6 +566,29 @@ bool XBot::Cartesian::RosServerClass::reset_params_cb(std_srvs::TriggerRequest& 
 
 void XBot::Cartesian::RosServerClass::__generate_update_param_services()
 {
+    
+    for(std::string task : _cartesian_interface->getTaskList())
+    {
+        
+        double max_vel_lin, max_vel_ang, max_acc_lin, max_acc_ang;
+        _cartesian_interface->getVelocityLimits(task, max_vel_lin, max_vel_ang);
+        _cartesian_interface->getAccelerationLimits(task, max_acc_lin, max_acc_ang);
+        
+        if(!_nh.hasParam(task + "/max_velocity_linear"))
+            _nh.setParam(task + "/max_velocity_linear", max_vel_lin);
+        if(!_nh.hasParam(task + "/max_velocity_angular"))
+            _nh.setParam(task + "/max_velocity_angular", max_vel_ang);
+        if(!_nh.hasParam(task + "/max_acceleration_linear"))
+            _nh.setParam(task + "/max_acceleration_linear", max_acc_lin);
+        if(!_nh.hasParam(task + "/max_acceleration_angular"))
+            _nh.setParam(task + "/max_acceleration_angular", max_acc_ang);
+        
+    }
+    
+    std_srvs::TriggerRequest req;
+    std_srvs::TriggerResponse res;
+    reset_params_cb(req, res);
+    
     std::string srv_name = "update_velocity_limits";
     auto cb = boost::bind(&RosServerClass::reset_params_cb,
                         this,
