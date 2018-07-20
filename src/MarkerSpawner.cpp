@@ -23,6 +23,7 @@ MarkerMap __g_markers;
 
 void construct_markers(ros::NodeHandle nh, MarkerMap& markers);
 bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res, ros::NodeHandle nh);
+void controller_changed_callback(const std_msgs::EmptyConstPtr& msg, ros::NodeHandle nh);
 
 int main(int argc, char **argv){
     
@@ -37,18 +38,37 @@ int main(int argc, char **argv){
     auto srv_cbk = std::bind(reset_callback, std::placeholders::_1, std::placeholders::_2, nh);
     auto srv = nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>("markers/reset", srv_cbk);
     
+    /* Controller changed subscriber */
+    auto event_sub_cbk = std::bind(controller_changed_callback, std::placeholders::_1, nh);
+    auto event_sub = nh.subscribe<std_msgs::Empty>("changed_controller_event", 1, event_sub_cbk);
+    
     construct_markers(nh, __g_markers);
     
     Logger::success(Logger::Severity::HIGH, "Marker spawner: started spinning...\n");
     ros::spin();
 }
 
+void controller_changed_callback(const std_msgs::EmptyConstPtr& msg, ros::NodeHandle nh)
+{
+    std_srvs::TriggerRequest req;
+    std_srvs::TriggerResponse res;
+    
+    if(reset_callback(req, res, nh) && res.success)
+    {
+        Logger::success(Logger::Severity::HIGH, "Reset markers succesfully\n");
+    }
+    else
+    {
+        Logger::error(Logger::Severity::HIGH, "Failed to reset markers\n");
+    }
+}
+
 
 bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res, ros::NodeHandle nh)
 {
-    MarkerMap new_markers;
-    construct_markers(nh, new_markers); // will THROW on failure
-    __g_markers = new_markers;
+    __g_markers.clear();
+    
+    construct_markers(nh, __g_markers); // will THROW on failure
     
     res.message = "Successfully reset markers";
     res.success = true;
