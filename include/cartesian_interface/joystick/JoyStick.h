@@ -54,6 +54,7 @@ private:
     void setVelocityCtrl();
     void localCtrl();
     void activateDeactivateTask();
+    void twistInBase();
     int _selected_task;
 
     std::vector<ros::ServiceClient> _set_properties_service_clients;
@@ -71,6 +72,7 @@ private:
     tf::StampedTransform _transform;
 
     int _local_ctrl;
+    int _base_ctrl;
 };
 }
 }

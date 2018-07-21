@@ -4,7 +4,7 @@
     <arg name="prefix" default=""/>
     <param name="robot_description" textfile="$(find RDC2018)/robot_urdf/coman.urdf"/>
     <param name="robot_description_semantic" textfile="$(find RDC2018)/robot_srdf/coman.srdf"/>
-    <param name="problem_description" textfile="$(find RDC2018)/stacks/robot_simple_stack.yaml"/>
+    <param name="problem_description" textfile="$(find RDC2018)/stacks/robot_stack_test.yaml"/>
     
 
     <node pkg="cartesian_interface" type="ros_server_node" name="ros_server_node" required="true" output="screen" launch-prefix="$(arg prefix)">
