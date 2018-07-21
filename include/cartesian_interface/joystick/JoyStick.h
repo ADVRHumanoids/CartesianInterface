@@ -9,7 +9,7 @@ class JoyStick{
 public:
     typedef boost::shared_ptr<JoyStick> Ptr;
 
-    JoyStick(const std::vector<std::string>& distal_links, std::string tf_prefix = "");
+    JoyStick(const std::vector<std::string>& distal_links, const std::vector<std::string> &base_links, std::string tf_prefix = "");
 
     ~JoyStick();
 
@@ -46,6 +46,7 @@ private:
     std::string _tf_prefix;
 
     std::vector<std::string> _distal_links;
+    std::vector<std::string> _base_links;
 
     ros::Subscriber _joy_sub;
 

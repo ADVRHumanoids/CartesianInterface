@@ -11,10 +11,11 @@
 
 using namespace XBot::Cartesian;
 
-JoyStick::JoyStick(const std::vector<std::string> &distal_links, std::string tf_prefix):
+JoyStick::JoyStick(const std::vector<std::string> &distal_links, const std::vector<std::string> &base_links, std::string tf_prefix):
     _nh("xbotcore/cartesian"),
     _tf_prefix(tf_prefix),
     _distal_links(distal_links),
+    _base_links(base_links),
     _selected_task(0),
     _linear_speed_sf(0.1),
     _angular_speed_sf(0.1),
@@ -51,7 +52,14 @@ JoyStick::JoyStick(const std::vector<std::string> &distal_links, std::string tf_
         _ref_pose_pubs.push_back(ref_pose_pub);
     }
 
-    ROS_INFO("Selected Task \n    distal_link: %s",_distal_links[_selected_task].c_str());
+    std::stringstream ss;
+    ss<<"Selected Task \n               distal_link: "<<_distal_links[_selected_task].c_str()<<std::endl;
+    ss<<"               base_link:   "<<_base_links[_selected_task].c_str()<<std::endl;
+    if(_local_ctrl == 1)
+        ss<<"               LOCAL ctrl"<<std::endl;
+    else
+        ss<<"               GLOBAL ctrl"<<std::endl;
+    ROS_INFO("%s", ss.str().c_str());
 }
 
 JoyStick::~JoyStick()
@@ -72,8 +80,12 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 
     _selected_task = _selected_task%_distal_links.size();
 
-    if(joy->buttons[4] || joy->buttons[5])
-        ROS_INFO("Selected Task \n    distal_link: %s",_distal_links[_selected_task].c_str());
+    if(joy->buttons[4] || joy->buttons[5]){
+        std::stringstream ss;
+        ss<<"Selected Task \n               distal_link: "<<_distal_links[_selected_task].c_str()<<std::endl;
+        ss<<"               base_link:   "<<_base_links[_selected_task].c_str()<<std::endl;
+        ROS_INFO("%s", ss.str().c_str());
+    }
 
     if(joy->buttons[7])
         setVelocityCtrl();
@@ -89,9 +101,10 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
             _linear_speed_sf = MIN_SPEED_SF;
         if(_linear_speed_sf > MAX_SPEED_SF)
             _linear_speed_sf = MAX_SPEED_SF;
-
-        ROS_INFO("_linear_speed_sf: %f", _linear_speed_sf);
     }
+
+    if(joy->axes[2] <= -0.99 && (joy->buttons[2] || joy->buttons[3]))
+        ROS_INFO("_linear_speed_sf: %f", _linear_speed_sf);
 
     if(joy->axes[5] <= -0.99)
     {
@@ -104,9 +117,10 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
             _angular_speed_sf = MIN_SPEED_SF;
         if(_angular_speed_sf > MAX_SPEED_SF)
             _angular_speed_sf = MAX_SPEED_SF;
-
-        ROS_INFO("_angular_speed_sf: %f", _angular_speed_sf);
     }
+
+    if(joy->axes[5] <= -0.99 && (joy->buttons[2] || joy->buttons[3]))
+        ROS_INFO("_angular_speed_sf: %f", _angular_speed_sf);
 
 
     _twist.setZero(6);
@@ -117,8 +131,13 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     _twist[4] = _angular_speed_sf * joy->axes[4];
     _twist[5] = _angular_speed_sf * joy->axes[3];
 
-    if(joy->buttons[0])
+    if(joy->buttons[0]){
         _local_ctrl *= -1;
+        if(_local_ctrl == 1)
+            ROS_INFO("              \n    LOCAL ctrl");
+        else
+            ROS_INFO("              \n    GLOBAL ctrl");
+    }
     if(_local_ctrl == 1)
         localCtrl();
 
@@ -190,10 +209,12 @@ void JoyStick::activateDeactivateTask()
 
     std_srvs::SetBool srv2;
 
-    if(srv.response.control_mode.compare("Disabled") == 0)
+    if(srv.response.control_mode.compare("Disabled") == 0){
         srv2.request.data = true;
-    else
+        ROS_INFO("              \n    ENABLING task");}
+    else{
         srv2.request.data = false;
+        ROS_INFO("              \n    DISABLING task");}
 
     _task_active_service_client[_selected_task].call(srv2);
 }

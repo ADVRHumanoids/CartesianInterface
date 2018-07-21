@@ -51,7 +51,7 @@ int main(int argc, char **argv){
 
     }
 
-    auto joystick = std::make_shared<XBot::Cartesian::JoyStick>(distal_links,"ci/");
+    auto joystick = std::make_shared<XBot::Cartesian::JoyStick>(distal_links, base_links,"ci/");
 
     ros::Rate loop_rate(100);
     while(ros::ok())
