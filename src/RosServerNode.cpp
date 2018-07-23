@@ -115,7 +115,7 @@ int main(int argc, char **argv){
     
     /* Change world frame to the specified link */
     std::string world_frame;
-    if(xbot_cfg.get_parameter("world_frame", world_frame))
+    if(xbot_cfg.get_parameter("world_frame", world_frame) && world_frame != "")
     {
         Eigen::Affine3d w_T_l;
         if(model->getPose(world_frame, w_T_l))
