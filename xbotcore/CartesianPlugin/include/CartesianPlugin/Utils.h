@@ -45,6 +45,7 @@ inline bool XBot::Cartesian::Utils::SyncFromIO::try_reset(XBot::ModelInterface::
         {
                 _ci_nrt->getModel()->syncFrom(*model);
                 _ci_nrt->reset(time);
+				_ci_nrt->update(time, 0.0);
                 _ci_shobj.get_mutex()->unlock();
                 return true;
         }
