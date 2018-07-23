@@ -17,7 +17,7 @@
 
 using namespace XBot::Cartesian;
 
-
+/* Global variables to be used in callbacks */
 XBot::ModelInterface::Ptr __g_model;
 ProblemDescription * __g_problem;
 std::map<std::string, CartesianInterfaceImpl::Ptr>  __g_impl_map;
@@ -27,16 +27,8 @@ double __g_period;
 double *__g_time;
 ros::Publisher __g_reset_pub;
 
-void set_blacklist(XBot::RobotInterface::Ptr robot, const XBot::ConfigOptions& xbot_cfg) {
-    std::vector<std::string> blacklist;
-    xbot_cfg.get_parameter("joint_blacklist", blacklist);
-    std::map<std::string, XBot::ControlMode> ctrl_map;
-    for ( auto j : blacklist ) {
-        ctrl_map[j] = XBot::ControlMode::Idle();
-    }
-    robot->setControlMode(ctrl_map);
-}
-
+/* Handle control modes */
+void set_blacklist(XBot::RobotInterface::Ptr robot, const XBot::ConfigOptions& xbot_cfg);
 
 /* Loader function */
 bool loader_callback(cartesian_interface::LoadControllerRequest&  req, 
@@ -100,7 +92,7 @@ int main(int argc, char **argv){
         if(robot)
         {
             robot->sense();
-            robot->setControlMode(XBot::ControlMode::Position() + XBot::ControlMode::Velocity());
+            robot->setControlMode(XBot::ControlMode::Position());
 	    set_blacklist(robot, xbot_cfg);
         }
     }
@@ -286,3 +278,31 @@ bool loader_callback(cartesian_interface::LoadControllerRequest& req,
     
     return true;
 };
+
+
+void set_blacklist ( XBot::RobotInterface::Ptr robot, const XBot::ConfigOptions& xbot_cfg )
+{
+    std::map<std::string, XBot::ControlMode> ctrl_map;
+    
+    std::vector<std::string> joint_blacklist;
+    xbot_cfg.get_parameter("joint_blacklist", joint_blacklist);
+    for ( auto j : joint_blacklist ) {
+        if(!robot->hasJoint(j))
+        {
+            throw std::runtime_error("Joint blacklist contains non existing joint " + j);
+        }
+        ctrl_map[j] = XBot::ControlMode::Idle();
+    }
+    
+    std::vector<std::string> velocity_whitelist;
+    xbot_cfg.get_parameter("velocity_whitelist", velocity_whitelist);
+    for ( auto j : velocity_whitelist ) {
+        if(!robot->hasJoint(j))
+        {
+            throw std::runtime_error("Velocity whitelist contains non existing joint " + j);
+        }
+        ctrl_map[j] = XBot::ControlMode::Position() + XBot::ControlMode::Velocity();
+    }
+    
+    robot->setControlMode(ctrl_map);
+}
