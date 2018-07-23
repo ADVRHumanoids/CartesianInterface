@@ -29,6 +29,7 @@ public:
         "   D-pad:                          UP/DOWN    -> Z Global Coordinates\n"
         "                                   LEFT/RIGHT -> ROLL Global Coordinates\n"
         "   A button:                       Set GLOBAL/LOCAL control\n"
+        "   Y button:                       Desired end-effector velocities in robot base_link ON/OFF\n"
         "   B button:                       Activate/Deactivate Task\n"
         "   L2 + X/Y button:                Decrease/Increase linear speed\n"
         "   R2 + X/Y button:                Decrease/Increase angular speed\n"

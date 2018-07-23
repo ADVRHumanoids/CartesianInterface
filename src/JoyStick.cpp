@@ -138,7 +138,7 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     _twist[4] = _angular_speed_sf * joy->axes[4];
     _twist[5] = _angular_speed_sf * joy->axes[3];
 
-    if(joy->buttons[3]){
+    if(joy->buttons[3] && joy->axes[5] > -0.99 && joy->axes[2] > -0.99){
         _base_ctrl *= -1;
         if(_base_ctrl == 1)
             ROS_INFO("              \n    BASE ctrl ON");
