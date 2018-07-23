@@ -37,7 +37,7 @@ bool XBot::Cartesian::OpenSotImpl::setBaseLink(const std::string& ee_name, const
 }
 
 
-OpenSoT::tasks::Aggregated::Ptr XBot::Cartesian::OpenSotImpl::aggregated_from_stack(XBot::Cartesian::AggregatedTask stack)
+OpenSoT::tasks::Aggregated::TaskPtr XBot::Cartesian::OpenSotImpl::aggregated_from_stack(XBot::Cartesian::AggregatedTask stack)
 {
     std::list<OpenSoT::tasks::Aggregated::TaskPtr> tasks_list;
 
@@ -121,7 +121,14 @@ OpenSoT::tasks::Aggregated::Ptr XBot::Cartesian::OpenSotImpl::aggregated_from_st
     }
 
     /* Return Aggregated */
-    return boost::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _q.size());
+    if(tasks_list.size() > 1)
+    {
+        return boost::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _q.size());
+    }
+    else
+    {
+        return *tasks_list.begin();
+    }
 }
 
 OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr XBot::Cartesian::OpenSotImpl::constraint_from_description(XBot::Cartesian::ConstraintDescription::Ptr constr_desc)

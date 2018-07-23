@@ -36,6 +36,5 @@
     <node pkg="cartesian_interface" type="joystick_spawner" name="joystick" output="screen"/>
 
     -->
-    
 
 </launch>

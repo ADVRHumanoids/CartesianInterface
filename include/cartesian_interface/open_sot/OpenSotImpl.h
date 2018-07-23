@@ -35,7 +35,7 @@ private:
     
     void set_adaptive_lambda(CartesianTask::Ptr cartesian_task);
     
-    OpenSoT::tasks::Aggregated::Ptr aggregated_from_stack(AggregatedTask stack);
+    OpenSoT::tasks::Aggregated::TaskPtr aggregated_from_stack(AggregatedTask stack);
     OpenSoT::constraints::Aggregated::ConstraintPtr constraint_from_description(ConstraintDescription::Ptr constr_desc);
     
     Eigen::VectorXd _qref;
