@@ -21,5 +21,5 @@ You can choose between configuring the package via *ROS parameters* **or** via *
 2) if you just want to visualize the IK solution (no commands sent to the robot): 
 
     `rosparam set /xbotcore/cartesian/visual_mode true`
-3) run the cartesian server: `rosrun cartesian_interface ros_server_node _use_xbot_config:=true`
-4) run the interactive marker spawner: `rosrun cartesian_interface marker_spawner`
+3) run the cartesian server: `roslaunch cartesian_interface cartesio.launch _use_xbot_config:=true`
+
