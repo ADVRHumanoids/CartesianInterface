@@ -8,6 +8,7 @@ find_package(XBotInterface REQUIRED)
 find_package(XCM QUIET)
 find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
+find_package(alglib REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp
                                         std_msgs
                                         geometry_msgs
@@ -24,6 +25,7 @@ include_directories(include
                     ${EIGEN3_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
                     ${ReflexxesTypeII_INCLUDE_DIRS}
+                    ${alglib_INCLUDE_DIRS}
                     )
 
 
@@ -107,6 +109,7 @@ set(CartesianInterfaceROS_SRC
 # Trajectory
 set(Trajectory_SRC
         src/Trajectory.cpp
+        src/Spline.cpp
     )
 
 # should we use xbot internal robot state publisher?
@@ -132,6 +135,7 @@ target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
                                                 ${XBOT_RSPUB_LIBRARIES}
                                                 yaml-cpp
                                                 ${ReflexxesTypeII_LIBRARIES}
+                                                ${alglib_LIBRARIES}
                       )
 add_dependencies(CartesianInterface ${PROJECT_NAME}_generate_messages)
 

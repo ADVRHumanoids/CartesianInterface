@@ -14,9 +14,6 @@ Trajectory::WayPoint::WayPoint()
 
 Trajectory::Trajectory()
 {
-    _acc_max.setConstant(10.);
-    _vel_max.setConstant(10.);
-    
     _frames.reserve(10);
 }
 
@@ -100,16 +97,11 @@ Eigen::Affine3d Trajectory::evaluate(double time, Eigen::Vector6d * const vel, E
     
 }
 
-void Trajectory::setAccelerationLimit(const Eigen::Vector6d& acc_max)
-{
-    _acc_max = acc_max;
-}
 
-void Trajectory::setVelocityLimit(const Eigen::Vector6d& vel_max)
+void XBot::Cartesian::Trajectory::compute()
 {
-    _vel_max = vel_max;
-}
 
+}
 
 
 

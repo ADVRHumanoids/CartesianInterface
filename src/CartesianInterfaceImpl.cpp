@@ -1,6 +1,6 @@
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <boost/algorithm/string.hpp>  
-
+#include <cartesian_interface/trajectory/Spline.h>
 
 using namespace XBot::Cartesian;
 
@@ -256,7 +256,7 @@ CartesianInterfaceImpl::Task::Task():
     T(Eigen::Affine3d::Identity()),
     vel(Eigen::Vector6d::Zero()),
     acc(Eigen::Vector6d::Zero()),
-    trajectory(std::make_shared<Trajectory>()),
+    trajectory(std::make_shared<Spline>()),
     control_type(ControlType::Position),
     state(State::Online),
     vref_time_to_live(0.0),
@@ -834,6 +834,8 @@ bool CartesianInterfaceImpl::Task::set_waypoints(double time, const Trajectory::
     {
         trajectory->addWayPoint(wp, time);
     }
+    
+    trajectory->compute();
 
     new_data_available = true;
     return true;
@@ -858,6 +860,7 @@ bool CartesianInterfaceImpl::Task::set_target_pose(double current_time, double t
     trajectory->clear();
     trajectory->addWayPoint(current_time, T);
     trajectory->addWayPoint(current_time + target_time, pose);
+    trajectory->compute();
     new_data_available = true;
     
     return true;
