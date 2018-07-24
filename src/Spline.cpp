@@ -28,7 +28,12 @@ void XBot::Cartesian::Spline::add_knot(double t, const Eigen::Affine3d& T)
     
     if(_knots.size() > 1)
     {
-        Eigen::Map<Eigen::Vector4d> q_last(_values_rot[_knots.size()-2].data());
+
+        Eigen::Vector4d q_last;
+        
+        for(int i : {0,1,2,3})
+            q_last[i] = _values_rot[i][_knots.size()-2];
+        
         if(q_last.dot(q_coeffs) < 0)
         {
             q_coeffs = -q_coeffs;
