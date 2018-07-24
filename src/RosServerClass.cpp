@@ -364,8 +364,6 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     __generate_online_vel_topics();
     __generate_reach_pose_action_servers();
     __generate_state_broadcasting();
-    __generate_toggle_pos_mode_services();
-    __generate_toggle_task_services();
     __generate_rspub();
     __generate_task_info_services();
     __generate_task_info_setters();
@@ -429,58 +427,6 @@ geometry_msgs::Pose RosServerClass::get_normalized_pose(const geometry_msgs::Pos
 
 }
 
-void RosServerClass::__generate_toggle_pos_mode_services()
-{
-    for(std::string ee_name : _cartesian_interface->getTaskList())
-    {
-        std::string srv_name = "" + ee_name + "/toggle_position_mode";
-        auto cb = boost::bind(&RosServerClass::toggle_position_mode_cb,
-                            this,
-                            _1,
-                            _2,
-                            ee_name);
-        ros::ServiceServer srv = _nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(srv_name, cb);
-
-        _toggle_pos_mode_srv.push_back(srv);
-    }
-}
-
-bool RosServerClass::toggle_position_mode_cb(std_srvs::SetBoolRequest& req,
-                                             std_srvs::SetBoolResponse& res,
-                                             const std::string& ee_name)
-{
-    if(req.data)
-    {
-        _cartesian_interface->setControlMode(ee_name, CartesianInterface::ControlType::Position);
-        res.message = "Control mode set to position for end effector " + ee_name;
-    }
-    else
-    {
-        _cartesian_interface->setControlMode(ee_name, CartesianInterface::ControlType::Velocity);
-        res.message = "Control mode set to velocity for end effector " + ee_name;
-    }
-
-    res.success = true;
-
-    return true;
-}
-
-void RosServerClass::__generate_toggle_task_services()
-{
-    for(std::string ee_name : _cartesian_interface->getTaskList())
-    {
-        std::string srv_name = "" + ee_name + "/activate_task";
-        auto cb = boost::bind(&RosServerClass::toggle_task_cb,
-                            this,
-                            _1,
-                            _2,
-                            ee_name);
-        ros::ServiceServer srv = _nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(srv_name, cb);
-
-        _toggle_task_srv.push_back(srv);
-    }
-}
-
 void XBot::Cartesian::RosServerClass::__generate_task_list_service()
 {
     std::string srv_name = "get_task_list";
@@ -519,25 +465,6 @@ void XBot::Cartesian::RosServerClass::__generate_task_info_services()
 
         _get_task_info_srv.push_back(srv);
     }
-}
-
-bool RosServerClass::toggle_task_cb(std_srvs::SetBoolRequest& req,
-                                    std_srvs::SetBoolResponse& res,
-                                    const std::string& ee_name)
-{
-    if(req.data)
-    {
-        _cartesian_interface->setControlMode(ee_name, CartesianInterface::ControlType::Position);
-        res.message = "Control mode set to position for end effector " + ee_name;
-    }
-    else
-    {
-        _cartesian_interface->setControlMode(ee_name, CartesianInterface::ControlType::Disabled);
-        res.message = "Control mode set to disabled for end effector " + ee_name;
-    }
-
-    res.success = true;
-    return true;
 }
 
 bool XBot::Cartesian::RosServerClass::reset_params_cb(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res)

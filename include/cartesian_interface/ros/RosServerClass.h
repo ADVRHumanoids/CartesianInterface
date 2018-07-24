@@ -86,8 +86,6 @@ namespace XBot { namespace Cartesian {
         void __generate_state_broadcasting();
         void __generate_online_pos_topics();
         void __generate_online_vel_topics();
-        void __generate_toggle_pos_mode_services();
-        void __generate_toggle_task_services();
         void __generate_task_info_services();
         void __generate_reset_service();
         void __generate_rspub();
@@ -111,14 +109,6 @@ namespace XBot { namespace Cartesian {
 
         void online_velocity_reference_cb(const geometry_msgs::TwistStampedConstPtr& msg,
                                            const std::string& ee_name);
-
-        bool toggle_position_mode_cb(std_srvs::SetBoolRequest& req,
-                                     std_srvs::SetBoolResponse& res,
-                                     const std::string& ee_name);
-
-        bool toggle_task_cb(std_srvs::SetBoolRequest& req,
-                            std_srvs::SetBoolResponse& res,
-                            const std::string& ee_name);
 
         bool get_task_info_cb(cartesian_interface::GetTaskInfoRequest& req,
                             cartesian_interface::GetTaskInfoResponse& res,
@@ -157,7 +147,7 @@ namespace XBot { namespace Cartesian {
         std::vector<ros::Publisher> _state_pub;
         ros::Publisher _com_pub, _posture_pub;
         ros::Subscriber _posture_sub;
-        std::vector<ros::ServiceServer> _toggle_pos_mode_srv, _toggle_task_srv, _get_task_info_srv, _set_task_info_srv;
+        std::vector<ros::ServiceServer> _get_task_info_srv, _set_task_info_srv;
         std::map<std::string, CartesianMarker::Ptr> _markers;
         ros::ServiceServer _reset_srv, _tasklist_srv, _reset_posture_srv, _update_limits_srv;
 
