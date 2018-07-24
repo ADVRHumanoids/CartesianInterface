@@ -19,7 +19,7 @@ You can choose between configuring the package via *ROS parameters* **or** via *
 ### Configuration via YAML file
 1) fill your *xbot config file* (`get_xbot_config` shell command) with a [cartesian control problem](https://github.com/ADVRHumanoids/CartesianInterface/wiki/Get-started!#writing-an-ik-problem-for-your-robot)
 2) if you just want to visualize the IK solution (no commands sent to the robot): 
-
     `rosparam set /xbotcore/cartesian/visual_mode true`
-3) run the cartesian server: `roslaunch cartesian_interface cartesio.launch _use_xbot_config:=true`
+    
+3) `roslaunch cartesian_interface cartesio.launch use_xbot_config:=true` runs both cartesian server and interactive marker spawner
 
