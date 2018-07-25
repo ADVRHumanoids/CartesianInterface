@@ -26,13 +26,17 @@
     </node>
 
     <node pkg="cartesian_interface" type="marker_spawner" name="interactive_markers" output="screen"/>
+   
+    <node pkg="tf" type="static_transform_publisher" name="ci_to_perception_broadcaster" args="0 0 -0.926 0 0 0 1 base_link ci/world 10"/>
+    <node pkg="tf" type="static_transform_publisher" name="base_to_ci_broadcaster" args="0 0 0 0 0 0 1 ci/base_link base_link 10"/>
+
     
-    <!--
     <param name="joy_node/dev" type="str" value="/dev/input/js0" />
     <node pkg="joy" type="joy_node" name="joy_node" output="screen">
         <remap from="joy" to="xbotcore/cartesian/joy/"/>
     </node>
 
+    <!--
     <node pkg="cartesian_interface" type="joystick_spawner" name="joystick" output="screen"/>
 
     -->
