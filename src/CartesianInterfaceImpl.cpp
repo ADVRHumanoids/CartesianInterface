@@ -450,7 +450,9 @@ bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_co
     Eigen::Affine3d Tref;
     Eigen::Vector6d velref, accref;
     velref.setZero();
-    accref = velref;
+    accref.setZero();
+    velref.head<3>() = w_vel_ref;
+    accref.head<3>() = w_acc_ref;
     
     Tref.setIdentity();
     Tref.translation() = w_com_ref;
