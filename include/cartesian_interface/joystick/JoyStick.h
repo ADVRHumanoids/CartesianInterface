@@ -38,6 +38,9 @@ public:
         return doc.str();
     }
 
+    std::string getRobotBaseLinkCtrlFrame();
+    void setRobotBaseLinkCtrlFrame(const std::string& robot_base_link);
+
 private:
     /**
      * @brief _nh
@@ -74,6 +77,8 @@ private:
 
     int _local_ctrl;
     int _base_ctrl;
+
+    std::string _robot_base_link;
 };
 }
 }

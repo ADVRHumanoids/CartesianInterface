@@ -16,6 +16,7 @@ JoyStick::JoyStick(const std::vector<std::string> &distal_links, const std::vect
     _tf_prefix(tf_prefix),
     _distal_links(distal_links),
     _base_links(base_links),
+    _robot_base_link("base_link"),
     _selected_task(0),
     _linear_speed_sf(0.1),
     _angular_speed_sf(0.1),
@@ -60,7 +61,10 @@ JoyStick::JoyStick(const std::vector<std::string> &distal_links, const std::vect
     else
         ss<<"               GLOBAL ctrl"<<std::endl;
     if(_base_ctrl == 1)
+    {
         ss<<"               BASE ctrl ON"<<std::endl;
+        ss<<"               robot base_link is: "<<_robot_base_link.c_str()<<std::endl;
+    }
     else
         ss<<"               BASE ctrl OFF"<<std::endl;
     ROS_INFO("%s", ss.str().c_str());
@@ -141,7 +145,12 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     if(joy->buttons[3] && joy->axes[5] > -0.99 && joy->axes[2] > -0.99){
         _base_ctrl *= -1;
         if(_base_ctrl == 1)
-            ROS_INFO("              \n    BASE ctrl ON");
+        {
+            std::stringstream ss;
+            ss<<"               BASE ctrl ON"<<std::endl;
+            ss<<"               robot base_link is: "<<_robot_base_link.c_str()<<std::endl;
+            ROS_INFO("%s", ss.str().c_str());
+        }
         else
             ROS_INFO("              \n    BASE ctrl OFF");
     }
@@ -184,7 +193,7 @@ void JoyStick::twistInBase()
     try{
         ros::Time now = ros::Time::now();
         _listener.waitForTransform(_tf_prefix+_task_base_link,
-                                   _tf_prefix+"base_link",ros::Time(0),ros::Duration(1.0));
+                                   _tf_prefix+_robot_base_link,ros::Time(0),ros::Duration(1.0));
 
         _listener.lookupTransform(_tf_prefix+_task_base_link, _tf_prefix+"base_link",
             ros::Time(0), _transform);
@@ -266,5 +275,15 @@ void JoyStick::activateDeactivateTask()
         ROS_INFO("              \n    DISABLING task");}
 
     _task_active_service_client[_selected_task].call(srv2);
+}
+
+std::string JoyStick::getRobotBaseLinkCtrlFrame()
+{
+    return _robot_base_link;
+}
+
+void JoyStick::setRobotBaseLinkCtrlFrame(const std::string& robot_base_link)
+{
+    _robot_base_link = robot_base_link;
 }
 
