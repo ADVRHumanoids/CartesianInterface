@@ -29,6 +29,7 @@ public:
         "   D-pad:                          UP/DOWN    -> Z Global Coordinates\n"
         "                                   LEFT/RIGHT -> ROLL Global Coordinates\n"
         "   A button:                       Set GLOBAL/LOCAL control\n"
+        "   Y button:                       Desired end-effector velocities in robot base_link ON/OFF\n"
         "   B button:                       Activate/Deactivate Task\n"
         "   L2 + X/Y button:                Decrease/Increase linear speed\n"
         "   R2 + X/Y button:                Decrease/Increase angular speed\n"
@@ -36,6 +37,9 @@ public:
 
         return doc.str();
     }
+
+    std::string getRobotBaseLinkCtrlFrame();
+    void setRobotBaseLinkCtrlFrame(const std::string& robot_base_link);
 
 private:
     /**
@@ -54,6 +58,7 @@ private:
     void setVelocityCtrl();
     void localCtrl();
     void activateDeactivateTask();
+    void twistInBase();
     int _selected_task;
 
     std::vector<ros::ServiceClient> _set_properties_service_clients;
@@ -71,6 +76,9 @@ private:
     tf::StampedTransform _transform;
 
     int _local_ctrl;
+    int _base_ctrl;
+
+    std::string _robot_base_link;
 };
 }
 }

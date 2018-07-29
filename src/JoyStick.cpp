@@ -16,10 +16,11 @@ JoyStick::JoyStick(const std::vector<std::string> &distal_links, const std::vect
     _tf_prefix(tf_prefix),
     _distal_links(distal_links),
     _base_links(base_links),
+    _robot_base_link("base_link"),
     _selected_task(0),
     _linear_speed_sf(0.1),
     _angular_speed_sf(0.1),
-    _twist(6), _local_ctrl(-1)
+    _twist(6), _local_ctrl(-1), _base_ctrl(-1)
 {
     _twist.setZero(6);
     _joy_sub = _nh.subscribe<sensor_msgs::Joy>("joy", 10, &JoyStick::joyCallback, this);
@@ -59,6 +60,13 @@ JoyStick::JoyStick(const std::vector<std::string> &distal_links, const std::vect
         ss<<"               LOCAL ctrl"<<std::endl;
     else
         ss<<"               GLOBAL ctrl"<<std::endl;
+    if(_base_ctrl == 1)
+    {
+        ss<<"               BASE ctrl ON"<<std::endl;
+        ss<<"               robot base_link is: "<<_robot_base_link.c_str()<<std::endl;
+    }
+    else
+        ss<<"               BASE ctrl OFF"<<std::endl;
     ROS_INFO("%s", ss.str().c_str());
 }
 
@@ -77,6 +85,9 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 
     if(joy->buttons[5])
         _selected_task++;
+
+    if(_selected_task < 0)
+        _selected_task = _distal_links.size()-1;
 
     _selected_task = _selected_task%_distal_links.size();
 
@@ -131,6 +142,22 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     _twist[4] = _angular_speed_sf * joy->axes[4];
     _twist[5] = _angular_speed_sf * joy->axes[3];
 
+    if(joy->buttons[3] && joy->axes[5] > -0.99 && joy->axes[2] > -0.99){
+        _base_ctrl *= -1;
+        if(_base_ctrl == 1)
+        {
+            std::stringstream ss;
+            ss<<"               BASE ctrl ON"<<std::endl;
+            ss<<"               robot base_link is: "<<_robot_base_link.c_str()<<std::endl;
+            ROS_INFO("%s", ss.str().c_str());
+        }
+        else
+            ROS_INFO("              \n    BASE ctrl OFF");
+    }
+
+    if(_base_ctrl == 1)
+        twistInBase();
+
     if(joy->buttons[0]){
         _local_ctrl *= -1;
         if(_local_ctrl == 1)
@@ -152,6 +179,37 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     if(joy->buttons[1])
         activateDeactivateTask();
 
+}
+
+void JoyStick::twistInBase()
+{
+    cartesian_interface::GetTaskInfo srv;
+    _get_properties_service_clients[_selected_task].call(srv);
+
+    std::string _task_base_link = srv.response.base_link;
+    if(_task_base_link == "world")
+        _task_base_link = "world_odom";
+
+    try{
+        ros::Time now = ros::Time::now();
+        _listener.waitForTransform(_tf_prefix+_task_base_link,
+                                   _tf_prefix+_robot_base_link,ros::Time(0),ros::Duration(1.0));
+
+        _listener.lookupTransform(_tf_prefix+_task_base_link, _tf_prefix+"base_link",
+            ros::Time(0), _transform);
+    }
+    catch (tf::TransformException ex){
+        ROS_ERROR("%s",ex.what());
+        ros::Duration(1.0).sleep();
+    }
+
+    Eigen::Affine3d T;
+    tf::transformTFToEigen(_transform, T);
+    Eigen::MatrixXd A(6,6);
+    A<<T.linear(),Eigen::MatrixXd::Zero(3,3),
+       Eigen::MatrixXd::Zero(3,3),T.linear();
+
+    _twist = A*_twist;
 }
 
 void JoyStick::sendVelRefs()
@@ -217,5 +275,15 @@ void JoyStick::activateDeactivateTask()
         ROS_INFO("              \n    DISABLING task");}
 
     _task_active_service_client[_selected_task].call(srv2);
+}
+
+std::string JoyStick::getRobotBaseLinkCtrlFrame()
+{
+    return _robot_base_link;
+}
+
+void JoyStick::setRobotBaseLinkCtrlFrame(const std::string& robot_base_link)
+{
+    _robot_base_link = robot_base_link;
 }
 
