@@ -6,11 +6,15 @@
 #include <cartesian_interface/joystick/JoyStick.h>
 #include <ros/ros.h>
 
+#include <std_srvs/Trigger.h>
+
 #define BOOST_RESULT_OF_USE_DECLTYPE
 #include <boost/function.hpp>
 #include <chrono>
 
 using namespace XBot::Cartesian;
+
+JoyStick::Ptr joystick;
 
 void constructJoyStick(ros::NodeHandle nh, JoyStick::Ptr& joystick)
 {
@@ -48,6 +52,31 @@ void constructJoyStick(ros::NodeHandle nh, JoyStick::Ptr& joystick)
     }
 }
 
+bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res, ros::NodeHandle nh)
+{
+    constructJoyStick(nh, joystick);
+
+    res.message = "Successfully reset markers";
+    res.success = true;
+
+    return true;
+}
+
+void controller_changed_callback(const std_msgs::EmptyConstPtr& msg, ros::NodeHandle nh)
+{
+    std_srvs::TriggerRequest req;
+    std_srvs::TriggerResponse res;
+
+    if(reset_callback(req, res, nh) && res.success)
+    {
+        Logger::success(Logger::Severity::HIGH, "Reset joystick succesfully\n");
+    }
+    else
+    {
+        Logger::error(Logger::Severity::HIGH, "Failed to reset joystick\n");
+    }
+}
+
 int main(int argc, char **argv){
 
     /* By default, MID verbosity level */
@@ -57,9 +86,16 @@ int main(int argc, char **argv){
     ros::init(argc, argv, "xbot_joystick_spawner");
     ros::NodeHandle nh("xbotcore/cartesian");
 
-    JoyStick::Ptr joystick;
-    constructJoyStick(nh, joystick);
+    /* Reset service */
+    auto srv_cbk = std::bind(reset_callback, std::placeholders::_1, std::placeholders::_2, nh);
+    auto srv = nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>("joystick/reset", srv_cbk);
 
+    /* Controller changed subscriber */
+    auto event_sub_cbk = std::bind(controller_changed_callback, std::placeholders::_1, nh);
+    auto event_sub = nh.subscribe<std_msgs::Empty>("changed_controller_event", 1, event_sub_cbk);
+
+
+    constructJoyStick(nh, joystick);
 
 
     ros::Rate loop_rate(100);
