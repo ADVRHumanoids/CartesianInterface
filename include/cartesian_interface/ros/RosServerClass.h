@@ -98,6 +98,7 @@ namespace XBot { namespace Cartesian {
         void manage_reach_actions();
         void publish_posture_state(ros::Time time);
         void publish_state(ros::Time time);
+        void publish_solution(ros::Time time);
         void publish_ref_tf(ros::Time time);
         void publish_world_tf(ros::Time time);
         static geometry_msgs::Pose get_normalized_pose(const geometry_msgs::Pose& pose);
@@ -145,7 +146,7 @@ namespace XBot { namespace Cartesian {
         std::vector<bool> _is_action_active;
         std::vector<ros::Subscriber> _pos_sub, _vel_sub;
         std::vector<ros::Publisher> _state_pub;
-        ros::Publisher _com_pub, _posture_pub;
+        ros::Publisher _com_pub, _posture_pub, _solution_pub;
         ros::Subscriber _posture_sub;
         std::vector<ros::ServiceServer> _get_task_info_srv, _set_task_info_srv;
         std::map<std::string, CartesianMarker::Ptr> _markers;

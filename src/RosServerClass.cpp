@@ -20,6 +20,8 @@ void RosServerClass::__generate_state_broadcasting()
 
         _state_pub.push_back(pub);
     }
+    
+    _solution_pub = _nh.advertise<sensor_msgs::JointState>("solution", 1);
 }
 
 
@@ -34,6 +36,7 @@ void RosServerClass::__generate_rspub()
     std::string _tf_prefix = "/xbotcore/" + _model->getUrdf().getName();
     _nh.setParam(_urdf_param_name, _model->getUrdfString());
     _nh.setParam("/robot_description", _model->getUrdfString());
+    _nh.setParam("/robot_description_semantic", _model->getSrdfString());
     
     _com_pub = _nh.advertise<geometry_msgs::PointStamped>("com_position", 1);
 }
@@ -325,7 +328,7 @@ void XBot::Cartesian::RosServerClass::publish_posture_state(ros::Time time)
     msg.name.reserve(_model->getJointNum());
     msg.position.reserve(_model->getJointNum());
     int i = 0;
-    for(const std::string jname : _model->getEnabledJointNames())
+    for(const std::string& jname : _model->getEnabledJointNames())
     {
         msg.name.push_back(jname);
         msg.position.push_back(_posture_ref[i]);
@@ -334,6 +337,35 @@ void XBot::Cartesian::RosServerClass::publish_posture_state(ros::Time time)
     
     _posture_pub.publish(msg);
 }   
+
+void XBot::Cartesian::RosServerClass::publish_solution(ros::Time time)
+{
+    sensor_msgs::JointState msg;
+    Eigen::VectorXd _sol_q, _sol_qdot;
+
+    if(_solution_pub.getNumSubscribers() == 0)
+    {
+        return;
+    }
+    
+    _model->getJointPosition(_sol_q);
+    _model->getJointVelocity(_sol_qdot);
+    
+    msg.header.stamp = time;
+    msg.name.reserve(_model->getJointNum());
+    msg.position.reserve(_model->getJointNum());
+    msg.velocity.reserve(_model->getJointNum());
+    int i = 0;
+    for(const std::string& jname : _model->getEnabledJointNames())
+    {
+        msg.name.push_back(jname);
+        msg.position.push_back(_sol_q[i]);
+        msg.velocity.push_back(_sol_qdot[i]);
+        i++;
+    }
+    
+    _solution_pub.publish(msg);
+}
 
 
 void RosServerClass::run()
@@ -347,6 +379,7 @@ void RosServerClass::run()
     publish_ref_tf(now);
     publish_world_tf(now);
     publish_posture_state(now);
+    publish_solution(now);
 
 }
 
