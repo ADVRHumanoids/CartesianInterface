@@ -279,7 +279,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_dt(double expected_d
 
 void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_acc_limits(double linear, double angular)
 {
-    __otg_maxacc << linear, linear, linear, angular/4.0, angular/4.0, angular/4.0;
+    __otg_maxacc << linear, linear, linear, angular/2.0, angular/2.0, angular/2.0, angular/2.0;
     
     if(otg)
     {
@@ -290,7 +290,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_acc_limits(double li
 
 void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_vel_limits(double linear, double angular)
 {
-    __otg_maxvel << linear, linear, linear, angular/2.0, angular/2.0, angular/2.0;
+    __otg_maxvel << linear, linear, linear, angular/2.0, angular/2.0, angular/2.0, angular/2.0;
     
     if(otg)
     {
@@ -1118,7 +1118,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::setVelocityLimits(const std::strin
 void XBot::Cartesian::CartesianInterfaceImpl::Task::get_otg_acc_limits(double& linear, double& angular) const
 {
     linear = __otg_maxacc[0];
-    angular = __otg_maxacc[3]*4;
+    angular = __otg_maxacc[3]*2;
 }
 
 void XBot::Cartesian::CartesianInterfaceImpl::Task::get_otg_vel_limits(double& linear, double& angular) const
