@@ -20,6 +20,7 @@ using namespace XBot::Cartesian;
 typedef std::map<std::string, XBot::Cartesian::CartesianMarker::Ptr> MarkerMap;
 
 MarkerMap __g_markers;
+std::string __g_tf_prefix_slash;
 
 void construct_markers(ros::NodeHandle nh, MarkerMap& markers);
 bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res, ros::NodeHandle nh);
@@ -32,7 +33,8 @@ int main(int argc, char **argv){
     
     /* Init ROS node */
     ros::init(argc, argv, "xbot_cartesian_marker_spawner");
-    ros::NodeHandle nh("xbotcore/cartesian");
+    ros::NodeHandle nh;
+    ros::NodeHandle nh_priv("~");
     
     /* Reset service */
     auto srv_cbk = std::bind(reset_callback, std::placeholders::_1, std::placeholders::_2, nh);
@@ -41,6 +43,14 @@ int main(int argc, char **argv){
     /* Controller changed subscriber */
     auto event_sub_cbk = std::bind(controller_changed_callback, std::placeholders::_1, nh);
     auto event_sub = nh.subscribe<std_msgs::Empty>("changed_controller_event", 1, event_sub_cbk);
+    
+    /* TF prefix from param */
+    __g_tf_prefix_slash = nh_priv.param<std::string>("tf_prefix", "ci");
+    if(__g_tf_prefix_slash == "null")
+    {
+        __g_tf_prefix_slash = "";
+    }
+    __g_tf_prefix_slash = __g_tf_prefix_slash == "" ? "" : (__g_tf_prefix_slash + "/");
     
     construct_markers(nh, __g_markers);
     
@@ -79,14 +89,14 @@ bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& re
 void construct_markers(ros::NodeHandle nh, MarkerMap& markers)
 {
     /* Get task list from cartesian server */
-    ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskListRequest, cartesian_interface::GetTaskListResponse>("/xbotcore/cartesian/get_task_list");
+    ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskListRequest, cartesian_interface::GetTaskListResponse>("get_task_list");
     cartesian_interface::GetTaskListRequest req;
     cartesian_interface::GetTaskListResponse res;
     task_list_client.waitForExistence();
     Logger::info(Logger::Severity::HIGH, "Marker spawner: retrieving task list\n");
     if(!task_list_client.call(req, res))
     {
-        throw std::runtime_error("Unable to call /xbotcore/cartesian/get_task_list");
+        throw std::runtime_error("Unable to call get_task_list service");
     }
     
     std::string robot_urdf_string;
@@ -115,7 +125,7 @@ void construct_markers(ros::NodeHandle nh, MarkerMap& markers)
                                                    ee_name,
                                                    robot_urdf,
                                                    control_type,
-                                                   "ci/"
+                                                   __g_tf_prefix_slash
                                                   );
         
         markers[ee_name] = marker;

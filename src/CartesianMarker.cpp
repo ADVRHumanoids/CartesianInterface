@@ -15,7 +15,6 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
                                  const unsigned int control_type,
                                  std::string tf_prefix
                                 ):
-    _nh("xbotcore/cartesian"),
     _base_link(base_link),
     _distal_link(distal_link),
     _urdf(robot_urdf),
@@ -23,7 +22,7 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _tf_prefix(tf_prefix),
     _menu_entry_counter(0),
     _control_type(1),_is_continuous(1), _task_active(-1), _position_feedback_active(-1),
-    _waypoint_action_client("xbotcore/cartesian/" + distal_link + "/reach", true)
+    _waypoint_action_client(distal_link + "/reach", true)
 {
     _urdf.getLinks(_links);
 

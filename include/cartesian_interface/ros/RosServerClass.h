@@ -51,6 +51,7 @@ namespace XBot { namespace Cartesian {
         struct Options
         {
             bool spawn_markers;
+            std::string tf_prefix;
             
             Options();
         };
@@ -132,6 +133,8 @@ namespace XBot { namespace Cartesian {
                           cartesian_interface::GetTaskListResponse& res);
 
         Options _opt;
+        
+        std::string _tf_prefix, _tf_prefix_slash;
 
         CartesianInterface::Ptr _cartesian_interface;
         ModelInterface::ConstPtr _model;

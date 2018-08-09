@@ -4,7 +4,8 @@
 using namespace XBot::Cartesian;
 
 RosServerClass::Options::Options():
-    spawn_markers(true)
+    spawn_markers(true),
+    tf_prefix("ci")
 {
 
 }
@@ -48,8 +49,8 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     _model->getJointPosition(_joint_name_map);
     std::map<std::string, double> _joint_name_std_map(_joint_name_map.begin(), _joint_name_map.end());
 
-    _rspub->publishTransforms(_joint_name_std_map, time, "ci");
-    _rspub->publishFixedTransforms("ci");
+    _rspub->publishTransforms(_joint_name_std_map, time, _tf_prefix);
+    _rspub->publishFixedTransforms(_tf_prefix);
     
     
     /* Publish CoM position */
@@ -58,7 +59,7 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     
     geometry_msgs::PointStamped com_msg;
     tf::pointEigenToMsg(com, com_msg.point);
-    com_msg.header.frame_id = "ci/world_odom";
+    com_msg.header.frame_id = _tf_prefix_slash + "world_odom";
     com_msg.header.stamp = time;
     _com_pub.publish(com_msg);
     
@@ -72,8 +73,8 @@ void RosServerClass::publish_ref_tf(ros::Time time)
 
     _tf_broadcaster.sendTransform(tf::StampedTransform(transform,
                                                        time,
-                                                       "ci/world_odom",
-                                                       "ci/com"));
+                                                       _tf_prefix_slash + "world_odom",
+                                                       _tf_prefix_slash + "com"));
 
 }
 
@@ -388,9 +389,11 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
                                Options opt):
     _cartesian_interface(intfc),
     _model(model),
-    _opt(opt),
-    _nh("/xbotcore/cartesian")
+    _opt(opt)
 {
+    _tf_prefix = _opt.tf_prefix;
+    _tf_prefix_slash = _tf_prefix == "" ? "" : (_tf_prefix + "/");
+    
     _nh.setCallbackQueue(&_cbk_queue);
     
     __generate_online_pos_topics();
@@ -422,20 +425,23 @@ void RosServerClass::publish_world_tf(ros::Time time)
 
     _tf_broadcaster.sendTransform(tf::StampedTransform(transform.inverse(),
                                                        time,
-                                                       "ci/"+fb_link,
-                                                       "ci/world_odom"));
+                                                       _tf_prefix_slash + fb_link,
+                                                       _tf_prefix_slash + "world_odom"));
     
 
     /* Publish ref-to-actual-robot fixed tf */
-    Eigen::Affine3d T_eye;
-    T_eye.setIdentity();
-    tf::Transform transform_eye;
-    tf::transformEigenToTF(T_eye, transform_eye);
+    if(_tf_prefix != "")
+    {
+        Eigen::Affine3d T_eye;
+        T_eye.setIdentity();
+        tf::Transform transform_eye;
+        tf::transformEigenToTF(T_eye, transform_eye);
 
-    _tf_broadcaster.sendTransform(tf::StampedTransform(transform_eye,
-                                                       time,
-                                                       "ci/world",
-                                                       "world"));
+        _tf_broadcaster.sendTransform(tf::StampedTransform(transform_eye,
+                                                        time,
+                                                        _tf_prefix_slash + "world",
+                                                        "world"));
+    }
 }
 
 
@@ -583,7 +589,7 @@ void RosServerClass::__generate_markers()
                                                    ee_name,
                                                    static_cast<const urdf::Model&>(_model->getUrdf()),
                                                    control_type,
-                                                   "ci/"
+                                                   _tf_prefix_slash
                                                   );
         
         _markers[ee_name] = marker;

@@ -47,6 +47,7 @@ int main(int argc, char **argv){
     ros::NodeHandle nh;
     ros::NodeHandle nh_private("~");
     
+    
     /* By default, MID verbosity level */
     const int verbosity = nh_private.param("verbosity", (int)XBot::Logger::Severity::MID);
     XBot::Logger::SetVerbosityLevel((XBot::Logger::Severity)verbosity);
@@ -93,7 +94,7 @@ int main(int argc, char **argv){
         {
             robot->sense();
             robot->setControlMode(XBot::ControlMode::Position());
-	    set_blacklist(robot, xbot_cfg);
+            set_blacklist(robot, xbot_cfg);
         }
     }
     else
@@ -149,10 +150,19 @@ int main(int argc, char **argv){
         XBot::Logger::error("Unable to load solver %s \n", impl_name.c_str());
         exit(1);
     }
+    else
+    {
+        XBot::Logger::success("Loaded solver %s \n", impl_name.c_str());
+    }
     
     /* Obtain class to expose ROS API */
     XBot::Cartesian::RosServerClass::Options opt;
     opt.spawn_markers = false;
+    opt.tf_prefix = nh_private.param<std::string>("tf_prefix", "ci");
+    if(opt.tf_prefix == "null")
+    {
+        opt.tf_prefix = "";
+    }
     auto ros_server_class = std::make_shared<XBot::Cartesian::RosServerClass>(__g_current_impl, model, opt);
     
     __g_model = model;
@@ -162,8 +172,8 @@ int main(int argc, char **argv){
     
     
     
-    auto loader_srv = nh.advertiseService("/xbotcore/cartesian/load_controller", loader_callback);
-    __g_reset_pub = nh.advertise<std_msgs::Empty>("/xbotcore/cartesian/changed_controller_event", 1);
+    auto loader_srv = nh.advertiseService("load_controller", loader_callback);
+    __g_reset_pub = nh.advertise<std_msgs::Empty>("changed_controller_event", 1);
     
     /* Get loop frequency */
     const double freq = nh_private.param("rate", 100);
