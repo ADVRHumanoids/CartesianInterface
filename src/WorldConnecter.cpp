@@ -6,7 +6,7 @@ int main(int argc, char **argv)
 {
     
     ros::init(argc, argv, "world_connecter");
-    ros::NodeHandle nh, nh_priv("~");
+    ros::NodeHandle nh_priv("~");
     
     if(argc != 5)
     {

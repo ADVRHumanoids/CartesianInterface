@@ -91,7 +91,7 @@ int main(int argc, char **argv){
 
     /* Init ROS node */
     ros::init(argc, argv, "xbot_joystick_spawner");
-    ros::NodeHandle nh;
+    ros::NodeHandle nh("cartesian");
 
     /* Reset service */
     auto srv_cbk = std::bind(reset_callback, std::placeholders::_1, std::placeholders::_2, nh);

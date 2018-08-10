@@ -6,7 +6,7 @@
     <arg name="verbosity" default="2"/>
     <arg name="rate" default="100.0"/>
     <arg name="tf_prefix" default="ci"/>
-    <arg name="namespace" default="xbot/cartesian"/>
+    <arg name="namespace" default=""/>
     <arg name="markers" default="true"/>
     
     <group ns="$(arg namespace)">

@@ -22,7 +22,8 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _tf_prefix(tf_prefix),
     _menu_entry_counter(0),
     _control_type(1),_is_continuous(1), _task_active(-1), _position_feedback_active(-1),
-    _waypoint_action_client(distal_link + "/reach", true)
+    _waypoint_action_client("cartesian/" + distal_link + "/reach", true),
+    _nh("cartesian")
 {
     _urdf.getLinks(_links);
 

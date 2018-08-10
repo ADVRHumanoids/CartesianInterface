@@ -33,7 +33,7 @@ int main(int argc, char **argv){
     
     /* Init ROS node */
     ros::init(argc, argv, "xbot_cartesian_marker_spawner");
-    ros::NodeHandle nh;
+    ros::NodeHandle nh("cartesian");
     ros::NodeHandle nh_priv("~");
     
     /* Reset service */

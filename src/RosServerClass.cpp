@@ -389,7 +389,8 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
                                Options opt):
     _cartesian_interface(intfc),
     _model(model),
-    _opt(opt)
+    _opt(opt),
+    _nh("cartesian")
 {
     _tf_prefix = _opt.tf_prefix;
     _tf_prefix_slash = _tf_prefix == "" ? "" : (_tf_prefix + "/");
