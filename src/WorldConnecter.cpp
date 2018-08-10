@@ -25,17 +25,24 @@ int main(int argc, char **argv)
     double rate_value = nh_priv.param("rate", 25);
     ros::Rate rate(rate_value);
     
+    tf::Transform w2_T_w1;
+    double world_dx = nh_priv.param("dx", 0.0);
+    double world_dy = nh_priv.param("dy", 0.0);
+    double world_dz = nh_priv.param("dz", 0.0);
+    w2_T_w1.setOrigin(tf::Vector3(world_dx, world_dy, world_dz));
+    w2_T_w1.setRotation(tf::createQuaternionFromRPY(0,0,0));
+    
     while(ros::ok())
     {
         
-        tf::StampedTransform w_T_r1, w_T_r2;
+        tf::StampedTransform w1_T_r1, w2_T_r2;
         
         try{
             listener.lookupTransform(root_1, world_1,  
-                                     ros::Time(0), w_T_r1);
+                                     ros::Time(0), w1_T_r1);
             
             listener.lookupTransform(root_2, world_2,  
-                                     ros::Time(0), w_T_r2);
+                                     ros::Time(0), w2_T_r2);
         }
         catch (tf::TransformException ex){
             ROS_ERROR("%s",ex.what());
@@ -43,7 +50,7 @@ int main(int argc, char **argv)
         }
         
         
-        auto r2_T_r1 = w_T_r2.inverseTimes(w_T_r1);
+        auto r2_T_r1 = w2_T_r2.inverseTimes(w2_T_w1*w1_T_r1);
         
         br.sendTransform(tf::StampedTransform(r2_T_r1, ros::Time::now(), root_1, root_2));
         
