@@ -6,33 +6,21 @@
     <arg name="verbosity" default="2"/>
     <arg name="rate" default="100.0"/>
     <arg name="tf_prefix" default="ci"/>
-    <arg name="namespace" default=""/>
     <arg name="markers" default="true"/>
+    <arg name="namespace" default=""/>
     
-    <group ns="$(arg namespace)">
+    <group unless="$(eval namespace=='')" ns="$(arg namespace)">
         
-        <param name="problem_description" textfile="$(find cartesian_interface)/examples/configs/centauro_simple_stack.yaml"/>
-        
-        <node pkg="cartesian_interface" type="ros_server_node" 
-                                        name="ros_server_node" 
-                                        required="true" 
-                                        output="screen" 
-                                        launch-prefix="$(arg prefix)">
-                                        
-            <param name="is_model_floating_base" type="bool" value="true"/>
-            <param name="model_type" value="RBDL"/>
-            <param name="solver" value="$(arg solver)"/>
-            <param name="use_xbot_config" value="$(arg use_xbot_config)"/>
-            <param name="verbosity" value="$(arg verbosity)"/>
-            <param name="rate" value="$(arg rate)"/>
-            <param name="tf_prefix" value="$(arg tf_prefix)"/>
-            
-        </node>
-
-        <node if="$(arg markers)" pkg="cartesian_interface" type="marker_spawner" name="interactive_markers" output="screen">
-            <param name="tf_prefix" value="$(arg tf_prefix)"/>
-        </node>
+         <include file="$(find cartesian_interface)/launch/cartesio_include.launch" pass_all_args="true"/>
     
     </group>
+    
+    <group if="$(eval namespace=='')">
+        
+         <include file="$(find cartesian_interface)/launch/cartesio_include.launch" pass_all_args="true"/>
+    
+    </group>
+    
+    
 
 </launch>
