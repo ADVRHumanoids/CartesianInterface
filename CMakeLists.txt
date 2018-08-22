@@ -102,6 +102,7 @@ set(CartesianInterfaceROS_SRC
         src/RosServerClass.cpp
         src/CartesianMarker.cpp
         src/JoyStick.cpp
+        src/ManipulabilityAnalyzer.cpp
     )
 
 # Trajectory
@@ -157,6 +158,9 @@ target_link_libraries(marker_spawner CartesianInterface)
 add_executable(joystick_spawner src/JoyStickSpawner.cpp)
 target_link_libraries(joystick_spawner CartesianInterface)
 
+# CartesianAnalyzer executable
+add_executable(cartesian_analyzer src/CartesianAnalyzer.cpp)
+target_link_libraries(cartesian_analyzer CartesianInterface)
 
 # WorldConnecter executable
 add_executable(world_connecter src/WorldConnecter.cpp)
@@ -190,6 +194,11 @@ install(TARGETS joystick_spawner joystick_spawner
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+install(TARGETS cartesian_analyzer cartesian_analyzer
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 install(TARGETS CartesianInterface CartesianInterface
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
