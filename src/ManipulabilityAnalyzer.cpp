@@ -105,7 +105,9 @@ void XBot::Cartesian::ManipulabilityAnalyzer::compute()
             
         }
         
-        _tasks[i] = (Ji*Ji.transpose()).inverse();
+        int dim = Ji.rows();
+        
+        _tasks[i] = (Ji*Ji.transpose() + 1e-6*Eigen::MatrixXd::Identity(dim,dim)).inverse();
         
         _logger->add("A_" + std::to_string(i), Ji);
         
