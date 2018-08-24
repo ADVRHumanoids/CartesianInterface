@@ -25,7 +25,7 @@ CartesianInterfaceImpl::Ptr __g_current_impl;
 RosServerClass::Ptr * __g_ros_ptrptr;
 double __g_period;
 double *__g_time;
-ros::Publisher __g_reset_pub;
+ros::Publisher * __g_reset_pub;
 
 /* Handle control modes */
 void set_blacklist(XBot::RobotInterface::Ptr robot, const XBot::ConfigOptions& xbot_cfg);
@@ -173,7 +173,8 @@ int main(int argc, char **argv){
     
     
     auto loader_srv = nh.advertiseService("load_controller", loader_callback);
-    __g_reset_pub = nh.advertise<std_msgs::Empty>("changed_controller_event", 1);
+    auto reset_pub = nh.advertise<std_msgs::Empty>("changed_controller_event", 1);
+    __g_reset_pub = &reset_pub;
     
     /* Get loop frequency */
     const double freq = nh_private.param("rate", 100);
@@ -274,7 +275,7 @@ bool loader_callback(cartesian_interface::LoadControllerRequest& req,
         __g_current_impl = current_impl;
         
         std_msgs::Empty msg;
-        __g_reset_pub.publish(msg);
+        __g_reset_pub->publish(msg);
         
         XBot::Logger::success(Logger::Severity::HIGH, "Successfully loaded %s\n", req.controller_name.c_str());
         

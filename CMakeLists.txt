@@ -52,6 +52,7 @@ add_service_files(
   GetTaskInfo.srv
   LoadController.srv
   GetTaskList.srv
+  ResetWorld.srv
 )
 
 # Generate actions in the 'action' folder

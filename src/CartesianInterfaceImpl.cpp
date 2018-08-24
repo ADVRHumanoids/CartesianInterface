@@ -304,6 +304,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_vel_limits(double li
 CartesianInterfaceImpl::~CartesianInterfaceImpl()
 {
     _logger->flush();
+    Logger::success(Logger::Severity::HIGH, "Cleanly exiting from CartesI/O\n");
 }
 
 
@@ -1153,5 +1154,21 @@ void XBot::Cartesian::CartesianInterfaceImpl::getVelocityLimits(const std::strin
     }
     
     task->get_otg_vel_limits(max_vel_lin, max_vel_ang);
+}
+
+bool XBot::Cartesian::CartesianInterfaceImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
+{
+    Eigen::Affine3d w_T_fb;
+    if(!_model->getFloatingBasePose(w_T_fb))
+    {
+        return false;
+    }
+    
+    if(!_model->setFloatingBaseState(w_T_new_world.inverse() * w_T_fb, Eigen::Vector6d::Zero()))
+    {
+        return false;
+    }
+    
+    return reset(get_current_time());
 }
 

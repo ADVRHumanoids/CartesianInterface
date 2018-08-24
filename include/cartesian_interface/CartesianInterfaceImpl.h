@@ -114,6 +114,7 @@ public:
     virtual bool abort(const std::string& end_effector);
     
     virtual bool reset(double time);
+    virtual bool resetWorld(const Eigen::Affine3d& w_T_new_world);
 
 
     

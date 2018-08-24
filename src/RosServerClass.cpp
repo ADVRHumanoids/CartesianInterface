@@ -65,7 +65,15 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     
     /* Publish CoM tf */
     Eigen::Affine3d w_T_com;
-    _model->getFloatingBasePose(w_T_com);
+    if(_model->isFloatingBase())
+    {
+        _model->getFloatingBasePose(w_T_com);
+    }
+    else
+    {
+        w_T_com.setIdentity();
+    }
+    
     w_T_com.translation() = com;
     
     tf::Transform transform;
@@ -407,6 +415,7 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     __generate_task_list_service();
     __generate_postural_task_topics_and_services();
     __generate_update_param_services();
+    __generate_reset_world_service();
 
     if(_opt.spawn_markers)
     {
@@ -418,11 +427,17 @@ void RosServerClass::publish_world_tf(ros::Time time)
 {
     /* Publish world odom */
     Eigen::Affine3d w_T_pelvis;
-    _model->getFloatingBasePose(w_T_pelvis);
+    w_T_pelvis.setIdentity();
+    std::string fb_link = "world";
+    
+    if(_model->isFloatingBase())
+    {
+        _model->getFloatingBasePose(w_T_pelvis);
+        _model->getFloatingBaseLink(fb_link);
+    }
+    
     tf::Transform transform;
     tf::transformEigenToTF(w_T_pelvis, transform);
-    std::string fb_link;
-    _model->getFloatingBaseLink(fb_link);
 
     _tf_broadcaster.sendTransform(tf::StampedTransform(transform.inverse(),
                                                        time,
@@ -739,6 +754,30 @@ bool XBot::Cartesian::RosServerClass::reset_posture_cb(std_srvs::TriggerRequest&
     return true;
 }
 
+void XBot::Cartesian::RosServerClass::__generate_reset_world_service()
+{
+    _reset_world_srv = _nh.advertiseService("reset_world", &RosServerClass::reset_world_cb, this);
+}
+
+bool XBot::Cartesian::RosServerClass::reset_world_cb(cartesian_interface::ResetWorldRequest& req,
+                                                     cartesian_interface::ResetWorldResponse& res)
+{
+    Eigen::Affine3d new_world;
+    tf::poseMsgToEigen(get_normalized_pose(req.new_world), new_world);
+    
+    if(_cartesian_interface->resetWorld(new_world))
+    {
+        res.success = true;
+        res.message = "World was changed successfully";
+    }
+    else
+    {
+        res.success = false;
+        res.message = "World could not be changed";
+    }
+    
+    return true;
+}
 
 
 

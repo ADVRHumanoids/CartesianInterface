@@ -11,6 +11,7 @@
 #include <cartesian_interface/GetTaskInfo.h>
 #include <cartesian_interface/SetTaskInfo.h>
 #include <cartesian_interface/GetTaskList.h>
+#include <cartesian_interface/ResetWorld.h>
 #include <actionlib/server/simple_action_server.h>
 #include <std_srvs/Empty.h>
 #include <std_srvs/SetBool.h>
@@ -95,6 +96,7 @@ namespace XBot { namespace Cartesian {
         void __generate_task_list_service();
         void __generate_postural_task_topics_and_services();
         void __generate_update_param_services();
+        void __generate_reset_world_service();
 
         void manage_reach_actions();
         void publish_posture_state(ros::Time time);
@@ -131,6 +133,9 @@ namespace XBot { namespace Cartesian {
         
         bool task_list_cb(cartesian_interface::GetTaskListRequest& req, 
                           cartesian_interface::GetTaskListResponse& res);
+        
+        bool reset_world_cb(cartesian_interface::ResetWorldRequest& req, 
+                            cartesian_interface::ResetWorldResponse& res);
 
         Options _opt;
         
@@ -153,7 +158,7 @@ namespace XBot { namespace Cartesian {
         ros::Subscriber _posture_sub;
         std::vector<ros::ServiceServer> _get_task_info_srv, _set_task_info_srv;
         std::map<std::string, CartesianMarker::Ptr> _markers;
-        ros::ServiceServer _reset_srv, _tasklist_srv, _reset_posture_srv, _update_limits_srv;
+        ros::ServiceServer _reset_srv, _tasklist_srv, _reset_posture_srv, _update_limits_srv, _reset_world_srv;
 
         std::shared_ptr<std::thread> _marker_thread;
 
