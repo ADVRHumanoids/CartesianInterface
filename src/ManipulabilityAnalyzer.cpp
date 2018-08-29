@@ -1,5 +1,12 @@
 #include <cartesian_interface/utils/Manipulability.h>
 
+#if EIGEN_VERSION_AT_LEAST(3, 2, 92)
+    #define HAS_SVD_SET_THRESHOLD
+#else
+    #warning "Your Eigen version does not support SVD threshold. Manipulability analyzer may not be stable."
+#endif
+
+
 XBot::Cartesian::ManipulabilityAnalyzer::ManipulabilityAnalyzer(XBot::ModelInterface::ConstPtr model,
                                                                 XBot::Cartesian::ProblemDescription ik_problem, 
                                                                 std::string tf_prefix):
@@ -43,23 +50,36 @@ bool XBot::Cartesian::ManipulabilityAnalyzer::compute_task_matrix(XBot::Cartesia
                                                                   Eigen::Affine3d& T)
 {
     CartesianTask::Ptr cart_ij = GetAsCartesian(task);
-    if(!cart_ij)
+    ComTask::Ptr com_ij = GetAsCom(task);
+    
+    if(cart_ij)
     {
-        return false;
+        
+        if(cart_ij->base_link == "world")
+        {
+            _model->getJacobian(cart_ij->distal_link, A);
+            _model->getPose(cart_ij->distal_link, T);
+        }
+        else
+        {
+            _model->getRelativeJacobian(cart_ij->distal_link, cart_ij->base_link, A);
+            _model->getPose(cart_ij->distal_link, cart_ij->base_link, T);
+        }
     }
-    
-    
-    if(cart_ij->base_link == "world")
+    else if(com_ij)
     {
-        _model->getJacobian(cart_ij->distal_link, A);
-        _model->getPose(cart_ij->distal_link, T);
+        _model->getCOMJacobian(A);
+        A.conservativeResize(6, A.cols());
+        A.bottomRows(3).setZero();
+        Eigen::Vector3d compos;
+        _model->getCOM(compos);
+        T.setIdentity();
+        T.translation() = compos;
     }
     else
     {
-        _model->getRelativeJacobian(cart_ij->distal_link, cart_ij->base_link, A);
-        _model->getPose(cart_ij->distal_link, cart_ij->base_link, T);
+        return false;
     }
-
     
     for(int k = 0; k < 6; k++)
     {
@@ -114,7 +134,11 @@ void XBot::Cartesian::ManipulabilityAnalyzer::compute()
         if(Ji.size() > 0)
         {
             auto svd_i = Ji.jacobiSvd(Eigen::ComputeFullV);
+            
+            
             svd_i.setThreshold(1e-6);
+            
+            
             int ns_dim = svd_i.matrixV().cols() - svd_i.nonzeroSingularValues();
             _nullspace_bases[i+1] = _nullspace_bases[i] * svd_i.matrixV().rightCols(ns_dim);
         }
