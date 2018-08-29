@@ -135,9 +135,9 @@ void XBot::Cartesian::ManipulabilityAnalyzer::compute()
         {
             auto svd_i = Ji.jacobiSvd(Eigen::ComputeFullV);
             
-            
+#if HAS_SVD_SET_THRESHOLD
             svd_i.setThreshold(1e-6);
-            
+#endif
             
             int ns_dim = svd_i.matrixV().cols() - svd_i.nonzeroSingularValues();
             _nullspace_bases[i+1] = _nullspace_bases[i] * svd_i.matrixV().rightCols(ns_dim);
