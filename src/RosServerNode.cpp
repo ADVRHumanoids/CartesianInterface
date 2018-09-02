@@ -208,6 +208,8 @@ int main(int argc, char **argv){
         model->getJointVelocity(qdot);
         
         q += dt * qdot;
+
+
         
         model->setJointPosition(q);
         model->update();
@@ -217,6 +219,12 @@ int main(int argc, char **argv){
             robot->setReferenceFrom(*model);
             robot->move();
         }
+
+
+        /* logging */
+        logger->add("q", q);
+        logger->add("qdot", qdot);
+        logger->add("dq", qdot*dt);
         
         /* Update time and sleep */
         time += dt;
