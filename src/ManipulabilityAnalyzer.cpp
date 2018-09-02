@@ -135,7 +135,7 @@ void XBot::Cartesian::ManipulabilityAnalyzer::compute()
         {
             auto svd_i = Ji.jacobiSvd(Eigen::ComputeFullV);
             
-#if HAS_SVD_SET_THRESHOLD
+#ifdef HAS_SVD_SET_THRESHOLD
             svd_i.setThreshold(1e-6);
 #endif
             
