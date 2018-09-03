@@ -208,6 +208,7 @@ private:
     
     void __construct_from_vectors();
     void log_tasks();
+    void init_log_tasks();
     
     std::vector<std::pair<std::string, std::string>> _tasks_vector;
     std::vector<std::string> _ee_list;
