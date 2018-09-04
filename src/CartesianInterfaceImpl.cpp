@@ -897,6 +897,8 @@ void CartesianInterfaceImpl::Task::reset(XBot::ModelInterface::ConstPtr model)
         state = State::Online;
         new_data_available = true;
         
+        reset_otg();
+        
         return;
     }
     
