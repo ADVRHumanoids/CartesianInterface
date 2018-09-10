@@ -80,6 +80,13 @@ public:
      */
     virtual bool reset(double time) = 0;
     
+    /**
+     * @brief Reset the world frame and call reset().
+     * 
+     * @param w_T_new_world New world pose w.r.t. old world
+     */
+    virtual bool resetWorld(const Eigen::Affine3d& w_T_new_world) = 0;
+    
     virtual const std::vector<std::string>& getTaskList() const = 0;
     virtual const std::string& getBaseLink(const std::string& ee_name) const = 0;
     virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type) = 0;

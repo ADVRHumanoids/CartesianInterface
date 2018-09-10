@@ -19,12 +19,12 @@ JoyStick::Ptr joystick;
 void constructJoyStick(ros::NodeHandle nh, JoyStick::Ptr& joystick)
 {
     /* Get task list from cartesian server */
-    ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskListRequest, cartesian_interface::GetTaskListResponse>("/xbotcore/cartesian/get_task_list");
+    ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskListRequest, cartesian_interface::GetTaskListResponse>("get_task_list");
     cartesian_interface::GetTaskListRequest req;
     cartesian_interface::GetTaskListResponse res;
     task_list_client.waitForExistence();
     if(!task_list_client.call(req, res))
-        throw std::runtime_error("Unable to call /xbotcore/cartesian/get_task_list");
+        throw std::runtime_error("Unable to call get_task_list");
 
     std::vector<std::string> base_links;
     std::vector<std::string> distal_links;
@@ -41,8 +41,15 @@ void constructJoyStick(ros::NodeHandle nh, JoyStick::Ptr& joystick)
         distal_links.push_back(ee_name);
 
     }
+    
+    ros::NodeHandle nh_priv("~");
+    auto tf_prefix = nh_priv.param<std::string>("tf_prefix", "ci");
+    if(tf_prefix == "null")
+    {
+        tf_prefix = "";
+    }
 
-    joystick = boost::make_shared<XBot::Cartesian::JoyStick>(distal_links, base_links,"ci/");
+    joystick = boost::make_shared<XBot::Cartesian::JoyStick>(distal_links, base_links, tf_prefix);
 
     std::string robot_base_link;
     if(nh.getParam("robot_base_link", robot_base_link))
@@ -84,7 +91,7 @@ int main(int argc, char **argv){
 
     /* Init ROS node */
     ros::init(argc, argv, "xbot_joystick_spawner");
-    ros::NodeHandle nh("xbotcore/cartesian");
+    ros::NodeHandle nh("cartesian");
 
     /* Reset service */
     auto srv_cbk = std::bind(reset_callback, std::placeholders::_1, std::placeholders::_2, nh);

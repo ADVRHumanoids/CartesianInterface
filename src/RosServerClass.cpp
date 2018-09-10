@@ -4,7 +4,8 @@
 using namespace XBot::Cartesian;
 
 RosServerClass::Options::Options():
-    spawn_markers(true)
+    spawn_markers(true),
+    tf_prefix("ci")
 {
 
 }
@@ -20,6 +21,8 @@ void RosServerClass::__generate_state_broadcasting()
 
         _state_pub.push_back(pub);
     }
+    
+    _solution_pub = _nh.advertise<sensor_msgs::JointState>("solution", 1);
 }
 
 
@@ -34,6 +37,7 @@ void RosServerClass::__generate_rspub()
     std::string _tf_prefix = "/xbotcore/" + _model->getUrdf().getName();
     _nh.setParam(_urdf_param_name, _model->getUrdfString());
     _nh.setParam("/robot_description", _model->getUrdfString());
+    _nh.setParam("/robot_description_semantic", _model->getSrdfString());
     
     _com_pub = _nh.advertise<geometry_msgs::PointStamped>("com_position", 1);
 }
@@ -45,8 +49,8 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     _model->getJointPosition(_joint_name_map);
     std::map<std::string, double> _joint_name_std_map(_joint_name_map.begin(), _joint_name_map.end());
 
-    _rspub->publishTransforms(_joint_name_std_map, time, "ci");
-    _rspub->publishFixedTransforms("ci");
+    _rspub->publishTransforms(_joint_name_std_map, time, _tf_prefix);
+    _rspub->publishFixedTransforms(_tf_prefix);
     
     
     /* Publish CoM position */
@@ -55,13 +59,21 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     
     geometry_msgs::PointStamped com_msg;
     tf::pointEigenToMsg(com, com_msg.point);
-    com_msg.header.frame_id = "ci/world_odom";
+    com_msg.header.frame_id = _tf_prefix_slash + "world_odom";
     com_msg.header.stamp = time;
     _com_pub.publish(com_msg);
     
     /* Publish CoM tf */
     Eigen::Affine3d w_T_com;
-    _model->getFloatingBasePose(w_T_com);
+    if(_model->isFloatingBase())
+    {
+        _model->getFloatingBasePose(w_T_com);
+    }
+    else
+    {
+        w_T_com.setIdentity();
+    }
+    
     w_T_com.translation() = com;
     
     tf::Transform transform;
@@ -69,8 +81,8 @@ void RosServerClass::publish_ref_tf(ros::Time time)
 
     _tf_broadcaster.sendTransform(tf::StampedTransform(transform,
                                                        time,
-                                                       "ci/world_odom",
-                                                       "ci/com"));
+                                                       _tf_prefix_slash + "world_odom",
+                                                       _tf_prefix_slash + "com"));
 
 }
 
@@ -325,7 +337,7 @@ void XBot::Cartesian::RosServerClass::publish_posture_state(ros::Time time)
     msg.name.reserve(_model->getJointNum());
     msg.position.reserve(_model->getJointNum());
     int i = 0;
-    for(const std::string jname : _model->getEnabledJointNames())
+    for(const std::string& jname : _model->getEnabledJointNames())
     {
         msg.name.push_back(jname);
         msg.position.push_back(_posture_ref[i]);
@@ -334,6 +346,35 @@ void XBot::Cartesian::RosServerClass::publish_posture_state(ros::Time time)
     
     _posture_pub.publish(msg);
 }   
+
+void XBot::Cartesian::RosServerClass::publish_solution(ros::Time time)
+{
+    sensor_msgs::JointState msg;
+    Eigen::VectorXd _sol_q, _sol_qdot;
+
+    if(_solution_pub.getNumSubscribers() == 0)
+    {
+        return;
+    }
+    
+    _model->getJointPosition(_sol_q);
+    _model->getJointVelocity(_sol_qdot);
+    
+    msg.header.stamp = time;
+    msg.name.reserve(_model->getJointNum());
+    msg.position.reserve(_model->getJointNum());
+    msg.velocity.reserve(_model->getJointNum());
+    int i = 0;
+    for(const std::string& jname : _model->getEnabledJointNames())
+    {
+        msg.name.push_back(jname);
+        msg.position.push_back(_sol_q[i]);
+        msg.velocity.push_back(_sol_qdot[i]);
+        i++;
+    }
+    
+    _solution_pub.publish(msg);
+}
 
 
 void RosServerClass::run()
@@ -347,6 +388,7 @@ void RosServerClass::run()
     publish_ref_tf(now);
     publish_world_tf(now);
     publish_posture_state(now);
+    publish_solution(now);
 
 }
 
@@ -356,8 +398,11 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     _cartesian_interface(intfc),
     _model(model),
     _opt(opt),
-    _nh("/xbotcore/cartesian")
+    _nh("cartesian")
 {
+    _tf_prefix = _opt.tf_prefix;
+    _tf_prefix_slash = _tf_prefix == "" ? "" : (_tf_prefix + "/");
+    
     _nh.setCallbackQueue(&_cbk_queue);
     
     __generate_online_pos_topics();
@@ -370,6 +415,7 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     __generate_task_list_service();
     __generate_postural_task_topics_and_services();
     __generate_update_param_services();
+    __generate_reset_world_service();
 
     if(_opt.spawn_markers)
     {
@@ -381,28 +427,37 @@ void RosServerClass::publish_world_tf(ros::Time time)
 {
     /* Publish world odom */
     Eigen::Affine3d w_T_pelvis;
-    _model->getFloatingBasePose(w_T_pelvis);
+    w_T_pelvis.setIdentity();
+    std::string fb_link = "world";
+    
+    if(_model->isFloatingBase())
+    {
+        _model->getFloatingBasePose(w_T_pelvis);
+        _model->getFloatingBaseLink(fb_link);
+    }
+    
     tf::Transform transform;
     tf::transformEigenToTF(w_T_pelvis, transform);
-    std::string fb_link;
-    _model->getFloatingBaseLink(fb_link);
 
     _tf_broadcaster.sendTransform(tf::StampedTransform(transform.inverse(),
                                                        time,
-                                                       "ci/"+fb_link,
-                                                       "ci/world_odom"));
+                                                       _tf_prefix_slash + fb_link,
+                                                       _tf_prefix_slash + "world_odom"));
     
 
     /* Publish ref-to-actual-robot fixed tf */
-    Eigen::Affine3d T_eye;
-    T_eye.setIdentity();
-    tf::Transform transform_eye;
-    tf::transformEigenToTF(T_eye, transform_eye);
+    if(_tf_prefix != "")
+    {
+        Eigen::Affine3d T_eye;
+        T_eye.setIdentity();
+        tf::Transform transform_eye;
+        tf::transformEigenToTF(T_eye, transform_eye);
 
-    _tf_broadcaster.sendTransform(tf::StampedTransform(transform_eye,
-                                                       time,
-                                                       "ci/world",
-                                                       "world"));
+        _tf_broadcaster.sendTransform(tf::StampedTransform(transform_eye,
+                                                        time,
+                                                        _tf_prefix_slash + "world",
+                                                        "world"));
+    }
 }
 
 
@@ -550,7 +605,7 @@ void RosServerClass::__generate_markers()
                                                    ee_name,
                                                    static_cast<const urdf::Model&>(_model->getUrdf()),
                                                    control_type,
-                                                   "ci/"
+                                                   _tf_prefix_slash
                                                   );
         
         _markers[ee_name] = marker;
@@ -699,6 +754,30 @@ bool XBot::Cartesian::RosServerClass::reset_posture_cb(std_srvs::TriggerRequest&
     return true;
 }
 
+void XBot::Cartesian::RosServerClass::__generate_reset_world_service()
+{
+    _reset_world_srv = _nh.advertiseService("reset_world", &RosServerClass::reset_world_cb, this);
+}
+
+bool XBot::Cartesian::RosServerClass::reset_world_cb(cartesian_interface::ResetWorldRequest& req,
+                                                     cartesian_interface::ResetWorldResponse& res)
+{
+    Eigen::Affine3d new_world;
+    tf::poseMsgToEigen(get_normalized_pose(req.new_world), new_world);
+    
+    if(_cartesian_interface->resetWorld(new_world))
+    {
+        res.success = true;
+        res.message = "World was changed successfully";
+    }
+    else
+    {
+        res.success = false;
+        res.message = "World could not be changed";
+    }
+    
+    return true;
+}
 
 
 

@@ -114,6 +114,7 @@ public:
     virtual bool abort(const std::string& end_effector);
     
     virtual bool reset(double time);
+    virtual bool resetWorld(const Eigen::Affine3d& w_T_new_world);
 
 
     
@@ -207,6 +208,7 @@ private:
     
     void __construct_from_vectors();
     void log_tasks();
+    void init_log_tasks();
     
     std::vector<std::pair<std::string, std::string>> _tasks_vector;
     std::vector<std::string> _ee_list;

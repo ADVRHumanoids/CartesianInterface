@@ -279,7 +279,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_dt(double expected_d
 
 void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_acc_limits(double linear, double angular)
 {
-    __otg_maxacc << linear, linear, linear, angular/4.0, angular/4.0, angular/4.0;
+    __otg_maxacc << linear, linear, linear, angular/2.0, angular/2.0, angular/2.0, angular/2.0;
     
     if(otg)
     {
@@ -290,7 +290,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_acc_limits(double li
 
 void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_vel_limits(double linear, double angular)
 {
-    __otg_maxvel << linear, linear, linear, angular/2.0, angular/2.0, angular/2.0;
+    __otg_maxvel << linear, linear, linear, angular/2.0, angular/2.0, angular/2.0, angular/2.0;
     
     if(otg)
     {
@@ -304,6 +304,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_vel_limits(double li
 CartesianInterfaceImpl::~CartesianInterfaceImpl()
 {
     _logger->flush();
+    Logger::success(Logger::Severity::HIGH, "Cleanly exiting from CartesI/O\n");
 }
 
 
@@ -352,6 +353,7 @@ void CartesianInterfaceImpl::__construct_from_vectors()
     }
     
     reset(0.0);
+    init_log_tasks();
 }
 
 
@@ -390,6 +392,26 @@ void CartesianInterfaceImpl::log_tasks()
     
     _logger->add("ci_time", _current_time);
 }
+
+void XBot::Cartesian::CartesianInterfaceImpl::init_log_tasks()
+{
+    const int BUF_SIZE = 2e5;
+    
+    for(auto& pair : _task_map)
+    {
+        CartesianInterfaceImpl::Task& task = *(pair.second);
+        
+        _logger->createVectorVariable(task.get_distal() + "_pos", 3, 1, BUF_SIZE);
+        _logger->createVectorVariable(task.get_distal() + "_pos_otg", 3, 1, BUF_SIZE);
+        _logger->createVectorVariable(task.get_distal() + "_vel", 6, 1, BUF_SIZE);
+        _logger->createVectorVariable(task.get_distal() + "_rot", 4, 1, BUF_SIZE);
+        _logger->createVectorVariable(task.get_distal() + "_rot_otg", 4, 1, BUF_SIZE);
+        _logger->createScalarVariable(task.get_distal() + "_state", 1, BUF_SIZE);
+    }
+    
+    _logger->createScalarVariable("ci_time", 1, BUF_SIZE);
+}
+
 
 
 CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, ProblemDescription ik_problem):
@@ -875,6 +897,8 @@ void CartesianInterfaceImpl::Task::reset(XBot::ModelInterface::ConstPtr model)
         state = State::Online;
         new_data_available = true;
         
+        reset_otg();
+        
         return;
     }
     
@@ -1118,7 +1142,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::setVelocityLimits(const std::strin
 void XBot::Cartesian::CartesianInterfaceImpl::Task::get_otg_acc_limits(double& linear, double& angular) const
 {
     linear = __otg_maxacc[0];
-    angular = __otg_maxacc[3]*4;
+    angular = __otg_maxacc[3]*2;
 }
 
 void XBot::Cartesian::CartesianInterfaceImpl::Task::get_otg_vel_limits(double& linear, double& angular) const
@@ -1153,5 +1177,21 @@ void XBot::Cartesian::CartesianInterfaceImpl::getVelocityLimits(const std::strin
     }
     
     task->get_otg_vel_limits(max_vel_lin, max_vel_ang);
+}
+
+bool XBot::Cartesian::CartesianInterfaceImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
+{
+    Eigen::Affine3d w_T_fb;
+    if(!_model->getFloatingBasePose(w_T_fb))
+    {
+        return false;
+    }
+    
+    if(!_model->setFloatingBaseState(w_T_new_world.inverse() * w_T_fb, Eigen::Vector6d::Zero()))
+    {
+        return false;
+    }
+    
+    return reset(get_current_time());
 }
 

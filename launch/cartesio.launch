@@ -2,30 +2,25 @@
 
     <arg name="solver" default="OpenSot"/>
     <arg name="prefix" default=""/>
-    <arg name="model_type" default="RBDL"/>
-    <arg name="is_model_floating_base" default="true"/>
-    <arg name="world_frame" default=""/>
     <arg name="use_xbot_config" default="false"/>
     <arg name="verbosity" default="2"/>
     <arg name="rate" default="100.0"/>
+    <arg name="tf_prefix" default="ci"/>
+    <arg name="markers" default="true"/>
+    <arg name="namespace" default=""/>
+    
+    <group unless="$(eval namespace=='')" ns="$(arg namespace)">
+        
+         <include file="$(find cartesian_interface)/launch/cartesio_include.launch" pass_all_args="true"/>
+    
+    </group>
+    
+    <group if="$(eval namespace=='')">
+        
+         <include file="$(find cartesian_interface)/launch/cartesio_include.launch" pass_all_args="true"/>
+    
+    </group>
     
     
-    
-    <node pkg="cartesian_interface" type="ros_server_node" 
-                                    name="ros_server_node" 
-                                    required="true" 
-                                    output="screen" 
-                                    launch-prefix="$(arg prefix)">
-                                    
-        <param name="is_model_floating_base" type="bool" value="$(arg is_model_floating_base)"/>
-        <param name="model_type" value="$(arg model_type)"/>
-        <param name="solver" value="$(arg solver)"/>
-        <param name="world_frame" value="$(arg world_frame)"/>
-        <param name="use_xbot_config" value="$(arg use_xbot_config)"/>
-        <param name="verbosity" value="$(arg verbosity)"/>
-        <param name="rate" value="$(arg rate)"/>
-    </node>
-
-    <node pkg="cartesian_interface" type="marker_spawner" name="interactive_markers" output="screen"/>
 
 </launch>

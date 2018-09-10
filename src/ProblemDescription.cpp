@@ -45,7 +45,7 @@ PosturalTask::Ptr XBot::Cartesian::GetAsPostural(TaskDescription::Ptr task)
 }
 
 PosturalTask::PosturalTask(int ndof):
-    TaskDescription(TaskType::Postural, ndof)
+    TaskDescription(TaskType::Postural, "postural", ndof)
 {
     
 }
@@ -68,7 +68,7 @@ ConstraintDescription::Ptr XBot::Cartesian::MakeVelocityLimits()
 
 
 CartesianTask::CartesianTask(std::string distal_link, std::string base_link):
-    TaskDescription(TaskType::Cartesian, 6),
+    TaskDescription(TaskType::Cartesian, distal_link, 6),
     distal_link(distal_link),
     base_link(base_link),
     orientation_gain(1.0)
@@ -77,7 +77,7 @@ CartesianTask::CartesianTask(std::string distal_link, std::string base_link):
 }
 
 ComTask::ComTask():
-    TaskDescription(TaskType::Com, 3)
+    TaskDescription(TaskType::Com, "com", 3)
 {
 
 }
@@ -93,10 +93,11 @@ ComTask::Ptr XBot::Cartesian::GetAsCom(TaskDescription::Ptr task)
 }
 
 
-TaskDescription::TaskDescription(TaskType type, int size):
+TaskDescription::TaskDescription(TaskType type, std::string __name, int size):
     type(type),
     weight(Eigen::MatrixXd::Identity(size,size)),
-    lambda(1.0)
+    lambda(1.0),
+    name(__name)
 {
     for(uint i = 0; i < size; i++)
     {

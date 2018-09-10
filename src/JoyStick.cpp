@@ -12,7 +12,6 @@
 using namespace XBot::Cartesian;
 
 JoyStick::JoyStick(const std::vector<std::string> &distal_links, const std::vector<std::string> &base_links, std::string tf_prefix):
-    _nh("xbotcore/cartesian"),
     _tf_prefix(tf_prefix),
     _distal_links(distal_links),
     _base_links(base_links),
@@ -20,7 +19,8 @@ JoyStick::JoyStick(const std::vector<std::string> &distal_links, const std::vect
     _selected_task(0),
     _linear_speed_sf(0.1),
     _angular_speed_sf(0.1),
-    _twist(6), _local_ctrl(-1), _base_ctrl(-1)
+    _twist(6), _local_ctrl(-1), _base_ctrl(-1),
+    _nh("cartesian")
 {
     _twist.setZero(6);
     _joy_sub = _nh.subscribe<sensor_msgs::Joy>("joy", 10, &JoyStick::joyCallback, this);
