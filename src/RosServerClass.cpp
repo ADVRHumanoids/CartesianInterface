@@ -50,7 +50,7 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     std::map<std::string, double> _joint_name_std_map(_joint_name_map.begin(), _joint_name_map.end());
 
     _rspub->publishTransforms(_joint_name_std_map, time, _tf_prefix);
-    _rspub->publishFixedTransforms(_tf_prefix);
+    _rspub->publishFixedTransforms(_tf_prefix, true);
     
     
     /* Publish CoM position */
