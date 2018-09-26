@@ -31,6 +31,7 @@ protected:
 private:
     
     typedef OpenSoT::tasks::velocity::Cartesian CartesianTask;
+    typedef OpenSoT::tasks::velocity::Postural PosturalTask;
     typedef OpenSoT::tasks::velocity::CoM CoMTask;
     
     void set_adaptive_lambda(CartesianTask::Ptr cartesian_task);
@@ -42,9 +43,9 @@ private:
     Eigen::VectorXd _q, _dq, _ddq;
     
     std::vector<CartesianTask::Ptr> _cartesian_tasks;
+    std::vector<PosturalTask::Ptr> _postural_tasks;
     std::map<std::string, double> _lambda_map;
     CoMTask::Ptr _com_task;
-    OpenSoT::tasks::velocity::Postural::Ptr _postural_task;
     
     OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr _solver;
     OpenSoT::AutoStack::Ptr _autostack;

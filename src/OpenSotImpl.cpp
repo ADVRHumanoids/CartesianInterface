@@ -99,19 +99,22 @@ OpenSoT::tasks::Aggregated::TaskPtr XBot::Cartesian::OpenSotImpl::aggregated_fro
             case TaskType::Postural:
             {
                 auto postural_desc = XBot::Cartesian::GetAsPostural(task_desc);
-                _postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
+
+                auto postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
                 
-                _postural_task->setLambda(postural_desc->lambda);
+                _postural_tasks.push_back(postural_task);
+                
+                postural_task->setLambda(postural_desc->lambda);
 
                 std::list<uint> indices(postural_desc->indices.begin(), postural_desc->indices.end());
 
                 if(indices.size() == _model->getJointNum())
                 {
-                    tasks_list.push_back(postural_desc->weight*(_postural_task));
+                    tasks_list.push_back(postural_desc->weight*(postural_task));
                 }
                 else
                 {
-                    tasks_list.push_back(postural_desc->weight*(_postural_task%indices));
+                    tasks_list.push_back(postural_desc->weight*(postural_task%indices));
                 }
                 break;
             }
@@ -294,9 +297,12 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
     }
     
     /* Postural task */
-    if(_postural_task && getReferencePosture(_qref))
+    if(_postural_tasks.size() > 0 && getReferencePosture(_qref))
     {
-        _postural_task->setReference(_qref);
+        for(auto postural : _postural_tasks)
+        {
+            postural->setReference(_qref);
+        }
     }
 
     _autostack->update(_q);

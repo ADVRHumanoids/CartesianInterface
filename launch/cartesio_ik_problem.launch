@@ -1,0 +1,33 @@
+<launch>
+
+    <arg name="solver" default="OpenSot"/>
+    <arg name="prefix" default=""/>
+    <arg name="use_xbot_config" default="false"/>
+    <arg name="verbosity" default="2"/>
+    <arg name="rate" default="100.0"/>
+    <arg name="tf_prefix" default="ci"/>
+    <arg name="markers" default="true"/>
+    <arg name="namespace" default=""/>
+    <arg name="robot" default=""/>
+    
+    
+    
+    <group unless="$(eval namespace=='')" ns="$(arg namespace)">
+    
+         <param name="problem_description" textfile="$(find cartesian_interface)/examples/configs/$(arg robot)_simple_stack.yaml"/>
+        
+         <include file="$(find cartesian_interface)/launch/cartesio_include.launch" pass_all_args="true"/>
+    
+    </group>
+    
+    <group if="$(eval namespace=='')">
+    
+         <param name="problem_description" textfile="$(find cartesian_interface)/examples/configs/$(arg robot)_simple_stack.yaml"/>
+        
+         <include file="$(find cartesian_interface)/launch/cartesio_include.launch" pass_all_args="true"/>
+    
+    </group>
+    
+    
+
+</launch>
