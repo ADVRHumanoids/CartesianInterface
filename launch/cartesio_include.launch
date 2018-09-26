@@ -9,7 +9,8 @@
     <arg name="markers" default="true"/>
     <arg name="namespace" default=""/> <!-- dummy argument avoids pass_all_args error in parent launch file -->
     <arg name="robot" default=""/>
-        
+       
+    
     <node pkg="cartesian_interface" type="ros_server_node" 
                                     name="ros_server_node" 
                                     required="true" 
