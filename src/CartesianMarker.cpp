@@ -757,6 +757,40 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
         _marker.scale.z = mesh->dim.z;
 
     }
+    else if(link->visual->geometry->type == urdf::Geometry::CYLINDER)
+    {
+        _marker.type = visualization_msgs::Marker::CYLINDER;
+
+        boost::shared_ptr<urdf::Cylinder> mesh =
+                boost::static_pointer_cast<urdf::Cylinder>(link->visual->geometry);
+
+        KDL::Frame T_marker;
+        T_marker.p.x(link->visual->origin.position.x);
+        T_marker.p.y(link->visual->origin.position.y);
+        T_marker.p.z(link->visual->origin.position.z);
+        T_marker.M = T_marker.M.Quaternion(link->visual->origin.rotation.x,
+                              link->visual->origin.rotation.y,
+                              link->visual->origin.rotation.z,
+                              link->visual->origin.rotation.w);
+
+        T = T*T_marker;
+        _marker.pose.position.x = T.p.x();
+        _marker.pose.position.y = T.p.y();
+        _marker.pose.position.z = T.p.z();
+        double qx,qy,qz,qw; T.M.GetQuaternion(qx,qy,qz,qw);
+        _marker.pose.orientation.x = qx;
+        _marker.pose.orientation.y = qy;
+        _marker.pose.orientation.z = qz;
+        _marker.pose.orientation.w = qw;
+
+        _marker.color.r = 0.5;
+        _marker.color.g = 0.5;
+        _marker.color.b = 0.5;
+
+        _marker.scale.x = mesh->radius;
+        _marker.scale.y = mesh->radius;
+        _marker.scale.z = mesh->length;
+    }
 
     _marker.color.a = .9;
     return _marker;
