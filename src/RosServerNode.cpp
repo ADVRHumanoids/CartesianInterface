@@ -141,7 +141,13 @@ int main(int argc, char **argv){
     
     ProblemDescription ik_problem(problem_yaml, model);
     
-    __g_current_impl = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterfaceImpl>("Cartesian" + impl_name + ".so", 
+    /* Obtain full path to shared lib */
+    std::string path_to_shared_lib = XBot::Utils::FindLib("libCartesian" + impl_name + ".so", "LD_LIBRARY_PATH");
+    if (path_to_shared_lib == "") {
+        throw std::runtime_error("libCartesian" + impl_name + ".so must be listed inside LD_LIBRARY_PATH");
+    }
+    
+    __g_current_impl = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterfaceImpl>(path_to_shared_lib, 
                                                                                         impl_name + "Impl", 
                                                                                         model, ik_problem);
     
