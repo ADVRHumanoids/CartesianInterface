@@ -1,0 +1,2 @@
+find_package(ReflexxesTypeII REQUIRED)
+list(APPEND @PROJECT_NAME@_INCLUDE_DIRS "${ReflexxesTypeII_INCLUDE_DIRS}")
