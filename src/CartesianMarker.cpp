@@ -38,9 +38,11 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _clear_service = _nh.advertiseService(_int_marker.name + "/clear_marker", &CartesianMarker::clearMarker, this);
     _spawn_service = _nh.advertiseService(_int_marker.name + "/spawn_marker", &CartesianMarker::spawnMarker, this);
 
-    _task_active_service_client = _nh.serviceClient<std_srvs::SetBool>(_distal_link + "/activate_task");
     _set_properties_service_client = _nh.serviceClient<cartesian_interface::SetTaskInfo>(_distal_link + "/set_task_properties");
     _get_properties_service_client = _nh.serviceClient<cartesian_interface::GetTaskInfo>(_distal_link + "/get_task_properties");
+    
+    _set_properties_service_client.waitForExistence();
+    _get_properties_service_client.waitForExistence();
 
 //    _global_service = _nh.advertiseService("setGlobal_"+_int_marker.name, &CartesianMarker::setGlobal, this);
 //    _local_service = _nh.advertiseService("setLocal_"+_int_marker.name, &CartesianMarker::setLocal, this);
@@ -356,20 +358,20 @@ void CartesianMarker::_activateTask(const bool is_active)
 
 void CartesianMarker::activateTask(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
-    std_srvs::SetBool srv;
+    cartesian_interface::SetTaskInfo srv;
 
     _task_active *= -1;
     if(_task_active == 1)
     {
         _menu_handler.setCheckState(_task_is_active_entry, interactive_markers::MenuHandler::UNCHECKED);
-        srv.request.data = false;
-        _task_active_service_client.call(srv);
+        srv.request.control_mode = "Disabled";
+        _set_properties_service_client.call(srv);
     }
     else if(_task_active == -1)
     {
         _menu_handler.setCheckState(_task_is_active_entry, interactive_markers::MenuHandler::CHECKED);
-        srv.request.data = true;
-        _task_active_service_client.call(srv);
+        srv.request.control_mode = "Position";
+        _set_properties_service_client.call(srv);
     }
 
     _menu_handler.reApply(_server);

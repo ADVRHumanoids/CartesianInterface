@@ -169,7 +169,6 @@ private:
 
     ros::ServiceServer _clear_service;
     ros::ServiceServer _spawn_service;
-    ros::ServiceClient _task_active_service_client;
     ros::ServiceClient _set_properties_service_client;
     ros::ServiceClient _get_properties_service_client;
 //    ros::ServiceServer _global_service;
