@@ -159,6 +159,25 @@ bool XBot::Cartesian::CartesianInterfaceImpl::getPoseReference(const std::string
     return true;
 }
 
+bool XBot::Cartesian::CartesianInterfaceImpl::getPoseReferenceRaw(const std::string& end_effector, 
+                          Eigen::Affine3d& base_T_ref, 
+                          Eigen::Vector6d * base_vel_ref,
+                          Eigen::Vector6d * base_acc_ref) const
+{
+    auto task = get_task(end_effector);
+    
+    if(!task)
+    {
+        return false;
+    }
+    
+    base_T_ref = task->get_pose();
+    if(base_vel_ref) *base_vel_ref = task->get_velocity();
+    if(base_acc_ref) *base_acc_ref = task->get_acceleration();
+    
+    return true;
+}
+
 bool CartesianInterfaceImpl::getPoseTarget(const std::string& end_effector, Eigen::Affine3d& w_T_ref) const
 {
     auto task = get_task(end_effector);
@@ -187,6 +206,24 @@ bool CartesianInterfaceImpl::setPoseReference(const std::string& end_effector,
     
     return true;
 }
+
+bool CartesianInterfaceImpl::setPoseReferenceRaw(const std::string& end_effector, 
+                                              const Eigen::Affine3d& w_T_ref, 
+                                              const Eigen::Vector6d& w_vel_ref, 
+                                              const Eigen::Vector6d& w_acc_ref)
+{
+    auto task = get_task(end_effector);
+    
+    if(!task || !task->set_reference(w_T_ref, w_vel_ref, w_acc_ref))
+    {
+        return false;
+    }
+    
+    task->reset_otg();
+    
+    return true;
+}
+
 
 bool CartesianInterfaceImpl::setWayPoints(const std::string& end_effector, 
                                           const Trajectory::WayPointVector& way_points)
@@ -833,6 +870,7 @@ bool CartesianInterfaceImpl::Task::set_reference(const Eigen::Affine3d& pose,
     
     return true;
 }
+
 
 bool CartesianInterfaceImpl::Task::set_waypoints(double time, const Trajectory::WayPointVector& wps)
 {

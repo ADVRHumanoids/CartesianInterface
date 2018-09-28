@@ -65,6 +65,11 @@ public:
                           Eigen::Affine3d& base_T_ref, 
                           Eigen::Vector6d * base_vel_ref = nullptr,
                           Eigen::Vector6d * base_acc_ref = nullptr) const;
+                          
+    bool getPoseReferenceRaw(const std::string& end_effector, 
+                          Eigen::Affine3d& base_T_ref, 
+                          Eigen::Vector6d * base_vel_ref = nullptr,
+                          Eigen::Vector6d * base_acc_ref = nullptr) const;
 
     virtual bool getPoseTarget(const std::string& end_effector, 
                             Eigen::Affine3d& base_T_ref) const;
@@ -87,6 +92,11 @@ public:
                                          const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero());
 
     virtual bool setPoseReference(const std::string& end_effector, 
+                                  const Eigen::Affine3d& base_T_ref, 
+                                  const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
+                                  const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
+    
+    bool setPoseReferenceRaw(const std::string& end_effector, 
                                   const Eigen::Affine3d& base_T_ref, 
                                   const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
                                   const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
@@ -152,7 +162,9 @@ protected:
         bool set_reference(const Eigen::Affine3d& pose, 
                            const Eigen::Vector6d& vel, 
                            const Eigen::Vector6d& acc);
-        
+        bool set_reference_raw(const Eigen::Affine3d& pose, 
+                           const Eigen::Vector6d& vel, 
+                           const Eigen::Vector6d& acc);
         bool set_waypoints(double current_time, const Trajectory::WayPointVector& wp);
         bool set_target_pose(double current_time, double target_time, const Eigen::Affine3d& pose);
         void reset(ModelInterface::ConstPtr model);
@@ -166,12 +178,14 @@ protected:
         void abort();
         bool change_base_link(const std::string& new_base_link, ModelInterface::ConstPtr model);
         
+        void reset_otg();
+        
     private:
         
         typedef Eigen::Matrix<double, 7, 1> EigenVector7d;
         
         bool check_reach() const;
-        void reset_otg();
+        
         void apply_otg();
         
         std::string base_frame;
