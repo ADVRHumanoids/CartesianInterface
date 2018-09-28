@@ -259,8 +259,12 @@ bool loader_callback(cartesian_interface::LoadControllerRequest& req,
     
     if(ik_it == __g_impl_map.end())
     {
+        std::string path_to_shared_lib = XBot::Utils::FindLib("libCartesian" + req.controller_name + ".so", "LD_LIBRARY_PATH");
+        if (path_to_shared_lib == "") {
+            throw std::runtime_error("libCartesian" + req.controller_name + ".so must be listed inside LD_LIBRARY_PATH");
+        }
         current_impl = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterfaceImpl>(
-                                                        "Cartesian" + req.controller_name + ".so", 
+                                                        path_to_shared_lib, 
                                                         req.controller_name + "Impl", 
                                                         __g_model, *__g_problem);
         
