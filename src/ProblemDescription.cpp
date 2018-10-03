@@ -28,6 +28,16 @@ ProblemDescription& ProblemDescription::operator<<(ConstraintDescription::Ptr co
     return *this;
 }
 
+GazeTask::Ptr XBot::Cartesian::MakeGaze(std::string base_link)
+{
+    return std::make_shared<GazeTask>(base_link);
+}
+
+GazeTask::Ptr XBot::Cartesian::GetAsGaze(TaskDescription::Ptr task)
+{
+    return std::dynamic_pointer_cast<GazeTask>(task);
+}
+
 
 CartesianTask::Ptr XBot::Cartesian::MakeCartesian(std::string distal_link, std::string base_link)
 {
@@ -66,6 +76,13 @@ ConstraintDescription::Ptr XBot::Cartesian::MakeVelocityLimits()
     return std::make_shared<ConstraintDescription>(ConstraintType::VelocityLimits);
 }
 
+
+GazeTask::GazeTask(std::string base_link):
+    TaskDescription(TaskType::Gaze, "Gaze", 2), //HERE THE SIZE IS 2 BECAUSE THE GAZE IS CONSIDERED IMPLEMENTED USING PAN-TILT
+    base_link(base_link)
+{
+
+}
 
 CartesianTask::CartesianTask(std::string distal_link, std::string base_link):
     TaskDescription(TaskType::Cartesian, distal_link, 6),
@@ -293,6 +310,18 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
                     }
                 }
                     
+            }
+            else if(task_type == "Gaze")
+            {
+                std::string base_link = "world";
+
+                if(yaml_node[task_name]["base_link"])
+                {
+                    base_link = yaml_node[task_name]["base_link"].as<std::string>();
+                }
+
+                auto gaze_task = MakeGaze(base_link);
+                task_desc = gaze_task;
             }
             else
             {

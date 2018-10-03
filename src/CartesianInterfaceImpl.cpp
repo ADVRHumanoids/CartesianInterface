@@ -109,8 +109,8 @@ CartesianInterfaceImpl::Task::Ptr CartesianInterfaceImpl::get_task(const std::st
             it = _task_map.end();
         }
     }
-    
-    
+
+
     if(it == _task_map.end())
     {
         XBot::Logger::error("Task %s undefined \n", ee_name.c_str());
@@ -470,7 +470,12 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
                     auto cart_desc = GetAsCartesian(task_desc);
                     _tasks_vector.emplace_back(cart_desc->base_link, cart_desc->distal_link);
                     break;
-                }    
+                }
+                case TaskType::Gaze:
+                {
+                    auto gaze_desc = GetAsGaze(task_desc);
+                    _tasks_vector.emplace_back(gaze_desc->base_link, "gaze");
+                }
                 case TaskType::Com:
                 {   
                     auto com_desc = GetAsCom(task_desc);

@@ -27,7 +27,7 @@ namespace XBot { namespace Cartesian {
     /**
      * @brief Supported task types enum
      */
-    enum class TaskType { Cartesian, Postural, Com };
+    enum class TaskType { Cartesian, Postural, Com, Gaze };
     
     
     /**
@@ -94,8 +94,31 @@ namespace XBot { namespace Cartesian {
      */
     typedef std::vector<AggregatedTask> Stack;
     
-    
-    
+    /**
+     * @brief Description of a Gaze task
+     */
+    struct GazeTask : TaskDescription {
+
+        std::string base_link;
+
+        typedef std::shared_ptr<GazeTask> Ptr;
+        typedef std::shared_ptr<const GazeTask> ConstPtr;
+
+        GazeTask() = default;
+        GazeTask(std::string base_link = "world");
+    };
+
+    /**
+     * @brief Make a Gaze task and return a shared pointer
+     */
+    GazeTask::Ptr MakeGaze(std::string base_link = "world");
+
+    /**
+     * @brief Dynamic cast a generic task to a GazeTask
+     *
+     * @return A null pointer if the cast is unsuccessful (i.e. task is not a GazeTask)
+     */
+    GazeTask::Ptr GetAsGaze(TaskDescription::Ptr task);
     
     /**
      * @brief Description of a cartesian task

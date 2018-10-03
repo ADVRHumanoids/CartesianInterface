@@ -13,7 +13,8 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
                                  const std::string &distal_link,
                                  const urdf::Model &robot_urdf,
                                  const unsigned int control_type,
-                                 std::string tf_prefix
+                                 std::string tf_prefix,
+                                 const bool use_mesh
                                 ):
     _base_link(base_link),
     _distal_link(distal_link),
@@ -23,7 +24,8 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _menu_entry_counter(0),
     _control_type(1),_is_continuous(1), _task_active(-1), _position_feedback_active(-1),
     _waypoint_action_client("cartesian/" + distal_link + "/reach", true),
-    _nh("cartesian")
+    _nh("cartesian"),
+    _use_mesh(use_mesh)
 {
     _urdf.getLinks(_links);
 
@@ -651,7 +653,7 @@ visualization_msgs::InteractiveMarkerControl& CartesianMarker::makeSTLControl(vi
 {
   _control2.always_visible = true;
 
-  if(_urdf.getLink(_distal_link) != NULL)
+  if(_use_mesh && _urdf.getLink(_distal_link) != NULL)
     _control2.markers.push_back( makeSTL(msg) );
   else
     _control2.markers.push_back( makeSphere(msg) );

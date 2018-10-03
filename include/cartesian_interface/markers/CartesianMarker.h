@@ -41,12 +41,14 @@ public:
      *  visualization_msgs::InteractiveMarkerControl::MOVE_3D
      *  visualization_msgs::InteractiveMarkerControl::ROTATE_3D
      * @param tf_prefix
+     * @param use_mesh, if false sphere is used
      */
     CartesianMarker(const std::string& base_link, 
                     const std::string& distal_link,
                     const urdf::Model& robot_urdf,
                     const unsigned int control_type,
-                    std::string tf_prefix = "");
+                    std::string tf_prefix = "",
+                    const bool use_mesh = true);
     
     ~CartesianMarker();
 
@@ -173,6 +175,8 @@ private:
     ros::ServiceClient _get_properties_service_client;
 //    ros::ServiceServer _global_service;
 //    ros::ServiceServer _local_service;
+
+    bool _use_mesh;
 
     /**
      * @brief _waypoints contains all the waypoints BUT not the initial position!

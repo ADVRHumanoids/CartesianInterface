@@ -77,6 +77,27 @@ OpenSoT::tasks::Aggregated::TaskPtr XBot::Cartesian::OpenSotImpl::aggregated_fro
 
                 break;
             }
+            case TaskType::Gaze:
+            {
+                auto gaze_desc = XBot::Cartesian::GetAsGaze(task_desc);
+                std::string base_link = gaze_desc->base_link;
+
+                _gaze_task = boost::make_shared<GazeTask>(base_link + "_TO_" + "gaze",_q, *_model, base_link);
+                _gaze_task->setLambda(gaze_desc->lambda);
+
+                std::list<uint> indices(gaze_desc->indices.begin(), gaze_desc->indices.end());
+
+                if(indices.size() == 2)
+                {
+                    tasks_list.push_back(gaze_desc->weight*(_gaze_task));
+                }
+                else
+                {
+                    tasks_list.push_back(gaze_desc->weight*(_gaze_task%indices));
+                }
+
+                break;
+            }
             case TaskType::Com:
             {
                 auto com_desc = XBot::Cartesian::GetAsCom(task_desc);
@@ -249,6 +270,11 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     {
         _lambda_map["com"] = _com_task->getLambda();
     }
+
+    if(_gaze_task)
+    {
+        _lambda_map["gaze"] = _gaze_task->getLambda();
+    }
     
     for(auto t : _cartesian_tasks)
     {
@@ -282,6 +308,16 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
         v_ref *= period;
         cart_task->setReference(T_ref.matrix(), v_ref);
 
+    }
+
+    /* Handle GAZE reference */
+    if(_gaze_task)
+    {
+        Eigen::Affine3d T_ref;
+        if(getPoseReference("gaze", T_ref))
+        {
+            _gaze_task->setGaze(T_ref);
+        }
     }
     
     /* Handle COM reference */
@@ -341,6 +377,14 @@ bool XBot::Cartesian::OpenSotImpl::setControlMode(const std::string& ee_name,
     if(ee_name == "com" && _com_task)
     {
         task_ptr = _com_task;
+    }
+    else if(ee_name == "gaze" && _gaze_task)
+    {
+        if(ctrl_type == ControlType::Velocity)
+        {
+            XBot::Logger::error("Gaze task does not allow velocity ctrl type! \n");
+            return false;
+        }
     }
     
     for(const auto t : _cartesian_tasks)
