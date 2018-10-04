@@ -363,6 +363,27 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model,
 
 void CartesianInterfaceImpl::__construct_from_vectors()
 {
+    /* Delete possible duplicates (e.g. different subtasks on different priorities */
+    std::sort(_tasks_vector.begin(), _tasks_vector.end());
+    _tasks_vector.erase(std::unique(_tasks_vector.begin(), _tasks_vector.end()), _tasks_vector.end());
+    
+    /* Consistency check: different base links for same distal NOT allowed */
+    std::map<std::string, int> counts;
+    for(auto tpair : _tasks_vector)
+    {
+        auto it = counts.find(tpair.second);
+        if(it == counts.end())
+        {
+            counts[tpair.second] = 0;
+        }
+        else
+        {
+            throw std::runtime_error("different base links for same distal not allowed (" + tpair.second + ")");
+        }
+
+    }
+
+
     for(auto pair : _tasks_vector)
     {
         Eigen::Affine3d T;
