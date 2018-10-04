@@ -1,4 +1,5 @@
 #include <cartesian_interface/CartesianInterfaceImpl.h>
+#include <cartesian_interface/problem/Cartesian.h>
 #include <boost/algorithm/string.hpp>  
 
 
@@ -463,26 +464,15 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
         for(auto task_desc : ik_problem.getTask(i))
         {
             
-            switch(task_desc->type)
+            switch(task_desc->interface)
             {
-                case TaskType::Cartesian:
+                case TaskInterface::Cartesian:
                 {
                     auto cart_desc = GetAsCartesian(task_desc);
                     _tasks_vector.emplace_back(cart_desc->base_link, cart_desc->distal_link);
                     break;
                 }
-                case TaskType::Gaze:
-                {
-                    auto gaze_desc = GetAsGaze(task_desc);
-                    _tasks_vector.emplace_back(gaze_desc->base_link, "gaze");
-                }
-                case TaskType::Com:
-                {   
-                    auto com_desc = GetAsCom(task_desc);
-                    _tasks_vector.emplace_back("world", "com");
-                    break;
-                }   
-                case TaskType::Postural:
+                case TaskInterface::Postural:
                 {   
                     if(!_model->getRobotState("home", _q_ref))
                     {

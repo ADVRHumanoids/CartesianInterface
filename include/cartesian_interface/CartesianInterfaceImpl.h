@@ -23,7 +23,7 @@
 
 #include <cartesian_interface/CartesianInterface.h>
 #include <cartesian_interface/trajectory/Trajectory.h>
-#include <cartesian_interface/ProblemDescription.h>
+#include <cartesian_interface/problem/ProblemDescription.h>
 #include <XBotInterface/SoLib.h>
 #include <ReflexxesTypeII/Wrappers/TrajectoryGenerator.h>
 
