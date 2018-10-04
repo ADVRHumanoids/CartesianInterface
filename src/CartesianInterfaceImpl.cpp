@@ -77,6 +77,12 @@ CartesianInterface::State CartesianInterface::StateFromString(const std::string&
 bool XBot::Cartesian::CartesianInterfaceImpl::setBaseLink(const std::string& ee_name, 
                                                           const std::string& new_base_link)
 {
+    if(ee_name == "com")
+    {
+        Logger::error("Base link for task Com cannot be changed\n");
+        return false;
+    }
+    
     auto task = get_task(ee_name);
     
     if(!task || !task->change_base_link(new_base_link, _model))
