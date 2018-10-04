@@ -86,7 +86,7 @@ void CartesianMarker::MakeMenu()
     _T_entry = _menu_handler.insert(_way_point_entry, "T [sec]");
     _menu_entry_counter++;
     offset_menu_entry = _menu_entry_counter;
-    for ( int i=0; i < SECS; i++ )
+    for ( int i = 0; i < SECS; i++ )
     {
         std::ostringstream s;
         s <<i+1;
@@ -293,8 +293,10 @@ void CartesianMarker::changeBaseLink(const visualization_msgs::InteractiveMarker
     cartesian_interface::SetTaskInfo srv;
     srv.request.base_link = new_base_link;
     if(!_set_properties_service_client.call(srv) || srv.response.success == false){
+        
         ROS_WARN("%s", srv.response.message.c_str());
-        return;}
+        return;
+    }
 
     setBaseLink(new_base_link);
 

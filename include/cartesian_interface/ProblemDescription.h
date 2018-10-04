@@ -37,12 +37,12 @@ namespace XBot { namespace Cartesian {
     struct TaskDescription {
         
         /**
-         * @brief Task type
+         * @brief Task type (speficies interface)
          */
         TaskType type;
         
         /**
-         * @brief Task literal ID
+         * @brief Task literal ID (specifies implementation)
          */
         std::string name;
         

@@ -299,8 +299,8 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
                 XBot::Logger::error("Unsupported task type %s\n", task_type.c_str());
                 throw std::runtime_error("Bad problem description");
             }
-                
-                
+
+            
             if(yaml_node[task_name]["weight"] && yaml_node[task_name]["weight"].IsScalar())
             {
                 task_desc->weight *= yaml_node[task_name]["weight"].as<double>();
