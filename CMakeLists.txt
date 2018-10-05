@@ -7,6 +7,7 @@ include(MacroInstallLib)
 find_package(XBotInterface REQUIRED)
 find_package(XCM QUIET)
 find_package(OpenSoT REQUIRED)
+find_package(ReflexxesTypeII REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp
                                         std_msgs
                                         geometry_msgs
@@ -22,6 +23,7 @@ include_directories(include
                     ${XBotInterface_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
+                    ${ReflexxesTypeII_INCLUDE_DIRS}
                     )
 
 
@@ -50,6 +52,7 @@ add_service_files(
   GetTaskInfo.srv
   LoadController.srv
   GetTaskList.srv
+  ResetWorld.srv
 )
 
 # Generate actions in the 'action' folder
@@ -77,10 +80,11 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-   INCLUDE_DIRS include
+   INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIRS}
    LIBRARIES CartesianInterface
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
+   CFG_EXTRAS ${PROJECT_NAME}-extras.cmake
 )
 
 # Interface implementation
@@ -100,6 +104,7 @@ set(CartesianInterfaceROS_SRC
         src/RosServerClass.cpp
         src/CartesianMarker.cpp
         src/JoyStick.cpp
+        src/ManipulabilityAnalyzer.cpp
     )
 
 # Trajectory
@@ -129,6 +134,7 @@ target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
                                                 ${catkin_LIBRARIES}
                                                 ${XBOT_RSPUB_LIBRARIES}
                                                 yaml-cpp
+                                                ${ReflexxesTypeII_LIBRARIES}
                       )
 add_dependencies(CartesianInterface ${PROJECT_NAME}_generate_messages)
 
@@ -142,17 +148,25 @@ target_link_libraries(CartesianOpenSot PUBLIC ${OpenSoT_LIBRARIES}
 
 
 
-# Ros server
+# Cartesian Server executable
 add_executable(ros_server_node src/RosServerNode.cpp)
 target_link_libraries(ros_server_node CartesianInterface dl)
 
-# Marker spawner
+# Marker spawner executable
 add_executable(marker_spawner src/MarkerSpawner.cpp)
 target_link_libraries(marker_spawner CartesianInterface)
 
-# JoyStick spawner
+# JoyStick spawner executable
 add_executable(joystick_spawner src/JoyStickSpawner.cpp)
 target_link_libraries(joystick_spawner CartesianInterface)
+
+# CartesianAnalyzer executable
+add_executable(cartesian_analyzer src/CartesianAnalyzer.cpp)
+target_link_libraries(cartesian_analyzer CartesianInterface)
+
+# WorldConnecter executable
+add_executable(world_connecter src/WorldConnecter.cpp)
+target_link_libraries(world_connecter ${catkin_LIBRARIES})
 
 add_subdirectory(examples)
 
@@ -182,7 +196,19 @@ install(TARGETS joystick_spawner joystick_spawner
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+install(TARGETS cartesian_analyzer cartesian_analyzer
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 install(TARGETS CartesianInterface CartesianInterface
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(TARGETS world_connecter world_connecter
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

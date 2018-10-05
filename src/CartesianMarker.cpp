@@ -3,6 +3,7 @@
 #include <cartesian_interface/GetTaskInfo.h>
 #include <std_srvs/SetBool.h>
 #include <numeric> 
+#include <XBotInterface/RtLog.hpp>
 
 #define SECS 5
 
@@ -14,7 +15,6 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
                                  const unsigned int control_type,
                                  std::string tf_prefix
                                 ):
-    _nh("xbotcore/cartesian"),
     _base_link(base_link),
     _distal_link(distal_link),
     _urdf(robot_urdf),
@@ -22,7 +22,8 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _tf_prefix(tf_prefix),
     _menu_entry_counter(0),
     _control_type(1),_is_continuous(1), _task_active(-1), _position_feedback_active(-1),
-    _waypoint_action_client("xbotcore/cartesian/" + distal_link + "/reach", true)
+    _waypoint_action_client("cartesian/" + distal_link + "/reach", true),
+    _nh("cartesian")
 {
     _urdf.getLinks(_links);
 
@@ -37,9 +38,11 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _clear_service = _nh.advertiseService(_int_marker.name + "/clear_marker", &CartesianMarker::clearMarker, this);
     _spawn_service = _nh.advertiseService(_int_marker.name + "/spawn_marker", &CartesianMarker::spawnMarker, this);
 
-    _task_active_service_client = _nh.serviceClient<std_srvs::SetBool>(_distal_link + "/activate_task");
     _set_properties_service_client = _nh.serviceClient<cartesian_interface::SetTaskInfo>(_distal_link + "/set_task_properties");
     _get_properties_service_client = _nh.serviceClient<cartesian_interface::GetTaskInfo>(_distal_link + "/get_task_properties");
+    
+    _set_properties_service_client.waitForExistence();
+    _get_properties_service_client.waitForExistence();
 
 //    _global_service = _nh.advertiseService("setGlobal_"+_int_marker.name, &CartesianMarker::setGlobal, this);
 //    _local_service = _nh.advertiseService("setLocal_"+_int_marker.name, &CartesianMarker::setLocal, this);
@@ -355,20 +358,20 @@ void CartesianMarker::_activateTask(const bool is_active)
 
 void CartesianMarker::activateTask(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
-    std_srvs::SetBool srv;
+    cartesian_interface::SetTaskInfo srv;
 
     _task_active *= -1;
     if(_task_active == 1)
     {
         _menu_handler.setCheckState(_task_is_active_entry, interactive_markers::MenuHandler::UNCHECKED);
-        srv.request.data = false;
-        _task_active_service_client.call(srv);
+        srv.request.control_mode = "Disabled";
+        _set_properties_service_client.call(srv);
     }
     else if(_task_active == -1)
     {
         _menu_handler.setCheckState(_task_is_active_entry, interactive_markers::MenuHandler::CHECKED);
-        srv.request.data = true;
-        _task_active_service_client.call(srv);
+        srv.request.control_mode = "Position";
+        _set_properties_service_client.call(srv);
     }
 
     _menu_handler.reApply(_server);
@@ -504,6 +507,7 @@ bool CartesianMarker::clearMarker(std_srvs::Empty::Request& req, std_srvs::Empty
 void CartesianMarker::MakeMarker(const std::string &distal_link, const std::string &base_link,
                             bool fixed, unsigned int interaction_mode, bool show)
 {
+    XBot::Logger::info(XBot::Logger::Severity::HIGH, "Creating marker %s -> %s\n", base_link.c_str(), distal_link.c_str());
     _int_marker.header.frame_id = _tf_prefix+base_link;
     _int_marker.scale = 0.5;
 
@@ -754,6 +758,40 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
         _marker.scale.y = mesh->dim.y;
         _marker.scale.z = mesh->dim.z;
 
+    }
+    else if(link->visual->geometry->type == urdf::Geometry::CYLINDER)
+    {
+        _marker.type = visualization_msgs::Marker::CYLINDER;
+
+        boost::shared_ptr<urdf::Cylinder> mesh =
+                boost::static_pointer_cast<urdf::Cylinder>(link->visual->geometry);
+
+        KDL::Frame T_marker;
+        T_marker.p.x(link->visual->origin.position.x);
+        T_marker.p.y(link->visual->origin.position.y);
+        T_marker.p.z(link->visual->origin.position.z);
+        T_marker.M = T_marker.M.Quaternion(link->visual->origin.rotation.x,
+                              link->visual->origin.rotation.y,
+                              link->visual->origin.rotation.z,
+                              link->visual->origin.rotation.w);
+
+        T = T*T_marker;
+        _marker.pose.position.x = T.p.x();
+        _marker.pose.position.y = T.p.y();
+        _marker.pose.position.z = T.p.z();
+        double qx,qy,qz,qw; T.M.GetQuaternion(qx,qy,qz,qw);
+        _marker.pose.orientation.x = qx;
+        _marker.pose.orientation.y = qy;
+        _marker.pose.orientation.z = qz;
+        _marker.pose.orientation.w = qw;
+
+        _marker.color.r = 0.5;
+        _marker.color.g = 0.5;
+        _marker.color.b = 0.5;
+
+        _marker.scale.x = mesh->radius;
+        _marker.scale.y = mesh->radius;
+        _marker.scale.z = mesh->length;
     }
 
     _marker.color.a = .9;

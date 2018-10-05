@@ -11,6 +11,7 @@
 #include <cartesian_interface/GetTaskInfo.h>
 #include <cartesian_interface/SetTaskInfo.h>
 #include <cartesian_interface/GetTaskList.h>
+#include <cartesian_interface/ResetWorld.h>
 #include <actionlib/server/simple_action_server.h>
 #include <std_srvs/Empty.h>
 #include <std_srvs/SetBool.h>
@@ -51,6 +52,7 @@ namespace XBot { namespace Cartesian {
         struct Options
         {
             bool spawn_markers;
+            std::string tf_prefix;
             
             Options();
         };
@@ -86,8 +88,6 @@ namespace XBot { namespace Cartesian {
         void __generate_state_broadcasting();
         void __generate_online_pos_topics();
         void __generate_online_vel_topics();
-        void __generate_toggle_pos_mode_services();
-        void __generate_toggle_task_services();
         void __generate_task_info_services();
         void __generate_reset_service();
         void __generate_rspub();
@@ -95,10 +95,13 @@ namespace XBot { namespace Cartesian {
         void __generate_task_info_setters();
         void __generate_task_list_service();
         void __generate_postural_task_topics_and_services();
+        void __generate_update_param_services();
+        void __generate_reset_world_service();
 
         void manage_reach_actions();
         void publish_posture_state(ros::Time time);
         void publish_state(ros::Time time);
+        void publish_solution(ros::Time time);
         void publish_ref_tf(ros::Time time);
         void publish_world_tf(ros::Time time);
         static geometry_msgs::Pose get_normalized_pose(const geometry_msgs::Pose& pose);
@@ -111,14 +114,6 @@ namespace XBot { namespace Cartesian {
         void online_velocity_reference_cb(const geometry_msgs::TwistStampedConstPtr& msg,
                                            const std::string& ee_name);
 
-        bool toggle_position_mode_cb(std_srvs::SetBoolRequest& req,
-                                     std_srvs::SetBoolResponse& res,
-                                     const std::string& ee_name);
-
-        bool toggle_task_cb(std_srvs::SetBoolRequest& req,
-                            std_srvs::SetBoolResponse& res,
-                            const std::string& ee_name);
-
         bool get_task_info_cb(cartesian_interface::GetTaskInfoRequest& req,
                             cartesian_interface::GetTaskInfoResponse& res,
                             const std::string& ee_name);
@@ -130,13 +125,21 @@ namespace XBot { namespace Cartesian {
         bool reset_cb(std_srvs::SetBoolRequest& req,
                       std_srvs::SetBoolResponse& res);
         
+        bool reset_params_cb(std_srvs::TriggerRequest& req,
+                             std_srvs::TriggerResponse& res);
+        
         bool reset_posture_cb(std_srvs::TriggerRequest& req,
                               std_srvs::TriggerResponse& res);
         
         bool task_list_cb(cartesian_interface::GetTaskListRequest& req, 
                           cartesian_interface::GetTaskListResponse& res);
+        
+        bool reset_world_cb(cartesian_interface::ResetWorldRequest& req, 
+                            cartesian_interface::ResetWorldResponse& res);
 
         Options _opt;
+        
+        std::string _tf_prefix, _tf_prefix_slash;
 
         CartesianInterface::Ptr _cartesian_interface;
         ModelInterface::ConstPtr _model;
@@ -151,11 +154,11 @@ namespace XBot { namespace Cartesian {
         std::vector<bool> _is_action_active;
         std::vector<ros::Subscriber> _pos_sub, _vel_sub;
         std::vector<ros::Publisher> _state_pub;
-        ros::Publisher _com_pub, _posture_pub;
+        ros::Publisher _com_pub, _posture_pub, _solution_pub;
         ros::Subscriber _posture_sub;
-        std::vector<ros::ServiceServer> _toggle_pos_mode_srv, _toggle_task_srv, _get_task_info_srv, _set_task_info_srv;
+        std::vector<ros::ServiceServer> _get_task_info_srv, _set_task_info_srv;
         std::map<std::string, CartesianMarker::Ptr> _markers;
-        ros::ServiceServer _reset_srv, _tasklist_srv, _reset_posture_srv;
+        ros::ServiceServer _reset_srv, _tasklist_srv, _reset_posture_srv, _update_limits_srv, _reset_world_srv;
 
         std::shared_ptr<std::thread> _marker_thread;
 

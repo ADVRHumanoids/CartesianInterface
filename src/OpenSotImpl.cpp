@@ -37,7 +37,7 @@ bool XBot::Cartesian::OpenSotImpl::setBaseLink(const std::string& ee_name, const
 }
 
 
-OpenSoT::tasks::Aggregated::Ptr XBot::Cartesian::OpenSotImpl::aggregated_from_stack(XBot::Cartesian::AggregatedTask stack)
+OpenSoT::tasks::Aggregated::TaskPtr XBot::Cartesian::OpenSotImpl::aggregated_from_stack(XBot::Cartesian::AggregatedTask stack)
 {
     std::list<OpenSoT::tasks::Aggregated::TaskPtr> tasks_list;
 
@@ -99,19 +99,22 @@ OpenSoT::tasks::Aggregated::Ptr XBot::Cartesian::OpenSotImpl::aggregated_from_st
             case TaskType::Postural:
             {
                 auto postural_desc = XBot::Cartesian::GetAsPostural(task_desc);
-                _postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
+
+                auto postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
                 
-                _postural_task->setLambda(postural_desc->lambda);
+                _postural_tasks.push_back(postural_task);
+                
+                postural_task->setLambda(postural_desc->lambda);
 
                 std::list<uint> indices(postural_desc->indices.begin(), postural_desc->indices.end());
 
                 if(indices.size() == _model->getJointNum())
                 {
-                    tasks_list.push_back(postural_desc->weight*(_postural_task));
+                    tasks_list.push_back(postural_desc->weight*(postural_task));
                 }
                 else
                 {
-                    tasks_list.push_back(postural_desc->weight*(_postural_task%indices));
+                    tasks_list.push_back(postural_desc->weight*(postural_task%indices));
                 }
                 break;
             }
@@ -121,7 +124,14 @@ OpenSoT::tasks::Aggregated::Ptr XBot::Cartesian::OpenSotImpl::aggregated_from_st
     }
 
     /* Return Aggregated */
-    return boost::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _q.size());
+    if(tasks_list.size() > 1)
+    {
+        return boost::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _q.size());
+    }
+    else
+    {
+        return *tasks_list.begin();
+    }
 }
 
 OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr XBot::Cartesian::OpenSotImpl::constraint_from_description(XBot::Cartesian::ConstraintDescription::Ptr constr_desc)
@@ -287,9 +297,12 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
     }
     
     /* Postural task */
-    if(_postural_task && getReferencePosture(_qref))
+    if(_postural_tasks.size() > 0 && getReferencePosture(_qref))
     {
-        _postural_task->setReference(_qref);
+        for(auto postural : _postural_tasks)
+        {
+            postural->setReference(_qref);
+        }
     }
 
     _autostack->update(_q);

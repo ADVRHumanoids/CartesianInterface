@@ -42,6 +42,11 @@ namespace XBot { namespace Cartesian {
         TaskType type;
         
         /**
+         * @brief Task literal ID
+         */
+        std::string name;
+        
+        /**
          * @brief Task weight. Inside an aggregated task, each component
          * is weighted according to this variable, that is therefore useful
          * to model soft priorities. It MUST be a positive-definite symmetric
@@ -68,7 +73,7 @@ namespace XBot { namespace Cartesian {
         typedef std::shared_ptr<const TaskDescription> ConstPtr;
         
         TaskDescription() = default;
-        TaskDescription(TaskType type, int size);
+        TaskDescription(TaskType type, std::string name, int size);
         
         virtual ~TaskDescription(){}
         

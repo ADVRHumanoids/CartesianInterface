@@ -2,8 +2,11 @@
 #include <XBotInterface/Utils.h>
 #include <XBotInterface/SoLib.h>
 
+#include <std_srvs/Trigger.h>
 #include <cartesian_interface/GetTaskList.h>
 #include <cartesian_interface/markers/CartesianMarker.h>
+
+#include <functional>
 
 #include <ros/ros.h>
 
@@ -14,7 +17,14 @@
 
 
 using namespace XBot::Cartesian;
+typedef std::map<std::string, XBot::Cartesian::CartesianMarker::Ptr> MarkerMap;
 
+MarkerMap __g_markers;
+std::string __g_tf_prefix_slash;
+
+void construct_markers(ros::NodeHandle nh, MarkerMap& markers);
+bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res, ros::NodeHandle nh);
+void controller_changed_callback(const std_msgs::EmptyConstPtr& msg, ros::NodeHandle nh);
 
 int main(int argc, char **argv){
     
@@ -23,18 +33,70 @@ int main(int argc, char **argv){
     
     /* Init ROS node */
     ros::init(argc, argv, "xbot_cartesian_marker_spawner");
-    ros::NodeHandle nh("xbotcore/cartesian");
+    ros::NodeHandle nh("cartesian");
+    ros::NodeHandle nh_priv("~");
+    
+    /* Reset service */
+    auto srv_cbk = std::bind(reset_callback, std::placeholders::_1, std::placeholders::_2, nh);
+    auto srv = nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>("markers/reset", srv_cbk);
+    
+    /* Controller changed subscriber */
+    auto event_sub_cbk = std::bind(controller_changed_callback, std::placeholders::_1, nh);
+    auto event_sub = nh.subscribe<std_msgs::Empty>("changed_controller_event", 1, event_sub_cbk);
+    
+    /* TF prefix from param */
+    __g_tf_prefix_slash = nh_priv.param<std::string>("tf_prefix", "ci");
+    if(__g_tf_prefix_slash == "null")
+    {
+        __g_tf_prefix_slash = "";
+    }
+    __g_tf_prefix_slash = __g_tf_prefix_slash == "" ? "" : (__g_tf_prefix_slash + "/");
+    
+    construct_markers(nh, __g_markers);
+    
+    Logger::success(Logger::Severity::HIGH, "Marker spawner: started spinning...\n");
+    ros::spin();
+}
 
+void controller_changed_callback(const std_msgs::EmptyConstPtr& msg, ros::NodeHandle nh)
+{
+    std_srvs::TriggerRequest req;
+    std_srvs::TriggerResponse res;
+    
+    if(reset_callback(req, res, nh) && res.success)
+    {
+        Logger::success(Logger::Severity::HIGH, "Reset markers succesfully\n");
+    }
+    else
+    {
+        Logger::error(Logger::Severity::HIGH, "Failed to reset markers\n");
+    }
+}
+
+
+bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res, ros::NodeHandle nh)
+{
+    __g_markers.clear();
+    
+    construct_markers(nh, __g_markers); // will THROW on failure
+    
+    res.message = "Successfully reset markers";
+    res.success = true;
+    
+    return true;
+}
+
+void construct_markers(ros::NodeHandle nh, MarkerMap& markers)
+{
     /* Get task list from cartesian server */
-    ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskListRequest, cartesian_interface::GetTaskListResponse>("/xbotcore/cartesian/get_task_list");
+    ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskListRequest, cartesian_interface::GetTaskListResponse>("get_task_list");
     cartesian_interface::GetTaskListRequest req;
     cartesian_interface::GetTaskListResponse res;
     task_list_client.waitForExistence();
     Logger::info(Logger::Severity::HIGH, "Marker spawner: retrieving task list\n");
     if(!task_list_client.call(req, res))
     {
-        ros::shutdown();
-        std::exit(1);
+        throw std::runtime_error("Unable to call get_task_list service");
     }
     
     std::string robot_urdf_string;
@@ -42,8 +104,6 @@ int main(int argc, char **argv){
     urdf::Model robot_urdf;
     robot_urdf.initString(robot_urdf_string);
     
-    
-    std::map<std::string, XBot::Cartesian::CartesianMarker::Ptr> markers;
 
     for(int i = 0; i < res.distal_links.size(); i++)
     {
@@ -65,13 +125,14 @@ int main(int argc, char **argv){
                                                    ee_name,
                                                    robot_urdf,
                                                    control_type,
-                                                   "ci/"
+                                                   __g_tf_prefix_slash
                                                   );
         
         markers[ee_name] = marker;
     }
     
-    Logger::success(Logger::Severity::HIGH, "Marker spawner: started spinning...\n");
+
     
-    ros::spin();
+   
 }
+

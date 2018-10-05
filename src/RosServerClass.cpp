@@ -4,7 +4,8 @@
 using namespace XBot::Cartesian;
 
 RosServerClass::Options::Options():
-    spawn_markers(true)
+    spawn_markers(true),
+    tf_prefix("ci")
 {
 
 }
@@ -13,13 +14,15 @@ void RosServerClass::__generate_state_broadcasting()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string topic_name = "/xbotcore/cartesian/" + ee_name + "/state";
+        std::string topic_name = "" + ee_name + "/state";
 
         ros::Publisher pub = _nh.advertise<geometry_msgs::PoseStamped>(topic_name,
                                                                         1);
 
         _state_pub.push_back(pub);
     }
+    
+    _solution_pub = _nh.advertise<sensor_msgs::JointState>("solution", 1);
 }
 
 
@@ -34,8 +37,9 @@ void RosServerClass::__generate_rspub()
     std::string _tf_prefix = "/xbotcore/" + _model->getUrdf().getName();
     _nh.setParam(_urdf_param_name, _model->getUrdfString());
     _nh.setParam("/robot_description", _model->getUrdfString());
+    _nh.setParam("/robot_description_semantic", _model->getSrdfString());
     
-    _com_pub = _nh.advertise<geometry_msgs::PointStamped>("/xbotcore/cartesian/com_position", 1);
+    _com_pub = _nh.advertise<geometry_msgs::PointStamped>("com_position", 1);
 }
 
 void RosServerClass::publish_ref_tf(ros::Time time)
@@ -45,8 +49,8 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     _model->getJointPosition(_joint_name_map);
     std::map<std::string, double> _joint_name_std_map(_joint_name_map.begin(), _joint_name_map.end());
 
-    _rspub->publishTransforms(_joint_name_std_map, time, "ci");
-    _rspub->publishFixedTransforms("ci");
+    _rspub->publishTransforms(_joint_name_std_map, time, _tf_prefix);
+    _rspub->publishFixedTransforms(_tf_prefix, true);
     
     
     /* Publish CoM position */
@@ -55,13 +59,21 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     
     geometry_msgs::PointStamped com_msg;
     tf::pointEigenToMsg(com, com_msg.point);
-    com_msg.header.frame_id = "ci/world_odom";
+    com_msg.header.frame_id = _tf_prefix_slash + "world_odom";
     com_msg.header.stamp = time;
     _com_pub.publish(com_msg);
     
     /* Publish CoM tf */
     Eigen::Affine3d w_T_com;
-    _model->getFloatingBasePose(w_T_com);
+    if(_model->isFloatingBase())
+    {
+        _model->getFloatingBasePose(w_T_com);
+    }
+    else
+    {
+        w_T_com.setIdentity();
+    }
+    
     w_T_com.translation() = com;
     
     tf::Transform transform;
@@ -69,8 +81,8 @@ void RosServerClass::publish_ref_tf(ros::Time time)
 
     _tf_broadcaster.sendTransform(tf::StampedTransform(transform,
                                                        time,
-                                                       "ci/world_odom",
-                                                       "ci/com"));
+                                                       _tf_prefix_slash + "world_odom",
+                                                       _tf_prefix_slash + "com"));
 
 }
 
@@ -99,7 +111,7 @@ void RosServerClass::__generate_online_vel_topics()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string topic_name = "/xbotcore/cartesian/" + ee_name + "/velocity_reference";
+        std::string topic_name = "" + ee_name + "/velocity_reference";
 
         auto cb = std::bind(&RosServerClass::online_velocity_reference_cb, this, std::placeholders::_1, ee_name);
 
@@ -136,7 +148,7 @@ void RosServerClass::__generate_online_pos_topics()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string topic_name = "/xbotcore/cartesian/" + ee_name + "/reference";
+        std::string topic_name = "" + ee_name + "/reference";
 
         auto cb = std::bind(&RosServerClass::online_position_reference_cb, this, std::placeholders::_1, ee_name);
 
@@ -151,7 +163,7 @@ void RosServerClass::__generate_reach_pose_action_servers()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string action_name = "/xbotcore/cartesian/" + ee_name + "/reach";
+        std::string action_name = "" + ee_name + "/reach";
 
         _action_servers.emplace_back( new ActionServer(_nh, action_name, false) );
 
@@ -325,7 +337,7 @@ void XBot::Cartesian::RosServerClass::publish_posture_state(ros::Time time)
     msg.name.reserve(_model->getJointNum());
     msg.position.reserve(_model->getJointNum());
     int i = 0;
-    for(const std::string jname : _model->getEnabledJointNames())
+    for(const std::string& jname : _model->getEnabledJointNames())
     {
         msg.name.push_back(jname);
         msg.position.push_back(_posture_ref[i]);
@@ -334,6 +346,35 @@ void XBot::Cartesian::RosServerClass::publish_posture_state(ros::Time time)
     
     _posture_pub.publish(msg);
 }   
+
+void XBot::Cartesian::RosServerClass::publish_solution(ros::Time time)
+{
+    sensor_msgs::JointState msg;
+    Eigen::VectorXd _sol_q, _sol_qdot;
+
+    if(_solution_pub.getNumSubscribers() == 0)
+    {
+        return;
+    }
+    
+    _model->getJointPosition(_sol_q);
+    _model->getJointVelocity(_sol_qdot);
+    
+    msg.header.stamp = time;
+    msg.name.reserve(_model->getJointNum());
+    msg.position.reserve(_model->getJointNum());
+    msg.velocity.reserve(_model->getJointNum());
+    int i = 0;
+    for(const std::string& jname : _model->getEnabledJointNames())
+    {
+        msg.name.push_back(jname);
+        msg.position.push_back(_sol_q[i]);
+        msg.velocity.push_back(_sol_qdot[i]);
+        i++;
+    }
+    
+    _solution_pub.publish(msg);
+}
 
 
 void RosServerClass::run()
@@ -347,6 +388,7 @@ void RosServerClass::run()
     publish_ref_tf(now);
     publish_world_tf(now);
     publish_posture_state(now);
+    publish_solution(now);
 
 }
 
@@ -355,21 +397,25 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
                                Options opt):
     _cartesian_interface(intfc),
     _model(model),
-    _opt(opt)
+    _opt(opt),
+    _nh("cartesian")
 {
+    _tf_prefix = _opt.tf_prefix;
+    _tf_prefix_slash = _tf_prefix == "" ? "" : (_tf_prefix + "/");
+    
     _nh.setCallbackQueue(&_cbk_queue);
     
     __generate_online_pos_topics();
     __generate_online_vel_topics();
     __generate_reach_pose_action_servers();
     __generate_state_broadcasting();
-    __generate_toggle_pos_mode_services();
-    __generate_toggle_task_services();
     __generate_rspub();
     __generate_task_info_services();
     __generate_task_info_setters();
     __generate_task_list_service();
     __generate_postural_task_topics_and_services();
+    __generate_update_param_services();
+    __generate_reset_world_service();
 
     if(_opt.spawn_markers)
     {
@@ -381,28 +427,37 @@ void RosServerClass::publish_world_tf(ros::Time time)
 {
     /* Publish world odom */
     Eigen::Affine3d w_T_pelvis;
-    _model->getFloatingBasePose(w_T_pelvis);
+    w_T_pelvis.setIdentity();
+    std::string fb_link = "world";
+    
+    if(_model->isFloatingBase())
+    {
+        _model->getFloatingBasePose(w_T_pelvis);
+        _model->getFloatingBaseLink(fb_link);
+    }
+    
     tf::Transform transform;
     tf::transformEigenToTF(w_T_pelvis, transform);
-    std::string fb_link;
-    _model->getFloatingBaseLink(fb_link);
 
     _tf_broadcaster.sendTransform(tf::StampedTransform(transform.inverse(),
                                                        time,
-                                                       "ci/"+fb_link,
-                                                       "ci/world_odom"));
+                                                       _tf_prefix_slash + fb_link,
+                                                       _tf_prefix_slash + "world_odom"));
     
 
     /* Publish ref-to-actual-robot fixed tf */
-    Eigen::Affine3d T_eye;
-    T_eye.setIdentity();
-    tf::Transform transform_eye;
-    tf::transformEigenToTF(T_eye, transform_eye);
+    if(_tf_prefix != "")
+    {
+        Eigen::Affine3d T_eye;
+        T_eye.setIdentity();
+        tf::Transform transform_eye;
+        tf::transformEigenToTF(T_eye, transform_eye);
 
-    _tf_broadcaster.sendTransform(tf::StampedTransform(transform_eye,
-                                                       time,
-                                                       "ci/world",
-                                                       "world"));
+        _tf_broadcaster.sendTransform(tf::StampedTransform(transform_eye,
+                                                        time,
+                                                        _tf_prefix_slash + "world",
+                                                        "world"));
+    }
 }
 
 
@@ -427,61 +482,9 @@ geometry_msgs::Pose RosServerClass::get_normalized_pose(const geometry_msgs::Pos
 
 }
 
-void RosServerClass::__generate_toggle_pos_mode_services()
-{
-    for(std::string ee_name : _cartesian_interface->getTaskList())
-    {
-        std::string srv_name = "/xbotcore/cartesian/" + ee_name + "/toggle_position_mode";
-        auto cb = boost::bind(&RosServerClass::toggle_position_mode_cb,
-                            this,
-                            _1,
-                            _2,
-                            ee_name);
-        ros::ServiceServer srv = _nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(srv_name, cb);
-
-        _toggle_pos_mode_srv.push_back(srv);
-    }
-}
-
-bool RosServerClass::toggle_position_mode_cb(std_srvs::SetBoolRequest& req,
-                                             std_srvs::SetBoolResponse& res,
-                                             const std::string& ee_name)
-{
-    if(req.data)
-    {
-        _cartesian_interface->setControlMode(ee_name, CartesianInterface::ControlType::Position);
-        res.message = "Control mode set to position for end effector " + ee_name;
-    }
-    else
-    {
-        _cartesian_interface->setControlMode(ee_name, CartesianInterface::ControlType::Velocity);
-        res.message = "Control mode set to velocity for end effector " + ee_name;
-    }
-
-    res.success = true;
-
-    return true;
-}
-
-void RosServerClass::__generate_toggle_task_services()
-{
-    for(std::string ee_name : _cartesian_interface->getTaskList())
-    {
-        std::string srv_name = "/xbotcore/cartesian/" + ee_name + "/activate_task";
-        auto cb = boost::bind(&RosServerClass::toggle_task_cb,
-                            this,
-                            _1,
-                            _2,
-                            ee_name);
-        ros::ServiceServer srv = _nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(srv_name, cb);
-
-        _toggle_task_srv.push_back(srv);
-    }
-}
-
 void XBot::Cartesian::RosServerClass::__generate_task_list_service()
 {
-    std::string srv_name = "/xbotcore/cartesian/get_task_list";
+    std::string srv_name = "get_task_list";
     _tasklist_srv = _nh.advertiseService(srv_name, &RosServerClass::task_list_cb, this);
 }
 
@@ -506,7 +509,7 @@ void XBot::Cartesian::RosServerClass::__generate_task_info_services()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string srv_name = "/xbotcore/cartesian/" + ee_name + "/get_task_properties";
+        std::string srv_name = "" + ee_name + "/get_task_properties";
         auto cb = boost::bind(&RosServerClass::get_task_info_cb,
                             this,
                             _1,
@@ -519,24 +522,66 @@ void XBot::Cartesian::RosServerClass::__generate_task_info_services()
     }
 }
 
-bool RosServerClass::toggle_task_cb(std_srvs::SetBoolRequest& req,
-                                    std_srvs::SetBoolResponse& res,
-                                    const std::string& ee_name)
+bool XBot::Cartesian::RosServerClass::reset_params_cb(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res)
 {
-    if(req.data)
+    for(std::string task : _cartesian_interface->getTaskList())
     {
-        _cartesian_interface->setControlMode(ee_name, CartesianInterface::ControlType::Position);
-        res.message = "Control mode set to position for end effector " + ee_name;
-    }
-    else
-    {
-        _cartesian_interface->setControlMode(ee_name, CartesianInterface::ControlType::Disabled);
-        res.message = "Control mode set to disabled for end effector " + ee_name;
-    }
+        
+        double max_vel_lin, max_vel_ang, max_acc_lin, max_acc_ang;
+        _cartesian_interface->getVelocityLimits(task, max_vel_lin, max_vel_ang);
+        _cartesian_interface->getAccelerationLimits(task, max_acc_lin, max_acc_ang);
 
+        _nh.getParam(task + "/max_velocity_linear", max_vel_lin);
+        _nh.getParam(task + "/max_velocity_angular", max_vel_ang);
+        _nh.getParam(task + "/max_acceleration_linear", max_acc_lin);
+        _nh.getParam(task + "/max_acceleration_angular", max_acc_ang);
+        
+        _cartesian_interface->setVelocityLimits(task, max_vel_lin, max_vel_ang);
+        _cartesian_interface->setAccelerationLimits(task, max_acc_lin, max_acc_ang);
+    }
+    
+    res.message = "Successfully updated velocity limits for all tasks";
     res.success = true;
+    
     return true;
 }
+
+void XBot::Cartesian::RosServerClass::__generate_update_param_services()
+{
+    
+    for(std::string task : _cartesian_interface->getTaskList())
+    {
+        
+        double max_vel_lin, max_vel_ang, max_acc_lin, max_acc_ang;
+        _cartesian_interface->getVelocityLimits(task, max_vel_lin, max_vel_ang);
+        _cartesian_interface->getAccelerationLimits(task, max_acc_lin, max_acc_ang);
+        
+        if(!_nh.hasParam(task + "/max_velocity_linear"))
+            _nh.setParam(task + "/max_velocity_linear", max_vel_lin);
+        if(!_nh.hasParam(task + "/max_velocity_angular"))
+            _nh.setParam(task + "/max_velocity_angular", max_vel_ang);
+        if(!_nh.hasParam(task + "/max_acceleration_linear"))
+            _nh.setParam(task + "/max_acceleration_linear", max_acc_lin);
+        if(!_nh.hasParam(task + "/max_acceleration_angular"))
+            _nh.setParam(task + "/max_acceleration_angular", max_acc_ang);
+        
+    }
+    
+    std_srvs::TriggerRequest req;
+    std_srvs::TriggerResponse res;
+    reset_params_cb(req, res);
+    
+    std::string srv_name = "update_velocity_limits";
+    auto cb = boost::bind(&RosServerClass::reset_params_cb,
+                        this,
+                        _1,
+                        _2);
+    
+    _update_limits_srv = _nh.advertiseService<std_srvs::TriggerRequest,
+                                              std_srvs::TriggerResponse>(srv_name, cb);
+}
+
+
 
 void RosServerClass::__generate_markers()
 {
@@ -560,7 +605,7 @@ void RosServerClass::__generate_markers()
                                                    ee_name,
                                                    static_cast<const urdf::Model&>(_model->getUrdf()),
                                                    control_type,
-                                                   "ci/"
+                                                   _tf_prefix_slash
                                                   );
         
         _markers[ee_name] = marker;
@@ -597,7 +642,7 @@ void XBot::Cartesian::RosServerClass::__generate_task_info_setters()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string srv_name = "/xbotcore/cartesian/" + ee_name + "/set_task_properties";
+        std::string srv_name = "" + ee_name + "/set_task_properties";
         auto cb = boost::bind(&RosServerClass::set_task_info_cb,
                             this,
                             _1,
@@ -656,9 +701,9 @@ bool XBot::Cartesian::RosServerClass::set_task_info_cb(cartesian_interface::SetT
 
 void XBot::Cartesian::RosServerClass::__generate_postural_task_topics_and_services()
 {
-    std::string postural_ref_topic_name = "/xbotcore/cartesian/posture/reference";
-    std::string postural_state_topic_name = "/xbotcore/cartesian/posture/state";
-    std::string postural_srv_name = "/xbotcore/cartesian/posture/reset";
+    std::string postural_ref_topic_name = "posture/reference";
+    std::string postural_state_topic_name = "posture/state";
+    std::string postural_srv_name = "posture/reset";
     
     _posture_sub = _nh.subscribe(postural_ref_topic_name, 1, &RosServerClass::online_posture_reference_cb, this);
     _posture_pub = _nh.advertise<sensor_msgs::JointState>(postural_state_topic_name, 1);
@@ -704,11 +749,35 @@ bool XBot::Cartesian::RosServerClass::reset_posture_cb(std_srvs::TriggerRequest&
     }
     
     std::map<std::string, double> zeros_map(posture_ref.begin(), posture_ref.end());
-    _nh.setParam("/xbotcore/cartesian/posture/home", zeros_map);
+    _nh.setParam("posture/home", zeros_map);
     
     return true;
 }
 
+void XBot::Cartesian::RosServerClass::__generate_reset_world_service()
+{
+    _reset_world_srv = _nh.advertiseService("reset_world", &RosServerClass::reset_world_cb, this);
+}
+
+bool XBot::Cartesian::RosServerClass::reset_world_cb(cartesian_interface::ResetWorldRequest& req,
+                                                     cartesian_interface::ResetWorldResponse& res)
+{
+    Eigen::Affine3d new_world;
+    tf::poseMsgToEigen(get_normalized_pose(req.new_world), new_world);
+    
+    if(_cartesian_interface->resetWorld(new_world))
+    {
+        res.success = true;
+        res.message = "World was changed successfully";
+    }
+    else
+    {
+        res.success = false;
+        res.message = "World could not be changed";
+    }
+    
+    return true;
+}
 
 
 

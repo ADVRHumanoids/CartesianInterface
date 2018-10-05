@@ -9,7 +9,7 @@ class JoyStick{
 public:
     typedef boost::shared_ptr<JoyStick> Ptr;
 
-    JoyStick(const std::vector<std::string>& distal_links, std::string tf_prefix = "");
+    JoyStick(const std::vector<std::string>& distal_links, const std::vector<std::string> &base_links, std::string tf_prefix = "");
 
     ~JoyStick();
 
@@ -29,6 +29,7 @@ public:
         "   D-pad:                          UP/DOWN    -> Z Global Coordinates\n"
         "                                   LEFT/RIGHT -> ROLL Global Coordinates\n"
         "   A button:                       Set GLOBAL/LOCAL control\n"
+        "   Y button:                       Desired end-effector velocities in robot base_link ON/OFF\n"
         "   B button:                       Activate/Deactivate Task\n"
         "   L2 + X/Y button:                Decrease/Increase linear speed\n"
         "   R2 + X/Y button:                Decrease/Increase angular speed\n"
@@ -36,6 +37,9 @@ public:
 
         return doc.str();
     }
+
+    std::string getRobotBaseLinkCtrlFrame();
+    void setRobotBaseLinkCtrlFrame(const std::string& robot_base_link);
 
 private:
     /**
@@ -46,6 +50,7 @@ private:
     std::string _tf_prefix;
 
     std::vector<std::string> _distal_links;
+    std::vector<std::string> _base_links;
 
     ros::Subscriber _joy_sub;
 
@@ -53,6 +58,7 @@ private:
     void setVelocityCtrl();
     void localCtrl();
     void activateDeactivateTask();
+    void twistInBase();
     int _selected_task;
 
     std::vector<ros::ServiceClient> _set_properties_service_clients;
@@ -70,6 +76,9 @@ private:
     tf::StampedTransform _transform;
 
     int _local_ctrl;
+    int _base_ctrl;
+
+    std::string _robot_base_link;
 };
 }
 }

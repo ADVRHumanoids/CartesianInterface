@@ -33,18 +33,3 @@ add_custom_command( TARGET OpenMpC POST_BUILD
                    )
 # endif()
 
-# gTests TODO add libs
-SET(TestLibs OpenMpC ${GTEST_BOTH_LIBRARIES})
-
-
-
-add_executable(testBasics     testBasics.cpp)
-target_link_libraries(testBasics ${TestLibs} -pthread)
-add_dependencies(testBasics GTest-ext OpenMpC)
-add_test(NAME testBasics COMMAND testBasics)
-
-add_executable(testLtiDynamics     testLtiDynamics.cpp)
-target_link_libraries(testLtiDynamics ${TestLibs} -pthread)
-add_dependencies(testLtiDynamics GTest-ext OpenMpC)
-add_test(NAME testLtiDynamics COMMAND testLtiDynamics)
-
