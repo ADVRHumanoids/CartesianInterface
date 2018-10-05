@@ -23,7 +23,7 @@
 
 #include <cartesian_interface/CartesianInterface.h>
 #include <cartesian_interface/trajectory/Trajectory.h>
-#include <cartesian_interface/ProblemDescription.h>
+#include <cartesian_interface/problem/ProblemDescription.h>
 #include <XBotInterface/SoLib.h>
 #include <ReflexxesTypeII/Wrappers/TrajectoryGenerator.h>
 
@@ -97,23 +97,23 @@ public:
                                   const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
     
     bool setPoseReferenceRaw(const std::string& end_effector, 
-                                  const Eigen::Affine3d& base_T_ref, 
-                                  const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
-                                  const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
+                             const Eigen::Affine3d& base_T_ref, 
+                             const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
+                             const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
 
     virtual bool setTargetComPosition(const Eigen::Vector3d& base_com_ref, double time = 0);
 
     virtual bool setTargetPose(const std::string& end_effector, 
-                            const Eigen::Affine3d& base_T_ref, 
-                            double time = 0);
+                               const Eigen::Affine3d& base_T_ref, 
+                               double time = 0);
     
     virtual bool setWayPoints(const std::string& end_effector, 
-                       const Trajectory::WayPointVector& way_points
-                      );
+                              const Trajectory::WayPointVector& way_points
+                            );
 
     virtual bool setTargetPosition(const std::string& end_effector, 
-                                const Eigen::Vector3d& base_pos_ref, 
-                                double time = 0);
+                                   const Eigen::Vector3d& base_pos_ref, 
+                                   double time = 0);
     
     virtual bool setReferencePosture(const JointNameMap& qref);
 
@@ -219,6 +219,8 @@ protected:
     
     
 private:
+    
+    void add_task(TaskDescription::Ptr task);
     
     void __construct_from_vectors();
     void log_tasks();

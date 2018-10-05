@@ -103,17 +103,19 @@ void construct_markers(ros::NodeHandle nh, MarkerMap& markers)
     nh.getParam("/robot_description", robot_urdf_string);
     urdf::Model robot_urdf;
     robot_urdf.initString(robot_urdf_string);
-    
+
 
     for(int i = 0; i < res.distal_links.size(); i++)
     {
         std::string ee_name = res.distal_links[i].data;
         std::string base_link = res.base_links[i].data;
         unsigned int control_type;
+        bool use_mesh = true;
         
-        if(ee_name == "com")
+        if(ee_name == "com" || ee_name == "gaze")
         {
             control_type = visualization_msgs::InteractiveMarkerControl::MOVE_3D;
+            use_mesh = false;
         }
         else
         {
@@ -125,7 +127,8 @@ void construct_markers(ros::NodeHandle nh, MarkerMap& markers)
                                                    ee_name,
                                                    robot_urdf,
                                                    control_type,
-                                                   __g_tf_prefix_slash
+                                                   __g_tf_prefix_slash,
+                                                   use_mesh
                                                   );
         
         markers[ee_name] = marker;

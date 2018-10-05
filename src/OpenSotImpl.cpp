@@ -1,7 +1,15 @@
 #include <cartesian_interface/open_sot/OpenSotImpl.h>
+#include <cartesian_interface/problem/ProblemDescription.h>
+#include <cartesian_interface/problem/Task.h>
+#include <cartesian_interface/problem/Cartesian.h>
+#include <cartesian_interface/problem/Com.h>
+#include <cartesian_interface/problem/Postural.h>
+#include <cartesian_interface/problem/Gaze.h>
+#include <cartesian_interface/problem/Limits.h>
 #include <boost/make_shared.hpp>
 #include <OpenSoT/constraints/velocity/JointLimits.h>
 #include <OpenSoT/constraints/velocity/VelocityLimits.h>
+#include <OpenSoT/constraints/TaskToConstraint.h>
 
 
 
@@ -43,84 +51,13 @@ OpenSoT::tasks::Aggregated::TaskPtr XBot::Cartesian::OpenSotImpl::aggregated_fro
 
     for(XBot::Cartesian::TaskDescription::Ptr task_desc : stack)
     {
-        switch(task_desc->type)
+        auto task = construct_task(task_desc);
+        
+        if(task)
         {
-            case TaskType::Cartesian:
-            {
-                auto cartesian_desc = XBot::Cartesian::GetAsCartesian(task_desc);
-                std::string distal_link = cartesian_desc->distal_link;
-                std::string base_link = cartesian_desc->base_link;
-
-                auto cartesian_task = boost::make_shared<OpenSoT::tasks::velocity::Cartesian>
-                                                    (base_link + "_TO_" + distal_link,
-                                                     _q,
-                                                     *_model,
-                                                     distal_link,
-                                                     base_link
-                                                     );
-
-                cartesian_task->setLambda(cartesian_desc->lambda);
-                cartesian_task->setOrientationErrorGain(cartesian_desc->orientation_gain);
-
-                std::list<uint> indices(cartesian_desc->indices.begin(), cartesian_desc->indices.end());
-
-                _cartesian_tasks.push_back(cartesian_task);
-
-                if(indices.size() == 6)
-                {
-                    tasks_list.push_back(cartesian_desc->weight*(cartesian_task));
-                }
-                else
-                {
-                    tasks_list.push_back(cartesian_desc->weight*(cartesian_task%indices));
-                }
-
-                break;
-            }
-            case TaskType::Com:
-            {
-                auto com_desc = XBot::Cartesian::GetAsCom(task_desc);
-                _com_task = boost::make_shared<CoMTask>(_q, *_model);
-                
-                _com_task->setLambda(com_desc->lambda);
-
-                std::list<uint> indices(com_desc->indices.begin(), com_desc->indices.end());
-
-                if(indices.size() == 3)
-                {
-                    tasks_list.push_back(com_desc->weight*(_com_task));
-                }
-                else
-                {
-                    tasks_list.push_back(com_desc->weight*(_com_task%indices));
-                }
-                break;
-            }
-            case TaskType::Postural:
-            {
-                auto postural_desc = XBot::Cartesian::GetAsPostural(task_desc);
-
-                auto postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
-                
-                _postural_tasks.push_back(postural_task);
-                
-                postural_task->setLambda(postural_desc->lambda);
-
-                std::list<uint> indices(postural_desc->indices.begin(), postural_desc->indices.end());
-
-                if(indices.size() == _model->getJointNum())
-                {
-                    tasks_list.push_back(postural_desc->weight*(postural_task));
-                }
-                else
-                {
-                    tasks_list.push_back(postural_desc->weight*(postural_task%indices));
-                }
-                break;
-            }
-            default:
-                Logger::warning("OpenSot: task type not supported\n");
+            tasks_list.push_back(task);
         }
+        
     }
 
     /* Return Aggregated */
@@ -134,44 +71,187 @@ OpenSoT::tasks::Aggregated::TaskPtr XBot::Cartesian::OpenSotImpl::aggregated_fro
     }
 }
 
+XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_task(XBot::Cartesian::TaskDescription::Ptr task_desc)
+{
+    
+    XBot::Cartesian::OpenSotImpl::TaskPtr opensot_task;
+    
+    if(task_desc->type == "Cartesian")
+    {
+        auto cartesian_desc = XBot::Cartesian::GetAsCartesian(task_desc);
+        std::string distal_link = cartesian_desc->distal_link;
+        std::string base_link = cartesian_desc->base_link;
+        
+        auto cartesian_task = boost::make_shared<OpenSoT::tasks::velocity::Cartesian>
+                                            (base_link + "_TO_" + distal_link,
+                                                _q,
+                                                *_model,
+                                                distal_link,
+                                                base_link
+                                                );
+
+        cartesian_task->setLambda(cartesian_desc->lambda);
+        cartesian_task->setOrientationErrorGain(cartesian_desc->orientation_gain);
+
+        std::list<uint> indices(cartesian_desc->indices.begin(), cartesian_desc->indices.end());
+
+        _cartesian_tasks.push_back(cartesian_task);
+
+        if(indices.size() == 6)
+        {
+            opensot_task = cartesian_desc->weight*(cartesian_task);
+        }
+        else
+        {
+            opensot_task = cartesian_desc->weight*(cartesian_task%indices);
+        }
+        
+        XBot::Logger::info("OpenSot: Cartesian found (%s -> %s), lambda = %f, dofs = %d\n", 
+                            base_link.c_str(), 
+                            distal_link.c_str(), 
+                            cartesian_desc->lambda,
+                            indices.size()
+                            );
+
+    }
+    else if(task_desc->type == "Gaze")
+    {
+        
+        auto gaze_desc = XBot::Cartesian::GetAsGaze(task_desc);
+        std::string base_link = gaze_desc->base_link;
+
+        _gaze_task = boost::make_shared<GazeTask>(base_link + "_TO_" + "gaze",_q, *_model, base_link);
+        _gaze_task->setLambda(gaze_desc->lambda);
+        
+        
+        std::list<uint> indices(gaze_desc->indices.begin(), gaze_desc->indices.end());
+
+        if(indices.size() == 2)
+        {
+            opensot_task = gaze_desc->weight*(_gaze_task);
+        }
+        else
+        {
+            opensot_task = gaze_desc->weight*(_gaze_task%indices);
+        }
+        
+        XBot::Logger::info("OpenSot: Gaze found, base_link is %s, lambda is %f\n", 
+            gaze_desc->base_link.c_str(),
+            gaze_desc->lambda
+        );
+
+    }
+    else if(task_desc->type == "Com")
+    {
+        auto com_desc = XBot::Cartesian::GetAsCom(task_desc);
+        _com_task = boost::make_shared<CoMTask>(_q, *_model);
+        
+        _com_task->setLambda(com_desc->lambda);
+
+        std::list<uint> indices(com_desc->indices.begin(), com_desc->indices.end());
+
+        if(indices.size() == 3)
+        {
+            opensot_task = com_desc->weight*(_com_task);
+        }
+        else
+        {
+            opensot_task = com_desc->weight*(_com_task%indices);
+        }
+        
+        XBot::Logger::info("OpenSot: Com found, lambda is %f\n", com_desc->lambda);
+    }
+    else if(task_desc->type == "Postural")
+    {
+        auto postural_desc = XBot::Cartesian::GetAsPostural(task_desc);
+
+        auto postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
+        
+        _postural_tasks.push_back(postural_task);
+        
+        postural_task->setLambda(postural_desc->lambda);
+
+        std::list<uint> indices(postural_desc->indices.begin(), postural_desc->indices.end());
+
+        if(indices.size() == _model->getJointNum())
+        {
+            opensot_task = postural_desc->weight*(postural_task);
+        }
+        else
+        {
+            opensot_task = postural_desc->weight*(postural_task%indices);
+        }
+        
+        XBot::Logger::info("OpenSot: Postural found, lambda is %f, %d dofs\n", 
+            postural_desc->lambda,
+            postural_desc->indices.size()
+        );
+    }
+    else
+    {
+            Logger::warning("OpenSot: task type not supported\n");
+    }
+    
+    return opensot_task;
+}
+
+
+
 OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr XBot::Cartesian::OpenSotImpl::constraint_from_description(XBot::Cartesian::ConstraintDescription::Ptr constr_desc)
 {
-    switch(constr_desc->type)
+    if(constr_desc->type == "JointLimits")
     {
-        case ConstraintType::JointLimits:
+        Eigen::VectorXd qmin, qmax;
+        _model->getJointLimits(qmin, qmax);
+
+        auto joint_lims = boost::make_shared<OpenSoT::constraints::velocity::JointLimits>
+                                            (_q,
+                                                qmax,
+                                                qmin
+                                                );
+
+        return joint_lims;
+
+
+    }
+    else if(constr_desc->type == "VelocityLimits")
+    {
+        Eigen::VectorXd qdotmax;
+        _model->getVelocityLimits(qdotmax);
+
+        auto vel_lims = boost::make_shared<OpenSoT::constraints::velocity::VelocityLimits>
+                                            (qdotmax, 0.01);
+
+        return vel_lims;
+
+    }
+    else if(constr_desc->type == "ConstraintFromTask")
+    {
+        auto task = GetTaskFromConstraint(constr_desc);
+        if(task)
         {
-            Eigen::VectorXd qmin, qmax;
-            _model->getJointLimits(qmin, qmax);
-
-            auto joint_lims = boost::make_shared<OpenSoT::constraints::velocity::JointLimits>
-                                                (_q,
-                                                    qmax,
-                                                    qmin
-                                                    );
-
-            return joint_lims;
-
-            break;
-
+            auto opensot_task = construct_task(task);
+            
+            if(opensot_task)
+            {
+                return boost::make_shared<OpenSoT::constraints::TaskToConstraint>(opensot_task);
+            }
+            else
+            {
+                XBot::Logger::warning("Unable to construct OpenSoT task (%s)\n", constr_desc->type.c_str());
+                return nullptr;
+            }
         }
-
-        case ConstraintType::VelocityLimits:
+        else
         {
-            Eigen::VectorXd qdotmax;
-            _model->getVelocityLimits(qdotmax);
-
-            auto vel_lims = boost::make_shared<OpenSoT::constraints::velocity::VelocityLimits>
-                                                (qdotmax, 0.01);
-
-            return vel_lims;
-
-            break;
-        }
-
-        default:
-            XBot::Logger::warning("Unsupported constraint type\n");
+            XBot::Logger::warning("Unable to construct task description (%s)\n", constr_desc->type.c_str());
             return nullptr;
-            break;
+        }
+    }
+    else
+    {
+        XBot::Logger::warning("Unsupported constraint type (%s)\n", constr_desc->type.c_str());
+        return nullptr;
     }
 }
 
@@ -249,6 +329,11 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     {
         _lambda_map["com"] = _com_task->getLambda();
     }
+
+    if(_gaze_task)
+    {
+        _lambda_map["gaze"] = _gaze_task->getLambda();
+    }
     
     for(auto t : _cartesian_tasks)
     {
@@ -280,8 +365,18 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
         }
         
         v_ref *= period;
-        cart_task->setReference(T_ref.matrix(), v_ref);
+        cart_task->setReference(T_ref, v_ref);
 
+    }
+
+    /* Handle GAZE reference */
+    if(_gaze_task)
+    {
+        Eigen::Affine3d T_ref;
+        if(getPoseReference("gaze", T_ref))
+        {
+            _gaze_task->setGaze(T_ref);
+        }
     }
     
     /* Handle COM reference */
@@ -341,6 +436,14 @@ bool XBot::Cartesian::OpenSotImpl::setControlMode(const std::string& ee_name,
     if(ee_name == "com" && _com_task)
     {
         task_ptr = _com_task;
+    }
+    else if(ee_name == "gaze" && _gaze_task)
+    {
+        if(ctrl_type == ControlType::Velocity)
+        {
+            XBot::Logger::error("Gaze task does not allow velocity ctrl type! \n");
+            return false;
+        }
     }
     
     for(const auto t : _cartesian_tasks)

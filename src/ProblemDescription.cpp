@@ -1,4 +1,10 @@
-#include <cartesian_interface/ProblemDescription.h>
+#include <cartesian_interface/problem/ProblemDescription.h>
+#include <cartesian_interface/problem/Task.h>
+#include <cartesian_interface/problem/Cartesian.h>
+#include <cartesian_interface/problem/Com.h>
+#include <cartesian_interface/problem/Postural.h>
+#include <cartesian_interface/problem/Gaze.h>
+#include <cartesian_interface/problem/Limits.h>
 #include <XBotInterface/Logger.hpp>
 
 using namespace XBot::Cartesian;
@@ -29,88 +35,6 @@ ProblemDescription& ProblemDescription::operator<<(ConstraintDescription::Ptr co
 }
 
 
-CartesianTask::Ptr XBot::Cartesian::MakeCartesian(std::string distal_link, std::string base_link)
-{
-    return std::make_shared<CartesianTask>(distal_link, base_link);
-}
-
-CartesianTask::Ptr XBot::Cartesian::GetAsCartesian(TaskDescription::Ptr task)
-{
-    return std::dynamic_pointer_cast<CartesianTask>(task);
-}
-
-PosturalTask::Ptr XBot::Cartesian::GetAsPostural(TaskDescription::Ptr task)
-{
-    return std::dynamic_pointer_cast<PosturalTask>(task);
-}
-
-PosturalTask::PosturalTask(int ndof):
-    TaskDescription(TaskType::Postural, "postural", ndof)
-{
-    
-}
-
-PosturalTask::Ptr XBot::Cartesian::MakePostural(int ndof)
-{
-    return std::make_shared<PosturalTask>(ndof);
-}
-
-
-ConstraintDescription::Ptr XBot::Cartesian::MakeJointLimits()
-{
-    return std::make_shared<ConstraintDescription>(ConstraintType::JointLimits);
-}
-
-ConstraintDescription::Ptr XBot::Cartesian::MakeVelocityLimits()
-{
-    return std::make_shared<ConstraintDescription>(ConstraintType::VelocityLimits);
-}
-
-
-CartesianTask::CartesianTask(std::string distal_link, std::string base_link):
-    TaskDescription(TaskType::Cartesian, distal_link, 6),
-    distal_link(distal_link),
-    base_link(base_link),
-    orientation_gain(1.0)
-{
-
-}
-
-ComTask::ComTask():
-    TaskDescription(TaskType::Com, "com", 3)
-{
-
-}
-
-ComTask::Ptr XBot::Cartesian::MakeCom()
-{
-    return std::make_shared<ComTask>();
-}
-
-ComTask::Ptr XBot::Cartesian::GetAsCom(TaskDescription::Ptr task)
-{
-    return std::dynamic_pointer_cast<ComTask>(task);
-}
-
-
-TaskDescription::TaskDescription(TaskType type, std::string __name, int size):
-    type(type),
-    weight(Eigen::MatrixXd::Identity(size,size)),
-    lambda(1.0),
-    name(__name)
-{
-    for(uint i = 0; i < size; i++)
-    {
-        indices.push_back(i);
-    }
-}
-
-ConstraintDescription::ConstraintDescription(ConstraintType type):
-    type(type)
-{
-
-}
-
 int ProblemDescription::getNumTasks() const
 {
     return _stack.size();
@@ -121,100 +45,7 @@ AggregatedTask ProblemDescription::getTask(int id) const
     return _stack.at(id);
 }
 
-AggregatedTask XBot::Cartesian::operator+(AggregatedTask task_1, TaskDescription::Ptr task_2)
-{
-    task_1.push_back(task_2);
-    return task_1;
-}
 
-AggregatedTask XBot::Cartesian::operator+(AggregatedTask task_1, AggregatedTask task_2)
-{
-    task_1.insert(task_1.end(), task_2.begin(), task_2.end());
-    return task_1;
-}
-
-AggregatedTask XBot::Cartesian::operator+(TaskDescription::Ptr task_1, AggregatedTask task_2)
-{
-    return operator+(task_2, task_1);
-}
-
-AggregatedTask XBot::Cartesian::operator+(TaskDescription::Ptr task_1, TaskDescription::Ptr task_2)
-{
-    AggregatedTask task = {task_1, task_2};
-    return task;
-}
-
-Stack XBot::Cartesian::operator/(AggregatedTask task_1, AggregatedTask task_2)
-{
-    Stack stack = {task_1, task_2};
-    return stack;
-}
-
-Stack XBot::Cartesian::operator/(TaskDescription::Ptr task_1, TaskDescription::Ptr task_2)
-{
-    return operator/(AggregatedTask(1, task_1), AggregatedTask(1, task_2));
-}
-
-Stack XBot::Cartesian::operator/(AggregatedTask task_1, TaskDescription::Ptr task_2)
-{
-    return operator/(task_1, AggregatedTask(1, task_2));
-}
-
-Stack XBot::Cartesian::operator/(TaskDescription::Ptr task_1, AggregatedTask task_2)
-{
-    return operator/(AggregatedTask(1, task_1), task_2);
-}
-
-TaskDescription::Ptr XBot::Cartesian::operator*(Eigen::Ref<const Eigen::MatrixXd> weight, 
-                                                TaskDescription::Ptr task)
-{
-    if(weight.rows() != task->weight.rows())
-    {
-        throw std::invalid_argument("weight matrix size mismatch");
-    }
-    
-    if(weight.cols() != task->weight.cols())
-    {
-        throw std::invalid_argument("weight matrix size mismatch");
-    }
-    
-    task->weight = weight*task->weight;
-    return task;
-}
-
-TaskDescription::Ptr XBot::Cartesian::operator%(std::vector<int> indices, TaskDescription::Ptr task)
-{
-    std::vector<int> new_indices;
-    for(int idx : indices)
-    {
-        new_indices.push_back(task->indices[idx]);
-    }
-    
-    task->indices = new_indices;
-    Eigen::MatrixXd new_weight(new_indices.size(), task->weight.cols());
-    
-    {
-        int i = 0;
-        for(uint idx : indices)
-        {
-            new_weight.row(i) = task->weight.row(idx);
-            i++;
-        }
-    }
-    
-    task->weight.resize(indices.size(), indices.size());
-    
-    {
-        int i = 0;
-        for(uint idx : indices)
-        {
-            task->weight.col(i) = new_weight.col(idx);
-            i++;
-        }
-    }
-    
-    return task;
-}
 
 const std::vector< ConstraintDescription::Ptr >& ProblemDescription::getBounds() const
 {
@@ -246,77 +77,8 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
         {
             
             std::string task_name = task.as<std::string>();
-            std::string task_type = yaml_node[task_name]["type"].as<std::string>();
-            TaskDescription::Ptr task_desc;
             
-            if(task_type == "Cartesian") // TBD ERROR CHECKING
-            {
-                std::string distal_link = yaml_node[task_name]["distal_link"].as<std::string>();
-                std::string base_link = "world";
-                
-                
-                if(yaml_node[task_name]["base_link"])
-                {
-                    base_link = yaml_node[task_name]["base_link"].as<std::string>();
-                }
-
-                auto cart_task = MakeCartesian(distal_link, base_link);
-                task_desc = cart_task;
-                
-                if(yaml_node[task_name]["orientation_gain"])
-                {
-                    cart_task->orientation_gain = yaml_node[task_name]["orientation_gain"].as<double>();
-                }
-            }
-            else if(task_type == "Com")
-            {
-                task_desc = MakeCom();
-            }
-            else if(task_type == "Postural")
-            {
-                task_desc = MakePostural(model->getJointNum());
-                auto postural_desc = GetAsPostural(task_desc);
-                
-                if(yaml_node[task_name]["weight"] && yaml_node[task_name]["weight"].IsMap())
-                {
-                    for(const auto& pair : yaml_node[task_name]["weight"])
-                    {
-                        if(!model->hasJoint(pair.first.as<std::string>()))
-                        {
-                            std::string err = "Joint " + pair.first.as<std::string>() + " is undefined";
-                            throw std::invalid_argument(err);
-                        }
-                        
-                        int idx = model->getDofIndex(pair.first.as<std::string>());
-                        task_desc->weight(idx, idx) = pair.second.as<double>();
-                        
-                    }
-                }
-                    
-            }
-            else
-            {
-                XBot::Logger::error("Unsupported task type %s\n", task_type.c_str());
-                throw std::runtime_error("Bad problem description");
-            }
-
-            
-            if(yaml_node[task_name]["weight"] && yaml_node[task_name]["weight"].IsScalar())
-            {
-                task_desc->weight *= yaml_node[task_name]["weight"].as<double>();
-            }
-            
-            if(yaml_node[task_name]["lambda"])
-            {
-                task_desc->lambda = yaml_node[task_name]["lambda"].as<double>();
-            }
-            
-            if(yaml_node[task_name]["indices"])
-            {
-                std::vector<int> indices = yaml_node[task_name]["indices"].as<std::vector<int>>();
-                task_desc = indices % task_desc;
-            }
-                
+            auto task_desc = yaml_parse_task(yaml_node[task_name], model);
             
             aggr_task.push_back(task_desc);
             
@@ -341,6 +103,19 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
             {
                 _bounds.push_back(MakeVelocityLimits());
             }
+            else if(yaml_node[constr_type])
+            {
+                auto task = yaml_parse_task(yaml_node[constr_type], model);
+                if(task)
+                {
+                    _bounds.push_back(MakeConstraintFromTask(task));
+                }
+                else
+                {
+                    XBot::Logger::error("Unsupported constraint type %s: not a task\n", constr_type.c_str());
+                    throw std::runtime_error("Bad problem description");
+                }
+            }
             else
             {
                 XBot::Logger::error("Unsupported constraint type %s\n", constr_type.c_str());
@@ -351,6 +126,137 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
     }
     
     
-    
-    
 }
+
+TaskDescription::Ptr XBot::Cartesian::ProblemDescription::yaml_parse_task(YAML::Node task_node,
+                                                                          XBot::ModelInterface::ConstPtr model)
+{
+    
+    std::string task_type = task_node["type"].as<std::string>();
+    
+    TaskDescription::Ptr task_desc;
+            
+    if(task_type == "Cartesian") // TBD ERROR CHECKING
+    {
+        task_desc = yaml_parse_cartesian(task_node, model);
+    }
+    else if(task_type == "Com")
+    {
+        task_desc = yaml_parse_com(task_node, model);
+    }
+    else if(task_type == "Postural")
+    {
+        task_desc = yaml_parse_postural(task_node, model);    
+    }
+    else if(task_type == "Gaze")
+    {
+        task_desc = yaml_parse_gaze(task_node, model);  
+    }
+    else
+    {
+        XBot::Logger::error("Unsupported task type %s\n", task_type.c_str());
+        throw std::runtime_error("Bad problem description");
+    }
+        
+    if(task_node["weight"] && task_node["weight"].IsScalar())
+    {
+        task_desc->weight *= task_node["weight"].as<double>();
+    }
+    
+    if(task_node["lambda"])
+    {
+        task_desc->lambda = task_node["lambda"].as<double>();
+    }
+    
+    if(task_node["indices"])
+    {
+        std::vector<int> indices = task_node["indices"].as<std::vector<int>>();
+        task_desc = indices % task_desc;
+    }
+    
+    return task_desc;
+}
+
+
+
+TaskDescription::Ptr ProblemDescription::yaml_parse_cartesian(YAML::Node task_node, 
+                                                   ModelInterface::ConstPtr model)
+{
+    
+    std::string distal_link = task_node["distal_link"].as<std::string>();
+    std::string base_link = "world";
+    
+    auto cart_task = MakeCartesian(distal_link, base_link);
+    TaskDescription::Ptr task_desc = cart_task;
+    
+    
+    if(task_node["base_link"])
+    {
+        base_link = task_node["base_link"].as<std::string>();
+    }
+
+    if(task_node["orientation_gain"])
+    {
+        cart_task->orientation_gain = task_node["orientation_gain"].as<double>();
+    }
+    
+    return task_desc;
+}
+
+TaskDescription::Ptr ProblemDescription::yaml_parse_com(YAML::Node node, 
+                                                   ModelInterface::ConstPtr model)
+{
+    return MakeCom();
+}
+
+TaskDescription::Ptr ProblemDescription::yaml_parse_gaze(YAML::Node task_node, 
+                                                   ModelInterface::ConstPtr model)
+{
+    
+    std::string base_link = "world";
+
+    if(task_node["base_link"])
+    {
+        base_link = task_node["base_link"].as<std::string>();
+    }
+
+    return MakeGaze(base_link);
+}
+
+ConstraintDescription::Ptr ProblemDescription::yaml_parse_joint_pos_lims(YAML::Node node, 
+                                                   ModelInterface::ConstPtr model)
+{
+    return MakeJointLimits();
+}
+
+ConstraintDescription::Ptr ProblemDescription::yaml_parse_joint_vel_lims(YAML::Node node, 
+                                                   ModelInterface::ConstPtr model)
+{
+    return MakeVelocityLimits();
+}
+
+TaskDescription::Ptr ProblemDescription::yaml_parse_postural(YAML::Node task_node, 
+                                                   ModelInterface::ConstPtr model)
+{
+    auto task_desc = MakePostural(model->getJointNum());
+    auto postural_desc = GetAsPostural(task_desc);
+    
+    if(task_node["weight"] && task_node["weight"].IsMap())
+    {
+        for(const auto& pair : task_node["weight"])
+        {
+            if(!model->hasJoint(pair.first.as<std::string>()))
+            {
+                std::string err = "Joint " + pair.first.as<std::string>() + " is undefined";
+                throw std::invalid_argument(err);
+            }
+            
+            int idx = model->getDofIndex(pair.first.as<std::string>());
+            task_desc->weight(idx, idx) = pair.second.as<double>();
+            
+        }
+    }
+    
+    return task_desc;
+}
+

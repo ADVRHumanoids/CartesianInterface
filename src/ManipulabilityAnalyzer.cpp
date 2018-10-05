@@ -1,4 +1,5 @@
 #include <cartesian_interface/utils/Manipulability.h>
+#include <cartesian_interface/problem/Cartesian.h>
 
 #if EIGEN_VERSION_AT_LEAST(3, 2, 92)
     #define HAS_SVD_SET_THRESHOLD
@@ -25,12 +26,14 @@ XBot::Cartesian::ManipulabilityAnalyzer::ManipulabilityAnalyzer(XBot::ModelInter
     {
         for(int j = 0; j < ik_problem.getTask(i).size(); j++)
         {
-            if(ik_problem.getTask(i).at(j)->type != TaskType::Cartesian)
+            if(ik_problem.getTask(i).at(j)->type != "Cartesian")
             {
                 continue;
             }
             
-            std::string name = ik_problem.getTask(i).at(j)->name;
+            
+            
+            std::string name = GetAsCartesian(ik_problem.getTask(i).at(j))->distal_link;
             _pub_map_pos[name] = nh.advertise<visualization_msgs::Marker>("ellipses/" + name + "/linear", 1);
             _pub_map_rot[name] = nh.advertise<visualization_msgs::Marker>("ellipses/" + name + "/angular", 1);
             
@@ -50,9 +53,8 @@ bool XBot::Cartesian::ManipulabilityAnalyzer::compute_task_matrix(XBot::Cartesia
                                                                   Eigen::Affine3d& T)
 {
     CartesianTask::Ptr cart_ij = GetAsCartesian(task);
-    ComTask::Ptr com_ij = GetAsCom(task);
     
-    if(cart_ij)
+    if(cart_ij->type == "Cartesian")
     {
         
         if(cart_ij->base_link == "world")
@@ -66,7 +68,7 @@ bool XBot::Cartesian::ManipulabilityAnalyzer::compute_task_matrix(XBot::Cartesia
             _model->getPose(cart_ij->distal_link, cart_ij->base_link, T);
         }
     }
-    else if(com_ij)
+    else if(cart_ij->type == "Com")
     {
         _model->getCOMJacobian(A);
         A.conservativeResize(6, A.cols());
@@ -113,8 +115,8 @@ void XBot::Cartesian::ManipulabilityAnalyzer::compute()
                 continue;
             }
             
-            _task_poses[task->name] = Tij;
-            _task_idx[task->name] = std::make_pair(i, static_cast<int>(Ji.rows()));
+            _task_poses[GetAsCartesian(task)->distal_link] = Tij;
+            _task_idx[GetAsCartesian(task)->distal_link] = std::make_pair(i, static_cast<int>(Ji.rows()));
             
             Aij = Aij * _nullspace_bases.at(i);
             

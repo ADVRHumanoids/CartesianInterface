@@ -91,6 +91,8 @@ catkin_package(
 set(CartesianInterface_SRC
         src/CartesianInterfaceImpl.cpp
         src/ProblemDescription.cpp
+        src/TaskImpl.cpp
+        src/ConstraintImpl.cpp
     )
 
 # OpenSot implementation
