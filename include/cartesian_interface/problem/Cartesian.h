@@ -45,6 +45,9 @@ namespace XBot { namespace Cartesian {
      * @return A null pointer if the cast is unsuccessful (i.e. task is not a CartesianTask)
      */
     CartesianTask::Ptr GetAsCartesian(TaskDescription::Ptr task);
+    
+    
+    
   
     
 } }

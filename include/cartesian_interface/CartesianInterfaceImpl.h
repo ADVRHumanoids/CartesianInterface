@@ -220,6 +220,8 @@ protected:
     
 private:
     
+    void add_task(TaskDescription::Ptr task);
+    
     void __construct_from_vectors();
     void log_tasks();
     void init_log_tasks();

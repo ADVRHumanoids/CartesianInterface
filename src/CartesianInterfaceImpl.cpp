@@ -458,39 +458,62 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
     _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_logger_" + std::to_string(rand()))),
     _solver_options(ik_problem.getSolverOptions())
 {
-    
+    /* Parse tasks */
     for(int i = 0; i < ik_problem.getNumTasks(); i++)
     {
         for(auto task_desc : ik_problem.getTask(i))
         {
             
-            switch(task_desc->interface)
+            add_task(task_desc);
+            
+        }
+    }
+    
+    /* Check if there are constraints which are actually tasks */
+    for(int i = 0; i < ik_problem.getBounds().size(); i++)
+    {
+        if(ik_problem.getBounds().at(i)->type == "ConstraintFromTask")
+        {
+            auto task = GetTaskFromConstraint(ik_problem.getBounds().at(i));
+            if(task)
             {
-                case TaskInterface::Cartesian:
-                {
-                    auto cart_desc = GetAsCartesian(task_desc);
-                    _tasks_vector.emplace_back(cart_desc->base_link, cart_desc->distal_link);
-                    break;
-                }
-                case TaskInterface::Postural:
-                {   
-                    if(!_model->getRobotState("home", _q_ref))
-                    {
-                        Logger::warning("Group state \"home\" undefined inside SRDF: setting posture reference to zero\n");
-                    }
-                    break;
-                }   
-                default:
-                    Logger::warning("Unsupported task type\n");
+                add_task(task);
             }
-            
-            
+            else
+            {
+                Logger::error("Unable to get task from constraint #%d\n", i);
+            }
+               
         }
     }
     
     __construct_from_vectors();
     
 }
+
+void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task_desc)
+{
+    switch(task_desc->interface)
+    {
+        case TaskInterface::Cartesian:
+        {
+            auto cart_desc = GetAsCartesian(task_desc);
+            _tasks_vector.emplace_back(cart_desc->base_link, cart_desc->distal_link);
+            break;
+        }
+        case TaskInterface::Postural:
+        {   
+            if(!_model->getRobotState("home", _q_ref))
+            {
+                Logger::warning("Group state \"home\" undefined inside SRDF: setting posture reference to zero\n");
+            }
+            break;
+        }   
+        default:
+            Logger::warning("Unsupported task type\n");
+    }
+}
+
 
 bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_com_ref, 
                                                      const Eigen::Vector3d& w_vel_ref, 

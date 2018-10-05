@@ -34,12 +34,6 @@ ProblemDescription& ProblemDescription::operator<<(ConstraintDescription::Ptr co
     return *this;
 }
 
-ConstraintDescription::ConstraintDescription(std::string __type, TaskInterface ifc):
-    interface(ifc),
-    type(__type)
-{
-
-}
 
 int ProblemDescription::getNumTasks() const
 {
@@ -83,46 +77,8 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
         {
             
             std::string task_name = task.as<std::string>();
-            std::string task_type = yaml_node[task_name]["type"].as<std::string>();
-            TaskDescription::Ptr task_desc;
             
-            if(task_type == "Cartesian") // TBD ERROR CHECKING
-            {
-                task_desc = yaml_parse_cartesian(yaml_node[task_name], model);
-            }
-            else if(task_type == "Com")
-            {
-                task_desc = yaml_parse_com(yaml_node[task_name], model);
-            }
-            else if(task_type == "Postural")
-            {
-                task_desc = yaml_parse_postural(yaml_node[task_name], model);    
-            }
-            else if(task_type == "Gaze")
-            {
-                task_desc = yaml_parse_gaze(yaml_node[task_name], model);  
-            }
-            else
-            {
-                XBot::Logger::error("Unsupported task type %s\n", task_type.c_str());
-                throw std::runtime_error("Bad problem description");
-            }
-                
-            if(yaml_node[task_name]["weight"] && yaml_node[task_name]["weight"].IsScalar())
-            {
-                task_desc->weight *= yaml_node[task_name]["weight"].as<double>();
-            }
-            
-            if(yaml_node[task_name]["lambda"])
-            {
-                task_desc->lambda = yaml_node[task_name]["lambda"].as<double>();
-            }
-            
-            if(yaml_node[task_name]["indices"])
-            {
-                std::vector<int> indices = yaml_node[task_name]["indices"].as<std::vector<int>>();
-                task_desc = indices % task_desc;
-            }
+            auto task_desc = yaml_parse_task(yaml_node[task_name], model);
             
             aggr_task.push_back(task_desc);
             
@@ -147,6 +103,19 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
             {
                 _bounds.push_back(MakeVelocityLimits());
             }
+            else if(yaml_node[constr_type])
+            {
+                auto task = yaml_parse_task(yaml_node[constr_type], model);
+                if(task)
+                {
+                    _bounds.push_back(MakeConstraintFromTask(task));
+                }
+                else
+                {
+                    XBot::Logger::error("Unsupported constraint type %s: not a task\n", constr_type.c_str());
+                    throw std::runtime_error("Bad problem description");
+                }
+            }
             else
             {
                 XBot::Logger::error("Unsupported constraint type %s\n", constr_type.c_str());
@@ -157,6 +126,55 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
     }
     
     
+}
+
+TaskDescription::Ptr XBot::Cartesian::ProblemDescription::yaml_parse_task(YAML::Node task_node,
+                                                                          XBot::ModelInterface::ConstPtr model)
+{
+    
+    std::string task_type = task_node["type"].as<std::string>();
+    
+    TaskDescription::Ptr task_desc;
+            
+    if(task_type == "Cartesian") // TBD ERROR CHECKING
+    {
+        task_desc = yaml_parse_cartesian(task_node, model);
+    }
+    else if(task_type == "Com")
+    {
+        task_desc = yaml_parse_com(task_node, model);
+    }
+    else if(task_type == "Postural")
+    {
+        task_desc = yaml_parse_postural(task_node, model);    
+    }
+    else if(task_type == "Gaze")
+    {
+        task_desc = yaml_parse_gaze(task_node, model);  
+    }
+    else
+    {
+        XBot::Logger::error("Unsupported task type %s\n", task_type.c_str());
+        throw std::runtime_error("Bad problem description");
+    }
+        
+    if(task_node["weight"] && task_node["weight"].IsScalar())
+    {
+        task_desc->weight *= task_node["weight"].as<double>();
+    }
+    
+    if(task_node["lambda"])
+    {
+        task_desc->lambda = task_node["lambda"].as<double>();
+    }
+    
+    if(task_node["indices"])
+    {
+        std::vector<int> indices = task_node["indices"].as<std::vector<int>>();
+        task_desc = indices % task_desc;
+    }
+    
+    return task_desc;
 }
 
 

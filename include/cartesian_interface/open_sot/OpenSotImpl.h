@@ -35,11 +35,14 @@ private:
     typedef OpenSoT::tasks::velocity::Postural PosturalTask;
     typedef OpenSoT::tasks::velocity::CoM CoMTask;
     typedef OpenSoT::tasks::velocity::Gaze GazeTask;
+    typedef OpenSoT::tasks::Aggregated::TaskPtr TaskPtr;
+    typedef OpenSoT::constraints::Aggregated::ConstraintPtr ConstraintPtr;
     
     void set_adaptive_lambda(CartesianTask::Ptr cartesian_task);
     
-    OpenSoT::tasks::Aggregated::TaskPtr aggregated_from_stack(AggregatedTask stack);
-    OpenSoT::constraints::Aggregated::ConstraintPtr constraint_from_description(ConstraintDescription::Ptr constr_desc);
+    TaskPtr construct_task(TaskDescription::Ptr);
+    TaskPtr aggregated_from_stack(AggregatedTask stack);
+    ConstraintPtr constraint_from_description(ConstraintDescription::Ptr constr_desc);
     
     Eigen::VectorXd _qref;
     Eigen::VectorXd _q, _dq, _ddq;
