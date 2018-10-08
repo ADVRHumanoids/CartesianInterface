@@ -763,17 +763,30 @@ bool XBot::Cartesian::RosServerClass::reset_world_cb(cartesian_interface::ResetW
                                                      cartesian_interface::ResetWorldResponse& res)
 {
     Eigen::Affine3d new_world;
-    tf::poseMsgToEigen(get_normalized_pose(req.new_world), new_world);
+    
+    if(req.from_link == "")
+    {
+        tf::poseMsgToEigen(get_normalized_pose(req.new_world), new_world);
+    }
+    else
+    {
+        if(!_model->getPose(req.from_link, new_world))
+        {
+            res.success = false;
+            res.message = "Link " + req.from_link + " undefined. World could not be changed.";
+            return true;
+        }
+    }
     
     if(_cartesian_interface->resetWorld(new_world))
     {
         res.success = true;
-        res.message = "World was changed successfully";
+        res.message = "World was changed successfully.";
     }
     else
     {
         res.success = false;
-        res.message = "World could not be changed";
+        res.message = "World could not be changed.";
     }
     
     return true;
