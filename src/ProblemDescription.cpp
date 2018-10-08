@@ -186,14 +186,15 @@ TaskDescription::Ptr ProblemDescription::yaml_parse_cartesian(YAML::Node task_no
     std::string distal_link = task_node["distal_link"].as<std::string>();
     std::string base_link = "world";
     
-    auto cart_task = MakeCartesian(distal_link, base_link);
-    TaskDescription::Ptr task_desc = cart_task;
-    
     
     if(task_node["base_link"])
     {
         base_link = task_node["base_link"].as<std::string>();
     }
+    
+    auto cart_task = MakeCartesian(distal_link, base_link);
+    TaskDescription::Ptr task_desc = cart_task;
+    
 
     if(task_node["orientation_gain"])
     {
