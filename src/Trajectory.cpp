@@ -12,6 +12,7 @@ Trajectory::WayPoint::WayPoint()
     time = 0.0;
 }
 
+
 Trajectory::Trajectory()
 {
     _acc_max.setConstant(10.);
@@ -19,6 +20,14 @@ Trajectory::Trajectory()
     
     _frames.reserve(10);
 }
+
+Trajectory::WayPoint::WayPoint(Eigen::Affine3d frame, double time):
+    WayPoint()
+{
+    this->frame = frame;
+    this->time = time;
+}
+
 
 void Trajectory::addWayPoint(const Trajectory::WayPoint& way_point, double time_offset)
 {

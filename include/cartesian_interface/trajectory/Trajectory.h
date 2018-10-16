@@ -38,6 +38,7 @@ namespace XBot { namespace Cartesian {
             double time;
             
             WayPoint();
+            WayPoint(Eigen::Affine3d frame, double time);
         };
         
         typedef std::vector<WayPoint> WayPointVector;
