@@ -4,7 +4,7 @@
     <param name="joy_node/deadzone" type="double" value="0.1" />
     <param name="joy_node/coalesce_interval" type="double" value="0.1" />
     <node pkg="joy" type="joy_node" name="joy_node" output="screen">
-        <remap from="joy" to="xbotcore/cartesian/joy/"/>
+        <remap from="joy" to="cartesian/joy/"/>
     </node>
 
     <node pkg="cartesian_interface" type="joystick_spawner" name="joystick" output="screen"/>
