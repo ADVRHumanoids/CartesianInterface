@@ -1,12 +1,31 @@
 <launch>
 
-    <param name="joy_node/dev" type="str" value="/dev/input/js0" />
-    <param name="joy_node/deadzone" type="double" value="0.1" />
-    <param name="joy_node/coalesce_interval" type="double" value="0.1" />
-    <node pkg="joy" type="joy_node" name="joy_node" output="screen">
-        <remap from="joy" to="cartesian/joy/"/>
-    </node>
+    <arg name="namespace" default=""/>
 
-    <node pkg="cartesian_interface" type="joystick_spawner" name="joystick" output="screen"/>
+    <group unless="$(eval namespace=='')" ns="$(arg namespace)">
+    
+        <param name="joy_node/dev" type="str" value="/dev/input/js0" />
+        <param name="joy_node/deadzone" type="double" value="0.1" />
+        <param name="joy_node/coalesce_interval" type="double" value="0.1" />
+        <node pkg="joy" type="joy_node" name="joy_node" output="screen">
+            <remap from="joy" to="cartesian/joy/"/>
+        </node>
+        
+        <node pkg="cartesian_interface" type="joystick_spawner" name="joystick" output="screen"/>
+    
+    </group>
+    
+    <group if="$(eval namespace=='')">
+    
+        <param name="joy_node/dev" type="str" value="/dev/input/js0" />
+        <param name="joy_node/deadzone" type="double" value="0.1" />
+        <param name="joy_node/coalesce_interval" type="double" value="0.1" />
+        <node pkg="joy" type="joy_node" name="joy_node" output="screen">
+            <remap from="joy" to="cartesian/joy/"/>
+        </node>
+        
+        <node pkg="cartesian_interface" type="joystick_spawner" name="joystick" output="screen"/>
+    
+    </group>
 
 </launch>
