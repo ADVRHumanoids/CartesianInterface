@@ -311,7 +311,7 @@ void RosServerClass::publish_state(ros::Time time)
         msg.header.stamp = time;
         msg.header.frame_id = _cartesian_interface->getBaseLink(ee_name);
         Eigen::Affine3d base_T_ee;
-        _cartesian_interface->getCurrentPose(ee_name, base_T_ee);
+        _cartesian_interface->getPoseReference(ee_name, base_T_ee);
         tf::poseEigenToMsg(base_T_ee, msg.pose);
         _state_pub[i].publish(msg);
         i++;
