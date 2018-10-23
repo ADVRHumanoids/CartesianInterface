@@ -90,7 +90,7 @@ void construct_markers(ros::NodeHandle nh, MarkerMap& markers)
     }
     
     std::string robot_urdf_string;
-    nh.getParam("/robot_description", robot_urdf_string);
+    nh.getParam("/xbotcore/centauro/robot_description", robot_urdf_string);
     urdf::Model robot_urdf;
     robot_urdf.initString(robot_urdf_string);
     
