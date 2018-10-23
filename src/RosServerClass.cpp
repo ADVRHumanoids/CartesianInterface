@@ -127,6 +127,34 @@ void RosServerClass::online_velocity_reference_cb(const geometry_msgs::TwistStam
 {
     Eigen::Vector6d vel;
     tf::twistMsgToEigen(msg->twist, vel);
+    Eigen::Matrix3d b_R_f;
+    b_R_f.setIdentity();
+    
+    if(msg->header.frame_id == "world")
+    {
+        XBot::Logger::error("frame_id = world not supported (TBD)\n");
+        return;
+    }
+    
+    if(msg->header.frame_id != "")
+    {
+        Eigen::Matrix3d b_R_f;
+        b_R_f.setIdentity();
+        
+        if(!_model->getOrientation(msg->header.frame_id, _cartesian_interface->getBaseLink(ee_name), b_R_f))
+        {
+            XBot::Logger::error("Unable to set velocity reference for task %s (frame_id \"%s\" undefined)\n", 
+                                    ee_name.c_str(), 
+                                    msg->header.frame_id.c_str()
+            );
+            
+            return;
+        }
+        
+        vel.head<3>() = b_R_f * vel.head<3>();
+        vel.tail<3>() = b_R_f * vel.tail<3>();
+    }
+    
     
     if(ee_name == "com")
     {
