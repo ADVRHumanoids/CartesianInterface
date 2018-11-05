@@ -7,6 +7,7 @@
 #include <OpenSoT/tasks/velocity/CoM.h>
 #include <OpenSoT/tasks/velocity/Postural.h>
 #include <OpenSoT/tasks/velocity/Gaze.h>
+#include <OpenSoT/tasks/velocity/AngularMomentum.h>
 #include <OpenSoT/Solver.h>
 #include <OpenSoT/utils/AutoStack.h>
 
@@ -35,6 +36,7 @@ private:
     typedef OpenSoT::tasks::velocity::Postural PosturalTask;
     typedef OpenSoT::tasks::velocity::CoM CoMTask;
     typedef OpenSoT::tasks::velocity::Gaze GazeTask;
+    typedef OpenSoT::tasks::velocity::AngularMomentum AngularMomentumTask;
     typedef OpenSoT::tasks::Aggregated::TaskPtr TaskPtr;
     typedef OpenSoT::constraints::Aggregated::ConstraintPtr ConstraintPtr;
     
@@ -49,14 +51,21 @@ private:
     
     std::vector<CartesianTask::Ptr> _cartesian_tasks;
     std::vector<PosturalTask::Ptr> _postural_tasks;
+    std::vector<bool> _use_inertia_matrix;
     std::map<std::string, double> _lambda_map;
     CoMTask::Ptr _com_task;
     GazeTask::Ptr _gaze_task;
+    AngularMomentumTask::Ptr _angular_momentum_task;
     
     OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr _solver;
     OpenSoT::AutoStack::Ptr _autostack;
     
     XBot::MatLogger::Ptr _logger;
+
+    /**
+     * @brief _B general coordinate inertia matrix
+     */
+    Eigen::MatrixXd _B;
     
 };
 

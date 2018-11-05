@@ -92,6 +92,9 @@ namespace XBot { namespace Cartesian {
         const YAML::Node& getSolverOptions() const;
         
     private:
+
+        static TaskDescription::Ptr yaml_parse_angular_momentum(YAML::Node node,
+                                                                ModelInterface::ConstPtr model);
         
         static TaskDescription::Ptr yaml_parse_task(YAML::Node node, 
                                                     ModelInterface::ConstPtr model);

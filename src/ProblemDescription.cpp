@@ -5,6 +5,7 @@
 #include <cartesian_interface/problem/Postural.h>
 #include <cartesian_interface/problem/Gaze.h>
 #include <cartesian_interface/problem/Limits.h>
+#include <cartesian_interface/problem/AngularMomentum.h>
 #include <XBotInterface/Logger.hpp>
 
 using namespace XBot::Cartesian;
@@ -152,6 +153,10 @@ TaskDescription::Ptr XBot::Cartesian::ProblemDescription::yaml_parse_task(YAML::
     {
         task_desc = yaml_parse_gaze(task_node, model);  
     }
+    else if(task_type == "AngularMomentum")
+    {
+        task_desc = yaml_parse_angular_momentum(task_node, model);
+    }
     else
     {
         XBot::Logger::error("Unsupported task type %s\n", task_type.c_str());
@@ -257,7 +262,17 @@ TaskDescription::Ptr ProblemDescription::yaml_parse_postural(YAML::Node task_nod
             
         }
     }
-    
+
+    if(task_node["use_inertia"] && task_node["use_inertia"].as<bool>())
+    {
+        postural_desc->use_inertia_matrix = true;
+    }
+
     return task_desc;
+}
+
+TaskDescription::Ptr ProblemDescription::yaml_parse_angular_momentum(YAML::Node node, ModelInterface::ConstPtr model)
+{
+    return MakeAngularMomentum();
 }
 
