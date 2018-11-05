@@ -273,6 +273,14 @@ TaskDescription::Ptr ProblemDescription::yaml_parse_postural(YAML::Node task_nod
 
 TaskDescription::Ptr ProblemDescription::yaml_parse_angular_momentum(YAML::Node node, ModelInterface::ConstPtr model)
 {
-    return MakeAngularMomentum();
+    auto task_desc = MakeAngularMomentum();
+    auto angularmom_desc = GetAsAngularMomentum(task_desc);
+
+    if(node["min_rate"] && node["min_rate"].as<bool>())
+    {
+        angularmom_desc->min_rate = true;
+    }
+
+    return task_desc;
 }
 

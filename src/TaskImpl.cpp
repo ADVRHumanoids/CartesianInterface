@@ -18,7 +18,8 @@ AngularMomentumTask::Ptr XBot::Cartesian::GetAsAngularMomentum(TaskDescription::
 }
 
 XBot::Cartesian::AngularMomentumTask::AngularMomentumTask():
-    TaskDescription(TaskInterface::None, "AngularMomentum", 3)
+    TaskDescription(TaskInterface::None, "AngularMomentum", 3),
+    min_rate(false)
 {
 
 }

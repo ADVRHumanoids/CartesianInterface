@@ -66,6 +66,7 @@ private:
     CoMTask::Ptr _com_task;
     GazeTask::Ptr _gaze_task;
     AngularMomentumTask::Ptr _angular_momentum_task;
+    bool _minimize_rate_of_change;
     
     OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr _solver;
     OpenSoT::AutoStack::Ptr _autostack;

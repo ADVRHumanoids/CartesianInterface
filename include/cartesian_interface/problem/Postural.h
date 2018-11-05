@@ -16,7 +16,9 @@ namespace XBot { namespace Cartesian {
         typedef std::shared_ptr<const PosturalTask> ConstPtr;
 
         /**
-         * @brief use_inertia_matrix if true the postural task is weighted with the inertia matrix
+         * @brief use_inertia_matrix if true the postural task is weighted with the inertia matrix.
+         * To use it set the tag:
+         *                          use_inertia: true
          */
         bool use_inertia_matrix;
         
