@@ -165,6 +165,8 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
     else if(task_desc->type == "AngularMomentum")
     {
         auto angular_mom_desc = XBot::Cartesian::GetAsAngularMomentum(task_desc);
+        _minimize_rate_of_change = angular_mom_desc->min_rate;
+
         _angular_momentum_task = boost::make_shared<AngularMomentumTask>(_q, *_model);
 
         std::list<uint> indices(angular_mom_desc->indices.begin(), angular_mom_desc->indices.end());
@@ -178,7 +180,7 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
             opensot_task = angular_mom_desc->weight*(_angular_momentum_task%indices);
         }
 
-        XBot::Logger::info("OpenSot: Angular Momentum found\n");
+        XBot::Logger::info("OpenSot: Angular Momentum found, rate of change minimization set to: %d\n", _minimize_rate_of_change);
     }
     else if(task_desc->type == "Postural")
     {
@@ -411,6 +413,17 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
         {
             _com_task->setReference(x, v*period);
             
+        }
+    }
+
+    /* Handle AngularMomentum */
+    if(_angular_momentum_task)
+    {
+        if(_minimize_rate_of_change)
+        {
+            Eigen::Vector6d MoM;
+            _model->getCentroidalMomentum(MoM);
+            _angular_momentum_task->setReference(MoM.tail(3)*period);
         }
     }
     
