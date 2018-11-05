@@ -6,6 +6,7 @@
 #include <cartesian_interface/problem/Postural.h>
 #include <cartesian_interface/problem/Gaze.h>
 #include <cartesian_interface/problem/Limits.h>
+#include <cartesian_interface/problem/AngularMomentum.h>
 #include <boost/make_shared.hpp>
 #include <OpenSoT/constraints/velocity/JointLimits.h>
 #include <OpenSoT/constraints/velocity/VelocityLimits.h>
@@ -161,9 +162,28 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
         
         XBot::Logger::info("OpenSot: Com found, lambda is %f\n", com_desc->lambda);
     }
+    else if(task_desc->type == "AngularMomentum")
+    {
+        auto angular_mom_desc = XBot::Cartesian::GetAsAngularMomentum(task_desc);
+        _angular_momentum_task = boost::make_shared<AngularMomentumTask>(_q, *_model);
+
+        std::list<uint> indices(angular_mom_desc->indices.begin(), angular_mom_desc->indices.end());
+
+        if(indices.size() == 3)
+        {
+            opensot_task = angular_mom_desc->weight*(_angular_momentum_task);
+        }
+        else
+        {
+            opensot_task = angular_mom_desc->weight*(_angular_momentum_task%indices);
+        }
+
+        XBot::Logger::info("OpenSot: Angular Momentum found\n");
+    }
     else if(task_desc->type == "Postural")
     {
         auto postural_desc = XBot::Cartesian::GetAsPostural(task_desc);
+        _use_inertia_matrix.push_back(postural_desc->use_inertia_matrix);
 
         auto postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
         
@@ -182,9 +202,10 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
             opensot_task = postural_desc->weight*(postural_task%indices);
         }
         
-        XBot::Logger::info("OpenSot: Postural found, lambda is %f, %d dofs\n", 
+        XBot::Logger::info("OpenSot: Postural found, lambda is %f, %d dofs, use inertia matrix: %d\n",
             postural_desc->lambda,
-            postural_desc->indices.size()
+            postural_desc->indices.size(),
+            postural_desc->use_inertia_matrix
         );
     }
     else
@@ -265,6 +286,8 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     _model->getJointPosition(_q);
     _dq.setZero(_q.size());
     _ddq = _dq;
+
+    _B.setIdentity(_q.size(), _q.size());
 
     /* Parse stack #0 and create autostack */
     auto stack_0 = aggregated_from_stack(ik_problem.getTask(0));
@@ -428,9 +451,21 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
     /* Postural task */
     if(_postural_tasks.size() > 0 && getReferencePosture(_qref))
     {
+        bool compute_inertia = true;
+        int idx = 0;
         for(auto postural : _postural_tasks)
         {
             postural->setReference(_qref);
+            if(_use_inertia_matrix[idx])
+            {
+                if(compute_inertia)
+                {
+                    _model->getInertiaMatrix(_B);
+                    compute_inertia = false;
+                }
+                postural->setWeight(_B);
+            }
+            idx++;
         }
     }
 
