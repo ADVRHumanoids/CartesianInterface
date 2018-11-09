@@ -1,4 +1,5 @@
 string controller_name
+bool force_reload
 ---
 string message
 bool success

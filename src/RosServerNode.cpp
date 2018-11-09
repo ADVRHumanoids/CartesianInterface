@@ -11,6 +11,7 @@
 #include <cartesian_interface/utils/LoadConfig.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 
+
 #define BOOST_RESULT_OF_USE_DECLTYPE
 #include <boost/function.hpp>
 #include <chrono>
@@ -21,6 +22,7 @@ using namespace XBot::Cartesian;
 XBot::ModelInterface::Ptr __g_model;
 ProblemDescription * __g_problem;
 std::map<std::string, CartesianInterfaceImpl::Ptr>  __g_impl_map;
+std::vector<CartesianInterfaceImpl::Ptr> __g_zombies;
 CartesianInterfaceImpl::Ptr __g_current_impl;
 RosServerClass::Ptr * __g_ros_ptrptr;
 double __g_period;
@@ -29,6 +31,11 @@ ros::Publisher * __g_reset_pub;
 
 /* Handle control modes */
 void set_blacklist(XBot::RobotInterface::Ptr robot, const XBot::ConfigOptions& xbot_cfg);
+
+/* Load controller */
+CartesianInterfaceImpl::Ptr load_controller(std::string impl_name, 
+                                            XBot::ModelInterface::Ptr model, 
+                                            ProblemDescription ik_prob);
 
 /* Loader function */
 bool loader_callback(cartesian_interface::LoadControllerRequest&  req, 
@@ -141,25 +148,17 @@ int main(int argc, char **argv){
     
     ProblemDescription ik_problem(problem_yaml, model);
     
-    /* Obtain full path to shared lib */
-    std::string path_to_shared_lib = XBot::Utils::FindLib("libCartesian" + impl_name + ".so", "LD_LIBRARY_PATH");
-    if (path_to_shared_lib == "") {
-        throw std::runtime_error("libCartesian" + impl_name + ".so must be listed inside LD_LIBRARY_PATH");
-    }
-    
-    __g_current_impl = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterfaceImpl>(path_to_shared_lib, 
-                                                                                        impl_name + "Impl", 
-                                                                                        model, ik_problem);
-    
+    /* Load controller from string */
+    __g_current_impl = load_controller(impl_name, model, ik_problem);
     if(!__g_current_impl)
     {
-        XBot::Logger::error("Unable to load solver %s \n", impl_name.c_str());
         exit(1);
     }
-    else
-    {
-        XBot::Logger::success("Loaded solver %s \n", impl_name.c_str());
-    }
+    
+    auto reset_pub = nh.advertise<std_msgs::Empty>("changed_controller_event", 1);
+    __g_reset_pub = &reset_pub;
+    std_msgs::Empty msg;
+    __g_reset_pub->publish(msg);
     
     /* Obtain class to expose ROS API */
     XBot::Cartesian::RosServerClass::Options opt;
@@ -179,8 +178,7 @@ int main(int argc, char **argv){
     
     
     auto loader_srv = nh.advertiseService("load_controller", loader_callback);
-    auto reset_pub = nh.advertise<std_msgs::Empty>("changed_controller_event", 1);
-    __g_reset_pub = &reset_pub;
+    
     
     /* Get loop frequency */
     const double freq = nh_private.param("rate", 100);
@@ -257,23 +255,27 @@ bool loader_callback(cartesian_interface::LoadControllerRequest& req,
     auto ik_it = __g_impl_map.find(req.controller_name);
     CartesianInterfaceImpl::Ptr current_impl;
     
-    if(ik_it == __g_impl_map.end())
+    if(ik_it == __g_impl_map.end()) // controller does not exist
     {
-        std::string path_to_shared_lib = XBot::Utils::FindLib("libCartesian" + req.controller_name + ".so", "LD_LIBRARY_PATH");
-        if (path_to_shared_lib == "") {
-            throw std::runtime_error("libCartesian" + req.controller_name + ".so must be listed inside LD_LIBRARY_PATH");
-        }
-        current_impl = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterfaceImpl>(
-                                                        path_to_shared_lib, 
-                                                        req.controller_name + "Impl", 
-                                                        __g_model, *__g_problem);
+        current_impl = load_controller(req.controller_name, __g_model, *__g_problem);
         
         if(current_impl)
         {
             __g_impl_map[req.controller_name] = current_impl;
         }
     }
-    else
+    else if(req.force_reload) // controller exists but force reload is true
+    {
+        Logger::info(Logger::Severity::HIGH, "Requested controller is being reloaded.. \n");
+        current_impl = load_controller(req.controller_name, __g_model, *__g_problem);
+        
+        if(current_impl)
+        {
+            __g_zombies.push_back(ik_it->second);
+            __g_impl_map.at(req.controller_name) = current_impl;
+        }
+    }
+    else // controller exists and force reload is false
     {
         Logger::info(Logger::Severity::HIGH, "Requested controller is already loaded\n");
         current_impl = ik_it->second;
@@ -334,4 +336,31 @@ void set_blacklist ( XBot::RobotInterface::Ptr robot, const XBot::ConfigOptions&
     }
     
     robot->setControlMode(ctrl_map);
+}
+
+CartesianInterfaceImpl::Ptr load_controller(std::string impl_name, 
+                                            XBot::ModelInterface::Ptr model, 
+                                            ProblemDescription ik_problem)
+{
+    CartesianInterfaceImpl::Ptr impl;
+    
+    std::string path_to_shared_lib = XBot::Utils::FindLib("libCartesian" + impl_name + ".so", "LD_LIBRARY_PATH");
+    if (path_to_shared_lib == "") {
+        throw std::runtime_error("libCartesian" + impl_name + ".so must be listed inside LD_LIBRARY_PATH");
+    }
+    
+    impl = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterfaceImpl>(path_to_shared_lib, 
+                                                                              impl_name + "Impl", 
+                                                                              model, ik_problem);
+    
+    if(!impl)
+    {
+        XBot::Logger::error("Unable to load solver %s \n", impl_name.c_str());
+    }
+    else
+    {
+        XBot::Logger::success("Loaded solver %s \n", impl_name.c_str());
+    }
+    
+    return impl;
 }
