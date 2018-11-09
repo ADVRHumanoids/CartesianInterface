@@ -259,7 +259,8 @@ OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr XBot::Car
 XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
                                           XBot::Cartesian::ProblemDescription ik_problem):
     CartesianInterfaceImpl(model, ik_problem),
-    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_opensot_log"))
+    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_opensot_log")),
+    _update_lambda(false)
 {
     _model->getJointPosition(_q);
     _dq.setZero(_q.size());
@@ -340,10 +341,43 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
         _lambda_map[t->getDistalLink()] = t->getLambda();
     }
     
+}
+
+void XBot::Cartesian::OpenSotImpl::lambda_callback(const std_msgs::Float32ConstPtr& msg, const string& ee_name)
+{
+    _lambda_map.at(ee_name) = msg->data;
+    _update_lambda = true;
+}
+
+
+bool XBot::Cartesian::OpenSotImpl::initRos(ros::NodeHandle nh)
+{
     
     
+    for(auto t: _cartesian_tasks)
+    {
+        std::string ee_name = t->getDistalLink();
+        auto sub = nh.subscribe<std_msgs::Float32>(ee_name + "/lambda", 
+                                                    1, 
+                                                    boost::bind(&OpenSotImpl::lambda_callback, 
+                                                                this,
+                                                                _1,
+                                                                ee_name
+                                                                )
+                                                   );
+        _lambda_sub_map[ee_name] = sub;
+        
+    }
+    
+    return true;
+}
+
+void XBot::Cartesian::OpenSotImpl::updateRos()
+{
 
 }
+
+
 
 bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
 {
@@ -400,6 +434,20 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
         }
     }
 
+    /* Lambda */
+    if(_update_lambda)
+    {
+        for(auto t : _cartesian_tasks)
+        {
+            if( getControlMode(t->getDistalLink()) == ControlType::Position )
+            {
+                t->setLambda(_lambda_map.at(t->getDistalLink()));
+            }
+        }
+        
+        _update_lambda = false;
+    }
+    
     _autostack->update(_q);
     _autostack->log(_logger);
 
@@ -496,14 +544,4 @@ XBot::Cartesian::OpenSotImpl::~OpenSotImpl()
     _logger->flush();
 }
 
-void XBot::Cartesian::OpenSotImpl::set_adaptive_lambda(OpenSoT::tasks::velocity::Cartesian::Ptr cartesian_task)
-{
-    Eigen::Vector6d error = cartesian_task->getError();
-    const double e_0 = 0.02;
-    const double lambda =  1.0/(1 + std::pow(error.norm() / e_0, 2.0));
-
-    std::cout << cartesian_task->getDistalLink() << ": " << lambda << std::endl;
-
-    cartesian_task->setLambda(lambda);
-}
 

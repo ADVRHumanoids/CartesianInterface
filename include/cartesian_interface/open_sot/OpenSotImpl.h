@@ -3,6 +3,7 @@
 
 
 #include <cartesian_interface/CartesianInterfaceImpl.h>
+#include <cartesian_interface/ros/RosEnabled.h>
 #include <OpenSoT/tasks/velocity/Cartesian.h>
 #include <OpenSoT/tasks/velocity/CoM.h>
 #include <OpenSoT/tasks/velocity/Postural.h>
@@ -10,9 +11,13 @@
 #include <OpenSoT/Solver.h>
 #include <OpenSoT/utils/AutoStack.h>
 
+#include <std_msgs/Float32.h>
+
+
 namespace XBot { namespace Cartesian {
 
-class OpenSotImpl : public CartesianInterfaceImpl
+class OpenSotImpl : public CartesianInterfaceImpl, 
+                    public RosEnabled
 {
     
 public:
@@ -20,6 +25,9 @@ public:
     OpenSotImpl(ModelInterface::Ptr model, ProblemDescription ik_problem);
 
     virtual bool update(double time, double period);
+    
+    virtual bool initRos(ros::NodeHandle nh);
+    virtual void updateRos();
 
     virtual ~OpenSotImpl();
     
@@ -38,18 +46,19 @@ private:
     typedef OpenSoT::tasks::Aggregated::TaskPtr TaskPtr;
     typedef OpenSoT::constraints::Aggregated::ConstraintPtr ConstraintPtr;
     
-    void set_adaptive_lambda(CartesianTask::Ptr cartesian_task);
     
     TaskPtr construct_task(TaskDescription::Ptr);
     TaskPtr aggregated_from_stack(AggregatedTask stack);
     ConstraintPtr constraint_from_description(ConstraintDescription::Ptr constr_desc);
+    
+    void lambda_callback(const std_msgs::Float32ConstPtr& msg, const std::string& ee_name);
     
     Eigen::VectorXd _qref;
     Eigen::VectorXd _q, _dq, _ddq;
     
     std::vector<CartesianTask::Ptr> _cartesian_tasks;
     std::vector<PosturalTask::Ptr> _postural_tasks;
-    std::map<std::string, double> _lambda_map;
+    
     CoMTask::Ptr _com_task;
     GazeTask::Ptr _gaze_task;
     
@@ -58,6 +67,10 @@ private:
     
     XBot::MatLogger::Ptr _logger;
     
+    /* TBD must become thread safe */
+    std::map<std::string, ros::Subscriber> _lambda_sub_map;
+    std::map<std::string, double> _lambda_map;
+    bool _update_lambda;
 };
 
 

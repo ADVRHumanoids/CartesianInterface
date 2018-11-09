@@ -417,6 +417,11 @@ void RosServerClass::run()
     publish_world_tf(now);
     publish_posture_state(now);
     publish_solution(now);
+    
+    if(_ros_enabled_ci)
+    {
+        _ros_enabled_ci->updateRos();
+    }
 
 }
 
@@ -448,6 +453,16 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     if(_opt.spawn_markers)
     {
         _marker_thread = std::make_shared<std::thread>(&RosServerClass::__generate_markers, this);
+    }
+    
+    _ros_enabled_ci = std::dynamic_pointer_cast<RosEnabled>(_cartesian_interface);
+    if(!_ros_enabled_ci || !_ros_enabled_ci->initRos(_nh))
+    {
+        _ros_enabled_ci.reset();
+    }
+    else
+    {
+        XBot::Logger::success("Ros interface initialized correctly \n");
     }
 }
 

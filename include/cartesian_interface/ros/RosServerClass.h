@@ -7,6 +7,7 @@
 #include <ros/callback_queue.h>
 
 #include <eigen_conversions/eigen_msg.h>
+#include <cartesian_interface/ros/RosEnabled.h>
 #include <cartesian_interface/ReachPoseAction.h>
 #include <cartesian_interface/GetTaskInfo.h>
 #include <cartesian_interface/SetTaskInfo.h>
@@ -142,6 +143,7 @@ namespace XBot { namespace Cartesian {
         std::string _tf_prefix, _tf_prefix_slash;
 
         CartesianInterface::Ptr _cartesian_interface;
+        RosEnabled::Ptr _ros_enabled_ci;
         ModelInterface::ConstPtr _model;
         tf::TransformBroadcaster _tf_broadcaster;
         std::unique_ptr<RsPub> _rspub;
