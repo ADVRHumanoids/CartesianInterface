@@ -62,7 +62,6 @@ private:
     std::vector<CartesianTask::Ptr> _cartesian_tasks;
     std::vector<PosturalTask::Ptr> _postural_tasks;
     std::vector<bool> _use_inertia_matrix;
-    std::map<std::string, double> _lambda_map;
     CoMTask::Ptr _com_task;
     GazeTask::Ptr _gaze_task;
     AngularMomentumTask::Ptr _angular_momentum_task;
