@@ -686,7 +686,15 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
 
     KDL::Frame T; T.Identity();
     while(!link->visual)
-            link = _urdf.getLink(link->parent_joint->parent_link_name);
+    {
+        if(!link->parent_joint)
+        {
+            XBot::Logger::warning("Unable to find mesh for link %s \n", _distal_link.c_str());
+            return makeSphere(msg);
+        }
+        link = _urdf.getLink(link->parent_joint->parent_link_name);
+    }
+    
     T = getPose(controlled_link->name, link->name);
 
 
