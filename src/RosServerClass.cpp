@@ -336,8 +336,10 @@ void RosServerClass::publish_state(ros::Time time)
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
         geometry_msgs::PoseStamped msg;
+        std::string frame_id = _cartesian_interface->getBaseLink(ee_name);
+        frame_id = frame_id == "world" ? "world_odom" : frame_id;
         msg.header.stamp = time;
-        msg.header.frame_id = _cartesian_interface->getBaseLink(ee_name);
+        msg.header.frame_id = _tf_prefix_slash + frame_id;
         Eigen::Affine3d base_T_ee;
         _cartesian_interface->getPoseReference(ee_name, base_T_ee);
         tf::poseEigenToMsg(base_T_ee, msg.pose);
