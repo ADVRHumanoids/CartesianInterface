@@ -96,6 +96,18 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromParamServer(YA
         problem_description = YAML::Load(problem_description_string);
     }
     
+    std::vector<std::string> joint_blacklist;
+    if(nh.hasParam("joint_blacklist") && nh.getParam("joint_blacklist", joint_blacklist))
+    {
+        xbot_cfg.set_parameter("joint_blacklist", joint_blacklist);
+    }
+    
+    std::vector<std::string> velocity_whitelist;
+    if(nh.hasParam("velocity_whitelist") && nh.getParam("velocity_whitelist", velocity_whitelist))
+    {
+        xbot_cfg.set_parameter("velocity_whitelist", velocity_whitelist);
+    }
+    
     std::string js_msg_type = nh_private.param<std::string>("jointstate_message_type", "AdvrJointStateMessage");
     std::string ctrl_msg_type = nh_private.param<std::string>("control_message_type", "AdvrCommandMessage");
     

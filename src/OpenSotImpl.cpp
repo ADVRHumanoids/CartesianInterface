@@ -6,6 +6,7 @@
 #include <cartesian_interface/problem/Postural.h>
 #include <cartesian_interface/problem/Gaze.h>
 #include <cartesian_interface/problem/Limits.h>
+#include <cartesian_interface/problem/AngularMomentum.h>
 #include <boost/make_shared.hpp>
 #include <OpenSoT/constraints/velocity/JointLimits.h>
 #include <OpenSoT/constraints/velocity/VelocityLimits.h>
@@ -161,9 +162,30 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
         
         XBot::Logger::info("OpenSot: Com found, lambda is %f\n", com_desc->lambda);
     }
+    else if(task_desc->type == "AngularMomentum")
+    {
+        auto angular_mom_desc = XBot::Cartesian::GetAsAngularMomentum(task_desc);
+        _minimize_rate_of_change = angular_mom_desc->min_rate;
+
+        _angular_momentum_task = boost::make_shared<AngularMomentumTask>(_q, *_model);
+
+        std::list<uint> indices(angular_mom_desc->indices.begin(), angular_mom_desc->indices.end());
+
+        if(indices.size() == 3)
+        {
+            opensot_task = angular_mom_desc->weight*(_angular_momentum_task);
+        }
+        else
+        {
+            opensot_task = angular_mom_desc->weight*(_angular_momentum_task%indices);
+        }
+
+        XBot::Logger::info("OpenSot: Angular Momentum found, rate of change minimization set to: %d\n", _minimize_rate_of_change);
+    }
     else if(task_desc->type == "Postural")
     {
         auto postural_desc = XBot::Cartesian::GetAsPostural(task_desc);
+        _use_inertia_matrix.push_back(postural_desc->use_inertia_matrix);
 
         auto postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
         
@@ -182,9 +204,10 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
             opensot_task = postural_desc->weight*(postural_task%indices);
         }
         
-        XBot::Logger::info("OpenSot: Postural found, lambda is %f, %d dofs\n", 
+        XBot::Logger::info("OpenSot: Postural found, lambda is %f, %d dofs, use inertia matrix: %d\n",
             postural_desc->lambda,
-            postural_desc->indices.size()
+            postural_desc->indices.size(),
+            postural_desc->use_inertia_matrix
         );
     }
     else
@@ -259,11 +282,14 @@ OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr XBot::Car
 XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
                                           XBot::Cartesian::ProblemDescription ik_problem):
     CartesianInterfaceImpl(model, ik_problem),
-    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_opensot_log"))
+    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_opensot_log")),
+    _update_lambda(false)
 {
     _model->getJointPosition(_q);
     _dq.setZero(_q.size());
     _ddq = _dq;
+
+    _B.setIdentity(_q.size(), _q.size());
 
     /* Parse stack #0 and create autostack */
     auto stack_0 = aggregated_from_stack(ik_problem.getTask(0));
@@ -340,10 +366,43 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
         _lambda_map[t->getDistalLink()] = t->getLambda();
     }
     
+}
+
+void XBot::Cartesian::OpenSotImpl::lambda_callback(const std_msgs::Float32ConstPtr& msg, const string& ee_name)
+{
+    _lambda_map.at(ee_name) = msg->data;
+    _update_lambda = true;
+}
+
+
+bool XBot::Cartesian::OpenSotImpl::initRos(ros::NodeHandle nh)
+{
     
     
+    for(auto t: _cartesian_tasks)
+    {
+        std::string ee_name = t->getDistalLink();
+        auto sub = nh.subscribe<std_msgs::Float32>(ee_name + "/lambda", 
+                                                    1, 
+                                                    boost::bind(&OpenSotImpl::lambda_callback, 
+                                                                this,
+                                                                _1,
+                                                                ee_name
+                                                                )
+                                                   );
+        _lambda_sub_map[ee_name] = sub;
+        
+    }
+    
+    return true;
+}
+
+void XBot::Cartesian::OpenSotImpl::updateRos()
+{
 
 }
+
+
 
 bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
 {
@@ -390,16 +449,53 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
             
         }
     }
+
+    /* Handle AngularMomentum */
+    if(_angular_momentum_task)
+    {
+        if(_minimize_rate_of_change)
+        {
+            Eigen::Vector6d MoM;
+            _model->getCentroidalMomentum(MoM);
+            _angular_momentum_task->setReference(MoM.tail(3)*period);
+        }
+    }
     
     /* Postural task */
     if(_postural_tasks.size() > 0 && getReferencePosture(_qref))
     {
+        bool compute_inertia = true;
+        int idx = 0;
         for(auto postural : _postural_tasks)
         {
             postural->setReference(_qref);
+            if(_use_inertia_matrix[idx])
+            {
+                if(compute_inertia)
+                {
+                    _model->getInertiaMatrix(_B);
+                    compute_inertia = false;
+                }
+                postural->setWeight(_B);
+            }
+            idx++;
         }
     }
 
+    /* Lambda */
+    if(_update_lambda)
+    {
+        for(auto t : _cartesian_tasks)
+        {
+            if( getControlMode(t->getDistalLink()) == ControlType::Position )
+            {
+                t->setLambda(_lambda_map.at(t->getDistalLink()));
+            }
+        }
+        
+        _update_lambda = false;
+    }
+    
     _autostack->update(_q);
     _autostack->log(_logger);
 
@@ -496,14 +592,4 @@ XBot::Cartesian::OpenSotImpl::~OpenSotImpl()
     _logger->flush();
 }
 
-void XBot::Cartesian::OpenSotImpl::set_adaptive_lambda(OpenSoT::tasks::velocity::Cartesian::Ptr cartesian_task)
-{
-    Eigen::Vector6d error = cartesian_task->getError();
-    const double e_0 = 0.02;
-    const double lambda =  1.0/(1 + std::pow(error.norm() / e_0, 2.0));
-
-    std::cout << cartesian_task->getDistalLink() << ": " << lambda << std::endl;
-
-    cartesian_task->setLambda(lambda);
-}
 

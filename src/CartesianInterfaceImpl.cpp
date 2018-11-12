@@ -26,7 +26,7 @@ std::string CartesianInterface::ControlTypeAsString(CartesianInterface::ControlT
             break;
             
         default:
-            return "Invalid control type";
+            throw std::runtime_error("Invalid control type");
     }
 }
 
@@ -44,7 +44,7 @@ std::string CartesianInterface::StateAsString(CartesianInterface::State ctrl)
             break;
             
         default:
-            return "Invalid state";
+            throw std::runtime_error("Invalid state");
     }
 }
 
@@ -578,7 +578,8 @@ bool CartesianInterfaceImpl::setTargetComPosition(const Eigen::Vector3d& w_com_r
     T.setIdentity();
     T.translation() = w_com_ref;
     
-    return _com_task->set_target_pose(get_current_time(), time, T);
+    
+    return _com_task->set_target_pose(get_current_time(), get_current_time() + time, T);
 }
 
 const std::vector< std::string >& CartesianInterfaceImpl::getTaskList() const
@@ -1277,4 +1278,5 @@ bool XBot::Cartesian::CartesianInterfaceImpl::resetWorld(const Eigen::Affine3d& 
     
     return reset(get_current_time());
 }
+
 

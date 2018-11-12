@@ -3,8 +3,26 @@
 #include <cartesian_interface/problem/Com.h>
 #include <cartesian_interface/problem/Postural.h>
 #include <cartesian_interface/problem/Gaze.h>
+#include <cartesian_interface/problem/AngularMomentum.h>
 
 using namespace XBot::Cartesian;
+
+AngularMomentumTask::Ptr XBot::Cartesian::MakeAngularMomentum()
+{
+    return std::make_shared<AngularMomentumTask>();
+}
+
+AngularMomentumTask::Ptr XBot::Cartesian::GetAsAngularMomentum(TaskDescription::Ptr task)
+{
+    return std::dynamic_pointer_cast<AngularMomentumTask>(task);
+}
+
+XBot::Cartesian::AngularMomentumTask::AngularMomentumTask():
+    TaskDescription(TaskInterface::None, "AngularMomentum", 3),
+    min_rate(false)
+{
+
+}
 
 GazeTask::Ptr XBot::Cartesian::MakeGaze(std::string base_link)
 {
@@ -33,7 +51,8 @@ PosturalTask::Ptr XBot::Cartesian::GetAsPostural(TaskDescription::Ptr task)
 }
 
 PosturalTask::PosturalTask(int ndof):
-    TaskDescription(TaskInterface::Postural, "Postural", ndof)
+    TaskDescription(TaskInterface::Postural, "Postural", ndof),
+    use_inertia_matrix(false)
 {
     
 }
