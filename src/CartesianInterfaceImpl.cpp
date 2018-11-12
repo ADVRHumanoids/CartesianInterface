@@ -160,7 +160,7 @@ bool XBot::Cartesian::CartesianInterfaceImpl::getPoseReference(const std::string
     }
     
     base_T_ref = task->get_pose_otg();
-    if(base_vel_ref) *base_vel_ref = task->get_velocity();
+    if(base_vel_ref) *base_vel_ref = task->get_velocity_otg();
     if(base_acc_ref) *base_acc_ref = task->get_acceleration();
     
     return true;
@@ -308,17 +308,26 @@ CartesianInterfaceImpl::Task::Task():
     __otg_ref(EigenVector7d::Zero()),
     __otg_des(EigenVector7d::Zero()),
     __otg_maxvel(EigenVector7d::Constant(1.0)),
-    __otg_maxacc(EigenVector7d::Constant(5.0))
+    __otg_maxacc(EigenVector7d::Constant(5.0)),
+    __vel_otg_ref(Eigen::Vector6d::Zero())
 {
     
 }
 
 void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_dt(double expected_dt)
 {
-    otg = std::make_shared<Reflexxes::Utils::TrajectoryGenerator>(7, expected_dt, EigenVector7d::Zero());
+    otg = std::make_shared<Reflexxes::Utils::TrajectoryGenerator>(7, 
+                                                                  expected_dt, 
+                                                                  EigenVector7d::Zero());
+    
+    otg_vel = std::make_shared<Reflexxes::Utils::TrajectoryGeneratorVelocity>(6, 
+                                                                  expected_dt);
     reset_otg();
+    
     otg->setVelocityLimits(__otg_maxvel);
     otg->setAccelerationLimits(__otg_maxacc);
+    otg_vel->setVelocityLimits(__otg_maxvel.head<6>());
+    otg_vel->setAccelerationLimits(__otg_maxacc.head<6>());
 }
 
 void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_acc_limits(double linear, double angular)
@@ -329,6 +338,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_acc_limits(double li
     {
         Logger::success(Logger::Severity::LOW, "Task::set_otg_acc_limits (%f, %f): success\n", linear, angular);
         otg->setAccelerationLimits(__otg_maxacc);
+        otg_vel->setAccelerationLimits(__otg_maxacc.head<6>());
     }
 }
 
@@ -340,6 +350,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::Task::set_otg_vel_limits(double li
     {
         Logger::success(Logger::Severity::LOW, "Task::set_otg_vel_limits (%f, %f): success\n", linear, angular);
         otg->setVelocityLimits(__otg_maxvel);
+        otg_vel->setVelocityLimits(__otg_maxvel.head<6>());
     }
 }
 
@@ -450,6 +461,7 @@ void CartesianInterfaceImpl::log_tasks()
         _logger->add(task.get_distal() + "_pos", task.get_pose().translation());
         _logger->add(task.get_distal() + "_pos_otg", task.get_pose_otg().translation());
         _logger->add(task.get_distal() + "_vel", task.get_velocity());
+        _logger->add(task.get_distal() + "_vel_otg", task.get_velocity_otg());
         _logger->add(task.get_distal() + "_rot", Eigen::Quaterniond(task.get_pose().linear()).coeffs());
         _logger->add(task.get_distal() + "_rot_otg", Eigen::Quaterniond(task.get_pose_otg().linear()).coeffs());
         _logger->add(task.get_distal() + "_state", task.get_state() == State::Reaching ? 1 : 0);
@@ -469,6 +481,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::init_log_tasks()
         _logger->createVectorVariable(task.get_distal() + "_pos", 3, 1, BUF_SIZE);
         _logger->createVectorVariable(task.get_distal() + "_pos_otg", 3, 1, BUF_SIZE);
         _logger->createVectorVariable(task.get_distal() + "_vel", 6, 1, BUF_SIZE);
+        _logger->createVectorVariable(task.get_distal() + "_vel_otg", 6, 1, BUF_SIZE);
         _logger->createVectorVariable(task.get_distal() + "_rot", 4, 1, BUF_SIZE);
         _logger->createVectorVariable(task.get_distal() + "_rot_otg", 4, 1, BUF_SIZE);
         _logger->createScalarVariable(task.get_distal() + "_state", 1, BUF_SIZE);
@@ -1133,7 +1146,17 @@ void XBot::Cartesian::CartesianInterfaceImpl::Task::apply_otg()
     }
 
     
+    otg_vel->setReference(vel);
+    otg_vel->update(__vel_otg_ref);
+    
+    
 }
+
+const Eigen::Vector6d& XBot::Cartesian::CartesianInterfaceImpl::Task::get_velocity_otg() const
+{
+    return __vel_otg_ref;
+}
+
 
 void CartesianInterfaceImpl::Task::reset_otg()
 {
@@ -1145,6 +1168,7 @@ void CartesianInterfaceImpl::Task::reset_otg()
     
 
     otg->reset(__otg_des);
+    otg_vel->reset();
 
 }
 
