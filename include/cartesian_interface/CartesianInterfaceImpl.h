@@ -26,7 +26,6 @@
 #include <cartesian_interface/problem/ProblemDescription.h>
 #include <XBotInterface/SoLib.h>
 #include <ReflexxesTypeII/Wrappers/TrajectoryGenerator.h>
-#include <ReflexxesTypeII/Wrappers/TrajectoryGeneratorVelocity.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -153,7 +152,6 @@ protected:
         const Eigen::Affine3d& get_pose() const;
         const Eigen::Affine3d get_pose_otg() const;
         const Eigen::Vector6d& get_velocity() const;
-        const Eigen::Vector6d& get_velocity_otg() const;
         const Eigen::Vector6d& get_acceleration() const;
         bool get_pose_target(Eigen::Affine3d& pose_target) const;
         bool is_new_data_available() const;
@@ -199,7 +197,6 @@ protected:
         
         EigenVector7d __otg_des, __otg_ref, __otg_vref;
         EigenVector7d __otg_maxvel, __otg_maxacc;
-        Eigen::Vector6d __vel_otg_ref;
         
         ControlType control_type;
         State state;
@@ -209,7 +206,6 @@ protected:
         
         Trajectory::Ptr trajectory;
         Reflexxes::Utils::TrajectoryGenerator::Ptr otg;
-        Reflexxes::Utils::TrajectoryGeneratorVelocity::Ptr otg_vel;
         
         
     };
