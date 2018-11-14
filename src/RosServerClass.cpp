@@ -249,26 +249,11 @@ void RosServerClass::manage_reach_actions()
                 }
                 
                 Eigen::Affine3d T_first_ref = waypoints[0].frame;
-
                 
-                
-                if(ee_name == "com"){
-                    
-                    if(!_cartesian_interface->setTargetComPosition(T_first_ref.translation(), goal->time.back()))
-                    {
-                        as->setAborted(cartesian_interface::ReachPoseResult(), "Internal error");
-                        continue;
-                    }
-                    
-                }
-                else
+                if(!_cartesian_interface->setWayPoints(ee_name, waypoints))
                 {
-                    
-                    if(!_cartesian_interface->setWayPoints(ee_name, waypoints))
-                    {
-                        as->setAborted(cartesian_interface::ReachPoseResult(), "Internal error");
-                        continue;
-                    }
+                    as->setAborted(cartesian_interface::ReachPoseResult(), "Internal error");
+                    continue;
                 }
 
                 current_state = _cartesian_interface->getTaskState(ee_name);
