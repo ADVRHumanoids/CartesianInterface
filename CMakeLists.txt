@@ -171,6 +171,7 @@ add_executable(world_connecter src/WorldConnecter.cpp)
 target_link_libraries(world_connecter ${catkin_LIBRARIES})
 
 add_subdirectory(examples)
+add_subdirectory(bindings/python/)
 
 
 option(COMPILE_XBOT_PLUGIN OFF)

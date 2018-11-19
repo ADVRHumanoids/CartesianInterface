@@ -5,10 +5,14 @@
 #include <string>
 #include <vector>
 #include <ros/ros.h>
+#include <ros/callback_queue.h>
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 #include <cartesian_interface/ReachPoseAction.h>
-
+#include <cartesian_interface/GetTaskList.h>
+#include <cartesian_interface/GetTaskInfo.h>
+#include <geometry_msgs/TwistStamped.h>
+#include <eigen_conversions/eigen_msg.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -64,6 +68,22 @@ namespace XBot { namespace Cartesian {
         virtual bool setTargetPose(const std::string& end_effector, const Eigen::Affine3d& base_T_ref, double time = 0);
         virtual bool setTargetPosition(const std::string& end_effector, const Eigen::Vector3d& base_pos_ref, double time = 0);
 
+        virtual void getAccelerationLimits(const std::string& ee_name, double& max_acc_lin, double& max_acc_ang) const;
+        virtual bool getComPositionReference(Eigen::Vector3d& w_com_ref, Eigen::Vector3d* base_vel_ref = nullptr, Eigen::Vector3d* base_acc_ref = nullptr) const;
+        virtual bool getReferencePosture(XBot::JointNameMap& qref) const;
+        virtual bool getReferencePosture(Eigen::VectorXd& qref) const;
+        virtual void getVelocityLimits(const std::string& ee_name, double& max_vel_lin, double& max_vel_ang) const;
+        virtual void setVelocityLimits(const std::string& ee_name, double max_vel_lin, double max_vel_ang);
+        virtual void setAccelerationLimits(const std::string& ee_name, double max_acc_lin, double max_acc_ang);
+        virtual bool resetWorld(const Eigen::Affine3d& w_T_new_world);
+        virtual bool setReferencePosture(const XBot::JointNameMap& qref);
+        virtual bool setWayPoints(const std::string& end_effector, const Trajectory::WayPointVector& way_points);
+        virtual bool getTargetComPosition(Eigen::Vector3d& w_com_ref) const;
+        virtual bool reset(double time);
+        virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link);
+
+
+        
         virtual bool abort(const std::string& end_effector);
         virtual bool update(double time, double period);
             
@@ -71,16 +91,87 @@ namespace XBot { namespace Cartesian {
         
         
         typedef actionlib::SimpleActionClient<cartesian_interface::ReachPoseAction> ActionClient;
-        std::vector<ActionClient> _action_client;
         
-        std::vector<ros::Publisher> _pose_ref_pub;
-        std::vector<ros::Subscriber> _pose_ref_sub;
-        std::vector<ros::Subscriber> _pose_state_sub;
-        ros::ServiceClient _get_ctrl_mode_srv, _task_state_srv;
+        class RosTask
+        {
+            
+        private:
+            
+            ros::Subscriber state_sub;
+            ros::Publisher ref_pub;
+            ros::Publisher vref_pub;
+//             ActionClient reach_action;
+            
+            ros::ServiceClient prop_srv;
+            
+            std::string distal_link;
+            Eigen::Affine3d state;
+            
+            void state_callback(const geometry_msgs::PoseStampedConstPtr& msg);
+            bool valid_state;
+            
+        public:
+            
+            typedef std::shared_ptr<RosTask> Ptr;
+            
+            RosTask(ros::NodeHandle nh, std::string distal_link);
+            bool is_valid() const;
+            
+            Eigen::Affine3d get_state() const;
+            void send_ref(const Eigen::Affine3d& ref);
+            void send_vref(const Eigen::Vector6d& vref);
+            bool get_properties(std::string& base_link, ControlType& ctrl_type);
+            
+        };
         
+        struct RosInitHelper
+        {
+            RosInitHelper()
+            {
+                if(!ros::isInitialized())
+                {
+                    int argc = 1;
+                    const char * argv = "my_exec";
+                    ros::init(argc, (char **)&argv, "my_node");
+                    ROS_INFO("Initialized ros");
+                }
+            }
+        };
+        
+        RosTask::Ptr get_task(const std::string& task_name, bool no_throw = true) const;
+        
+        RosInitHelper ros_init_helper;
+        
+        std::map<std::string, RosTask::Ptr> _task_map;
+        
+        ros::NodeHandle _nh;
+        ros::CallbackQueue _queue;
+        
+        mutable ros::ServiceClient _tasklist_srv;        
+        mutable std::vector<std::string> _tasklist;
     };
 
 
 } }
 
 #endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
