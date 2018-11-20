@@ -23,6 +23,11 @@ PYBIND11_MODULE(pyci_ros, m) {
         .def("setControlMode", &RosImpl::setControlMode)
         .def("getBaseLink", &RosImpl::getBaseLink)
         .def("setBaseLink", &RosImpl::setBaseLink)
+        .def("loadController", &RosImpl::loadController)
+        .def("getVelocityLimits", py_get_velocity_limits)
+        .def("getAccelerationLimits", py_get_acceleration_limits)
+        .def("setVelocityLimits", py_get_velocity_limits)
+        .def("setAccelerationLimits", &RosImpl::setAccelerationLimits)
         .def("setReferencePosture", &RosImpl::setReferencePosture)
         .def("setTargetPose", py_send_target_pose, 
              py::arg("task_name"), 

@@ -3,22 +3,19 @@
 #include <cartesian_interface/GetTaskList.h>
 #include <cartesian_interface/GetTaskInfo.h>
 #include <cartesian_interface/SetTaskInfo.h>
+#include <cartesian_interface/LoadController.h>
 #include <sensor_msgs/JointState.h>
+#include <std_srvs/Trigger.h>
 
 #define THROW_NOT_IMPL throw std::runtime_error("Not implemented function " + std::string(__func__));
 
 using namespace XBot::Cartesian;
 
-
-RosImpl::RosImpl():
-    _nh("cartesian")
+void XBot::Cartesian::RosImpl::construct_from_tasklist()
 {
-    _nh.setCallbackQueue(&_queue);
-    
-    _tasklist_srv = _nh.serviceClient<cartesian_interface::GetTaskList>("get_task_list");
-    
     getTaskList();
     
+    _task_map.clear();
     for(auto t: _tasklist)
     {
         ROS_INFO("Task %s added to Cartesian interface", t.c_str());
@@ -45,8 +42,21 @@ RosImpl::RosImpl():
     {
         throw std::runtime_error("Unable to receive valid state");
     }
+}
+
+
+RosImpl::RosImpl():
+    _nh("cartesian")
+{
+    _nh.setCallbackQueue(&_queue);
+    
+    _tasklist_srv = _nh.serviceClient<cartesian_interface::GetTaskList>("get_task_list");
+    
+    construct_from_tasklist();
     
     _posture_pub = _nh.advertise<sensor_msgs::JointState>("posture/reference", 1);
+    _load_ctrl_srv = _nh.serviceClient<cartesian_interface::LoadController>("load_controller");
+    _upd_limits_srv = _nh.serviceClient<std_srvs::Trigger>("update_velocity_limits");
     
 }
 
@@ -258,6 +268,28 @@ bool RosImpl::getPoseReference(const std::string& end_effector,
     return true;
 }
 
+void XBot::Cartesian::RosImpl::loadController(const std::string& controller_name)
+{
+    cartesian_interface::LoadController srv;
+    srv.request.controller_name = controller_name;
+    srv.request.force_reload = false;
+    
+    _task_map.clear();
+    
+    if(!_load_ctrl_srv.call(srv))
+    {
+        throw std::runtime_error("Unable to connect to " + _load_ctrl_srv.getService());
+    }
+    
+    if(!srv.response.success)
+    {
+        throw std::runtime_error(_load_ctrl_srv.getService() + " responded with an error:\n\t" + srv.response.message);
+    }
+    
+    ROS_INFO("%s", srv.response.message.c_str());
+    
+    construct_from_tasklist();
+}
 
 
 RosImpl::~RosImpl()
@@ -394,7 +426,13 @@ bool RosImpl::setTargetPosition(const std::string& end_effector, const Eigen::Ve
 
 void RosImpl::getAccelerationLimits(const std::string& ee_name, double& max_acc_lin, double& max_acc_ang) const
 {
-    THROW_NOT_IMPL
+    get_task(ee_name, false);
+    
+    if(!_nh.getParam(ee_name + "/max_acceleration_linear", max_acc_lin) || 
+       !_nh.getParam(ee_name + "/max_acceleration_angular", max_acc_ang))
+    {
+        throw std::runtime_error("Undefine acceleration limits for task " + ee_name);
+    }
 }
 
 bool RosImpl::getComPositionReference(Eigen::Vector3d& w_com_ref, Eigen::Vector3d* base_vel_ref, Eigen::Vector3d* base_acc_ref) const
@@ -414,7 +452,13 @@ bool RosImpl::getReferencePosture(XBot::JointNameMap& qref) const
 
 void RosImpl::getVelocityLimits(const std::string& ee_name, double& max_vel_lin, double& max_vel_ang) const
 {
-    THROW_NOT_IMPL
+    get_task(ee_name, false);
+    
+    if(!_nh.getParam(ee_name + "/max_velocity_linear", max_vel_lin) || 
+       !_nh.getParam(ee_name + "/max_velocity_angular", max_vel_ang))
+    {
+        throw std::runtime_error("Undefine velocity limits for task " + ee_name);
+    }
 }
 
 bool RosImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
@@ -424,12 +468,48 @@ bool RosImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
 
 void RosImpl::setAccelerationLimits(const std::string& ee_name, double max_acc_lin, double max_acc_ang)
 {
-    THROW_NOT_IMPL
+    double dummy;
+    getAccelerationLimits(ee_name, dummy, dummy);
+    
+    _nh.setParam(ee_name + "/max_acceleration_linear",  max_acc_lin);
+    _nh.setParam(ee_name + "/max_acceleration_angular", max_acc_ang);
+        
+    std_srvs::Trigger srv;
+    
+    if(!_upd_limits_srv.call(srv))
+    {
+        throw std::runtime_error("Unable to connect to " + _upd_limits_srv.getService());
+    }
+    
+    if(!srv.response.success)
+    {
+        throw std::runtime_error(_upd_limits_srv.getService() + " responded with an error:\n\t" + srv.response.message);
+    }
+    
+    ROS_INFO("%s", srv.response.message.c_str());
 }
 
 void RosImpl::setVelocityLimits(const std::string& ee_name, double max_vel_lin, double max_vel_ang)
 {
-    THROW_NOT_IMPL
+    double dummy;
+    getVelocityLimits(ee_name, dummy, dummy);
+    
+    _nh.setParam(ee_name + "/max_velocity_linear",  max_vel_lin);
+    _nh.setParam(ee_name + "/max_velocity_angular", max_vel_ang);
+        
+    std_srvs::Trigger srv;
+    
+    if(!_upd_limits_srv.call(srv))
+    {
+        throw std::runtime_error("Unable to connect to " + _upd_limits_srv.getService());
+    }
+    
+    if(!srv.response.success)
+    {
+        throw std::runtime_error(_upd_limits_srv.getService() + " responded with an error:\n\t" + srv.response.message);
+    }
+    
+    ROS_INFO("%s", srv.response.message.c_str());
 }
 
 bool RosImpl::reset(double time)

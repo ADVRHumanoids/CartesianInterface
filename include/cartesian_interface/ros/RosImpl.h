@@ -93,7 +93,7 @@ namespace XBot { namespace Cartesian {
         virtual bool reset(double time);
         virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link);
 
-
+        void loadController(const std::string& controller_name);
         bool waitReachCompleted(const std::string& ee_name, double timeout_sec = 0.0);
         virtual bool abort(const std::string& end_effector);
         virtual bool update(double time, double period);
@@ -151,6 +151,7 @@ namespace XBot { namespace Cartesian {
             }
         };
         
+        void construct_from_tasklist();
         RosTask::Ptr get_task(const std::string& task_name, bool no_throw = true) const;
         
         RosInitHelper ros_init_helper;
@@ -158,6 +159,9 @@ namespace XBot { namespace Cartesian {
         ros::NodeHandle _nh;
         ros::CallbackQueue _queue;
         
+        ros::ServiceClient _upd_limits_srv;
+        ros::ServiceClient _load_ctrl_srv;
+        ros::Publisher _posture_pub;
         std::map<std::string, RosTask::Ptr> _task_map;
         
         

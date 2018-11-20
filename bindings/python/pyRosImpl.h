@@ -107,3 +107,17 @@ auto py_send_target_pose(RosImpl& r,
     
     return r.setTargetPose(ee, T, time, incremental);
 }
+
+auto py_get_velocity_limits(RosImpl& r, const std::string& ee)
+{
+    double lin = 0.0, ang = 0.0;
+    r.getVelocityLimits(ee, lin, ang);
+    return std::make_tuple(lin, ang);
+}
+
+auto py_get_acceleration_limits(RosImpl& r, const std::string& ee)
+{
+    double lin = 0.0, ang = 0.0;
+    r.getAccelerationLimits(ee, lin, ang);
+    return std::make_tuple(lin, ang);
+}

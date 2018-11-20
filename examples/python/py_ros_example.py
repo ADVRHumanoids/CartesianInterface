@@ -8,7 +8,7 @@ Created on Mon Nov 19 17:50:12 2018
 @author: arturo.laurenzi@iit.it
 """
 
-from cartesian_interface import roscpp_utils
+from cartesian_interface import roscpp_utils as roscpp
 from cartesian_interface import pyci_ros
 import sys
 import rospy
@@ -21,7 +21,7 @@ if __name__ == '__main__':
     # Initialize both rospy and roscpp 
     ### (remember that CartesianInterfaceRos is actually implemented in C++!)
     rospy.init_node('example_node', sys.argv)
-    roscpp_utils.init('example_node', sys.argv)
+    roscpp.init('example_node', sys.argv)
     
     # Get a CartesI/O ROS implementation
     ci = pyci_ros.CartesianInterfaceRos()
