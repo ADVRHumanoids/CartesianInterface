@@ -1,10 +1,33 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
+#include <pybind11/stl.h>
 #include <cartesian_interface/ros/RosImpl.h>
 
 namespace py = pybind11;
 using namespace XBot::Cartesian;
 
+struct WayPoint 
+{
+    Eigen::Vector3d position;
+    Eigen::Vector4d orientation;
+    double time;
+    
+    WayPoint(): position(0,0,0), orientation(0,0,0,1), time(0)
+    {
+    }
+    
+    std::string repr()
+    {
+        std::stringstream ss;
+        ss << "pyci_ros.WayPoint with pos: (" << 
+            position.transpose().format(Eigen::IOFormat(2)) << "), rot: (" << 
+            orientation.transpose().format(Eigen::IOFormat(2)) << "), time: " << time;
+        return ss.str();
+    }
+           
+        
+    
+};
 
 auto py_get_pose_reference(const RosImpl& r, const std::string& ee)
 {
@@ -30,7 +53,7 @@ bool py_set_pose_reference(RosImpl& r,
 {
     Eigen::Affine3d T;
     T.setIdentity();
-    T.linear() = Eigen::Quaterniond(qcoeff).toRotationMatrix();
+    T.linear() = Eigen::Quaterniond(qcoeff).normalized().toRotationMatrix();
     T.translation() = t;
     
     Eigen::Vector6d a;
@@ -47,6 +70,40 @@ bool py_set_pose_reference_novel(RosImpl& r,
                           )
 {
     return py_set_pose_reference(r, ee, t, qcoeff, Eigen::Vector6d::Zero());
-    
 }
-             
+
+auto py_send_waypoints(RosImpl& r, 
+                       const std::string& ee, 
+                       const std::vector<WayPoint>& arg_wpv,
+                       bool incremental = false
+                      )
+{
+    Trajectory::WayPointVector wpv;
+    for(auto wp : arg_wpv)
+    {
+        Eigen::Affine3d T;
+        T.setIdentity();
+        T.linear() = Eigen::Quaterniond(wp.orientation).normalized().toRotationMatrix();
+        T.translation() = wp.position;
+        
+        wpv.emplace_back(T, wp.time);
+    }
+    
+    return r.setWayPoints(ee, wpv, incremental);
+}
+    
+auto py_send_target_pose(RosImpl& r, 
+                         const std::string& ee,
+                         const Eigen::Vector3d& t,
+                         const Eigen::Vector4d& qcoeff, 
+                         double time,
+                         bool incremental
+                        )
+{
+    Eigen::Affine3d T;
+    T.setIdentity();
+    T.linear() = Eigen::Quaterniond(qcoeff).normalized().toRotationMatrix();
+    T.translation() = t;
+    
+    return r.setTargetPose(ee, T, time, incremental);
+}

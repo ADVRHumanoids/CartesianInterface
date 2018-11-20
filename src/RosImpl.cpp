@@ -1,5 +1,9 @@
 #include <cartesian_interface/ros/RosImpl.h>
 
+#include <cartesian_interface/GetTaskList.h>
+#include <cartesian_interface/GetTaskInfo.h>
+#include <cartesian_interface/SetTaskInfo.h>
+
 #define THROW_NOT_IMPL throw std::runtime_error("Not implemented function " + std::string(__func__));
 
 using namespace XBot::Cartesian;
@@ -45,15 +49,24 @@ RosImpl::RosImpl():
 
 RosImpl::RosTask::RosTask(ros::NodeHandle nh, std::string arg_distal_link):
     distal_link(arg_distal_link),
-    valid_state(false)
+    valid_state(false),
+    reach_action(nh, arg_distal_link + "/reach")
 {
     state_sub = nh.subscribe(distal_link + "/state", 1, &RosTask::state_callback, this);
     ref_pub = nh.advertise<geometry_msgs::PoseStamped>(distal_link + "/reference", 1);
     vref_pub = nh.advertise<geometry_msgs::TwistStamped>(distal_link + "/velocity_reference", 1);
-    prop_srv = nh.serviceClient<cartesian_interface::GetTaskInfo>(distal_link + "/get_task_properties");
-    
+    get_prop_srv = nh.serviceClient<cartesian_interface::GetTaskInfo>(distal_link + "/get_task_properties");
+    set_prop_srv = nh.serviceClient<cartesian_interface::SetTaskInfo>(distal_link + "/set_task_properties");
     
 }
+
+void XBot::Cartesian::RosImpl::shutdown()
+{
+    std::cout << __func__ << std::endl;
+    this->~RosImpl();
+    std::cout << "Shutdown complete" << std::endl;
+}
+
 
 RosImpl::RosTask::Ptr RosImpl::get_task(const std::string& task_name, bool no_throw) const
 {
@@ -78,8 +91,6 @@ void RosImpl::RosTask::state_callback(const geometry_msgs::PoseStampedConstPtr& 
 {
     tf::poseMsgToEigen(msg->pose, state);
     valid_state = true;
-    
-    ROS_INFO("Received state %s", distal_link.c_str());
 }
 
 bool RosImpl::RosTask::is_valid() const
@@ -123,20 +134,54 @@ Eigen::Affine3d XBot::Cartesian::RosImpl::RosTask::get_state() const
     return state;
 }
 
-bool XBot::Cartesian::RosImpl::RosTask::get_properties(std::string& base_link, 
+void XBot::Cartesian::RosImpl::RosTask::get_properties(std::string& base_link, 
                                                        CartesianInterface::ControlType& ctrl_type)
 {
     cartesian_interface::GetTaskInfo srv;
-    if(!prop_srv.call(srv))
+    if(!get_prop_srv.call(srv))
     {
-        return false;
+        throw std::runtime_error("Unable to get properties for task " + distal_link);
     }
     
     base_link = srv.response.base_link;
     ctrl_type = ControlTypeFromString(srv.response.control_mode);
     
-    return true;
 }
+
+void XBot::Cartesian::RosImpl::RosTask::set_base_link(const std::string& base_link)
+{
+    cartesian_interface::SetTaskInfo srv;
+    srv.request.base_link = base_link;
+    if(!set_prop_srv.call(srv))
+    {
+        throw std::runtime_error("Unable to set properties for task " + distal_link);
+    }
+    if(!srv.response.success)
+    {
+        throw std::runtime_error("Service " + set_prop_srv.getService() + 
+            " returned an error: \n\t" + srv.response.message);
+    }
+    
+    ROS_INFO("%s", srv.response.message.c_str());
+}
+
+void XBot::Cartesian::RosImpl::RosTask::set_ctrl_mode(CartesianInterface::ControlType ctrl_type)
+{
+    cartesian_interface::SetTaskInfo srv;
+    srv.request.control_mode = ControlTypeAsString(ctrl_type);
+    if(!set_prop_srv.call(srv))
+    {
+        throw std::runtime_error("Unable to set properties for task " + distal_link);
+    }
+    if(!srv.response.success)
+    {
+        throw std::runtime_error("Service " + set_prop_srv.getService() + 
+            " returned an error: \n\t" + srv.response.message);
+    }
+    
+    ROS_INFO("%s", srv.response.message.c_str());
+}
+
 
 void XBot::Cartesian::RosImpl::RosTask::send_ref(const Eigen::Affine3d& ref)
 {
@@ -154,6 +199,40 @@ void XBot::Cartesian::RosImpl::RosTask::send_vref(const Eigen::Vector6d& vref)
     vref_pub.publish(msg);
 }
 
+void XBot::Cartesian::RosImpl::RosTask::send_waypoints(const Trajectory::WayPointVector& wp, bool incr)
+{
+    cartesian_interface::ReachPoseGoal goal;
+    goal.incremental = incr;
+    
+    for(auto f : wp)
+    {
+        geometry_msgs::Pose frame;
+        tf::poseEigenToMsg(f.frame, frame);
+        
+        goal.frames.push_back(frame);
+        goal.time.push_back(f.time);
+    }
+ 
+    if(!reach_action.waitForServer(ros::Duration(2.0)))
+    {
+        throw std::runtime_error("Unable to connect to action server for task " + distal_link);
+    }
+    
+    reach_action.sendGoal(goal);
+    
+}
+
+bool XBot::Cartesian::RosImpl::RosTask::wait_for_result(ros::Duration timeout)
+{
+    return reach_action.waitForResult(timeout);
+}
+
+bool XBot::Cartesian::RosImpl::waitReachCompleted(const std::string& ee_name, double timeout_sec)
+{
+    auto task = get_task(ee_name, false);
+    
+    return task->wait_for_result(ros::Duration(timeout_sec));
+}
 
 
 bool RosImpl::getPoseReference(const std::string& end_effector, 
@@ -193,11 +272,8 @@ const std::string& RosImpl::getBaseLink(const std::string& ee_name) const
     auto task = get_task(ee_name, false);
     
     ControlType ctrl_tmp;
-    static std::string base_link_static;
-    if(!task->get_properties(base_link_static, ctrl_tmp))
-    {
-        throw std::runtime_error("Unable to get properties for task " + ee_name);
-    }
+    static std::string base_link_static; // NOTE: user must copy the output
+    task->get_properties(base_link_static, ctrl_tmp);
     
     return base_link_static;
         
@@ -208,11 +284,8 @@ CartesianInterface::ControlType RosImpl::getControlMode(const std::string& ee_na
     auto task = get_task(ee_name, false);
     
     ControlType ctrl_tmp;
-    static std::string base_link_static;
-    if(!task->get_properties(base_link_static, ctrl_tmp))
-    {
-        throw std::runtime_error("Unable to get properties for task " + ee_name);
-    }
+    std::string base_link_tmp;
+    task->get_properties(base_link_tmp, ctrl_tmp);
     
     return ctrl_tmp;
 }
@@ -244,7 +317,11 @@ bool RosImpl::setComPositionReference(const Eigen::Vector3d& base_com_ref, const
 
 bool RosImpl::setControlMode(const std::string& ee_name, CartesianInterface::ControlType ctrl_type)
 {
-    THROW_NOT_IMPL
+    auto task = get_task(ee_name, false);
+    
+    task->set_ctrl_mode(ctrl_type);
+    
+    return true;
 }
 
 bool RosImpl::setPoseReference(const std::string& end_effector, 
@@ -282,8 +359,30 @@ bool RosImpl::setTargetOrientation(const std::string& end_effector, const std::s
 
 bool RosImpl::setTargetPose(const std::string& end_effector, const Eigen::Affine3d& base_T_ref, double time)
 {
-    THROW_NOT_IMPL
+    return setTargetPose(end_effector, base_T_ref, time, false);
 }
+
+bool RosImpl::setTargetPose(const std::string& end_effector, 
+                            const Eigen::Affine3d& base_T_ref, 
+                            double time, 
+                            bool incremental)
+{
+    Trajectory::WayPointVector wpv;
+    wpv.emplace_back(base_T_ref, time);
+    return setWayPoints(end_effector, wpv, incremental);
+}
+
+bool RosImpl::setWayPoints(const std::string& end_effector, 
+                           const Trajectory::WayPointVector& way_points, 
+                           bool incremental)
+{
+    auto task = get_task(end_effector, false);
+    
+    task->send_waypoints(way_points, incremental);
+    
+    return true;
+}
+
 
 bool RosImpl::setTargetPosition(const std::string& end_effector, const Eigen::Vector3d& base_pos_ref, double time)
 {
@@ -342,7 +441,7 @@ bool RosImpl::getTargetComPosition(Eigen::Vector3d& w_com_ref) const
 
 bool RosImpl::setWayPoints(const std::string& end_effector, const Trajectory::WayPointVector& way_points)
 {
-    THROW_NOT_IMPL
+    return setWayPoints(end_effector, way_points, false);
 }
 
 bool RosImpl::setReferencePosture(const XBot::JointNameMap& qref)
@@ -352,5 +451,9 @@ bool RosImpl::setReferencePosture(const XBot::JointNameMap& qref)
 
 bool RosImpl::setBaseLink(const std::string& ee_name, const std::string& new_base_link)
 {
-    THROW_NOT_IMPL
+    auto task = get_task(ee_name, false);
+    
+    task->set_base_link(new_base_link);
+    
+    return true;
 }
