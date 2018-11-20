@@ -5,7 +5,7 @@
 """
 Created on Mon Nov 19 17:50:12 2018
 
-@author: arturo
+@author: arturo.laurenzi@iit.it
 """
 
 from cartesian_interface import roscpp_utils
@@ -82,6 +82,19 @@ if __name__ == '__main__':
     print 'Reach completed in ', toc-tic
     print 'Expected time was ', w3.time
     print 'Possible difference is due to velocity/acceleration limits!'
+    
+    # Change posture reference
+    joint_ref = {'knee_pitch_1':  1.5, 
+                 'knee_pitch_2': -1.5}
+    
+    ci.setReferencePosture(joint_ref)
+    
+    rospy.sleep(rospy.Duration(3.0))
+    
+    joint_ref = {'knee_pitch_1': -1.5, 
+                 'knee_pitch_2': +1.5}
+    
+    ci.setReferencePosture(joint_ref)
     
     # Send an online reference (sinusoidal) @30 Hz
     freq = 30.0

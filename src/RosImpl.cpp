@@ -3,6 +3,7 @@
 #include <cartesian_interface/GetTaskList.h>
 #include <cartesian_interface/GetTaskInfo.h>
 #include <cartesian_interface/SetTaskInfo.h>
+#include <sensor_msgs/JointState.h>
 
 #define THROW_NOT_IMPL throw std::runtime_error("Not implemented function " + std::string(__func__));
 
@@ -44,6 +45,8 @@ RosImpl::RosImpl():
     {
         throw std::runtime_error("Unable to receive valid state");
     }
+    
+    _posture_pub = _nh.advertise<sensor_msgs::JointState>("posture/reference", 1);
     
 }
 
@@ -446,7 +449,18 @@ bool RosImpl::setWayPoints(const std::string& end_effector, const Trajectory::Wa
 
 bool RosImpl::setReferencePosture(const XBot::JointNameMap& qref)
 {
-    THROW_NOT_IMPL
+    sensor_msgs::JointState msg;
+    msg.header.stamp = ros::Time::now();
+    
+    for(auto p : qref)
+    {
+        msg.name.push_back(p.first);
+        msg.position.push_back(p.second);
+    }
+    
+    _posture_pub.publish(msg);
+    
+    return true;
 }
 
 bool RosImpl::setBaseLink(const std::string& ee_name, const std::string& new_base_link)

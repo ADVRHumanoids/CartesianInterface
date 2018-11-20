@@ -23,6 +23,7 @@ PYBIND11_MODULE(pyci_ros, m) {
         .def("setControlMode", &RosImpl::setControlMode)
         .def("getBaseLink", &RosImpl::getBaseLink)
         .def("setBaseLink", &RosImpl::setBaseLink)
+        .def("setReferencePosture", &RosImpl::setReferencePosture)
         .def("setTargetPose", py_send_target_pose, 
              py::arg("task_name"), 
              py::arg("pos"), 
