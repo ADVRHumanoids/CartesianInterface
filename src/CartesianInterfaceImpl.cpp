@@ -453,6 +453,7 @@ void CartesianInterfaceImpl::log_tasks()
         _logger->add(task.get_distal() + "_rot", Eigen::Quaterniond(task.get_pose().linear()).coeffs());
         _logger->add(task.get_distal() + "_rot_otg", Eigen::Quaterniond(task.get_pose_otg().linear()).coeffs());
         _logger->add(task.get_distal() + "_state", task.get_state() == State::Reaching ? 1 : 0);
+        
     }
     
     _logger->add("ci_time", _current_time);
@@ -1043,7 +1044,7 @@ void CartesianInterfaceImpl::Task::update(double time, double period)
 
 bool CartesianInterfaceImpl::Task::check_reach() const
 {
-    return true;
+    return trajectory->getWayPoints().back().frame.isApprox(get_pose_otg());
 }
 
 CartesianInterface::ControlType CartesianInterfaceImpl::Task::get_ctrl() const
