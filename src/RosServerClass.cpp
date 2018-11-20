@@ -95,6 +95,8 @@ void RosServerClass::online_position_reference_cb(const geometry_msgs::PoseStamp
     Eigen::Affine3d T;
     tf::poseMsgToEigen(msg->pose, T);
     
+    
+    
     if(ee_name == "com")
     {
         _cartesian_interface->setComPositionReference(T.translation());
@@ -167,7 +169,7 @@ void RosServerClass::online_velocity_reference_cb(const geometry_msgs::TwistStam
     else
     {
         Eigen::Affine3d T;
-        _cartesian_interface->getPoseReference(ee_name, T);
+        _cartesian_interface->getPoseReferenceRaw(ee_name, T);
         _cartesian_interface->setPoseReference(ee_name, T, vel);
     }
 }
@@ -412,7 +414,7 @@ void RosServerClass::run()
 
 }
 
-RosServerClass::RosServerClass(CartesianInterface::Ptr intfc, 
+RosServerClass::RosServerClass(CartesianInterfaceImpl::Ptr intfc, 
                                ModelInterface::ConstPtr model, 
                                Options opt):
     _cartesian_interface(intfc),

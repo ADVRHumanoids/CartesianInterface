@@ -31,7 +31,7 @@
 #include <tf_conversions/tf_eigen.h>
 #include <cartesian_interface/ReferenceStamped.h>
 
-#include <cartesian_interface/CartesianInterface.h>
+#include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/markers/CartesianMarker.h>
 #include <thread>
 
@@ -58,7 +58,7 @@ namespace XBot { namespace Cartesian {
             Options();
         };
 
-        RosServerClass(CartesianInterface::Ptr intfc,
+        RosServerClass(CartesianInterfaceImpl::Ptr intfc,
                        ModelInterface::ConstPtr model, 
                        Options opt = Options()
                       );
@@ -141,16 +141,15 @@ namespace XBot { namespace Cartesian {
         Options _opt;
         
         std::string _tf_prefix, _tf_prefix_slash;
+        
+        ros::NodeHandle _nh;
+        ros::CallbackQueue _cbk_queue;
 
-        CartesianInterface::Ptr _cartesian_interface;
+        CartesianInterfaceImpl::Ptr _cartesian_interface;
         RosEnabled::Ptr _ros_enabled_ci;
         ModelInterface::ConstPtr _model;
         tf::TransformBroadcaster _tf_broadcaster;
         std::unique_ptr<RsPub> _rspub;
-
-
-        ros::NodeHandle _nh;
-        ros::CallbackQueue _cbk_queue;
 
         std::vector<ActionServerPtr> _action_servers;
         std::vector<bool> _is_action_active;
