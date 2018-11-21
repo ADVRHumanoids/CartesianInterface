@@ -47,6 +47,11 @@ Eigen::Affine3d get_copy(const Eigen::Affine3d& T)
     return T;
 }
 
+Eigen::Matrix4d get_matrix(const Eigen::Affine3d& T)
+{
+    return T.matrix();
+}
+
 Eigen::Affine3d construct(const Eigen::Vector3d& t = Eigen::Vector3d::Zero(), 
                           const Eigen::Vector4d& q = Eigen::Vector4d(0,0,0,1))
 {
@@ -79,6 +84,7 @@ PYBIND11_MODULE(affine3, m) {
     .def("__repr__", repr)
     .def("setIdentity", &Eigen::Affine3d::setIdentity)
     .def("inverse", get_inverse)
+    .def("matrix", get_matrix)
     .def(py::self * py::self)
     .def(py::self * Eigen::Vector3d())
     .def_property("quaternion", get_q, set_q)
