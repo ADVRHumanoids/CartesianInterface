@@ -47,6 +47,16 @@ Eigen::Affine3d get_copy(const Eigen::Affine3d& T)
     return T;
 }
 
+Eigen::Affine3d construct(const Eigen::Vector3d& t = Eigen::Vector3d::Zero(), 
+                          const Eigen::Vector4d& q = Eigen::Vector4d(0,0,0,1))
+{
+    Eigen::Affine3d T;
+    T.setIdentity();
+    T.linear() = Eigen::Quaterniond(q).normalized().toRotationMatrix();
+    T.translation() = t;
+    return T;
+}
+
 std::string repr(const Eigen::Affine3d& T)
 {
     Eigen::IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
@@ -60,7 +70,10 @@ std::string repr(const Eigen::Affine3d& T)
 PYBIND11_MODULE(affine3, m) {
 
     py::class_<Eigen::Affine3d>(m, "Affine3")
-    .def(py::init())
+    .def(py::init(&construct), 
+         py::arg("pos") = Eigen::Vector3d::Zero(), 
+         py::arg("rot") = Eigen::Vector4d(0,0,0,1)
+        )
     .def(py::init<Eigen::Affine3d>())
     .def("copy", get_copy)
     .def("__repr__", repr)

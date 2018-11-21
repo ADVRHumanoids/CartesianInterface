@@ -146,7 +146,11 @@ namespace XBot { namespace Cartesian {
             {
                 if(!ros::isInitialized())
                 {
-                    throw std::runtime_error("Ros is not initialized");
+                    int argc = 1;
+                    const char * arg0 = "";
+                    ros::init(argc, (char **)&arg0, "cartesio_ros", 
+                              ros::init_options::NoSigintHandler|ros::init_options::AnonymousName);
+                    ROS_WARN("Initializing roscpp with anonymous name %s", ros::this_node::getName().c_str());
                 }
             }
         };
