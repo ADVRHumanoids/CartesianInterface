@@ -105,10 +105,8 @@ if __name__ == '__main__':
     t = 0.0
     
     while not rospy.is_shutdown():
-        pos_ref = pos.copy()
-        pos_ref[0] += ampl * math.sin(2*math.pi*t/T)
         T_ref = pose.copy()
-        T_ref.translation = pos_ref
+        T_ref.translation_ref()[0] += ampl * math.sin(2*math.pi*t/T)
         ci.setPoseReference(task_name, T_ref)
         t += 1./freq
         rate.sleep()

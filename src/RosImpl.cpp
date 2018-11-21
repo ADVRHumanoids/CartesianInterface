@@ -35,7 +35,7 @@ void XBot::Cartesian::RosImpl::construct_from_tasklist()
             is_valid &= rt.second->is_valid();
         }
         
-        ros::Duration(0.01).sleep();
+        ros::Duration(0.05).sleep();
     }
     
     if(!is_valid)

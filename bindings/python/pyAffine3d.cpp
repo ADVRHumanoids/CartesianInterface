@@ -7,6 +7,16 @@
 
 namespace py = pybind11;
 
+Eigen::Ref<Eigen::Vector3d> get_t_ref(Eigen::Affine3d& T)
+{
+    return T.translation();
+}
+
+Eigen::Ref<Eigen::Matrix3d> get_lin_ref(Eigen::Affine3d& T)
+{
+    return T.linear();
+}
+
 Eigen::Vector3d get_t(const Eigen::Affine3d& T)
 {
     return T.translation();
@@ -89,6 +99,8 @@ PYBIND11_MODULE(affine3, m) {
     .def(py::self * Eigen::Vector3d())
     .def_property("quaternion", get_q, set_q)
     .def_property("linear", get_lin, set_lin)
-    .def_property("translation", get_t, set_t);
+    .def_property("translation", get_t, set_t)
+    .def("linear_ref", get_lin_ref, py::return_value_policy::reference_internal)
+    .def("translation_ref", get_t_ref, py::return_value_policy::reference_internal);
     
 }
