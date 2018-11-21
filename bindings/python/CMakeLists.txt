@@ -6,10 +6,10 @@ if(${pybind11_FOUND})
 
     message(STATUS "Compiling python bindings")
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-    pybind11_add_module(pyci_ros pyRosImpl.cpp)
-    target_link_libraries(pyci_ros PRIVATE CartesianInterface)
+    pybind11_add_module(pyci pyRosImpl.cpp)
+    target_link_libraries(pyci PRIVATE CartesianInterface)
 
-    install(TARGETS pyci_ros
+    install(TARGETS pyci
             DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
 
             
@@ -17,6 +17,15 @@ if(${pybind11_FOUND})
     target_link_libraries(roscpp_utils PRIVATE ${catkin_LIBRARIES})
 
     install(TARGETS roscpp_utils
+            DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
+            
+            
+    pybind11_add_module(affine3 pyAffine3d.cpp)
+
+    install(TARGETS affine3
+            DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
+            
+    install(FILES pyci_all.py
             DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
             
 endif()

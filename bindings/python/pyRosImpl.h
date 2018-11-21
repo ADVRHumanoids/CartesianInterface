@@ -6,28 +6,16 @@
 namespace py = pybind11;
 using namespace XBot::Cartesian;
 
-struct WayPoint 
+std::string waypoint_repr(const Trajectory::WayPoint& w)
 {
-    Eigen::Vector3d position;
-    Eigen::Vector4d orientation;
-    double time;
+    Eigen::IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
     
-    WayPoint(): position(0,0,0), orientation(0,0,0,1), time(0)
-    {
-    }
-    
-    std::string repr()
-    {
-        std::stringstream ss;
-        ss << "pyci_ros.WayPoint with pos: (" << 
-            position.transpose().format(Eigen::IOFormat(2)) << "), rot: (" << 
-            orientation.transpose().format(Eigen::IOFormat(2)) << "), time: " << time;
-        return ss.str();
-    }
-           
-        
-    
-};
+    std::stringstream ss;
+    ss <<   "translation: " << w.frame.translation().transpose().format(CleanFmt);
+    ss << "\nrotation   : " << Eigen::Quaterniond(w.frame.linear()).coeffs().transpose().format(CleanFmt);
+    ss << "\ntime       : " << w.time;
+    return ss.str();
+}
 
 auto py_get_pose_reference(const RosImpl& r, const std::string& ee)
 {
@@ -36,75 +24,47 @@ auto py_get_pose_reference(const RosImpl& r, const std::string& ee)
     
     r.getPoseReference(ee, T, &v, &a);
     
-    Eigen::Quaterniond q(T.linear());
-    Eigen::Vector3d t = T.translation();
-    Eigen::Vector4d qc = q.coeffs();
-    
-    return std::make_tuple(t, qc, v, a);
+    return std::make_tuple(T, v, a);
     
 }
 
 bool py_set_pose_reference(RosImpl& r, 
                            const std::string& ee,
-                           const Eigen::Vector3d& t,
-                           const Eigen::Vector4d& qcoeff,
+                           const Eigen::Affine3d& Tref,
                            const Eigen::Vector6d& vel_ref
                           )
 {
-    Eigen::Affine3d T;
-    T.setIdentity();
-    T.linear() = Eigen::Quaterniond(qcoeff).normalized().toRotationMatrix();
-    T.translation() = t;
-    
     Eigen::Vector6d a;
     a.setZero();
     
-    return r.setPoseReference(ee, T, vel_ref, a);
+    return r.setPoseReference(ee, Tref, vel_ref, a);
     
 }
 
 bool py_set_pose_reference_novel(RosImpl& r, 
                            const std::string& ee,
-                           const Eigen::Vector3d& t,
-                           const Eigen::Vector4d& qcoeff
+                           const Eigen::Affine3d& Tref
                           )
 {
-    return py_set_pose_reference(r, ee, t, qcoeff, Eigen::Vector6d::Zero());
+    return py_set_pose_reference(r, ee, Tref, Eigen::Vector6d::Zero());
 }
 
 auto py_send_waypoints(RosImpl& r, 
                        const std::string& ee, 
-                       const std::vector<WayPoint>& arg_wpv,
+                       const std::vector<Trajectory::WayPoint>& wpv,
                        bool incremental = false
                       )
 {
-    Trajectory::WayPointVector wpv;
-    for(auto wp : arg_wpv)
-    {
-        Eigen::Affine3d T;
-        T.setIdentity();
-        T.linear() = Eigen::Quaterniond(wp.orientation).normalized().toRotationMatrix();
-        T.translation() = wp.position;
-        
-        wpv.emplace_back(T, wp.time);
-    }
-    
     return r.setWayPoints(ee, wpv, incremental);
 }
     
 auto py_send_target_pose(RosImpl& r, 
                          const std::string& ee,
-                         const Eigen::Vector3d& t,
-                         const Eigen::Vector4d& qcoeff, 
+                         const Eigen::Affine3d& T, 
                          double time,
                          bool incremental
                         )
 {
-    Eigen::Affine3d T;
-    T.setIdentity();
-    T.linear() = Eigen::Quaterniond(qcoeff).normalized().toRotationMatrix();
-    T.translation() = t;
-    
     return r.setTargetPose(ee, T, time, incremental);
 }
 

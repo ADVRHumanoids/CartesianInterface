@@ -1,19 +1,19 @@
 #include <pyRosImpl.h>
 
 
-PYBIND11_MODULE(pyci_ros, m) {
+PYBIND11_MODULE(pyci, m) {
     
+    /* Create binding for ControlType enum */
     py::enum_<CartesianInterface::ControlType>(m, "ControlType", py::arithmetic())
         .value("Position", CartesianInterface::ControlType::Position)
         .value("Velocity", CartesianInterface::ControlType::Velocity)
         .value("Disabled", CartesianInterface::ControlType::Disabled);
         
-    py::class_<WayPoint>(m, "WayPoint")
+    py::class_<Trajectory::WayPoint>(m, "WayPoint")
         .def(py::init())
-        .def_readwrite("position", &WayPoint::position)
-        .def_readwrite("orientation", &WayPoint::orientation)
-        .def_readwrite("time", &WayPoint::time)
-        .def("__repr__", &WayPoint::repr);
+        .def_readwrite("frame", &Trajectory::WayPoint::frame)
+        .def_readwrite("time", &Trajectory::WayPoint::time)
+        .def("__repr__", waypoint_repr);
     
     py::class_<RosImpl>(m, "CartesianInterfaceRos")
         .def(py::init())
@@ -31,8 +31,7 @@ PYBIND11_MODULE(pyci_ros, m) {
         .def("setReferencePosture", &RosImpl::setReferencePosture)
         .def("setTargetPose", py_send_target_pose, 
              py::arg("task_name"), 
-             py::arg("pos"), 
-             py::arg("rot"), 
+             py::arg("pose"), 
              py::arg("time"), 
              py::arg("incremental") = false)
         .def("setWaypoints", py_send_waypoints, 
