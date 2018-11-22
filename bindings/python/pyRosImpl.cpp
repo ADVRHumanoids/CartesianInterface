@@ -11,6 +11,7 @@ PYBIND11_MODULE(pyci, m) {
         
     py::class_<Trajectory::WayPoint>(m, "WayPoint")
         .def(py::init())
+        .def(py::init<Eigen::Affine3d, double>())
         .def_readwrite("frame", &Trajectory::WayPoint::frame)
         .def_readwrite("time", &Trajectory::WayPoint::time)
         .def("__repr__", waypoint_repr);
@@ -26,7 +27,7 @@ PYBIND11_MODULE(pyci, m) {
         .def("loadController", &RosImpl::loadController)
         .def("getVelocityLimits", py_get_velocity_limits)
         .def("getAccelerationLimits", py_get_acceleration_limits)
-        .def("setVelocityLimits", py_get_velocity_limits)
+        .def("setVelocityLimits", &RosImpl::setVelocityLimits)
         .def("setAccelerationLimits", &RosImpl::setAccelerationLimits)
         .def("setReferencePosture", &RosImpl::setReferencePosture)
         .def("setTargetPose", py_send_target_pose, 
