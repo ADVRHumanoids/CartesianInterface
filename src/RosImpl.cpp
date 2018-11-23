@@ -11,6 +11,24 @@
 
 using namespace XBot::Cartesian;
 
+std::ostream& XBot::Cartesian::operator<<(std::ostream& os, const RosImpl& r)
+{
+    os << "CartesianInterfaceRos running inside ROS node " << ros::this_node::getName() << "\n";
+    auto tasklist = r.getTaskList();
+    os << "Defined tasks: \n";
+    for(auto t : tasklist)
+    {
+        os << " - ";
+        os << XBot::bold_on << t << XBot::bold_off << 
+              " with base link " << XBot::bold_on << r.getBaseLink(t) << XBot::bold_off << 
+              " and control mode set to " << CartesianInterface::ControlTypeAsString(r.getControlMode(t)) << "\n";
+    }
+    
+    return os;
+    
+}
+
+
 void XBot::Cartesian::RosImpl::construct_from_tasklist()
 {
     getTaskList();
@@ -45,7 +63,8 @@ void XBot::Cartesian::RosImpl::construct_from_tasklist()
 }
 
 
-RosImpl::RosImpl():
+RosImpl::RosImpl(std::string node_namespace):
+    _ros_init_helper(node_namespace),
     _nh("cartesian")
 {
     _nh.setCallbackQueue(&_queue);
@@ -71,13 +90,6 @@ RosImpl::RosTask::RosTask(ros::NodeHandle nh, std::string arg_distal_link):
     get_prop_srv = nh.serviceClient<cartesian_interface::GetTaskInfo>(distal_link + "/get_task_properties");
     set_prop_srv = nh.serviceClient<cartesian_interface::SetTaskInfo>(distal_link + "/set_task_properties");
     
-}
-
-void XBot::Cartesian::RosImpl::shutdown()
-{
-    std::cout << __func__ << std::endl;
-    this->~RosImpl();
-    std::cout << "Shutdown complete" << std::endl;
 }
 
 

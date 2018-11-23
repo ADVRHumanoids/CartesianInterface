@@ -13,15 +13,16 @@
 #include <eigen_conversions/eigen_msg.h>
 
 namespace XBot { namespace Cartesian {
-
+    
     class RosImpl : public CartesianInterface 
     {
         
     public:
         
-        RosImpl();
+        friend std::ostream& operator<<(std::ostream& os, const RosImpl& r);
+        
+        RosImpl(std::string node_namespace = "");
         virtual ~RosImpl();
-        void shutdown();
         
         virtual bool reset();
         virtual const std::string& getBaseLink(const std::string& ee_name) const;
@@ -142,15 +143,22 @@ namespace XBot { namespace Cartesian {
         
         struct RosInitHelper
         {
-            RosInitHelper()
+            RosInitHelper(std::string node_namespace)
             {
-                if(!ros::isInitialized())
+                if(!ros::ok())
                 {
-                    int argc = 1;
-                    const char * arg0 = "";
-                    ros::init(argc, (char **)&arg0, "cartesio_ros", 
+                    std::string ns_arg = "__ns:=";
+                    ns_arg += node_namespace;
+                    std::vector<const char *> args {"", ns_arg.c_str()};
+                    
+                    int argc = args.size();
+                    
+                    ros::init(argc, (char **)args.data(), "cartesio_ros", 
                               ros::init_options::NoSigintHandler|ros::init_options::AnonymousName);
-                    ROS_WARN("Initializing roscpp with anonymous name %s", ros::this_node::getName().c_str());
+                    ROS_WARN("Initializing roscpp under namespace %s with anonymous name %s", 
+                             ros::this_node::getNamespace().c_str(),
+                             ros::this_node::getName().c_str()
+                            );
                 }
             }
         };
@@ -158,7 +166,7 @@ namespace XBot { namespace Cartesian {
         void construct_from_tasklist();
         RosTask::Ptr get_task(const std::string& task_name, bool no_throw = true) const;
         
-        RosInitHelper ros_init_helper;
+        RosInitHelper _ros_init_helper;
         
         ros::NodeHandle _nh;
         ros::CallbackQueue _queue;
@@ -174,6 +182,7 @@ namespace XBot { namespace Cartesian {
         mutable std::vector<std::string> _tasklist;
     };
 
+    std::ostream& operator<<(std::ostream& os, const RosImpl& r);
 
 } }
 

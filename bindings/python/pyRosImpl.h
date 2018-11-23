@@ -17,6 +17,13 @@ std::string waypoint_repr(const Trajectory::WayPoint& w)
     return ss.str();
 }
 
+std::string ci_repr(const RosImpl& r)
+{
+    std::stringstream ss;
+    ss << r;
+    return ss.str();
+}
+
 auto py_get_pose_reference(const RosImpl& r, const std::string& ee)
 {
     Eigen::Affine3d T;
