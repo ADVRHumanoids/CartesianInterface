@@ -70,43 +70,26 @@ class GetStable(smach.State):
 
 class VelocityPublisher:
     def __init__(self, tname):
-        self.running = False
         self.vref = numpy.zeros(6)
         self.lock = threading.Lock()
-        self.task_name = tname        
+        self.task_name = tname     
+        self.timer = None
         
-    def run(self):
-        rospy.loginfo('VelocityPublisher started')
-        pub_freq = 30.0
-        rate = rospy.Rate(pub_freq)
-        
-        print 'Acquiring mutex..'
+    def run(self, event):
         self.lock.acquire()
-        print 'Acquired mutex!'
-        while self.running:
-            robot.setPoseReference(self.task_name, Affine3(), self.vref)
-            print 'Releasing mutex!'
-            self.lock.release()
-            print 'Going to sleep..'
-            time.sleep(1./pub_freq)
-            print 'Woken up! Acquiring mutex..'
-            self.lock.acquire()
-            print 'Mutex acquired'
+        robot.setPoseReference(self.task_name, Affine3(), self.vref)
+        self.lock.release()
         
     def set_vref(self, vref):
         with self.lock:
             self.vref = vref.copy()
     
     def start(self):
-        self.thread = threading.Thread(target=self.run)
         self.running = True
-        self.thread.start()
+        self.timer = rospy.Timer(rospy.Duration(1.0/30.0), self.run)
             
     def stop(self):
-        with self.lock:
-            self.running = False
-        
-        self.thread.join()
+        self.timer.shutdown()
         rospy.loginfo('VelocityPublisher returned')
 
 class StartExecution(smach.State):
@@ -118,12 +101,12 @@ class StartExecution(smach.State):
         rospy.loginfo('Executing state START')
 
         robot.setControlMode(waist, pyci.ControlType.Velocity)
-#        vel_pub = VelocityPublisher(waist) # keep publishing vref from a separate thread
-#        vref = numpy.array([0, 0, 0, 0, 0, 1.0])
-#        vel_pub.set_vref(vref)
-#        vel_pub.start()
+        vel_pub = VelocityPublisher(waist) # keep publishing vref from a separate thread
+        vref = numpy.array([0, 0, 0, 0, 0, 1.0])
+        vel_pub.set_vref(vref)
+        vel_pub.start()
         
-#        raw_input('Press ENTER to start lifting..')
+        raw_input('Press ENTER to start lifting..')
         
         # Raise FR
         (fl, fr, rr, rl, _) = poses.get_pose_0123wa_stable()
@@ -148,7 +131,7 @@ class StartExecution(smach.State):
         
         raw_input('Press ENTER to stop spinning..')
         
-#        vel_pub.stop()
+        vel_pub.stop()
 
         return 'done'
 
@@ -174,10 +157,9 @@ def main():
                                transitions={'done': 'EXEC'})
 
         smach.StateMachine.add('EXEC', StartExecution(),
-                               transitions={'done': 'HOME'})
-
-        smach.StateMachine.add('HOME', Home(),
                                transitions={'done': 'GET_STABLE'})
+
+
 
     # Create and start the introspection server
     sis = smach_ros.IntrospectionServer('server_name', sm_top, '/SM_ROOT')
