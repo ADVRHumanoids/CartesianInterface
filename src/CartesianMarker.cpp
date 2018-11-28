@@ -144,6 +144,8 @@ void CartesianMarker::MakeMenu()
                 _menu_handler.setCheckState(link_entry, interactive_markers::MenuHandler::UNCHECKED );
 
             _link_entries.push_back(link_entry);
+
+            _map_link_entry[_links.at(i)->name] = _menu_entry_counter;
         }
     }
 
@@ -237,6 +239,16 @@ void CartesianMarker::resetMarker(const visualization_msgs::InteractiveMarkerFee
         else
             _activatePositionFeedBack(false);
     }
+
+
+    if(srv.response.base_link.compare(_base_link) != 0)
+    {
+        visualization_msgs::InteractiveMarkerFeedbackPtr feedback;
+        feedback = boost::make_shared<visualization_msgs::InteractiveMarkerFeedback>();
+        feedback->menu_entry_id = _map_link_entry[srv.response.base_link];
+        changeBaseLink(feedback);
+    }
+
 
     clearMarker(req, res);
     spawnMarker(req,res);
