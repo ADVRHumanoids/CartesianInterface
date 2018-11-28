@@ -23,6 +23,11 @@ public:
                            ProblemDescription ik_problem, 
                            std::string tf_prefix
                           );
+
+    ~ManipulabilityAnalyzer()
+    {
+        _logger->flush();
+    }
     
     void compute();
     

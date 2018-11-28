@@ -31,8 +31,6 @@ XBot::Cartesian::ManipulabilityAnalyzer::ManipulabilityAnalyzer(XBot::ModelInter
                 continue;
             }
             
-            
-            
             std::string name = GetAsCartesian(ik_problem.getTask(i).at(j))->distal_link;
             _pub_map_pos[name] = nh.advertise<visualization_msgs::Marker>("ellipses/" + name + "/linear", 1);
             _pub_map_rot[name] = nh.advertise<visualization_msgs::Marker>("ellipses/" + name + "/angular", 1);
@@ -40,6 +38,7 @@ XBot::Cartesian::ManipulabilityAnalyzer::ManipulabilityAnalyzer(XBot::ModelInter
             _scale_pos[name] = _nhpriv.param("scale/" + name + "/linear", 1.0) * master_scale_pos;
             _scale_rot[name] = _nhpriv.param("scale/" + name + "/angular", 1.0) * master_scale_rot;
             
+            std::cout << "Added task at #" << i << " with name " << name << std::endl;
             
         }
     }
