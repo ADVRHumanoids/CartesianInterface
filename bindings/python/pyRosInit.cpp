@@ -13,7 +13,7 @@ bool init(std::string name, std::list<std::string> args)
     }
     
     std::vector<const char *> args_vec;
-    for(auto a : args)
+    for(auto& a : args)
     {
         args_vec.push_back(a.c_str());
     }

@@ -37,11 +37,11 @@ Postural:
 
 LeftHand:
     type: "Cartesian"
-    distal_link: "LWrMot3"
+    distal_link: "TCP_L"
     lambda: 0.1
 
 RightHand:
     type: "Cartesian"
-    distal_link: "RWrMot3"
+    distal_link: "TCP_R"
     lambda: 0.1
 

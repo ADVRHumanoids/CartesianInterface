@@ -190,6 +190,7 @@ private:
 
     std::vector<urdf::LinkSharedPtr> _links;
     int _base_link_entry_active;
+    std::map<std::string, int> _map_link_entry;
 
     /**
      * @brief MakeMarker
