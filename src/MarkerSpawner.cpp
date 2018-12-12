@@ -56,6 +56,8 @@ int main(int argc, char **argv){
     
     Logger::success(Logger::Severity::HIGH, "Marker spawner: started spinning...\n");
     ros::spin();
+    
+    __g_markers.clear();
 }
 
 void controller_changed_callback(const std_msgs::EmptyConstPtr& msg, ros::NodeHandle nh)
