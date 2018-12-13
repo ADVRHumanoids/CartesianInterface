@@ -379,20 +379,20 @@ bool XBot::Cartesian::OpenSotImpl::initRos(ros::NodeHandle nh)
 {
     
     
-    for(auto t: _cartesian_tasks)
-    {
-        std::string ee_name = t->getDistalLink();
-        auto sub = nh.subscribe<std_msgs::Float32>(ee_name + "/lambda", 
-                                                    1, 
-                                                    boost::bind(&OpenSotImpl::lambda_callback, 
-                                                                this,
-                                                                _1,
-                                                                ee_name
-                                                                )
-                                                   );
-        _lambda_sub_map[ee_name] = sub;
-        
-    }
+//     for(auto t: _cartesian_tasks)
+//     {
+//         std::string ee_name = t->getDistalLink();
+//         auto sub = nh.subscribe<std_msgs::Float32>(ee_name + "/lambda", 
+//                                                     1, 
+//                                                     boost::bind(&OpenSotImpl::lambda_callback, 
+//                                                                 this,
+//                                                                 _1,
+//                                                                 ee_name
+//                                                                 )
+//                                                    );
+//         _lambda_sub_map[ee_name] = sub;
+//         
+//     }
     
     return true;
 }
