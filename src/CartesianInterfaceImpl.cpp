@@ -2,7 +2,6 @@
 #include <cartesian_interface/problem/Cartesian.h>
 #include <boost/algorithm/string.hpp>  
 
-
 using namespace XBot::Cartesian;
 
 namespace {
@@ -942,6 +941,7 @@ bool CartesianInterfaceImpl::Task::set_waypoints(double time, const Trajectory::
         trajectory->addWayPoint(wp, time);
     }
 
+    trajectory->compute();
     new_data_available = true;
     return true;
 }
@@ -965,6 +965,7 @@ bool CartesianInterfaceImpl::Task::set_target_pose(double current_time, double t
     trajectory->clear();
     trajectory->addWayPoint(current_time, T);
     trajectory->addWayPoint(target_time, pose);
+    trajectory->compute();
     new_data_available = true;
     
     return true;
