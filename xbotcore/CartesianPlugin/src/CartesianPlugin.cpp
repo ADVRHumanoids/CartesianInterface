@@ -49,6 +49,7 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
     YAML::Node yaml_file = YAML::LoadFile(handle->getPathToConfigFile());
     ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"], _model);
     _ci = std::make_shared<OpenSotImpl>(_model, ik_problem);
+    _ci->enableOtg(0.001);
 
     /* Initialize a logger which saves to the specified file. Remember that
      * the current date/time is always appended to the provided filename,
@@ -76,6 +77,8 @@ void CartesianPlugin::on_start(double time)
     _first_sync_done = false;
     
     _model->syncFrom(*_robot, Sync::Position, Sync::MotorSide);
+    
+    _ci->reset(time);
 }
 
 void CartesianPlugin::on_stop(double time)

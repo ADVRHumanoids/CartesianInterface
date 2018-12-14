@@ -93,7 +93,7 @@ int main(int argc, char **argv){
         }
         catch(std::exception& e)
         {
-            XBot::Logger::warning("Unable to communicate with robot (exception thrown: %s), running in visual mode\n", e.what());
+            XBot::Logger::warning("Unable to communicate with robot (exception thrown: '%s'), running in visual mode\n", e.what());
             robot.reset();
         }
         
@@ -192,7 +192,8 @@ int main(int argc, char **argv){
     __g_time = &time;
     double dt = loop_rate.expectedCycleTime().toSec();
     
-    Logger::info("Started looping @%f Hz\n", freq);
+    Logger::info(Logger::Severity::HIGH,
+                 "%s: started looping @%.1f Hz\n", ros::this_node::getName().c_str(), freq);
     
     while(ros::ok())
     {
