@@ -79,6 +79,11 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
             
             std::string task_name = task.as<std::string>();
             
+            if(!yaml_node[task_name])
+            {
+                throw std::runtime_error("problem description parsing failed: node '" + task_name + "' undefined");
+            }
+            
             auto task_desc = yaml_parse_task(yaml_node[task_name], model);
             
             aggr_task.push_back(task_desc);
