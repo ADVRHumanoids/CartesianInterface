@@ -890,11 +890,6 @@ bool CartesianInterfaceImpl::Task::set_reference(const Eigen::Affine3d& pose,
         return false;
     }
     
-    if((T.translation() - pose.translation()).norm() > 0.01)
-    {
-        XBot::Logger::warning("Task %s: jump detected in reference \n", distal_frame.c_str());
-    }
-    
     if(control_type == ControlType::Position)
     {
         T = pose;
