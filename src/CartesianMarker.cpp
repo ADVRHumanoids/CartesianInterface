@@ -182,14 +182,12 @@ void CartesianMarker::resetLastWayPoints(const visualization_msgs::InteractiveMa
 {
     _T.pop_back();
     _waypoints.pop_back();
-    std_srvs::Empty::Request req;
-    std_srvs::Empty::Response res;
-    clearMarker(req , res);
+    clearMarker(_req, _res);
 
     std::cout<<"RESET LAST WAYPOINT!"<<std::endl;
 
     if(_waypoints.empty())
-        spawnMarker(req,res);
+        spawnMarker(_req, _res);
     else{
         if(_server.empty())
         {
@@ -218,9 +216,6 @@ void CartesianMarker::resetAllWayPoints(const visualization_msgs::InteractiveMar
 
 void CartesianMarker::resetMarker(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
-    std_srvs::Empty::Request req;
-    std_srvs::Empty::Response res;
-
     cartesian_interface::GetTaskInfo srv;
     _get_properties_service_client.call(srv);
 
@@ -245,8 +240,8 @@ void CartesianMarker::resetMarker(const visualization_msgs::InteractiveMarkerFee
     }
 
 
-    clearMarker(req, res);
-    spawnMarker(req,res);
+    clearMarker(_req, _res);
+    spawnMarker(_req, _res);
 }
 
 void CartesianMarker::publishWP(const std::vector<geometry_msgs::Pose>& wps)
@@ -391,9 +386,6 @@ void CartesianMarker::activateTask(const visualization_msgs::InteractiveMarkerFe
 
 void CartesianMarker::setContinuousCtrl(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
-    std_srvs::Empty::Request req;
-    std_srvs::Empty::Response res;
-
     _is_continuous *= -1;
     if(_is_continuous == 1)
     {
@@ -401,7 +393,7 @@ void CartesianMarker::setContinuousCtrl(const visualization_msgs::InteractiveMar
         _menu_handler.setVisible(_way_point_entry, true);
         _waypoints.clear();
         _T.clear();
-        setContinuous(req,res);
+        setContinuous(_req,_res);
     }
     else if(_is_continuous == -1)
     {
@@ -409,7 +401,7 @@ void CartesianMarker::setContinuousCtrl(const visualization_msgs::InteractiveMar
         _menu_handler.setVisible(_way_point_entry, false);
         _waypoints.clear();
         _T.clear();
-        setTrj(req, res);
+        setTrj(_req, _res);
     }
 
     _menu_handler.reApply(_server);
@@ -430,19 +422,16 @@ bool CartesianMarker::setTrj(std_srvs::Empty::Request &req, std_srvs::Empty::Res
 
 void CartesianMarker::setControlGlobalLocal(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
-    std_srvs::Empty::Request req;
-    std_srvs::Empty::Response res;
-
     _control_type *= -1;
     if(_control_type == 1)
     {
         _menu_handler.setCheckState(_global_control_entry, interactive_markers::MenuHandler::UNCHECKED);
-        setLocal(req,res);
+        setLocal(_req,_res);
     }
     else if(_control_type == -1)
     {
         _menu_handler.setCheckState(_global_control_entry, interactive_markers::MenuHandler::CHECKED);
-        setGlobal(req, res);
+        setGlobal(_req, _res);
     }
 
     _menu_handler.reApply(_server);
@@ -547,11 +536,9 @@ void CartesianMarker::MakeMarker(const std::string &distal_link, const std::stri
 
     if(show)
     {
-
         createInteractiveMarkerControl(1,1,0,0,interaction_mode);
         createInteractiveMarkerControl(1,0,1,0,interaction_mode);
         createInteractiveMarkerControl(1,0,0,1,interaction_mode);
-
     }
 
     KDLFrameToVisualizationPose(_start_pose, _int_marker);
@@ -672,8 +659,7 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
         KDL::Frame T_marker;
         URDFPoseToKDLFrame(link->visual->origin, T_marker);
 
-        _marker.scale.x = mesh->radius;
-        _marker.scale.y = mesh->radius;
+        _marker.scale.x = _marker.scale.y = mesh->radius;
         _marker.scale.z = mesh->length;
     }
     else if(link->visual->geometry->type == urdf::Geometry::SPHERE)
@@ -686,9 +672,7 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
         KDL::Frame T_marker;
         URDFPoseToKDLFrame(link->visual->origin, T_marker);
 
-        _marker.scale.x = 2.*mesh->radius;
-        _marker.scale.y = 2.*mesh->radius;
-        _marker.scale.z = 2.*mesh->radius;
+        _marker.scale.x = _marker.scale.y = _marker.scale.z = 2.*mesh->radius;
     }
 
     _marker.color.a = .9;
@@ -742,9 +726,7 @@ void XBot::Cartesian::CartesianMarker::setBaseLink(std::string base_link)
 {
     _base_link = base_link;
     _int_marker.header.frame_id = _tf_prefix + base_link;
-    std_srvs::EmptyRequest req;
-    std_srvs::EmptyResponse res;
-    
-    clearMarker(req, res);
-    spawnMarker(req, res);
+
+    clearMarker(_req, _res);
+    spawnMarker(_req, _res);
 }
