@@ -258,7 +258,7 @@ private:
     void publishWP(const std::vector<geometry_msgs::Pose>& wps);
 
     template <class Marker_Type>
-    void KDLFrameToVisualization(const KDL::Frame& Frame, Marker_Type& Marker)
+    void KDLFrameToVisualizationPose(const KDL::Frame& Frame, Marker_Type& Marker)
     {
         Marker.pose.position.x = Frame.p.x();
         Marker.pose.position.y = Frame.p.y();
@@ -269,6 +269,14 @@ private:
         Marker.pose.orientation.y = qy;
         Marker.pose.orientation.z = qz;
         Marker.pose.orientation.w = qw;
+    }
+
+    void URDFPoseToKDLFrame(const urdf::Pose& Pose, KDL::Frame& Frame)
+    {
+        Frame.p.x(Pose.position.x);
+        Frame.p.y(Pose.position.y);
+        Frame.p.z(Pose.position.z);
+        Frame.M = Frame.M.Quaternion(Pose.rotation.x, Pose.rotation.y, Pose.rotation.z, Pose.rotation.w);
     }
 
     void createInteractiveMarkerControl(const double qw, const double qx, const double qy, const double qz,

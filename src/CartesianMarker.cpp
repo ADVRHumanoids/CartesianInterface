@@ -30,6 +30,7 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _urdf.getLinks(_links);
 
     _start_pose = getRobotActualPose();
+    _actual_pose = _start_pose;
 
     MakeMarker(_distal_link, _base_link, false, control_type, true);
 
@@ -195,7 +196,7 @@ void CartesianMarker::resetLastWayPoints(const visualization_msgs::InteractiveMa
             //tf::PoseMsgToKDL(_waypoints.back(),_start_pose);
             _actual_pose = _start_pose;
 
-            KDLFrameToVisualization(_start_pose, _int_marker);
+            KDLFrameToVisualizationPose(_start_pose, _int_marker);
 
             _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
             _menu_handler.apply(_server, _int_marker.name);
@@ -449,7 +450,7 @@ void CartesianMarker::setControlGlobalLocal(const visualization_msgs::Interactiv
 
 bool CartesianMarker::setGlobal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
-    KDLFrameToVisualization(_actual_pose, _int_marker);
+    KDLFrameToVisualizationPose(_actual_pose, _int_marker);
 
     for(unsigned int i = 1; i < _int_marker.controls.size(); ++i)
         _int_marker.controls[i].orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
@@ -460,7 +461,7 @@ bool CartesianMarker::setGlobal(std_srvs::Empty::Request& req, std_srvs::Empty::
 
 bool CartesianMarker::setLocal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
-    KDLFrameToVisualization(_actual_pose, _int_marker);
+    KDLFrameToVisualizationPose(_actual_pose, _int_marker);
 
     for(unsigned int i = 1; i < _int_marker.controls.size(); ++i)
         _int_marker.controls[i].orientation_mode = visualization_msgs::InteractiveMarkerControl::INHERIT;
@@ -476,7 +477,7 @@ bool CartesianMarker::spawnMarker(std_srvs::Empty::Request& req, std_srvs::Empty
         _start_pose = getRobotActualPose();
         _actual_pose = _start_pose;
 
-        KDLFrameToVisualization(_start_pose, _int_marker);
+        KDLFrameToVisualizationPose(_start_pose, _int_marker);
 
         _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
         _menu_handler.apply(_server, _int_marker.name);
@@ -552,7 +553,7 @@ void CartesianMarker::MakeMarker(const std::string &distal_link, const std::stri
 
     }
 
-    KDLFrameToVisualization(_start_pose, _int_marker);
+    KDLFrameToVisualizationPose(_start_pose, _int_marker);
 
     _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
 }
@@ -638,17 +639,10 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
 
 
         KDL::Frame T_marker;
-        T_marker.p.x(link->visual->origin.position.x);
-        T_marker.p.y(link->visual->origin.position.y);
-        T_marker.p.z(link->visual->origin.position.z);
-        T_marker.M = T_marker.M.Quaternion(link->visual->origin.rotation.x,
-                              link->visual->origin.rotation.y,
-                              link->visual->origin.rotation.z,
-                              link->visual->origin.rotation.w);
-
+        URDFPoseToKDLFrame(link->visual->origin, T_marker);
         T = T*T_marker;
 
-        KDLFrameToVisualization(T, _marker);
+        KDLFrameToVisualizationPose(T, _marker);
 
         _marker.color.r = 0.5;
         _marker.color.g = 0.5;
@@ -666,17 +660,11 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
                 boost::static_pointer_cast<urdf::Box>(link->visual->geometry);
 
         KDL::Frame T_marker;
-        T_marker.p.x(link->visual->origin.position.x);
-        T_marker.p.y(link->visual->origin.position.y);
-        T_marker.p.z(link->visual->origin.position.z);
-        T_marker.M = T_marker.M.Quaternion(link->visual->origin.rotation.x,
-                              link->visual->origin.rotation.y,
-                              link->visual->origin.rotation.z,
-                              link->visual->origin.rotation.w);
+        URDFPoseToKDLFrame(link->visual->origin, T_marker);
 
         T = T*T_marker;
 
-        KDLFrameToVisualization(T, _marker);
+        KDLFrameToVisualizationPose(T, _marker);
 
         _marker.color.r = 0.5;
         _marker.color.g = 0.5;
@@ -695,16 +683,10 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
                 boost::static_pointer_cast<urdf::Cylinder>(link->visual->geometry);
 
         KDL::Frame T_marker;
-        T_marker.p.x(link->visual->origin.position.x);
-        T_marker.p.y(link->visual->origin.position.y);
-        T_marker.p.z(link->visual->origin.position.z);
-        T_marker.M = T_marker.M.Quaternion(link->visual->origin.rotation.x,
-                              link->visual->origin.rotation.y,
-                              link->visual->origin.rotation.z,
-                              link->visual->origin.rotation.w);
+        URDFPoseToKDLFrame(link->visual->origin, T_marker);
 
         T = T*T_marker;
-        KDLFrameToVisualization(T, _marker);
+        KDLFrameToVisualizationPose(T, _marker);
 
         _marker.color.r = 0.5;
         _marker.color.g = 0.5;
@@ -722,17 +704,11 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
                 boost::static_pointer_cast<urdf::Sphere>(link->visual->geometry);
 
         KDL::Frame T_marker;
-        T_marker.p.x(link->visual->origin.position.x);
-        T_marker.p.y(link->visual->origin.position.y);
-        T_marker.p.z(link->visual->origin.position.z);
-        T_marker.M = T_marker.M.Quaternion(link->visual->origin.rotation.x,
-                              link->visual->origin.rotation.y,
-                              link->visual->origin.rotation.z,
-                              link->visual->origin.rotation.w);
+        URDFPoseToKDLFrame(link->visual->origin, T_marker);
 
         T = T*T_marker;
 
-        KDLFrameToVisualization(T, _marker);
+        KDLFrameToVisualizationPose(T, _marker);
 
         _marker.color.r = 0.5;
         _marker.color.g = 0.5;
