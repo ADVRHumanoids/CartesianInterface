@@ -625,8 +625,14 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
     }
     
     T = getPose(controlled_link->name, link->name);
+    KDL::Frame T_marker;
+    URDFPoseToKDLFrame(link->visual->origin, T_marker);
+    T = T*T_marker;
+    KDLFrameToVisualizationPose(T, _marker);
 
-
+    _marker.color.r = 0.5;
+    _marker.color.g = 0.5;
+    _marker.color.b = 0.5;
 
     if(link->visual->geometry->type == urdf::Geometry::MESH)
     {
@@ -636,18 +642,6 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
                 boost::static_pointer_cast<urdf::Mesh>(link->visual->geometry);
 
         _marker.mesh_resource = mesh->filename;
-
-
-        KDL::Frame T_marker;
-        URDFPoseToKDLFrame(link->visual->origin, T_marker);
-        T = T*T_marker;
-
-        KDLFrameToVisualizationPose(T, _marker);
-
-        _marker.color.r = 0.5;
-        _marker.color.g = 0.5;
-        _marker.color.b = 0.5;
-
         _marker.scale.x = mesh->scale.x;
         _marker.scale.y = mesh->scale.y;
         _marker.scale.z = mesh->scale.z;
@@ -661,14 +655,6 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
 
         KDL::Frame T_marker;
         URDFPoseToKDLFrame(link->visual->origin, T_marker);
-
-        T = T*T_marker;
-
-        KDLFrameToVisualizationPose(T, _marker);
-
-        _marker.color.r = 0.5;
-        _marker.color.g = 0.5;
-        _marker.color.b = 0.5;
 
         _marker.scale.x = mesh->dim.x;
         _marker.scale.y = mesh->dim.y;
@@ -685,13 +671,6 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
         KDL::Frame T_marker;
         URDFPoseToKDLFrame(link->visual->origin, T_marker);
 
-        T = T*T_marker;
-        KDLFrameToVisualizationPose(T, _marker);
-
-        _marker.color.r = 0.5;
-        _marker.color.g = 0.5;
-        _marker.color.b = 0.5;
-
         _marker.scale.x = mesh->radius;
         _marker.scale.y = mesh->radius;
         _marker.scale.z = mesh->length;
@@ -705,14 +684,6 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
 
         KDL::Frame T_marker;
         URDFPoseToKDLFrame(link->visual->origin, T_marker);
-
-        T = T*T_marker;
-
-        KDLFrameToVisualizationPose(T, _marker);
-
-        _marker.color.r = 0.5;
-        _marker.color.g = 0.5;
-        _marker.color.b = 0.5;
 
         _marker.scale.x = 2.*mesh->radius;
         _marker.scale.y = 2.*mesh->radius;
