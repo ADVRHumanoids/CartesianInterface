@@ -270,6 +270,9 @@ private:
         Marker.pose.orientation.z = qz;
         Marker.pose.orientation.w = qw;
     }
+
+    void createInteractiveMarkerControl(const double qw, const double qx, const double qy, const double qz,
+                                        const unsigned int interaction_mode);
 };
 
 } }
