@@ -192,6 +192,9 @@ private:
     int _base_link_entry_active;
     std::map<std::string, int> _map_link_entry;
 
+    std_srvs::EmptyRequest _req;
+    std_srvs::EmptyResponse _res;
+
     /**
      * @brief MakeMarker
      * @param distal_link
