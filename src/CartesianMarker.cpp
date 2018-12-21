@@ -184,7 +184,7 @@ void CartesianMarker::resetLastWayPoints(const visualization_msgs::InteractiveMa
     _waypoints.pop_back();
     clearMarker(_req, _res);
 
-    std::cout<<"RESET LAST WAYPOINT!"<<std::endl;
+    ROS_INFO("RESET LAST WAYPOINT!");
 
     if(_waypoints.empty())
         spawnMarker(_req, _res);
@@ -211,7 +211,7 @@ void CartesianMarker::resetAllWayPoints(const visualization_msgs::InteractiveMar
     _waypoints.clear();
     resetMarker(feedback);
     publishWP(_waypoints);
-    std::cout<<"RESETTING ALL WAYPOINTS!"<<std::endl;
+    ROS_INFO("RESETTING ALL WAYPOINTS!");
 }
 
 void CartesianMarker::resetMarker(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
@@ -268,9 +268,10 @@ void CartesianMarker::wayPointCallBack(const visualization_msgs::InteractiveMark
 
     if(_is_continuous == 1)
     {
-        std::cout<<_int_marker.name<<" set waypoint @: \n ["<<_actual_pose.p.x()<<" "<<_actual_pose.p.y()<<" "<<_actual_pose.p.z()<<"]"<<std::endl;
-        std::cout<<"["<<qx<<" "<<qy<<" "<<qz<<" "<<qw<<"]"<<std::endl;
-        std::cout<<"of "<<T<<" secs"<<std::endl;
+        ROS_INFO("\n %s set waypoint @: \n pos = [%f, %f, %f],\n orient = [%f, %f, %f, %f],\n of %.1f secs",
+                 _int_marker.name.c_str(),
+                 _actual_pose.p.x(), _actual_pose.p.y(), _actual_pose.p.z(),
+                 qx,qy,qz,qw, T);
 
         _waypoints.push_back(feedback->pose);
         _T.push_back(T);
@@ -520,7 +521,7 @@ void CartesianMarker::createInteractiveMarkerControl(const double qw, const doub
 void CartesianMarker::MakeMarker(const std::string &distal_link, const std::string &base_link,
                             bool fixed, unsigned int interaction_mode, bool show)
 {
-    XBot::Logger::info(XBot::Logger::Severity::HIGH, "Creating marker %s -> %s\n", base_link.c_str(), distal_link.c_str());
+    ROS_INFO("Creating marker %s -> %s\n", base_link.c_str(), distal_link.c_str());
     _int_marker.header.frame_id = _tf_prefix+base_link;
     _int_marker.scale = 0.5;
 
