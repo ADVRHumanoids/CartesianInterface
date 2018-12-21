@@ -195,14 +195,7 @@ void CartesianMarker::resetLastWayPoints(const visualization_msgs::InteractiveMa
             //tf::PoseMsgToKDL(_waypoints.back(),_start_pose);
             _actual_pose = _start_pose;
 
-            _int_marker.pose.position.x = _start_pose.p.x();
-            _int_marker.pose.position.y = _start_pose.p.y();
-            _int_marker.pose.position.z = _start_pose.p.z();
-            double qx,qy,qz,qw; _start_pose.M.GetQuaternion(qx,qy,qz,qw);
-            _int_marker.pose.orientation.x = qx;
-            _int_marker.pose.orientation.y = qy;
-            _int_marker.pose.orientation.z = qz;
-            _int_marker.pose.orientation.w = qw;
+            KDLFrameToVisualization(_start_pose, _int_marker);
 
             _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
             _menu_handler.apply(_server, _int_marker.name);
@@ -456,14 +449,8 @@ void CartesianMarker::setControlGlobalLocal(const visualization_msgs::Interactiv
 
 bool CartesianMarker::setGlobal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
-    _int_marker.pose.position.x = _actual_pose.p.x();
-    _int_marker.pose.position.y = _actual_pose.p.y();
-    _int_marker.pose.position.z = _actual_pose.p.z();
-    double qx,qy,qz,qw; _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
-    _int_marker.pose.orientation.x = qx;
-    _int_marker.pose.orientation.y = qy;
-    _int_marker.pose.orientation.z = qz;
-    _int_marker.pose.orientation.w = qw;
+    KDLFrameToVisualization(_actual_pose, _int_marker);
+
     for(unsigned int i = 1; i < _int_marker.controls.size(); ++i)
         _int_marker.controls[i].orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
     _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback), this, _1));
@@ -473,14 +460,8 @@ bool CartesianMarker::setGlobal(std_srvs::Empty::Request& req, std_srvs::Empty::
 
 bool CartesianMarker::setLocal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
-    _int_marker.pose.position.x = _actual_pose.p.x();
-    _int_marker.pose.position.y = _actual_pose.p.y();
-    _int_marker.pose.position.z = _actual_pose.p.z();
-    double qx,qy,qz,qw; _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
-    _int_marker.pose.orientation.x = qx;
-    _int_marker.pose.orientation.y = qy;
-    _int_marker.pose.orientation.z = qz;
-    _int_marker.pose.orientation.w = qw;
+    KDLFrameToVisualization(_actual_pose, _int_marker);
+
     for(unsigned int i = 1; i < _int_marker.controls.size(); ++i)
         _int_marker.controls[i].orientation_mode = visualization_msgs::InteractiveMarkerControl::INHERIT;
     _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback), this, _1));
@@ -494,14 +475,8 @@ bool CartesianMarker::spawnMarker(std_srvs::Empty::Request& req, std_srvs::Empty
     {
         _start_pose = getRobotActualPose();
         _actual_pose = _start_pose;
-        _int_marker.pose.position.x = _start_pose.p.x();
-        _int_marker.pose.position.y = _start_pose.p.y();
-        _int_marker.pose.position.z = _start_pose.p.z();
-        double qx,qy,qz,qw; _start_pose.M.GetQuaternion(qx,qy,qz,qw);
-        _int_marker.pose.orientation.x = qx;
-        _int_marker.pose.orientation.y = qy;
-        _int_marker.pose.orientation.z = qz;
-        _int_marker.pose.orientation.w = qw;
+
+        KDLFrameToVisualization(_start_pose, _int_marker);
 
         _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
         _menu_handler.apply(_server, _int_marker.name);
@@ -629,14 +604,7 @@ void CartesianMarker::MakeMarker(const std::string &distal_link, const std::stri
         else throw std::invalid_argument("Invalid interaction mode!");
     }
 
-    _int_marker.pose.position.x = _start_pose.p.x();
-    _int_marker.pose.position.y = _start_pose.p.y();
-    _int_marker.pose.position.z = _start_pose.p.z();
-    double qx,qy,qz,qw; _start_pose.M.GetQuaternion(qx,qy,qz,qw);
-    _int_marker.pose.orientation.x = qx;
-    _int_marker.pose.orientation.y = qy;
-    _int_marker.pose.orientation.z = qz;
-    _int_marker.pose.orientation.w = qw;
+    KDLFrameToVisualization(_start_pose, _int_marker);
 
     _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
 }
@@ -731,14 +699,8 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
                               link->visual->origin.rotation.w);
 
         T = T*T_marker;
-        _marker.pose.position.x = T.p.x();
-        _marker.pose.position.y = T.p.y();
-        _marker.pose.position.z = T.p.z();
-        double qx,qy,qz,qw; T.M.GetQuaternion(qx,qy,qz,qw);
-        _marker.pose.orientation.x = qx;
-        _marker.pose.orientation.y = qy;
-        _marker.pose.orientation.z = qz;
-        _marker.pose.orientation.w = qw;
+
+        KDLFrameToVisualization(T, _marker);
 
         _marker.color.r = 0.5;
         _marker.color.g = 0.5;
@@ -765,14 +727,8 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
                               link->visual->origin.rotation.w);
 
         T = T*T_marker;
-        _marker.pose.position.x = T.p.x();
-        _marker.pose.position.y = T.p.y();
-        _marker.pose.position.z = T.p.z();
-        double qx,qy,qz,qw; T.M.GetQuaternion(qx,qy,qz,qw);
-        _marker.pose.orientation.x = qx;
-        _marker.pose.orientation.y = qy;
-        _marker.pose.orientation.z = qz;
-        _marker.pose.orientation.w = qw;
+
+        KDLFrameToVisualization(T, _marker);
 
         _marker.color.r = 0.5;
         _marker.color.g = 0.5;
@@ -800,14 +756,7 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
                               link->visual->origin.rotation.w);
 
         T = T*T_marker;
-        _marker.pose.position.x = T.p.x();
-        _marker.pose.position.y = T.p.y();
-        _marker.pose.position.z = T.p.z();
-        double qx,qy,qz,qw; T.M.GetQuaternion(qx,qy,qz,qw);
-        _marker.pose.orientation.x = qx;
-        _marker.pose.orientation.y = qy;
-        _marker.pose.orientation.z = qz;
-        _marker.pose.orientation.w = qw;
+        KDLFrameToVisualization(T, _marker);
 
         _marker.color.r = 0.5;
         _marker.color.g = 0.5;
@@ -835,14 +784,7 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
 
         T = T*T_marker;
 
-        _marker.pose.position.x = T.p.x();
-        _marker.pose.position.y = T.p.y();
-        _marker.pose.position.z = T.p.z();
-        double qx,qy,qz,qw; T.M.GetQuaternion(qx,qy,qz,qw);
-        _marker.pose.orientation.x = qx;
-        _marker.pose.orientation.y = qy;
-        _marker.pose.orientation.z = qz;
-        _marker.pose.orientation.w = qw;
+        KDLFrameToVisualization(T, _marker);
 
         _marker.color.r = 0.5;
         _marker.color.g = 0.5;

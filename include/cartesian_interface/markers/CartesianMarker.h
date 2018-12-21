@@ -256,6 +256,20 @@ private:
 
     ros::Publisher _way_points_pub;
     void publishWP(const std::vector<geometry_msgs::Pose>& wps);
+
+    template <class Marker_Type>
+    void KDLFrameToVisualization(const KDL::Frame& Frame, Marker_Type& Marker)
+    {
+        Marker.pose.position.x = Frame.p.x();
+        Marker.pose.position.y = Frame.p.y();
+        Marker.pose.position.z = Frame.p.z();
+        double qx,qy,qz,qw;
+        Frame.M.GetQuaternion(qx,qy,qz,qw);
+        Marker.pose.orientation.x = qx;
+        Marker.pose.orientation.y = qy;
+        Marker.pose.orientation.z = qz;
+        Marker.pose.orientation.w = qw;
+    }
 };
 
 } }
