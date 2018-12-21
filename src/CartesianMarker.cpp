@@ -4,6 +4,7 @@
 #include <std_srvs/SetBool.h>
 #include <numeric> 
 #include <XBotInterface/RtLog.hpp>
+#include <tf_conversions/tf_kdl.h>
 
 #define SECS 5
 
@@ -709,15 +710,8 @@ KDL::Frame CartesianMarker::getRobotActualPose()
         ROS_ERROR("%s",ex.what());
         ros::Duration(1.0).sleep();
     }}
-    KDL::Frame transform_KDL; transform_KDL = transform_KDL.Identity();
-    transform_KDL.p.x(_transform.getOrigin().x());
-    transform_KDL.p.y(_transform.getOrigin().y());
-    transform_KDL.p.z(_transform.getOrigin().z());
-
-    transform_KDL.M = transform_KDL.M.Quaternion(
-                _transform.getRotation().getX(), _transform.getRotation().getY(),
-                _transform.getRotation().getZ(), _transform.getRotation().getW()
-                );
+    KDL::Frame transform_KDL;
+    tf::TransformTFToKDL(_transform, transform_KDL);
 
     return transform_KDL;
 }
@@ -737,15 +731,9 @@ KDL::Frame CartesianMarker::getPose(const std::string& base_link, const std::str
         ROS_ERROR("%s",ex.what());
         ros::Duration(1.0).sleep();
     }}
-    KDL::Frame transform_KDL; transform_KDL = transform_KDL.Identity();
-    transform_KDL.p.x(_transform.getOrigin().x());
-    transform_KDL.p.y(_transform.getOrigin().y());
-    transform_KDL.p.z(_transform.getOrigin().z());
 
-    transform_KDL.M = transform_KDL.M.Quaternion(
-                _transform.getRotation().getX(), _transform.getRotation().getY(),
-                _transform.getRotation().getZ(), _transform.getRotation().getW()
-                );
+    KDL::Frame transform_KDL;
+    tf::TransformTFToKDL(_transform, transform_KDL);
 
     return transform_KDL;
 }
