@@ -168,6 +168,7 @@ class JointStatePublisher():
             self.sources.append(rospy.Subscriber(source, JointState, self.source_cb))
 
         self.pub = rospy.Publisher('joint_states', JointState, queue_size=5)
+    
 
     def source_cb(self, msg):
         for i in range(len(msg.name)):
@@ -387,6 +388,7 @@ class JointStatePublisherGui(QWidget):
         self.maxrowsupdown.valueChanged.connect(self.reorggrid_event)
         self.vlayout.addWidget(self.maxrowsupdown)
         self.setLayout(self.vlayout)
+        
 
     @pyqtSlot(int)
     def onValueChanged(self, event):
@@ -465,11 +467,24 @@ class JointStatePublisherGui(QWidget):
         return joint['min'] + (joint['max']-joint['min']) * pctvalue
 
 
+def joints_callback(msg):         
+    rospy.loginfo("Initializing joints: ")
+    zeros = {}
+    for i in range(len(msg.name)):
+        rospy.loginfo("%s : %d [rad]", msg.name[i], msg.position[i])
+        zeros[msg.name[i]] = msg.position[i]
+    rospy.set_param('zeros', zeros)
+
 if __name__ == '__main__':
     try:
+        
         rospy.init_node('joint_state_publisher')
+        
+        msg = rospy.wait_for_message('joint_feedback', JointState)   
+        joints_callback(msg)
+                    
         jsp = JointStatePublisher()
-
+        
         if jsp.gui is None:
             jsp.loop()
         else:
