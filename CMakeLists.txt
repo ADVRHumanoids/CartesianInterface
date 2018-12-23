@@ -249,6 +249,7 @@ install(DIRECTORY examples/configs/
   FILES_MATCHING PATTERN "*.yaml"
 )
 
+install(PROGRAMS src/postural_gui DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 #######################
 # Add Testing target  #
