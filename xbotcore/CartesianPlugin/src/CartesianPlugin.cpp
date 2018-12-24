@@ -17,6 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
 */
 
+#include <time.h>
+
 #include <CartesianPlugin/CartesianPlugin.h>
 #include <cartesian_interface/open_sot/OpenSotImpl.h>
 
@@ -46,19 +48,31 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
     _q.resize(_model->getJointNum());
     _qdot = _q;
     
-    YAML::Node yaml_file = YAML::LoadFile(handle->getPathToConfigFile());
-    ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"], _model);
-    _ci = std::make_shared<OpenSotImpl>(_model, ik_problem);
-    _ci->enableOtg(0.001);
-
     /* Initialize a logger which saves to the specified file. Remember that
      * the current date/time is always appended to the provided filename,
      * so that logs do not overwrite each other. */
 
     _logger = XBot::MatLogger::getLogger("/tmp/CartesianPlugin_log");
-    
-    _sync_from_nrt = std::make_shared<Utils::SyncFromIO>("/xbotcore/cartesian_interface", handle->getSharedMemory());
 
+    /* Construct CI objects */
+    YAML::Node config = YAML::LoadFile(handle->getPathToConfigFile());
+    ProblemDescription ik_problem(config["CartesianInterface"]["problem_description"], _model);
+    
+    std::string impl_name("OpenSot");
+    std::string path_to_shared_lib = XBot::Utils::FindLib("libCartesian" + impl_name + ".so", "LD_LIBRARY_PATH");
+    if (path_to_shared_lib == "") {
+        throw std::runtime_error("libCartesian" + impl_name + ".so must be listed inside LD_LIBRARY_PATH");
+    }
+    
+    _ci  = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterfaceImpl>(path_to_shared_lib, 
+                                                                              impl_name + "Impl", 
+                                                                              _model, ik_problem);
+    _ci->enableOtg(0.001);
+    _ci->update(0,0);
+    
+    /* Helper for RT <-> nRT communication */
+    _sync = std::make_shared<Utils::SyncFromIO>(handle, _ci, _model);
+    
     return true;
 
 
@@ -74,11 +88,11 @@ void CartesianPlugin::on_start(double time)
     /* Save the robot starting config to a class member */
     _start_time = time;
     
-    _first_sync_done = false;
+    _sync->set_solver_active(true);
     
     _model->syncFrom(*_robot, Sync::Position, Sync::MotorSide);
-    
     _ci->reset(time);
+    
 }
 
 void CartesianPlugin::on_stop(double time)
@@ -87,6 +101,8 @@ void CartesianPlugin::on_stop(double time)
      * is sent over the plugin switch port (e.g. 'rosservice call /CartesianPlugin_switch false').
      * Since this function is called within the real-time loop, you should not perform
      * operations that are not rt-safe. */
+    
+    _sync->set_solver_active(false);
 }
 
 
@@ -97,29 +113,10 @@ void CartesianPlugin::control_loop(double time, double period)
      * Since this function is called within the real-time loop, you should not perform
      * operations that are not rt-safe. */
     
-    /* Try to update references from NRT */
-    if(!_first_sync_done)
-    {
-        if(_sync_from_nrt->try_reset(_model, time))
-        {
-            _first_sync_done = true;
-            XBot::Logger::info(Logger::Severity::HIGH, "Resetting NRT CI \n");
-        }
-    }
-    
-    if(_first_sync_done)
-    {
-        if(_sync_from_nrt->try_sync(time, period, _ci, _model))
-        {
-            _logger->add("sync_done", 1);
-        }
-        else
-        {
-            _logger->add("sync_done", 0);
-        }
-    }
-    
+    /* Callbacks from NRT */
+    _sync->receive(_ci);
 
+    /* Solve IK */
     if(!_ci->update(time, period))
     {
         XBot::Logger::error("CartesianInterface: unable to solve \n");
@@ -129,12 +126,14 @@ void CartesianPlugin::control_loop(double time, double period)
     /* Integrate solution */
     _model->getJointPosition(_q);
     _model->getJointVelocity(_qdot);
-    
     _q += period * _qdot;
-    
     _model->setJointPosition(_q);
     _model->update();
     
+    /* Send state to nrt */
+    _sync->send(_ci, _model);
+    
+    /* Send command to robot */
     _robot->setReferenceFrom(*_model, Sync::Position);
     _robot->move();
 

@@ -2,7 +2,9 @@
 #define CartesianPlugin_UTILS_H_
 
 #include <XCM/XBotControlPlugin.h>
+#include <cartesian_interface/utils/LockfreeBufferImpl.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
+#include <cartesian_interface/ros/RosServerClass.h>
 
 namespace XBot { namespace Cartesian { namespace Utils {
  
@@ -13,66 +15,73 @@ namespace XBot { namespace Cartesian { namespace Utils {
         
         typedef std::shared_ptr<SyncFromIO> Ptr;
         
-        SyncFromIO(std::string shared_object_name, SharedMemory::Ptr shared_memory);
+        SyncFromIO(XBot::Handle::Ptr handle, 
+                XBot::Cartesian::CartesianInterface::ConstPtr ci, 
+                XBot::ModelInterface::ConstPtr model
+                );
         
-        bool try_sync(double time, double period, CartesianInterfaceImpl::Ptr ci, ModelInterface::ConstPtr model);
+        void set_solver_active(bool is_active);
         
-        bool try_reset(ModelInterface::ConstPtr model, double time);
+        void send(CartesianInterfaceImpl::Ptr ci, ModelInterface::ConstPtr model);
+        
+        void receive(CartesianInterfaceImpl::Ptr ci);
         
         
         
     private:
         
-        SharedObject<CartesianInterfaceImpl::Ptr> _ci_shobj;
-        CartesianInterfaceImpl::Ptr _ci_nrt;
+        LockfreeBufferImpl::Ptr _ci_buf;
+        XBot::SharedObject<LockfreeBufferImpl::Ptr> _ci_buf_shobj;
+        XBot::SharedObject<std::atomic<bool>> _ci_running_shobj;
+        XBot::SharedObject<RosServerClass::Ptr> _ci_ros_shobj;
     };
     
 } } }
 
 
 
-inline XBot::Cartesian::Utils::SyncFromIO::SyncFromIO(std::string shared_object_name, SharedMemory::Ptr shared_memory):
-    _ci_shobj( shared_memory->getSharedObject<CartesianInterfaceImpl::Ptr>(shared_object_name) )
+inline XBot::Cartesian::Utils::SyncFromIO::SyncFromIO(XBot::Handle::Ptr handle, 
+                                                      XBot::Cartesian::CartesianInterface::ConstPtr ci, 
+                                                      XBot::ModelInterface::ConstPtr model
+                                                     )
 {
-
+    /* Model to be used on the nrt side */
+    auto ros_model = ModelInterface::getModel(handle->getPathToConfigFile());
+    
+    /* Lockfree buffer for wait-free communication between RT <-> NRT */
+    _ci_buf = std::make_shared<LockfreeBufferImpl>(ci.get(), ros_model);
+    _ci_buf->pushState(ci.get(), model.get());
+    _ci_buf->updateState();
+    
+    /* Ros API server */
+    auto ci_ros = std::make_shared<RosServerClass>(_ci_buf, ros_model);
+    
+    /* Initialize required variables in shared memory */
+    auto shmem = handle->getSharedMemory();
+    
+    _ci_buf_shobj = shmem->getSharedObject<LockfreeBufferImpl::Ptr>("/xbotcore/ci_buffer");
+    _ci_buf_shobj.set(_ci_buf);
+    
+    _ci_running_shobj = shmem->getSharedObject<std::atomic<bool>>("/xbotcore/ci_running");
+    _ci_running_shobj.get_object_ptr()->store(false);
+    
+    _ci_ros_shobj = shmem->getSharedObject<RosServerClass::Ptr>("/xbotcore/ci_ros_server_class");
+    _ci_ros_shobj.set(ci_ros);
 }
 
-inline bool XBot::Cartesian::Utils::SyncFromIO::try_reset(XBot::ModelInterface::ConstPtr model, double time)
+inline void XBot::Cartesian::Utils::SyncFromIO::receive(XBot::Cartesian::CartesianInterfaceImpl::Ptr ci)
 {
-    if(_ci_nrt || (_ci_shobj.try_get(_ci_nrt) && _ci_nrt))
-    {
-        if(_ci_shobj.get_mutex()->try_lock())
-        {
-                _ci_nrt->getModel()->syncFrom(*model);
-                _ci_nrt->reset(time);
-                _ci_shobj.get_mutex()->unlock();
-                return true;
-        }
-    }
-    
-    return false;
+    _ci_buf->callAvailable(ci.get());
 }
 
-inline bool XBot::Cartesian::Utils::SyncFromIO::try_sync(double time, double period,
-                                                  XBot::Cartesian::CartesianInterfaceImpl::Ptr ci,
-                                                  XBot::ModelInterface::ConstPtr model)
+inline void XBot::Cartesian::Utils::SyncFromIO::send(XBot::Cartesian::CartesianInterfaceImpl::Ptr ci, XBot::ModelInterface::ConstPtr model)
 {
-    if(_ci_nrt || (_ci_shobj.try_get(_ci_nrt) && _ci_nrt))
-    {
-        if(_ci_shobj.get_mutex()->try_lock())
-        {
-            _ci_nrt->getModel()->syncFrom(*model);
-        
-            ci->syncFrom(_ci_nrt);
-            
-            _ci_nrt->update(time, period);
-            _ci_shobj.get_mutex()->unlock();
-            
-            return true;
-        }
-    }
-    
-    return false;
+    _ci_buf->pushState(ci.get(), model.get());
+}
+
+inline void XBot::Cartesian::Utils::SyncFromIO::set_solver_active(bool is_active)
+{
+    _ci_running_shobj.get_object_ptr()->store(is_active);
 }
 
 

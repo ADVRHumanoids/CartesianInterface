@@ -92,6 +92,7 @@ catkin_package(
 # Interface implementation
 set(CartesianInterface_SRC
         src/CartesianInterfaceImpl.cpp
+        src/LockfreeBufferImpl.cpp
         src/ProblemDescription.cpp
         src/TaskImpl.cpp
         src/ConstraintImpl.cpp
@@ -238,16 +239,11 @@ install(DIRECTORY include/cartesian_interface/
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 install(DIRECTORY launch/
-#   # myfile2
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
   FILES_MATCHING PATTERN "*.launch"
 )
 
-install(DIRECTORY examples/configs/
-#   # myfile2
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/examples/configs
-  FILES_MATCHING PATTERN "*.yaml"
-)
+
 
 
 #######################
