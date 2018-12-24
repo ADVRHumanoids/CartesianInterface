@@ -152,7 +152,7 @@ class JointStatePublisher():
         else:
             self.init_urdf(robot)
 
-        use_gui = get_param("use_gui", False)
+        use_gui = get_param("use_gui", True)
 
         if use_gui:
             num_rows = get_param("num_rows", 0)
@@ -167,7 +167,7 @@ class JointStatePublisher():
         for source in source_list:
             self.sources.append(rospy.Subscriber(source, JointState, self.source_cb))
 
-        self.pub = rospy.Publisher('joint_states', JointState, queue_size=5)
+        self.pub = rospy.Publisher('cartesian/posture/reference', JointState, queue_size=5)
     
 
     def source_cb(self, msg):
@@ -478,9 +478,9 @@ def joints_callback(msg):
 if __name__ == '__main__':
     try:
         
-        rospy.init_node('joint_state_publisher')
+        rospy.init_node('task_postural_gui')
         
-        msg = rospy.wait_for_message('joint_feedback', JointState)   
+        msg = rospy.wait_for_message('cartesian/posture/state', JointState)   
         joints_callback(msg)
                     
         jsp = JointStatePublisher()
