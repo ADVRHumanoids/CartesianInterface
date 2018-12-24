@@ -280,6 +280,19 @@ bool RosImpl::getPoseReference(const std::string& end_effector,
     return true;
 }
 
+bool XBot::Cartesian::RosImpl::getPoseReferenceRaw(const std::string& end_effector, 
+                                                   Eigen::Affine3d& base_T_ref, 
+                                                   Eigen::Vector6d* base_vel_ref, 
+                                                   Eigen::Vector6d* base_acc_ref) const
+{
+    throw std::runtime_error("not implemented function");
+}
+
+bool XBot::Cartesian::RosImpl::setPoseReferenceRaw(const std::string& end_effector, const Eigen::Affine3d& base_T_ref, const Eigen::Vector6d& base_vel_ref, const Eigen::Vector6d& base_acc_ref)
+{
+    throw std::runtime_error("not implemented function");
+}
+
 void XBot::Cartesian::RosImpl::loadController(const std::string& controller_name)
 {
     cartesian_interface::LoadController srv;

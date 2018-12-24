@@ -66,7 +66,7 @@ public:
                           Eigen::Vector6d * base_vel_ref = nullptr,
                           Eigen::Vector6d * base_acc_ref = nullptr) const;
                           
-    bool getPoseReferenceRaw(const std::string& end_effector, 
+    virtual bool getPoseReferenceRaw(const std::string& end_effector, 
                           Eigen::Affine3d& base_T_ref, 
                           Eigen::Vector6d * base_vel_ref = nullptr,
                           Eigen::Vector6d * base_acc_ref = nullptr) const;
@@ -96,7 +96,7 @@ public:
                                   const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
                                   const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
     
-    bool setPoseReferenceRaw(const std::string& end_effector, 
+    virtual bool setPoseReferenceRaw(const std::string& end_effector, 
                              const Eigen::Affine3d& base_T_ref, 
                              const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
                              const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());

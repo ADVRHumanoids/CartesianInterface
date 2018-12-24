@@ -41,12 +41,22 @@ namespace XBot { namespace Cartesian {
                                       Eigen::Affine3d& base_T_ref, 
                                       Eigen::Vector6d* base_vel_ref = nullptr, 
                                       Eigen::Vector6d* base_acc_ref = nullptr) const;
+                                      
+        virtual bool getPoseReferenceRaw(const std::string& end_effector, 
+                                      Eigen::Affine3d& base_T_ref, 
+                                      Eigen::Vector6d* base_vel_ref = nullptr, 
+                                      Eigen::Vector6d* base_acc_ref = nullptr) const;
 
         virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref, 
                                              const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(), 
                                              const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero());
         
         virtual bool setPoseReference(const std::string& end_effector, 
+                                      const Eigen::Affine3d& base_T_ref, 
+                                      const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
+                                      const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
+        
+        virtual bool setPoseReferenceRaw(const std::string& end_effector, 
                                       const Eigen::Affine3d& base_T_ref, 
                                       const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
                                       const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
@@ -187,6 +197,7 @@ namespace XBot { namespace Cartesian {
 } }
 
 #endif
+
 
 
 

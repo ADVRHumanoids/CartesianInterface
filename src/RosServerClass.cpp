@@ -4,7 +4,6 @@
 using namespace XBot::Cartesian;
 
 RosServerClass::Options::Options():
-    spawn_markers(true),
     tf_prefix("ci")
 {
 
@@ -33,11 +32,15 @@ void RosServerClass::__generate_rspub()
 
     _rspub.reset(new RsPub(kdl_tree));
 
-    std::string _urdf_param_name = "/xbotcore/" + _model->getUrdf().getName() + "/robot_description";
-    std::string _tf_prefix = "/xbotcore/" + _model->getUrdf().getName();
-    _nh.setParam(_urdf_param_name, _model->getUrdfString());
-    _nh.setParam("/robot_description", _model->getUrdfString());
-    _nh.setParam("/robot_description_semantic", _model->getSrdfString());
+    ros::NodeHandle base_nh;
+    if(!base_nh.hasParam("robot_description"))
+    {
+        base_nh.setParam("robot_description", _model->getUrdfString());
+    }
+    if(!base_nh.hasParam("robot_description_semantic"))
+    {
+        base_nh.setParam("robot_description_semantic", _model->getSrdfString());
+    }
     
     _com_pub = _nh.advertise<geometry_msgs::PointStamped>("com_position", 1);
 }
@@ -95,16 +98,8 @@ void RosServerClass::online_position_reference_cb(const geometry_msgs::PoseStamp
     Eigen::Affine3d T;
     tf::poseMsgToEigen(msg->pose, T);
     
+    _cartesian_interface->setPoseReference(ee_name, T);
     
-    
-    if(ee_name == "com")
-    {
-        _cartesian_interface->setComPositionReference(T.translation());
-    }
-    else
-    {
-        _cartesian_interface->setPoseReference(ee_name, T);
-    }
 }
 
 
@@ -157,21 +152,10 @@ void RosServerClass::online_velocity_reference_cb(const geometry_msgs::TwistStam
         vel.tail<3>() = b_R_f * vel.tail<3>();
     }
     
+    Eigen::Affine3d T;
+    _cartesian_interface->getPoseReferenceRaw(ee_name, T);
+    _cartesian_interface->setPoseReference(ee_name, T, vel);
     
-    if(ee_name == "com")
-    {
-        Eigen::Vector3d com_ref, com_vref;
-        _cartesian_interface->getComPositionReference(com_ref);
-        com_vref = vel.head<3>();
-        
-        _cartesian_interface->setComPositionReference(com_ref, com_vref);
-    }
-    else
-    {
-        Eigen::Affine3d T;
-        _cartesian_interface->getPoseReferenceRaw(ee_name, T);
-        _cartesian_interface->setPoseReference(ee_name, T, vel);
-    }
 }
 
 void RosServerClass::__generate_online_pos_topics()
@@ -340,12 +324,12 @@ void XBot::Cartesian::RosServerClass::publish_posture_state(ros::Time time)
     sensor_msgs::JointState msg;
     Eigen::VectorXd _posture_ref;
     
-    if(!_cartesian_interface->getReferencePosture(_posture_ref))
+    if(_posture_pub.getNumSubscribers() == 0)
     {
         return;
     }
     
-    if(_posture_pub.getNumSubscribers() == 0)
+    if(!_cartesian_interface->getReferencePosture(_posture_ref))
     {
         return;
     }
@@ -414,7 +398,7 @@ void RosServerClass::run()
 
 }
 
-RosServerClass::RosServerClass(CartesianInterfaceImpl::Ptr intfc, 
+RosServerClass::RosServerClass(CartesianInterface::Ptr intfc, 
                                ModelInterface::ConstPtr model, 
                                Options opt):
     _cartesian_interface(intfc),
@@ -439,11 +423,6 @@ RosServerClass::RosServerClass(CartesianInterfaceImpl::Ptr intfc,
     __generate_update_param_services();
     __generate_reset_world_service();
 
-    if(_opt.spawn_markers)
-    {
-        _marker_thread = std::make_shared<std::thread>(&RosServerClass::__generate_markers, this);
-    }
-    
     _ros_enabled_ci = std::dynamic_pointer_cast<RosEnabled>(_cartesian_interface);
     if(!_ros_enabled_ci || !_ros_enabled_ci->initRos(_nh))
     {
@@ -615,34 +594,6 @@ void XBot::Cartesian::RosServerClass::__generate_update_param_services()
 
 
 
-void RosServerClass::__generate_markers()
-{
-
-    for(std::string ee_name : _cartesian_interface->getTaskList())
-    {
-        unsigned int control_type;
-        
-        if(ee_name == "com")
-        {
-            control_type = visualization_msgs::InteractiveMarkerControl::MOVE_3D;
-        }
-        else
-        {
-            control_type = visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D;
-        }
-        
-        std::string base_link = _cartesian_interface->getBaseLink(ee_name);
-        base_link = base_link == "world" ? "world_odom" : base_link;
-        auto marker = std::make_shared<CartesianMarker>(base_link,
-                                                   ee_name,
-                                                   static_cast<const urdf::Model&>(_model->getUrdf()),
-                                                   control_type,
-                                                   _tf_prefix_slash
-                                                  );
-        
-        _markers[ee_name] = marker;
-    }
-}
 
 bool XBot::Cartesian::RosServerClass::get_task_info_cb(cartesian_interface::GetTaskInfoRequest& req,
                                                        cartesian_interface::GetTaskInfoResponse& res,
@@ -662,7 +613,6 @@ bool XBot::Cartesian::RosServerClass::get_task_info_cb(cartesian_interface::GetT
 
 RosServerClass::~RosServerClass()
 {
-    if(_marker_thread) _marker_thread->join();
 }
 
 XBot::ModelInterface::ConstPtr RosServerClass::getModel() const
@@ -701,12 +651,6 @@ bool XBot::Cartesian::RosServerClass::set_task_info_cb(cartesian_interface::SetT
     {
         res.message = "Successfully set base link of task " + ee_name + " to " + new_base_link;
         res.success = true;
-        
-        std::string __new_base_link = new_base_link == "world" ? "world_odom" : new_base_link;
-        if(_markers.count(ee_name) != 0)
-        {
-            _markers.at(ee_name)->setBaseLink(__new_base_link);
-        }
     }
     else if(new_base_link != "")
     {

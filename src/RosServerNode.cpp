@@ -1,4 +1,5 @@
 #include <ros/ros.h>
+#include <std_msgs/Empty.h>
 
 #include <XBotInterface/RobotInterface.h>
 #include <XBotInterface/Utils.h>
@@ -162,7 +163,6 @@ int main(int argc, char **argv){
     
     /* Obtain class to expose ROS API */
     XBot::Cartesian::RosServerClass::Options opt;
-    opt.spawn_markers = false;
     opt.tf_prefix = nh_private.param<std::string>("tf_prefix", "ci");
     if(opt.tf_prefix == "null")
     {
@@ -291,7 +291,6 @@ bool loader_callback(cartesian_interface::LoadControllerRequest& req,
         res.message = "Successfully loaded controller";
         __g_ros_ptrptr->reset();
         XBot::Cartesian::RosServerClass::Options opt;
-        opt.spawn_markers = false;
         *__g_ros_ptrptr = std::make_shared<XBot::Cartesian::RosServerClass>(current_impl, __g_model, opt);
         __g_current_impl = current_impl;
         

@@ -32,8 +32,6 @@
 #include <cartesian_interface/ReferenceStamped.h>
 
 #include <cartesian_interface/CartesianInterfaceImpl.h>
-#include <cartesian_interface/markers/CartesianMarker.h>
-#include <thread>
 
 namespace XBot { namespace Cartesian {
 
@@ -52,13 +50,12 @@ namespace XBot { namespace Cartesian {
         
         struct Options
         {
-            bool spawn_markers;
             std::string tf_prefix;
             
             Options();
         };
 
-        RosServerClass(CartesianInterfaceImpl::Ptr intfc,
+        RosServerClass(CartesianInterface::Ptr intfc,
                        ModelInterface::ConstPtr model, 
                        Options opt = Options()
                       );
@@ -92,7 +89,6 @@ namespace XBot { namespace Cartesian {
         void __generate_task_info_services();
         void __generate_reset_service();
         void __generate_rspub();
-        void __generate_markers();
         void __generate_task_info_setters();
         void __generate_task_list_service();
         void __generate_postural_task_topics_and_services();
@@ -145,7 +141,7 @@ namespace XBot { namespace Cartesian {
         ros::NodeHandle _nh;
         ros::CallbackQueue _cbk_queue;
 
-        CartesianInterfaceImpl::Ptr _cartesian_interface;
+        CartesianInterface::Ptr _cartesian_interface;
         RosEnabled::Ptr _ros_enabled_ci;
         ModelInterface::ConstPtr _model;
         tf::TransformBroadcaster _tf_broadcaster;
@@ -158,10 +154,7 @@ namespace XBot { namespace Cartesian {
         ros::Publisher _com_pub, _posture_pub, _solution_pub;
         ros::Subscriber _posture_sub;
         std::vector<ros::ServiceServer> _get_task_info_srv, _set_task_info_srv;
-        std::map<std::string, CartesianMarker::Ptr> _markers;
         ros::ServiceServer _reset_srv, _tasklist_srv, _reset_posture_srv, _update_limits_srv, _reset_world_srv;
-
-        std::shared_ptr<std::thread> _marker_thread;
 
     };
 
