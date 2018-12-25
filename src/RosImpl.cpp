@@ -82,7 +82,8 @@ RosImpl::RosImpl(std::string node_namespace):
 RosImpl::RosTask::RosTask(ros::NodeHandle nh, std::string arg_distal_link):
     distal_link(arg_distal_link),
     valid_state(false),
-    reach_action(nh, arg_distal_link + "/reach")
+    reach_action(nh, arg_distal_link + "/reach"),
+    vref_async(arg_distal_link + "/velocity_reference", ros::Duration(VREF_ASYNC_PERIOD))
 {
     state_sub = nh.subscribe(distal_link + "/state", 1, &RosTask::state_callback, this);
     ref_pub = nh.advertise<geometry_msgs::PoseStamped>(distal_link + "/reference", 1);
@@ -160,7 +161,7 @@ Eigen::Affine3d XBot::Cartesian::RosImpl::RosTask::get_state() const
 }
 
 void XBot::Cartesian::RosImpl::RosTask::get_properties(std::string& base_link, 
-                                                       CartesianInterface::ControlType& ctrl_type)
+                                                       ControlType& ctrl_type)
 {
     cartesian_interface::GetTaskInfo srv;
     if(!get_prop_srv.call(srv))
@@ -190,7 +191,7 @@ void XBot::Cartesian::RosImpl::RosTask::set_base_link(const std::string& base_li
     ROS_INFO("%s", srv.response.message.c_str());
 }
 
-void XBot::Cartesian::RosImpl::RosTask::set_ctrl_mode(CartesianInterface::ControlType ctrl_type)
+void XBot::Cartesian::RosImpl::RosTask::set_ctrl_mode(ControlType ctrl_type)
 {
     cartesian_interface::SetTaskInfo srv;
     srv.request.control_mode = ControlTypeAsString(ctrl_type);
@@ -285,12 +286,13 @@ bool XBot::Cartesian::RosImpl::getPoseReferenceRaw(const std::string& end_effect
                                                    Eigen::Vector6d* base_vel_ref, 
                                                    Eigen::Vector6d* base_acc_ref) const
 {
-    throw std::runtime_error("not implemented function");
+    THROW_NOT_IMPL
 }
 
-bool XBot::Cartesian::RosImpl::setPoseReferenceRaw(const std::string& end_effector, const Eigen::Affine3d& base_T_ref, const Eigen::Vector6d& base_vel_ref, const Eigen::Vector6d& base_acc_ref)
+bool XBot::Cartesian::RosImpl::setPoseReferenceRaw(const std::string& end_effector, 
+                                                   const Eigen::Affine3d& base_T_ref)
 {
-    throw std::runtime_error("not implemented function");
+    THROW_NOT_IMPL
 }
 
 void XBot::Cartesian::RosImpl::loadController(const std::string& controller_name)
@@ -339,7 +341,7 @@ const std::string& RosImpl::getBaseLink(const std::string& ee_name) const
         
 }
 
-CartesianInterface::ControlType RosImpl::getControlMode(const std::string& ee_name) const
+ControlType RosImpl::getControlMode(const std::string& ee_name) const
 {
     auto task = get_task(ee_name, false);
     
@@ -360,7 +362,7 @@ bool RosImpl::getPoseTarget(const std::string& end_effector, Eigen::Affine3d& ba
     THROW_NOT_IMPL
 }
 
-CartesianInterface::State RosImpl::getTaskState(const std::string& end_effector) const
+State RosImpl::getTaskState(const std::string& end_effector) const
 {
     THROW_NOT_IMPL
 }
@@ -370,12 +372,18 @@ bool RosImpl::reset()
     THROW_NOT_IMPL
 }
 
-bool RosImpl::setComPositionReference(const Eigen::Vector3d& base_com_ref, const Eigen::Vector3d& base_vel_ref, const Eigen::Vector3d& base_acc_ref)
+bool RosImpl::setComPositionReference(const Eigen::Vector3d& base_com_ref)
 {
     THROW_NOT_IMPL
 }
 
-bool RosImpl::setControlMode(const std::string& ee_name, CartesianInterface::ControlType ctrl_type)
+bool XBot::Cartesian::RosImpl::setComVelocityReference(const Eigen::Vector3d& base_vel_ref)
+{
+    THROW_NOT_IMPL
+}
+
+
+bool RosImpl::setControlMode(const std::string& ee_name, ControlType ctrl_type)
 {
     auto task = get_task(ee_name, false);
     
@@ -385,34 +393,47 @@ bool RosImpl::setControlMode(const std::string& ee_name, CartesianInterface::Con
 }
 
 bool RosImpl::setPoseReference(const std::string& end_effector, 
-                               const Eigen::Affine3d& base_T_ref, 
-                               const Eigen::Vector6d& base_vel_ref, 
-                               const Eigen::Vector6d& base_acc_ref)
+                               const Eigen::Affine3d& base_T_ref)
 {
     auto task = get_task(end_effector, false);
     
     task->send_ref(base_T_ref);
+    
+    return true;
+}
+
+bool RosImpl::setVelocityReferenceAsync(const std::string& ee_name, 
+                                        const Eigen::Vector6d& vref,
+                                        double timeout_sec)
+{
+    auto task = get_task(ee_name, false);
+    
+    task->send_vref_async(vref, timeout_sec);
+    
+    return true;
+}
+
+bool XBot::Cartesian::RosImpl::stopVelocityReferenceAsync(const std::string& ee_name)
+{
+    auto task = get_task(ee_name, false);
+    
+    task->stop_vref_async();
+    
+    return true;
+}
+
+
+bool XBot::Cartesian::RosImpl::setVelocityReference(const std::string& end_effector, 
+                                                    const Eigen::Vector6d& base_vel_ref)
+{
+    auto task = get_task(end_effector, false);
+    
     task->send_vref(base_vel_ref);
     
     return true;
 }
 
-bool RosImpl::setPositionReference(const std::string& end_effector, const Eigen::Vector3d& base_pos_ref, const Eigen::Vector3d& base_vel_ref, const Eigen::Vector3d& base_acc_ref)
-{
-    THROW_NOT_IMPL
-}
-
 bool RosImpl::setTargetComPosition(const Eigen::Vector3d& base_com_ref, double time)
-{
-    THROW_NOT_IMPL
-}
-
-bool RosImpl::setTargetOrientation(const std::string& end_effector, const Eigen::Vector3d& base_pos_ref, double time)
-{
-    THROW_NOT_IMPL
-}
-
-bool RosImpl::setTargetOrientation(const std::string& end_effector, const std::string& base_frame, const Eigen::Matrix3d& base_R_ref, double time)
 {
     THROW_NOT_IMPL
 }
@@ -441,12 +462,6 @@ bool RosImpl::setWayPoints(const std::string& end_effector,
     task->send_waypoints(way_points, incremental);
     
     return true;
-}
-
-
-bool RosImpl::setTargetPosition(const std::string& end_effector, const Eigen::Vector3d& base_pos_ref, double time)
-{
-    THROW_NOT_IMPL
 }
 
 void RosImpl::getAccelerationLimits(const std::string& ee_name, double& max_acc_lin, double& max_acc_ang) const
@@ -576,3 +591,106 @@ bool RosImpl::setBaseLink(const std::string& ee_name, const std::string& new_bas
     
     return true;
 }
+
+
+
+
+XBot::Cartesian::RosImpl::RosInitHelper::RosInitHelper(std::string node_namespace)
+{
+    if(!ros::ok())
+    {
+        std::string ns_arg = "__ns:=";
+        ns_arg += node_namespace;
+        std::vector<const char *> args {"", ns_arg.c_str()};
+        
+        int argc = args.size();
+        
+        ros::init(argc, (char **)args.data(), "cartesio_ros", 
+                    ros::init_options::NoSigintHandler|ros::init_options::AnonymousName);
+        ROS_WARN("Initializing roscpp under namespace %s with anonymous name %s", 
+                    ros::this_node::getNamespace().c_str(),
+                    ros::this_node::getName().c_str()
+                );
+    }
+}
+
+
+XBot::Cartesian::RosImpl::VelocityPublisherAsync::VelocityPublisherAsync(std::string topic_name, 
+                                                                         ros::Duration period):
+    _spinner(1, &_queue),
+    _timeout(0)
+{
+    ros::NodeHandle nh("cartesian");
+    nh.setCallbackQueue(&_queue);
+    
+    _vref_pub = nh.advertise<geometry_msgs::TwistStamped>(topic_name, 1);
+    
+    _timer = nh.createTimer(period, &VelocityPublisherAsync::timer_callback, this);
+    
+    tf::twistEigenToMsg(Eigen::Vector6d::Zero(), _twist.twist);
+        
+}
+
+void XBot::Cartesian::RosImpl::VelocityPublisherAsync::set_vref(const Eigen::Vector6d& vref)
+{
+    std::lock_guard<std::recursive_mutex> lock(_mutex);
+    
+    tf::twistEigenToMsg(vref, _twist.twist);
+}
+
+void XBot::Cartesian::RosImpl::VelocityPublisherAsync::start(ros::Duration timeout)
+{
+    std::lock_guard<std::recursive_mutex> lock(_mutex);
+    
+    if(timeout < ros::Duration(0))
+    {
+        _timeout = ros::Time(0);
+    }
+    else
+    {
+        _timeout = ros::Time::now() + timeout;
+    }
+    
+    _spinner.start();
+    _timer.start();
+}
+
+void XBot::Cartesian::RosImpl::VelocityPublisherAsync::stop()
+{
+    std::lock_guard<std::recursive_mutex> lock(_mutex);
+    
+    _timer.stop();
+    _spinner.stop();
+    
+    tf::twistEigenToMsg(Eigen::Vector6d::Zero(), _twist.twist);
+}
+
+void XBot::Cartesian::RosImpl::VelocityPublisherAsync::timer_callback(const ros::TimerEvent& ev)
+{
+   std::lock_guard<std::recursive_mutex> lock(_mutex);
+    
+   auto now = ros::Time::now();
+    
+    if(_timeout != ros::Time(0) && now >= _timeout)
+    {
+        _timer.stop();
+        tf::twistEigenToMsg(Eigen::Vector6d::Zero(), _twist.twist);
+        return;
+    }
+    
+    _twist.header.stamp = now;
+    _vref_pub.publish(_twist);
+}
+
+void XBot::Cartesian::RosImpl::RosTask::send_vref_async(const Eigen::Vector6d& vref, double timeout_duration)
+{
+    vref_async.set_vref(vref);
+    vref_async.start(ros::Duration(timeout_duration));
+}
+
+void XBot::Cartesian::RosImpl::RosTask::stop_vref_async()
+{
+    vref_async.stop();
+}
+
+

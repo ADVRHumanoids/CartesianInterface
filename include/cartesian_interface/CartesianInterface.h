@@ -24,6 +24,22 @@
 #include <cartesian_interface/trajectory/Trajectory.h>
 
 namespace XBot { namespace Cartesian {
+    
+    
+/**
+* @brief Enum describing a state for each task. Available states are:
+*  - State::Online: the task is following an online getPoseReference
+*  - State::Reacing: the task is performing a point-to-point motion
+*/
+enum class State { Reaching, Online };
+
+/**
+* @brief Enum describing a control mode for each task. Available values are:
+*  - ControlType::Position: the task is following position references
+*  - ControlType::Velocity: the task is following velocity references
+*  - ControlType::Disabled: the task is disabled
+*/
+enum class ControlType { Position, Velocity, Disabled };
 
 /**
 * @brief The CartesianInterface class provides a generic way 
@@ -38,21 +54,6 @@ public:
     /* Typedefs for shared pointers */
     typedef std::shared_ptr<CartesianInterface> Ptr;
     typedef std::shared_ptr<const CartesianInterface> ConstPtr;
-    
-    /**
-     * @brief Enum describing a state for each task. Available states are:
-     *  - State::Online: the task is following an online getPoseReference
-     *  - State::Reacing: the task is performing a point-to-point motion
-     */
-    enum class State { Reaching, Online };
-    
-    /**
-     * @brief Enum describing a control mode for each task. Available values are:
-     *  - ControlType::Position: the task is following position references
-     *  - ControlType::Velocity: the task is following velocity references
-     *  - ControlType::Disabled: the task is disabled
-     */
-    enum class ControlType { Position, Velocity, Disabled };
     
     /* CartesianInterface cannot be copied */
     CartesianInterface() = default;
@@ -119,19 +120,17 @@ public:
     /* Online control */
 
     virtual bool setPoseReference(const std::string& end_effector, 
-                          const Eigen::Affine3d& base_T_ref, 
-                          const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(),
-                          const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero()) = 0;
+                          const Eigen::Affine3d& base_T_ref) = 0;
+                          
+    virtual bool setVelocityReference(const std::string& end_effector, 
+                          const Eigen::Vector6d& base_vel_ref) = 0;
                           
     virtual bool setPoseReferenceRaw(const std::string& end_effector, 
-                             const Eigen::Affine3d& base_T_ref, 
-                             const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
-                             const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero()) = 0;
+                             const Eigen::Affine3d& base_T_ref) = 0;
     
-    virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref, 
-                                 const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(),
-                                 const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero()) = 0;
+    virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref) = 0;
                                  
+    virtual bool setComVelocityReference(const Eigen::Vector3d& base_vel_ref) = 0;
                                  
     virtual bool setReferencePosture(const JointNameMap& qref) = 0;
     

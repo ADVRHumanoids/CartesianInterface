@@ -87,19 +87,18 @@ public:
                             
     virtual State getTaskState(const std::string& end_effector) const;
                             
-    virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref, 
-                                         const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(), 
-                                         const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero());
-
     virtual bool setPoseReference(const std::string& end_effector, 
-                                  const Eigen::Affine3d& base_T_ref, 
-                                  const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
-                                  const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
-    
+                          const Eigen::Affine3d& base_T_ref);
+                          
+    virtual bool setVelocityReference(const std::string& end_effector, 
+                          const Eigen::Vector6d& base_vel_ref);
+                          
     virtual bool setPoseReferenceRaw(const std::string& end_effector, 
-                             const Eigen::Affine3d& base_T_ref, 
-                             const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
-                             const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
+                             const Eigen::Affine3d& base_T_ref);
+    
+    virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref);
+                                 
+    virtual bool setComVelocityReference(const Eigen::Vector3d& base_vel_ref);
 
     virtual bool setTargetComPosition(const Eigen::Vector3d& base_com_ref, double time = 0);
 
@@ -159,12 +158,8 @@ protected:
         
         
         void set_ctrl(ControlType ctrl, ModelInterface::ConstPtr model);
-        bool set_reference(const Eigen::Affine3d& pose, 
-                           const Eigen::Vector6d& vel, 
-                           const Eigen::Vector6d& acc);
-        bool set_reference_raw(const Eigen::Affine3d& pose, 
-                           const Eigen::Vector6d& vel, 
-                           const Eigen::Vector6d& acc);
+        bool set_pose_reference(const Eigen::Affine3d& pose);
+        bool set_vel_reference(const Eigen::Vector6d& vref);
         bool set_waypoints(double current_time, const Trajectory::WayPointVector& wp);
         bool set_target_pose(double current_time, double target_time, const Eigen::Affine3d& pose);
         void reset(ModelInterface::ConstPtr model);

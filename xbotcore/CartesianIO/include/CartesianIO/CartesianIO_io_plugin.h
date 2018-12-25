@@ -52,8 +52,6 @@ protected:
 
 private:
     
-    std::atomic<bool> _solver_running;
-    ModelInterface::Ptr _model;
     RosServerClass::Ptr _ros_server;
     LockfreeBufferImpl::Ptr _ci;
     SharedObject<RosServerClass::Ptr> _ros_shobj;

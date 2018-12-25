@@ -1,9 +1,10 @@
 #ifndef __XBOT_CARTESIAN_INTERFACE_ROSIMPL_H__
 #define __XBOT_CARTESIAN_INTERFACE_ROSIMPL_H__
 
-#include <cartesian_interface/CartesianInterface.h>
 #include <string>
 #include <vector>
+#include <mutex>
+
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
 #include <actionlib/client/simple_action_client.h>
@@ -11,6 +12,9 @@
 #include <cartesian_interface/ReachPoseAction.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <eigen_conversions/eigen_msg.h>
+
+#include <cartesian_interface/CartesianInterface.h>
+
 
 namespace XBot { namespace Cartesian {
     
@@ -47,43 +51,31 @@ namespace XBot { namespace Cartesian {
                                       Eigen::Vector6d* base_vel_ref = nullptr, 
                                       Eigen::Vector6d* base_acc_ref = nullptr) const;
 
-        virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref, 
-                                             const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(), 
-                                             const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero());
-        
         virtual bool setPoseReference(const std::string& end_effector, 
-                                      const Eigen::Affine3d& base_T_ref, 
-                                      const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
-                                      const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
-        
+                          const Eigen::Affine3d& base_T_ref);
+                            
+        virtual bool setVelocityReference(const std::string& end_effector, 
+                            const Eigen::Vector6d& base_vel_ref);
+                            
         virtual bool setPoseReferenceRaw(const std::string& end_effector, 
-                                      const Eigen::Affine3d& base_T_ref, 
-                                      const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
-                                      const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
+                                const Eigen::Affine3d& base_T_ref);
         
-        virtual bool setPositionReference(const std::string& end_effector, 
-                                          const Eigen::Vector3d& base_pos_ref, 
-                                          const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(), 
-                                          const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero());
+        virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref);
+                                    
+        virtual bool setComVelocityReference(const Eigen::Vector3d& base_vel_ref);
         
         virtual bool setTargetComPosition(const Eigen::Vector3d& base_com_ref, 
-                                          double time = 0);
+                                          double time);
         
-        virtual bool setTargetOrientation(const std::string& end_effector, 
-                                          const std::string& base_frame, 
-                                          const Eigen::Matrix3d& base_R_ref, 
-                                          double time = 0);
-        
-        virtual bool setTargetOrientation(const std::string& end_effector, const Eigen::Vector3d& base_pos_ref, double time = 0);
         virtual bool setTargetPose(const std::string& end_effector, 
                                    const Eigen::Affine3d& base_T_ref, 
-                                   double time = 0);
+                                   double time);
+        
         bool setTargetPose(const std::string& end_effector, 
                            const Eigen::Affine3d& base_T_ref, 
                            double time,
                            bool incremental
                            );
-        virtual bool setTargetPosition(const std::string& end_effector, const Eigen::Vector3d& base_pos_ref, double time = 0);
 
         virtual void getAccelerationLimits(const std::string& ee_name, double& max_acc_lin, double& max_acc_ang) const;
         virtual bool getComPositionReference(Eigen::Vector3d& w_com_ref, Eigen::Vector3d* base_vel_ref = nullptr, Eigen::Vector3d* base_acc_ref = nullptr) const;
@@ -105,7 +97,12 @@ namespace XBot { namespace Cartesian {
         virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link);
 
         void loadController(const std::string& controller_name);
-        bool waitReachCompleted(const std::string& ee_name, double timeout_sec = 0.0);
+        bool waitReachCompleted(const std::string& ee_name, double timeout_sec = 0);
+        bool setVelocityReferenceAsync(const std::string& ee_name, 
+                                       const Eigen::Vector6d& vref,
+                                       double timeout_sec
+                                      );
+        bool stopVelocityReferenceAsync(const std::string& ee_name);
         virtual bool abort(const std::string& end_effector);
         virtual bool update(double time, double period);
             
@@ -114,15 +111,45 @@ namespace XBot { namespace Cartesian {
         
         typedef actionlib::SimpleActionClient<cartesian_interface::ReachPoseAction> ActionClient;
         
+        class VelocityPublisherAsync
+        {
+            
+        public:
+            
+            VelocityPublisherAsync(std::string topic_name, ros::Duration period);
+            void start(ros::Duration timeout = ros::Duration(-1));
+            void stop();
+            void set_vref(const Eigen::Vector6d& vref);
+            
+        private:
+            
+            void timer_callback(const ros::TimerEvent& ev);
+            
+            ros::CallbackQueue _queue;
+            std::recursive_mutex _mutex;
+            ros::Publisher _vref_pub;
+            ros::AsyncSpinner _spinner;
+            ros::Timer _timer;
+            ros::Time _timeout;
+            
+            
+            geometry_msgs::TwistStamped _twist;
+            
+        };
+        
         class RosTask
         {
             
         private:
             
+            static const int VREF_ASYNC_PERIOD = 0.05;
+            
             ros::Subscriber state_sub;
             ros::Publisher ref_pub;
             ros::Publisher vref_pub;
             ActionClient reach_action;
+            
+            VelocityPublisherAsync vref_async;
             
             ros::ServiceClient get_prop_srv;
             ros::ServiceClient set_prop_srv;
@@ -143,6 +170,8 @@ namespace XBot { namespace Cartesian {
             Eigen::Affine3d get_state() const;
             void send_ref(const Eigen::Affine3d& ref);
             void send_vref(const Eigen::Vector6d& vref);
+            void send_vref_async(const Eigen::Vector6d& vref, double timeout_duration);
+            void stop_vref_async();
             void send_waypoints(const Trajectory::WayPointVector& wp, bool incremental = false);
             void get_properties(std::string& base_link, ControlType& ctrl_type);
             void set_base_link(const std::string& base_link);
@@ -153,24 +182,7 @@ namespace XBot { namespace Cartesian {
         
         struct RosInitHelper
         {
-            RosInitHelper(std::string node_namespace)
-            {
-                if(!ros::ok())
-                {
-                    std::string ns_arg = "__ns:=";
-                    ns_arg += node_namespace;
-                    std::vector<const char *> args {"", ns_arg.c_str()};
-                    
-                    int argc = args.size();
-                    
-                    ros::init(argc, (char **)args.data(), "cartesio_ros", 
-                              ros::init_options::NoSigintHandler|ros::init_options::AnonymousName);
-                    ROS_WARN("Initializing roscpp under namespace %s with anonymous name %s", 
-                             ros::this_node::getNamespace().c_str(),
-                             ros::this_node::getName().c_str()
-                            );
-                }
-            }
+            RosInitHelper(std::string node_namespace);
         };
         
         void construct_from_tasklist();
@@ -197,12 +209,6 @@ namespace XBot { namespace Cartesian {
 } }
 
 #endif
-
-
-
-
-
-
 
 
 

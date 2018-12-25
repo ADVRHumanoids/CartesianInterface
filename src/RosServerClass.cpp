@@ -152,9 +152,7 @@ void RosServerClass::online_velocity_reference_cb(const geometry_msgs::TwistStam
         vel.tail<3>() = b_R_f * vel.tail<3>();
     }
     
-    Eigen::Affine3d T;
-    _cartesian_interface->getPoseReferenceRaw(ee_name, T);
-    _cartesian_interface->setPoseReference(ee_name, T, vel);
+    _cartesian_interface->setVelocityReference(ee_name, vel);
     
 }
 
@@ -196,9 +194,9 @@ void RosServerClass::manage_reach_actions()
 
         const std::string& ee_name = _cartesian_interface->getTaskList()[i];
 
-        CartesianInterface::State current_state = _cartesian_interface->getTaskState(ee_name);
+        State current_state = _cartesian_interface->getTaskState(ee_name);
 
-        if(as->isNewGoalAvailable() && current_state != CartesianInterface::State::Reaching)
+        if(as->isNewGoalAvailable() && current_state != State::Reaching)
         {
             if(!_is_action_active[i])
             {
@@ -267,7 +265,7 @@ void RosServerClass::manage_reach_actions()
 
         if(as->isActive())
         {
-            if(current_state == CartesianInterface::State::Online)
+            if(current_state == State::Online)
             {
                 
                 cartesian_interface::ReachPoseResult result;

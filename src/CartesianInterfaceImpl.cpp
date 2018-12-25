@@ -8,7 +8,7 @@ namespace {
     const double DEFAULT_TTL = 0.1;
 }
 
-std::string CartesianInterface::ControlTypeAsString(CartesianInterface::ControlType ctrl)
+std::string CartesianInterface::ControlTypeAsString(ControlType ctrl)
 {
     switch(ctrl)
     {
@@ -30,7 +30,7 @@ std::string CartesianInterface::ControlTypeAsString(CartesianInterface::ControlT
 }
 
 
-std::string CartesianInterface::StateAsString(CartesianInterface::State ctrl)
+std::string CartesianInterface::StateAsString(State ctrl)
 {
     switch(ctrl)
     {
@@ -48,7 +48,7 @@ std::string CartesianInterface::StateAsString(CartesianInterface::State ctrl)
 }
 
 
-CartesianInterface::ControlType CartesianInterface::ControlTypeFromString(const std::string& ctrl)
+ControlType CartesianInterface::ControlTypeFromString(const std::string& ctrl)
 {
     
     std::string ctrl_lower = ctrl;
@@ -63,7 +63,7 @@ CartesianInterface::ControlType CartesianInterface::ControlTypeFromString(const 
 }
 
 
-CartesianInterface::State CartesianInterface::StateFromString(const std::string& state)
+State CartesianInterface::StateFromString(const std::string& state)
 {
     std::string state_lower = state;
     boost::algorithm::to_lower(state_lower);
@@ -199,13 +199,11 @@ bool CartesianInterfaceImpl::getPoseTarget(const std::string& end_effector, Eige
 
 
 bool CartesianInterfaceImpl::setPoseReference(const std::string& end_effector, 
-                                              const Eigen::Affine3d& w_T_ref, 
-                                              const Eigen::Vector6d& w_vel_ref, 
-                                              const Eigen::Vector6d& w_acc_ref)
+                                              const Eigen::Affine3d& w_T_ref)
 {
     auto task = get_task(end_effector);
     
-    if(!task || !task->set_reference(w_T_ref, w_vel_ref, w_acc_ref))
+    if(!task || !task->set_pose_reference(w_T_ref))
     {
         return false;
     }
@@ -213,14 +211,27 @@ bool CartesianInterfaceImpl::setPoseReference(const std::string& end_effector,
     return true;
 }
 
-bool CartesianInterfaceImpl::setPoseReferenceRaw(const std::string& end_effector, 
-                                              const Eigen::Affine3d& w_T_ref, 
-                                              const Eigen::Vector6d& w_vel_ref, 
-                                              const Eigen::Vector6d& w_acc_ref)
+bool XBot::Cartesian::CartesianInterfaceImpl::setVelocityReference(const std::string& end_effector, 
+                                                                   const Eigen::Vector6d& base_vel_ref)
 {
     auto task = get_task(end_effector);
     
-    if(!task || !task->set_reference(w_T_ref, w_vel_ref, w_acc_ref))
+    if(!task || !task->set_vel_reference(base_vel_ref))
+    {
+        return false;
+    }
+    
+    return true;
+}
+
+
+
+bool CartesianInterfaceImpl::setPoseReferenceRaw(const std::string& end_effector, 
+                                              const Eigen::Affine3d& w_T_ref)
+{
+    auto task = get_task(end_effector);
+    
+    if(!task || !task->set_pose_reference(w_T_ref))
     {
         return false;
     }
@@ -542,9 +553,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task
 }
 
 
-bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_com_ref, 
-                                                     const Eigen::Vector3d& w_vel_ref, 
-                                                     const Eigen::Vector3d& w_acc_ref)
+bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_com_ref)
 {
     if(!_com_task)
     {
@@ -552,17 +561,25 @@ bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_co
     }
     
     Eigen::Affine3d Tref;
-    Eigen::Vector6d velref, accref;
-    velref.setZero();
-    accref.setZero();
-    velref.head<3>() = w_vel_ref;
-    accref.head<3>() = w_acc_ref;
-    
     Tref.setIdentity();
     Tref.translation() = w_com_ref;
     
-    return _com_task->set_reference(Tref, velref, accref);
+    return _com_task->set_pose_reference(Tref);
 }
+
+bool XBot::Cartesian::CartesianInterfaceImpl::setComVelocityReference(const Eigen::Vector3d& base_vel_ref)
+{
+    if(!_com_task)
+    {
+        return false;
+    }
+        
+    Eigen::Vector6d twist;
+    twist << base_vel_ref, 0., 0., 0.;
+    
+    return _com_task->set_vel_reference(twist);
+}
+
 
 
 bool CartesianInterfaceImpl::setTargetComPosition(const Eigen::Vector3d& w_com_ref, 
@@ -631,7 +648,7 @@ const std::string& CartesianInterfaceImpl::getBaseLink(const std::string& ee_nam
     return task->get_base();
 }
 
-CartesianInterface::ControlType CartesianInterfaceImpl::getControlMode(const std::string& ee_name) const
+ControlType CartesianInterfaceImpl::getControlMode(const std::string& ee_name) const
 {
     auto task = get_task(ee_name);
     
@@ -645,7 +662,7 @@ CartesianInterface::ControlType CartesianInterfaceImpl::getControlMode(const std
 }
 
 
-bool CartesianInterfaceImpl::setControlMode(const std::string& ee_name, CartesianInterface::ControlType ctrl_type)
+bool CartesianInterfaceImpl::setControlMode(const std::string& ee_name, ControlType ctrl_type)
 {
     auto task = get_task(ee_name);
     
@@ -664,14 +681,14 @@ bool CartesianInterfaceImpl::setControlMode(const std::string& ee_name, Cartesia
 }
 
 
-CartesianInterface::State CartesianInterfaceImpl::getTaskState(const std::string& end_effector) const
+State CartesianInterfaceImpl::getTaskState(const std::string& end_effector) const
 {
     auto task = get_task(end_effector);
     
     if(!task)
     {
         XBot::Logger::error("Undefined end effector \n");
-        return CartesianInterface::State::Online;
+        return State::Online;
     }
     
     return task->get_state();
@@ -874,9 +891,7 @@ bool CartesianInterfaceImpl::Task::get_pose_target(Eigen::Affine3d& pose_target)
     }
 }
 
-bool CartesianInterfaceImpl::Task::set_reference(const Eigen::Affine3d& pose, 
-                                                 const Eigen::Vector6d& vel_ref, 
-                                                 const Eigen::Vector6d& acc_ref)
+bool CartesianInterfaceImpl::Task::set_pose_reference(const Eigen::Affine3d& pose)
 {
     if(state == State::Reaching)
     {
@@ -899,17 +914,21 @@ bool CartesianInterfaceImpl::Task::set_reference(const Eigen::Affine3d& pose,
         Logger::warning(Logger::Severity::DEBUG, "Task %s: not setting position reference\n", distal_frame.c_str());
     }
     
-    vel = vel_ref;
-    acc = acc_ref;
-    
-    if(!vel_ref.isZero())
+    return true;
+}
+
+bool XBot::Cartesian::CartesianInterfaceImpl::Task::set_vel_reference(const Eigen::Vector6d& vref)
+{
+    if(control_type == ControlType::Disabled)
     {
-        vref_time_to_live = DEFAULT_TTL;
+        XBot::Logger::error("Unable to set pose reference. Task %s is in DISABLED mode \n", distal_frame.c_str());
+        return false;
     }
     
-    new_data_available = true;
+    vel = vref;
+    vref_time_to_live = DEFAULT_TTL;
     
-    return true;
+    new_data_available = true;
 }
 
 
@@ -1043,7 +1062,7 @@ bool CartesianInterfaceImpl::Task::check_reach() const
     return trajectory->getWayPoints().back().frame.isApprox(get_pose_otg());
 }
 
-CartesianInterface::ControlType CartesianInterfaceImpl::Task::get_ctrl() const
+ControlType CartesianInterfaceImpl::Task::get_ctrl() const
 {
     return control_type;
 }
@@ -1096,7 +1115,7 @@ const Eigen::Affine3d& CartesianInterfaceImpl::Task::get_pose() const
     return T;
 }
 
-CartesianInterface::State CartesianInterfaceImpl::Task::get_state() const
+State CartesianInterfaceImpl::Task::get_state() const
 {
     return state;
 }

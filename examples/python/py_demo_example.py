@@ -68,29 +68,6 @@ class GetStable(smach.State):
         return 'done'
 
 
-class VelocityPublisher:
-    def __init__(self, tname):
-        self.vref = numpy.zeros(6)
-        self.lock = threading.Lock()
-        self.task_name = tname     
-        self.timer = None
-        
-    def run(self, event):
-        self.lock.acquire()
-        robot.setPoseReference(self.task_name, Affine3(), self.vref)
-        self.lock.release()
-        
-    def set_vref(self, vref):
-        with self.lock:
-            self.vref = vref.copy()
-    
-    def start(self):
-        self.running = True
-        self.timer = rospy.Timer(rospy.Duration(1.0/30.0), self.run)
-            
-    def stop(self):
-        self.timer.shutdown()
-        rospy.loginfo('VelocityPublisher returned')
 
 class StartExecution(smach.State):
 
@@ -101,10 +78,8 @@ class StartExecution(smach.State):
         rospy.loginfo('Executing state START')
 
         robot.setControlMode(waist, pyci.ControlType.Velocity)
-        vel_pub = VelocityPublisher(waist) # keep publishing vref from a separate thread
-        vref = numpy.array([0, 0, 0, 0, 0, 1.0])
-        vel_pub.set_vref(vref)
-        vel_pub.start()
+        vref = numpy.array([0, 0, 0, 0, 0, .10])
+        robot.setVelocityReferenceAsync(waist, vref, -1) # no timeout
         
         raw_input('Press ENTER to start lifting..')
         
@@ -131,7 +106,7 @@ class StartExecution(smach.State):
         
         raw_input('Press ENTER to stop spinning..')
         
-        vel_pub.stop()
+        robot.stopVelocityReferenceAsync(waist)
 
         return 'done'
 
@@ -147,6 +122,8 @@ def main():
     
     global robot
     robot = pyci.CartesianInterfaceRos()
+
+
 
     # Create the top level SMACH state machine
     sm_top = smach.StateMachine(outcomes=['outcome5'])

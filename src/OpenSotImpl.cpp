@@ -241,7 +241,7 @@ OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr XBot::Car
     {
         Eigen::VectorXd qdotmax;
         _model->getVelocityLimits(qdotmax);
-
+        
         auto vel_lims = boost::make_shared<OpenSoT::constraints::velocity::VelocityLimits>
                                             (qdotmax, 0.01);
 
@@ -520,7 +520,7 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
 }
 
 bool XBot::Cartesian::OpenSotImpl::setControlMode(const std::string& ee_name, 
-                                                  XBot::Cartesian::CartesianInterface::ControlType ctrl_type)
+                                                  ControlType ctrl_type)
 {
     if(!XBot::Cartesian::CartesianInterfaceImpl::setControlMode(ee_name, ctrl_type))
     {

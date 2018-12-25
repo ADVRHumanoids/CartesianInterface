@@ -4,10 +4,10 @@
 PYBIND11_MODULE(pyci, m) {
     
     /* Create binding for ControlType enum */
-    py::enum_<CartesianInterface::ControlType>(m, "ControlType", py::arithmetic())
-        .value("Position", CartesianInterface::ControlType::Position)
-        .value("Velocity", CartesianInterface::ControlType::Velocity)
-        .value("Disabled", CartesianInterface::ControlType::Disabled);
+    py::enum_<ControlType>(m, "ControlType", py::arithmetic())
+        .value("Position", ControlType::Position)
+        .value("Velocity", ControlType::Velocity)
+        .value("Disabled", ControlType::Disabled);
         
     py::class_<Trajectory::WayPoint>(m, "WayPoint")
         .def(py::init())
@@ -44,8 +44,10 @@ PYBIND11_MODULE(pyci, m) {
              py::arg("task_name"), 
              py::arg("timeout") = 0.0)
         .def("getPoseReference", py_get_pose_reference)
-        .def("setPoseReference", py_set_pose_reference)
-        .def("setPoseReference", py_set_pose_reference_novel);
+        .def("setPoseReference", &RosImpl::setPoseReference)
+        .def("setVelocityReference", &RosImpl::setVelocityReference)
+        .def("setVelocityReferenceAsync", &RosImpl::setVelocityReferenceAsync)
+        .def("stopVelocityReferenceAsync", &RosImpl::stopVelocityReferenceAsync);
         
     
 }

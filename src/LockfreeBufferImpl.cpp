@@ -37,7 +37,7 @@ void LockfreeBufferImpl::pushState(CartesianInterface const * ci, ModelInterface
 {
     for(auto& pair : _taskstate_queue_map)
     {
-        TaskState t;
+        TaskState& t = _task_tmp;
         t.base_frame = ci->getBaseLink(pair.first);
         ci->getPoseReference(pair.first, t.Totg, &(t.vel), &(t.acc));
         ci->getPoseReferenceRaw(pair.first, t.T, &(t.vel), &(t.acc));
@@ -68,16 +68,12 @@ void LockfreeBufferImpl::updateState()
 }
 
 bool LockfreeBufferImpl::setPoseReference(const std::string& end_effector, 
-                                          const Eigen::Affine3d& base_T_ref,
-                                          const Eigen::Vector6d& base_vel_ref, 
-                                          const Eigen::Vector6d& base_acc_ref)
+                                          const Eigen::Affine3d& base_T_ref)
 {
     CallbackType f = std::bind(&CartesianInterface::setPoseReference, 
         std::placeholders::_1, 
         end_effector, 
-        base_T_ref, 
-        base_vel_ref, 
-        base_acc_ref);
+        base_T_ref);
     
     _call_queue.push(f);
     
@@ -142,7 +138,7 @@ bool LockfreeBufferImpl::getComPositionReference(Eigen::Vector3d& w_com_ref,
     NOT_IMPL;
 }
 
-CartesianInterface::ControlType LockfreeBufferImpl::getControlMode(const std::string& ee_name) const
+ControlType LockfreeBufferImpl::getControlMode(const std::string& ee_name) const
 {
     return _taskstate_map.at(ee_name).control_type;
 }
@@ -218,7 +214,7 @@ const std::vector< std::string >& LockfreeBufferImpl::getTaskList() const
     return _tasklist;
 }
 
-CartesianInterface::State LockfreeBufferImpl::getTaskState(const std::string& end_effector) const
+State LockfreeBufferImpl::getTaskState(const std::string& end_effector) const
 {
     return _taskstate_map.at(end_effector).state;
 }
@@ -258,9 +254,7 @@ bool LockfreeBufferImpl::update(double time, double period)
     NOT_IMPL;
 }
 
-bool LockfreeBufferImpl::setComPositionReference(const Eigen::Vector3d& base_com_ref, 
-                                                 const Eigen::Vector3d& base_vel_ref,
-                                                 const Eigen::Vector3d& base_acc_ref)
+bool LockfreeBufferImpl::setComPositionReference(const Eigen::Vector3d& base_com_ref)
 {
     NOT_IMPL;
 }
@@ -274,10 +268,24 @@ bool LockfreeBufferImpl::setReferencePosture(const JointNameMap& qref)
     _call_queue.push(f);
 }
 
+bool XBot::Cartesian::LockfreeBufferImpl::setComVelocityReference(const Eigen::Vector3d& base_vel_ref)
+{
+    NOT_IMPL;
+}
+
+bool XBot::Cartesian::LockfreeBufferImpl::setVelocityReference(const std::string& end_effector, 
+                                                               const Eigen::Vector6d& base_vel_ref)
+{
+    CallbackType f = std::bind(&CartesianInterface::setVelocityReference, 
+        std::placeholders::_1, 
+        end_effector, base_vel_ref);
+    
+    _call_queue.push(f);
+}
+
+
 bool LockfreeBufferImpl::setPoseReferenceRaw(const std::string& end_effector, 
-                                             const Eigen::Affine3d& base_T_ref, 
-                                             const Eigen::Vector6d& base_vel_ref, 
-                                             const Eigen::Vector6d& base_acc_ref)
+                                             const Eigen::Affine3d& base_T_ref)
 {
     NOT_IMPL;
 }

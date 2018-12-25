@@ -35,26 +35,6 @@ auto py_get_pose_reference(const RosImpl& r, const std::string& ee)
     
 }
 
-bool py_set_pose_reference(RosImpl& r, 
-                           const std::string& ee,
-                           const Eigen::Affine3d& Tref,
-                           const Eigen::Vector6d& vel_ref
-                          )
-{
-    Eigen::Vector6d a;
-    a.setZero();
-    
-    return r.setPoseReference(ee, Tref, vel_ref, a);
-    
-}
-
-bool py_set_pose_reference_novel(RosImpl& r, 
-                           const std::string& ee,
-                           const Eigen::Affine3d& Tref
-                          )
-{
-    return py_set_pose_reference(r, ee, Tref, Eigen::Vector6d::Zero());
-}
 
 auto py_send_waypoints(RosImpl& r, 
                        const std::string& ee, 

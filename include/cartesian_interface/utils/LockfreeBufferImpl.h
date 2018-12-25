@@ -20,11 +20,18 @@ namespace XBot { namespace Cartesian {
 
         void updateState();
         
-        
         virtual bool setPoseReference(const std::string& end_effector, 
-                                      const Eigen::Affine3d& base_T_ref, 
-                                      const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
-                                      const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
+                          const Eigen::Affine3d& base_T_ref);
+                          
+        virtual bool setVelocityReference(const std::string& end_effector, 
+                            const Eigen::Vector6d& base_vel_ref);
+                            
+        virtual bool setPoseReferenceRaw(const std::string& end_effector, 
+                                const Eigen::Affine3d& base_T_ref);
+        
+        virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref);
+                                    
+        virtual bool setComVelocityReference(const Eigen::Vector3d& base_vel_ref);
 
         
         virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link);
@@ -39,6 +46,7 @@ namespace XBot { namespace Cartesian {
 
 
         virtual bool abort(const std::string& end_effector);
+        
         virtual void getAccelerationLimits(const std::string& ee_name, 
                                            double& max_acc_lin,
                                            double& max_acc_ang) const;
@@ -91,11 +99,7 @@ namespace XBot { namespace Cartesian {
         
         virtual bool update(double time, double period);
         
-        virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref, const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(), const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero());
-        
         virtual bool setReferencePosture(const JointNameMap& qref);
-        
-        virtual bool setPoseReferenceRaw(const std::string& end_effector, const Eigen::Affine3d& base_T_ref, const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
         
         virtual bool setTargetComPosition(const Eigen::Vector3d& base_com_ref, double time = 0);
         
