@@ -1,5 +1,16 @@
 #!/usr/bin/env python
 
+
+# THIS GUI IS BASED ON THE ONE IN joint_state_publisher:
+#
+# https://github.com/ros/joint_state_publisher/blob/kinetic-devel/joint_state_publisher/joint_state_publisher/joint_state_publisher
+# 
+# THE GUI IS INITIALIZED WITH THE ACTUAL REFERENCE OF THE POSTURAL TASK
+#
+# - Center BUTTON IS USED TO RETURN TO THE ZERO VALUE OF THE GUI
+# - Set BUTTON IS USED TO SET A NEW ZERO VALUE BASED ON THE ACTUAL POSTURAL STATE
+
+
 import rospy
 import random
 
@@ -375,8 +386,8 @@ class JointStatePublisherGui(QWidget):
 
         # Buttons for randomizing and centering sliders and
         # Spinbox for on-the-fly selecting number of rows
-        self.randbutton = QPushButton('Randomize', self)
-        self.randbutton.clicked.connect(self.randomize_event)
+        self.randbutton = QPushButton('Set', self)
+        self.randbutton.clicked.connect(self.set_event)
         self.vlayout.addWidget(self.randbutton)
         self.ctrbutton = QPushButton('Center', self)
         self.ctrbutton.clicked.connect(self.center_event)
@@ -444,15 +455,18 @@ class JointStatePublisherGui(QWidget):
         positions = positions[:num_items]
         return positions
 
-    def randomize_event(self, event):
-        self.randomize()
+    def set_event(self, event):
+        self.set_()
 
-    def randomize(self):
-        rospy.loginfo("Randomizing")
-        for name, joint_info in self.joint_map.items():
-            joint = joint_info['joint']
-            joint_info['slider'].setValue(
-                    self.valueToSlider(random.uniform(joint['min'], joint['max']), joint))
+    def set_(self):
+        rospy.loginfo("Set Reference")        
+        msg = rospy.wait_for_message('cartesian/posture/state', JointState)
+        for i in range(len(msg.name)):
+            if msg.name[i] in self.joint_map:
+                rospy.loginfo("%s : %d [rad]", msg.name[i], msg.position[i])
+                self.joint_map[msg.name[i]]['joint']['zero'] = msg.position[i]
+        self.center()
+                 
 
     def sliderUpdate(self, event):
         for name, joint_info in self.joint_map.items():
