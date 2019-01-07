@@ -309,4 +309,50 @@ void LockfreeBufferImpl::setVelocityLimits(const std::string& ee_name, double ma
     _call_queue.push(f);
 }
 
+
+
 }}
+
+bool XBot::Cartesian::LockfreeBufferImpl::getDesiredInteraction(const std::string& end_effector,
+                                                                Eigen::Vector6d& force, 
+                                                                Eigen::Matrix6d& stiffness, 
+                                                                Eigen::Matrix6d& damping) const
+{
+    NOT_IMPL;
+}
+
+
+XBot::Cartesian::TaskInterface XBot::Cartesian::LockfreeBufferImpl::getTaskInterface(const std::string& end_effector) const
+{
+    NOT_IMPL;
+}
+
+bool XBot::Cartesian::LockfreeBufferImpl::setDesiredDamping(const std::string& end_effector, 
+                                                            const Eigen::Matrix6d& d)
+{
+    CallbackType f = std::bind(&CartesianInterface::setDesiredDamping, 
+        std::placeholders::_1, 
+        end_effector, d);
+    
+    return _call_queue.push(f);
+}
+
+bool XBot::Cartesian::LockfreeBufferImpl::setDesiredStiffness(const std::string& end_effector,
+                                                              const Eigen::Matrix6d& k)
+{
+    CallbackType f = std::bind(&CartesianInterface::setDesiredStiffness, 
+        std::placeholders::_1, 
+        end_effector, k);
+    
+    return _call_queue.push(f);
+}
+
+bool XBot::Cartesian::LockfreeBufferImpl::setForceReference(const std::string& end_effector, 
+                                                            const Eigen::Vector6d& force)
+{
+    CallbackType f = std::bind(&CartesianInterface::setForceReference, 
+        std::placeholders::_1, 
+        end_effector, force);
+    
+    return _call_queue.push(f);
+}

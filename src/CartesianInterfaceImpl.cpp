@@ -102,28 +102,7 @@ bool XBot::Cartesian::CartesianInterfaceImpl::setBaseLink(const std::string& ee_
 
 CartesianInterfaceImpl::Task::Ptr CartesianInterfaceImpl::get_task(const std::string& ee_name) const
 {
-    auto it = _task_map.find(ee_name);
     
-    if(ee_name == "com")
-    {
-        if(_com_task)
-        {
-            return _com_task;
-        }
-        else
-        {
-            it = _task_map.end();
-        }
-    }
-
-
-    if(it == _task_map.end())
-    {
-        XBot::Logger::error("Task %s undefined \n", ee_name.c_str());
-        return nullptr;
-    }
-    
-    return it->second;
 }
 
 double CartesianInterfaceImpl::get_current_time() const
@@ -1265,9 +1244,9 @@ void XBot::Cartesian::CartesianInterfaceImpl::getAccelerationLimits(const std::s
     task->get_otg_acc_limits(max_acc_lin, max_acc_ang);
 }
 
-void XBot::Cartesian::CartesianInterfaceImpl::getVelocityLimits(const std::string& ee_name, 
-                                                                double& max_vel_lin, 
-                                                                double& max_vel_ang) const
+void CartesianInterfaceImpl::getVelocityLimits(const std::string& ee_name, 
+                                               double& max_vel_lin, 
+                                               double& max_vel_ang) const
 {
     auto task = get_task(ee_name);
     
@@ -1279,7 +1258,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::getVelocityLimits(const std::strin
     task->get_otg_vel_limits(max_vel_lin, max_vel_ang);
 }
 
-bool XBot::Cartesian::CartesianInterfaceImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
+bool CartesianInterfaceImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
 {
     Eigen::Affine3d w_T_fb;
     if(!_model->getFloatingBasePose(w_T_fb))
@@ -1293,6 +1272,150 @@ bool XBot::Cartesian::CartesianInterfaceImpl::resetWorld(const Eigen::Affine3d& 
     }
     
     return reset(get_current_time());
+}
+
+CartesianInterfaceImpl::InteractionTask::InteractionTask():
+    Task()
+{
+    d.setZero();
+    k.setZero();
+    force.setZero();
+}
+
+CartesianInterfaceImpl::InteractionTask::InteractionTask(const std::string& base,
+                                                                          const std::string& distal):
+    Task(base, distal)
+{
+    d.setZero();
+    k.setZero();
+    force.setZero();
+}
+
+
+TaskInterface CartesianInterfaceImpl::getTaskInterface(const std::string& end_effector) const
+{
+    auto t = get_task(end_effector);
+    
+    if(!t)
+    {
+        return TaskInterface::None;
+    }
+    
+    if(get_interaction_task(end_effector))
+    {
+        
+        return TaskInterface::Interaction;
+    }
+    
+    return TaskInterface::Cartesian;
+}
+
+
+const Eigen::Matrix6d & CartesianInterfaceImpl::InteractionTask::get_stiffness() const
+{
+    return k;
+}
+
+const Eigen::Matrix6d & CartesianInterfaceImpl::InteractionTask::get_damping() const
+{
+    return d;
+}
+
+const Eigen::Vector6d & CartesianInterfaceImpl::InteractionTask::get_force() const
+{
+    return force;
+}
+
+CartesianInterfaceImpl::InteractionTask::Ptr CartesianInterfaceImpl::get_interaction_task(const std::string& ee_name) const
+{
+    auto it = _interaction_task_map.find(ee_name);
+    
+    if(it == _interaction_task_map.end())
+    {
+        XBot::Logger::error("Interaction task %s undefined \n", ee_name.c_str());
+        return nullptr;
+    }
+    
+    return it->second;
+}
+
+void CartesianInterfaceImpl::InteractionTask::set_damping(const Eigen::Matrix6d& damping)
+{
+    d = damping;
+}
+
+void CartesianInterfaceImpl::InteractionTask::set_force(const Eigen::Vector6d& arg_force)
+{
+    force = arg_force;
+}
+
+void CartesianInterfaceImpl::InteractionTask::set_stiffness(const Eigen::Matrix6d& stiffness)
+{
+    k = stiffness;
+}
+
+bool CartesianInterfaceImpl::setDesiredDamping(const std::string& end_effector, 
+                                                                const Eigen::Matrix6d& d)
+{
+    auto itask = get_interaction_task(end_effector);
+    
+    if(!itask)
+    {
+        return false;
+    }
+    
+    itask->set_damping(d);
+    
+    return true;
+}
+
+bool CartesianInterfaceImpl::setDesiredStiffness(const std::string& end_effector, 
+                                                                  const Eigen::Matrix6d& k)
+{
+    auto itask = get_interaction_task(end_effector);
+    
+    if(!itask)
+    {
+        return false;
+    }
+    
+    itask->set_stiffness(k);
+    
+    return true;
+}
+
+bool CartesianInterfaceImpl::setForceReference(const std::string& end_effector, 
+                                                                const Eigen::Vector6d& force)
+{
+    auto itask = get_interaction_task(end_effector);
+    
+    if(!itask)
+    {
+        return false;
+    }
+    
+    itask->set_force(force);
+    
+    return true;
+}
+
+bool XBot::Cartesian::CartesianInterfaceImpl::getDesiredInteraction(const std::string& end_effector, 
+                                                                    Eigen::Vector6d& force, 
+                                                                    Eigen::Matrix6d& stiffness, 
+                                                                    Eigen::Matrix6d& damping) const
+{
+    auto itask = get_interaction_task(end_effector);
+    
+    if(!itask)
+    {
+        return false;
+    }
+    
+    force = itask->get_force();
+    stiffness = itask->get_stiffness();
+    damping = itask->get_damping();
+    
+    return true;
 }
 
 

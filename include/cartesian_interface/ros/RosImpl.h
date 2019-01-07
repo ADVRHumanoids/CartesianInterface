@@ -30,6 +30,7 @@ namespace XBot { namespace Cartesian {
         
         virtual bool reset();
         virtual const std::string& getBaseLink(const std::string& ee_name) const;
+        virtual TaskInterface getTaskInterface(const std::string& end_effector) const;
         virtual const std::vector< std::string >& getTaskList() const;
         virtual State getTaskState(const std::string& end_effector) const;
         virtual ControlType getControlMode(const std::string& ee_name) const;
@@ -50,6 +51,20 @@ namespace XBot { namespace Cartesian {
                                       Eigen::Affine3d& base_T_ref, 
                                       Eigen::Vector6d* base_vel_ref = nullptr, 
                                       Eigen::Vector6d* base_acc_ref = nullptr) const;
+                                      
+        virtual bool getDesiredInteraction(const std::string& end_effector, 
+                          Eigen::Vector6d& force, 
+                          Eigen::Matrix6d& stiffness,
+                          Eigen::Matrix6d& damping) const;
+                                      
+        virtual bool setForceReference(const std::string& end_effector,
+                                       const Eigen::Vector6d& force);
+                                   
+        virtual bool setDesiredStiffness(const std::string& end_effector,
+                                         const Eigen::Matrix6d& k);
+                                    
+        virtual bool setDesiredDamping(const std::string& end_effector,
+                                       const Eigen::Matrix6d& d);
 
         virtual bool setPoseReference(const std::string& end_effector, 
                           const Eigen::Affine3d& base_T_ref);

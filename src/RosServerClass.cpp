@@ -102,13 +102,56 @@ void RosServerClass::online_position_reference_cb(const geometry_msgs::PoseStamp
     
 }
 
+void XBot::Cartesian::RosServerClass::__generate_interaction_topics()
+{
+    for(std::string ee_name : _cartesian_interface->getTaskList())
+    {
+        if(_cartesian_interface->getTaskInterface(ee_name) != TaskInterface::Interaction)
+        {
+            continue;
+        }
+        
+        std::string topic_name = ee_name + "/interaction";
+
+        auto cb = std::bind(&RosServerClass::online_interaction_reference_cb, this, std::placeholders::_1, ee_name);
+
+        ros::Subscriber sub = _nh.subscribe<cartesian_interface::Interaction>(topic_name,
+                                                                              1, cb);
+
+        _interaction_sub.push_back(sub);
+    }
+}
+
+void XBot::Cartesian::RosServerClass::__generate_interaction_srvs()
+{
+    for(std::string ee_name : _cartesian_interface->getTaskList())
+    {
+        if(_cartesian_interface->getTaskInterface(ee_name) != TaskInterface::Interaction)
+        {
+            continue;
+        }
+        
+        std::string srv_name = ee_name + "/get_impedance";
+
+        auto cb = boost::bind(&RosServerClass::get_impedance_cb,
+                            this,
+                            _1,
+                            _2,
+                            ee_name);
+        
+        ros::ServiceServer srv = _nh.advertiseService<cartesian_interface::GetImpedanceRequest,
+                                                      cartesian_interface::GetImpedanceResponse>(srv_name, cb);
+
+        _impedance_srv.push_back(srv);
+    }
+}
 
 
 void RosServerClass::__generate_online_vel_topics()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string topic_name = "" + ee_name + "/velocity_reference";
+        std::string topic_name = ee_name + "/velocity_reference";
 
         auto cb = std::bind(&RosServerClass::online_velocity_reference_cb, this, std::placeholders::_1, ee_name);
 
@@ -411,10 +454,12 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     
     __generate_online_pos_topics();
     __generate_online_vel_topics();
+    __generate_interaction_topics();
     __generate_reach_pose_action_servers();
     __generate_state_broadcasting();
     __generate_rspub();
     __generate_task_info_services();
+    __generate_interaction_srvs();
     __generate_task_info_setters();
     __generate_task_list_service();
     __generate_postural_task_topics_and_services();
@@ -764,6 +809,54 @@ bool XBot::Cartesian::RosServerClass::reset_world_cb(cartesian_interface::ResetW
     }
     
     return true;
+}
+
+
+bool RosServerClass::get_impedance_cb(cartesian_interface::GetImpedanceRequest& req, 
+                                      cartesian_interface::GetImpedanceResponse& res, 
+                                      const std::string& ee_name)
+{
+    Eigen::Vector6d f;
+    Eigen::Matrix6d k, d;
+    
+    _cartesian_interface->getDesiredInteraction(ee_name, f, k, d);
+    
+    for(int i = 0; i < 3; i++)
+    {
+        for(int j = 0; j < 3; j++)
+        {
+            res.linear.stiffness[i+3*j] = k(i,j);
+            res.linear.damping[i+3*j] = d(i,j);
+            
+            res.angular.stiffness[i+3*j] =  k(i+3,j+3);
+            res.angular.damping[i+3*j] = d(i+3,j+3);
+        }
+    }
+    
+    
+    return true;
+}
+
+void RosServerClass::online_interaction_reference_cb(const cartesian_interface::InteractionConstPtr& msg, 
+                                                     const std::string& ee_name)
+{
+    Eigen::Matrix6d k, d;
+    k.setZero();
+    d.setZero();
+    for(int i = 0; i < 3; i++)
+    {
+        for(int j = i; j < 3; j++)
+        {
+            k(i,j) = k(j,i) = msg->linear.stiffness[i+3*j];
+            d(i,j) = d(j,i) = msg->linear.damping[i+3*j];
+            
+            k(i+3,j+3) = k(j+3,i+3) = msg->angular.stiffness[i+3*j];
+            d(i+3,j+3) = d(j+3,i+3) = msg->angular.damping[i+3*j];
+        }
+    }
+    
+    _cartesian_interface->setDesiredStiffness(ee_name, k);
+    _cartesian_interface->setDesiredDamping(ee_name, d);
 }
 
 

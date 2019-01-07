@@ -29,6 +29,15 @@ namespace XBot { namespace Cartesian {
         virtual bool setPoseReferenceRaw(const std::string& end_effector, 
                                 const Eigen::Affine3d& base_T_ref);
         
+        virtual bool setForceReference(const std::string& end_effector,
+                                   const Eigen::Vector6d& force);
+                                   
+        virtual bool setDesiredStiffness(const std::string& end_effector,
+                                    const Eigen::Matrix6d& k);
+                                    
+        virtual bool setDesiredDamping(const std::string& end_effector,
+                                    const Eigen::Matrix6d& d);
+        
         virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref);
                                     
         virtual bool setComVelocityReference(const Eigen::Vector3d& base_vel_ref);
@@ -53,6 +62,8 @@ namespace XBot { namespace Cartesian {
                                            
         virtual const std::string& getBaseLink(const std::string& ee_name) const;
         
+        virtual TaskInterface getTaskInterface(const std::string& end_effector) const;
+        
         virtual bool getComPositionReference(Eigen::Vector3d& w_com_ref,
                                              Eigen::Vector3d* base_vel_ref = nullptr, 
                                              Eigen::Vector3d* base_acc_ref = nullptr) const;
@@ -71,6 +82,11 @@ namespace XBot { namespace Cartesian {
                                          Eigen::Affine3d& base_T_ref, 
                                          Eigen::Vector6d* base_vel_ref = nullptr,
                                          Eigen::Vector6d* base_acc_ref = nullptr) const;
+                                         
+        virtual bool getDesiredInteraction(const std::string& end_effector, 
+                          Eigen::Vector6d& force, 
+                          Eigen::Matrix6d& stiffness,
+                          Eigen::Matrix6d& damping) const;
                                          
         virtual bool getPoseTarget(const std::string& end_effector, 
                                    Eigen::Affine3d& base_T_ref) const;
@@ -149,5 +165,6 @@ namespace XBot { namespace Cartesian {
         
     };
     
+
     
 } }

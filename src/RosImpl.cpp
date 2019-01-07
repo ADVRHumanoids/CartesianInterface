@@ -29,7 +29,7 @@ std::ostream& XBot::Cartesian::operator<<(std::ostream& os, const RosImpl& r)
 }
 
 
-void XBot::Cartesian::RosImpl::construct_from_tasklist()
+void RosImpl::construct_from_tasklist()
 {
     getTaskList();
     
@@ -155,12 +155,12 @@ bool RosImpl::update(double time, double period)
     return true;
 }
 
-Eigen::Affine3d XBot::Cartesian::RosImpl::RosTask::get_state() const
+Eigen::Affine3d RosImpl::RosTask::get_state() const
 {
     return state;
 }
 
-void XBot::Cartesian::RosImpl::RosTask::get_properties(std::string& base_link, 
+void RosImpl::RosTask::get_properties(std::string& base_link, 
                                                        ControlType& ctrl_type)
 {
     cartesian_interface::GetTaskInfo srv;
@@ -174,7 +174,7 @@ void XBot::Cartesian::RosImpl::RosTask::get_properties(std::string& base_link,
     
 }
 
-void XBot::Cartesian::RosImpl::RosTask::set_base_link(const std::string& base_link)
+void RosImpl::RosTask::set_base_link(const std::string& base_link)
 {
     cartesian_interface::SetTaskInfo srv;
     srv.request.base_link = base_link;
@@ -191,7 +191,7 @@ void XBot::Cartesian::RosImpl::RosTask::set_base_link(const std::string& base_li
     ROS_INFO("%s", srv.response.message.c_str());
 }
 
-void XBot::Cartesian::RosImpl::RosTask::set_ctrl_mode(ControlType ctrl_type)
+void RosImpl::RosTask::set_ctrl_mode(ControlType ctrl_type)
 {
     cartesian_interface::SetTaskInfo srv;
     srv.request.control_mode = ControlTypeAsString(ctrl_type);
@@ -209,7 +209,7 @@ void XBot::Cartesian::RosImpl::RosTask::set_ctrl_mode(ControlType ctrl_type)
 }
 
 
-void XBot::Cartesian::RosImpl::RosTask::send_ref(const Eigen::Affine3d& ref)
+void RosImpl::RosTask::send_ref(const Eigen::Affine3d& ref)
 {
     geometry_msgs::PoseStamped msg;
     msg.header.stamp = ros::Time::now();
@@ -217,7 +217,7 @@ void XBot::Cartesian::RosImpl::RosTask::send_ref(const Eigen::Affine3d& ref)
     ref_pub.publish(msg);
 }
 
-void XBot::Cartesian::RosImpl::RosTask::send_vref(const Eigen::Vector6d& vref)
+void RosImpl::RosTask::send_vref(const Eigen::Vector6d& vref)
 {
     geometry_msgs::TwistStamped msg;
     msg.header.stamp = ros::Time::now();
@@ -225,7 +225,7 @@ void XBot::Cartesian::RosImpl::RosTask::send_vref(const Eigen::Vector6d& vref)
     vref_pub.publish(msg);
 }
 
-void XBot::Cartesian::RosImpl::RosTask::send_waypoints(const Trajectory::WayPointVector& wp, bool incr)
+void RosImpl::RosTask::send_waypoints(const Trajectory::WayPointVector& wp, bool incr)
 {
     cartesian_interface::ReachPoseGoal goal;
     goal.incremental = incr;
@@ -248,12 +248,12 @@ void XBot::Cartesian::RosImpl::RosTask::send_waypoints(const Trajectory::WayPoin
     
 }
 
-bool XBot::Cartesian::RosImpl::RosTask::wait_for_result(ros::Duration timeout)
+bool RosImpl::RosTask::wait_for_result(ros::Duration timeout)
 {
     return reach_action.waitForResult(timeout);
 }
 
-bool XBot::Cartesian::RosImpl::waitReachCompleted(const std::string& ee_name, double timeout_sec)
+bool RosImpl::waitReachCompleted(const std::string& ee_name, double timeout_sec)
 {
     auto task = get_task(ee_name, false);
     
@@ -281,7 +281,7 @@ bool RosImpl::getPoseReference(const std::string& end_effector,
     return true;
 }
 
-bool XBot::Cartesian::RosImpl::getPoseReferenceRaw(const std::string& end_effector, 
+bool RosImpl::getPoseReferenceRaw(const std::string& end_effector, 
                                                    Eigen::Affine3d& base_T_ref, 
                                                    Eigen::Vector6d* base_vel_ref, 
                                                    Eigen::Vector6d* base_acc_ref) const
@@ -289,13 +289,13 @@ bool XBot::Cartesian::RosImpl::getPoseReferenceRaw(const std::string& end_effect
     THROW_NOT_IMPL
 }
 
-bool XBot::Cartesian::RosImpl::setPoseReferenceRaw(const std::string& end_effector, 
+bool RosImpl::setPoseReferenceRaw(const std::string& end_effector, 
                                                    const Eigen::Affine3d& base_T_ref)
 {
     THROW_NOT_IMPL
 }
 
-void XBot::Cartesian::RosImpl::loadController(const std::string& controller_name)
+void RosImpl::loadController(const std::string& controller_name)
 {
     cartesian_interface::LoadController srv;
     srv.request.controller_name = controller_name;
@@ -377,7 +377,7 @@ bool RosImpl::setComPositionReference(const Eigen::Vector3d& base_com_ref)
     THROW_NOT_IMPL
 }
 
-bool XBot::Cartesian::RosImpl::setComVelocityReference(const Eigen::Vector3d& base_vel_ref)
+bool RosImpl::setComVelocityReference(const Eigen::Vector3d& base_vel_ref)
 {
     THROW_NOT_IMPL
 }
@@ -413,7 +413,7 @@ bool RosImpl::setVelocityReferenceAsync(const std::string& ee_name,
     return true;
 }
 
-bool XBot::Cartesian::RosImpl::stopVelocityReferenceAsync(const std::string& ee_name)
+bool RosImpl::stopVelocityReferenceAsync(const std::string& ee_name)
 {
     auto task = get_task(ee_name, false);
     
@@ -423,7 +423,7 @@ bool XBot::Cartesian::RosImpl::stopVelocityReferenceAsync(const std::string& ee_
 }
 
 
-bool XBot::Cartesian::RosImpl::setVelocityReference(const std::string& end_effector, 
+bool RosImpl::setVelocityReference(const std::string& end_effector, 
                                                     const Eigen::Vector6d& base_vel_ref)
 {
     auto task = get_task(end_effector, false);
@@ -595,7 +595,7 @@ bool RosImpl::setBaseLink(const std::string& ee_name, const std::string& new_bas
 
 
 
-XBot::Cartesian::RosImpl::RosInitHelper::RosInitHelper(std::string node_namespace)
+RosImpl::RosInitHelper::RosInitHelper(std::string node_namespace)
 {
     if(!ros::ok())
     {
@@ -615,7 +615,7 @@ XBot::Cartesian::RosImpl::RosInitHelper::RosInitHelper(std::string node_namespac
 }
 
 
-XBot::Cartesian::RosImpl::VelocityPublisherAsync::VelocityPublisherAsync(std::string topic_name, 
+RosImpl::VelocityPublisherAsync::VelocityPublisherAsync(std::string topic_name, 
                                                                          ros::Duration period):
     _spinner(1, &_queue),
     _timeout(0)
@@ -631,14 +631,14 @@ XBot::Cartesian::RosImpl::VelocityPublisherAsync::VelocityPublisherAsync(std::st
         
 }
 
-void XBot::Cartesian::RosImpl::VelocityPublisherAsync::set_vref(const Eigen::Vector6d& vref)
+void RosImpl::VelocityPublisherAsync::set_vref(const Eigen::Vector6d& vref)
 {
     std::lock_guard<std::recursive_mutex> lock(_mutex);
     
     tf::twistEigenToMsg(vref, _twist.twist);
 }
 
-void XBot::Cartesian::RosImpl::VelocityPublisherAsync::start(ros::Duration timeout)
+void RosImpl::VelocityPublisherAsync::start(ros::Duration timeout)
 {
     std::lock_guard<std::recursive_mutex> lock(_mutex);
     
@@ -655,7 +655,7 @@ void XBot::Cartesian::RosImpl::VelocityPublisherAsync::start(ros::Duration timeo
     _timer.start();
 }
 
-void XBot::Cartesian::RosImpl::VelocityPublisherAsync::stop()
+void RosImpl::VelocityPublisherAsync::stop()
 {
     std::lock_guard<std::recursive_mutex> lock(_mutex);
     
@@ -665,7 +665,7 @@ void XBot::Cartesian::RosImpl::VelocityPublisherAsync::stop()
     tf::twistEigenToMsg(Eigen::Vector6d::Zero(), _twist.twist);
 }
 
-void XBot::Cartesian::RosImpl::VelocityPublisherAsync::timer_callback(const ros::TimerEvent& ev)
+void RosImpl::VelocityPublisherAsync::timer_callback(const ros::TimerEvent& ev)
 {
    std::lock_guard<std::recursive_mutex> lock(_mutex);
     
@@ -682,15 +682,45 @@ void XBot::Cartesian::RosImpl::VelocityPublisherAsync::timer_callback(const ros:
     _vref_pub.publish(_twist);
 }
 
-void XBot::Cartesian::RosImpl::RosTask::send_vref_async(const Eigen::Vector6d& vref, double timeout_duration)
+void RosImpl::RosTask::send_vref_async(const Eigen::Vector6d& vref, double timeout_duration)
 {
     vref_async.set_vref(vref);
     vref_async.start(ros::Duration(timeout_duration));
 }
 
-void XBot::Cartesian::RosImpl::RosTask::stop_vref_async()
+void RosImpl::RosTask::stop_vref_async()
 {
     vref_async.stop();
 }
 
+TaskInterface RosImpl::getTaskInterface(const std::string& end_effector) const
+{
+    THROW_NOT_IMPL
+}
+
+bool RosImpl::getDesiredInteraction(const std::string& end_effector, 
+                                                     Eigen::Vector6d& force, 
+                                                     Eigen::Matrix6d& stiffness,
+                                                     Eigen::Matrix6d& damping) const
+{
+    THROW_NOT_IMPL
+}
+
+bool RosImpl::setDesiredDamping(const std::string& end_effector, 
+                                                 const Eigen::Matrix6d& d)
+{
+    THROW_NOT_IMPL
+}
+
+bool RosImpl::setDesiredStiffness(const std::string& end_effector,
+                                                   const Eigen::Matrix6d& k)
+{
+    THROW_NOT_IMPL
+}
+
+bool RosImpl::setForceReference(const std::string& end_effector, 
+                                                 const Eigen::Vector6d& force)
+{
+    THROW_NOT_IMPL
+}
 

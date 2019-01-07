@@ -44,7 +44,8 @@ endif()
 # Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  ReferenceStamped.msg
+  Impedance.msg 
+  Interaction.msg
 )
 
 # Generate services in the 'srv' folder
@@ -55,6 +56,7 @@ add_service_files(
   LoadController.srv
   GetTaskList.srv
   ResetWorld.srv
+  GetImpedance.srv
 )
 
 # Generate actions in the 'action' folder
