@@ -47,6 +47,30 @@ std::string CartesianInterface::StateAsString(State ctrl)
     }
 }
 
+std::string CartesianInterface::TaskInterfaceAsString(TaskInterface ifc)
+{
+    switch(ifc)
+    {
+        case TaskInterface::None:
+            return "None";
+            break;
+            
+        case TaskInterface::Postural:
+            return "Postural";
+            break;
+            
+        case TaskInterface::Cartesian:
+            return "Cartesian";
+            break;
+            
+        case TaskInterface::Interaction:
+            return "Interaction";
+            break;
+            
+        default:
+            throw std::runtime_error("Invalid task interface");
+    }
+}
 
 ControlType CartesianInterface::ControlTypeFromString(const std::string& ctrl)
 {
@@ -62,6 +86,19 @@ ControlType CartesianInterface::ControlTypeFromString(const std::string& ctrl)
     
 }
 
+
+TaskInterface CartesianInterface::TaskInterfaceFromString(const std::string& ifc)
+{
+    std::string ifc_lower = ifc;
+    boost::algorithm::to_lower(ifc_lower);
+    
+    if(ifc_lower == "none") return TaskInterface::None;
+    if(ifc_lower == "postural") return TaskInterface::Postural;
+    if(ifc_lower == "cartesian") return TaskInterface::Cartesian;
+    if(ifc_lower == "interaction") return TaskInterface::Interaction;
+    
+    throw std::invalid_argument("Invalid state '" + ifc + "'");
+}
 
 State CartesianInterface::StateFromString(const std::string& state)
 {

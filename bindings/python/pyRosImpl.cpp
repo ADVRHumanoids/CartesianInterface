@@ -44,7 +44,11 @@ PYBIND11_MODULE(pyci, m) {
              py::arg("task_name"), 
              py::arg("timeout") = 0.0)
         .def("getPoseReference", py_get_pose_reference)
+        .def("getDesiredInteraction", py_get_interaction_reference)
         .def("setPoseReference", &RosImpl::setPoseReference)
+        .def("setForceReference", &RosImpl::setForceReference)
+        .def("setDesiredStiffness", &RosImpl::setDesiredStiffness)
+        .def("setDesiredDamping", &RosImpl::setDesiredDamping)
         .def("setVelocityReference", &RosImpl::setVelocityReference)
         .def("setVelocityReferenceAsync", &RosImpl::setVelocityReferenceAsync)
         .def("stopVelocityReferenceAsync", &RosImpl::stopVelocityReferenceAsync);

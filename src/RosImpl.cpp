@@ -4,7 +4,10 @@
 #include <cartesian_interface/GetTaskInfo.h>
 #include <cartesian_interface/SetTaskInfo.h>
 #include <cartesian_interface/LoadController.h>
+#include <cartesian_interface/Impedance6.h>
+#include <cartesian_interface/GetImpedance.h>
 #include <sensor_msgs/JointState.h>
+#include <geometry_msgs/WrenchStamped.h>
 #include <std_srvs/Trigger.h>
 
 #define THROW_NOT_IMPL throw std::runtime_error("Not implemented function " + std::string(__func__));
@@ -21,7 +24,8 @@ std::ostream& XBot::Cartesian::operator<<(std::ostream& os, const RosImpl& r)
         os << " - ";
         os << XBot::bold_on << t << XBot::bold_off << 
               " with base link " << XBot::bold_on << r.getBaseLink(t) << XBot::bold_off << 
-              " and control mode set to " << CartesianInterface::ControlTypeAsString(r.getControlMode(t)) << "\n";
+              ", control mode set to " << CartesianInterface::ControlTypeAsString(r.getControlMode(t)) <<
+              ", task interface is " << CartesianInterface::TaskInterfaceAsString(r.getTaskInterface(t)) << "\n";
     }
     
     return os;
@@ -37,7 +41,21 @@ void RosImpl::construct_from_tasklist()
     for(auto t: _tasklist)
     {
         ROS_INFO("Task %s added to Cartesian interface", t.c_str());
-        _task_map[t] = std::make_shared<RosTask>(_nh, t);
+        
+        auto task = std::make_shared<RosTask>(_nh, t);
+        std::string str_tmp;
+        ControlType ctrl_tmp;
+        TaskInterface ifc;
+        task->get_properties(str_tmp, ctrl_tmp, ifc);
+        
+        if(ifc == TaskInterface::Interaction)
+        {
+            auto itask = std::make_shared<RosInteractionTask>(_nh, t);
+            task = itask;
+            _inter_task_map[t] = itask;
+        }
+        
+        _task_map[t] = task;
     }
     
     int n_attempt = 0;
@@ -91,6 +109,8 @@ RosImpl::RosTask::RosTask(ros::NodeHandle nh, std::string arg_distal_link):
     get_prop_srv = nh.serviceClient<cartesian_interface::GetTaskInfo>(distal_link + "/get_task_properties");
     set_prop_srv = nh.serviceClient<cartesian_interface::SetTaskInfo>(distal_link + "/set_task_properties");
     
+    get_prop_srv.waitForExistence(ros::Duration(1.0));
+    set_prop_srv.waitForExistence(ros::Duration(1.0));
 }
 
 
@@ -107,6 +127,25 @@ RosImpl::RosTask::Ptr RosImpl::get_task(const std::string& task_name, bool no_th
         if(!no_throw)
         {
             throw std::out_of_range("Task " + task_name + " undefined");
+        }
+        return nullptr;
+    }
+}
+
+RosImpl::RosInteractionTask::Ptr RosImpl::get_interaction_task(const std::string& task_name, 
+                                                                       bool no_throw) const
+{
+    auto it = _inter_task_map.find(task_name);
+    
+    if(it != _inter_task_map.end())
+    {
+        return it->second;
+    }
+    else
+    {
+        if(!no_throw)
+        {
+            throw std::out_of_range("Interaction task " + task_name + " undefined");
         }
         return nullptr;
     }
@@ -161,7 +200,9 @@ Eigen::Affine3d RosImpl::RosTask::get_state() const
 }
 
 void RosImpl::RosTask::get_properties(std::string& base_link, 
-                                                       ControlType& ctrl_type)
+                                      ControlType& ctrl_type,
+                                      TaskInterface& ifc_type
+                                     )
 {
     cartesian_interface::GetTaskInfo srv;
     if(!get_prop_srv.call(srv))
@@ -171,6 +212,7 @@ void RosImpl::RosTask::get_properties(std::string& base_link,
     
     base_link = srv.response.base_link;
     ctrl_type = ControlTypeFromString(srv.response.control_mode);
+    ifc_type = TaskInterfaceFromString(srv.response.task_interface);
     
 }
 
@@ -334,8 +376,9 @@ const std::string& RosImpl::getBaseLink(const std::string& ee_name) const
     auto task = get_task(ee_name, false);
     
     ControlType ctrl_tmp;
+    TaskInterface ifc_tmp;
     static std::string base_link_static; // NOTE: user must copy the output
-    task->get_properties(base_link_static, ctrl_tmp);
+    task->get_properties(base_link_static, ctrl_tmp, ifc_tmp);
     
     return base_link_static;
         
@@ -347,7 +390,8 @@ ControlType RosImpl::getControlMode(const std::string& ee_name) const
     
     ControlType ctrl_tmp;
     std::string base_link_tmp;
-    task->get_properties(base_link_tmp, ctrl_tmp);
+    TaskInterface ifc_tmp;
+    task->get_properties(base_link_tmp, ctrl_tmp, ifc_tmp);
     
     return ctrl_tmp;
 }
@@ -616,7 +660,7 @@ RosImpl::RosInitHelper::RosInitHelper(std::string node_namespace)
 
 
 RosImpl::VelocityPublisherAsync::VelocityPublisherAsync(std::string topic_name, 
-                                                                         ros::Duration period):
+                                                        ros::Duration period):
     _spinner(1, &_queue),
     _timeout(0)
 {
@@ -703,24 +747,123 @@ bool RosImpl::getDesiredInteraction(const std::string& end_effector,
                                                      Eigen::Matrix6d& stiffness,
                                                      Eigen::Matrix6d& damping) const
 {
-    THROW_NOT_IMPL
+    auto itask = get_interaction_task(end_effector, false);
+    
+    force.setZero();
+    itask->get_impedance(stiffness, damping);
+    
+    return true;
 }
 
 bool RosImpl::setDesiredDamping(const std::string& end_effector, 
                                                  const Eigen::Matrix6d& d)
 {
-    THROW_NOT_IMPL
+    auto itask = get_interaction_task(end_effector, false);
+    Eigen::Matrix6d ktmp, dtmp;
+    itask->get_impedance(ktmp, dtmp);
+    itask->send_impedance(ktmp, d);
+    
+    return true;
 }
 
 bool RosImpl::setDesiredStiffness(const std::string& end_effector,
                                                    const Eigen::Matrix6d& k)
 {
-    THROW_NOT_IMPL
+    auto itask = get_interaction_task(end_effector, false);
+    Eigen::Matrix6d ktmp, dtmp;
+    itask->get_impedance(ktmp, dtmp);
+    itask->send_impedance(k, dtmp);
+    
+    return true;
 }
 
 bool RosImpl::setForceReference(const std::string& end_effector, 
                                                  const Eigen::Vector6d& force)
 {
-    THROW_NOT_IMPL
+    auto itask = get_interaction_task(end_effector, false);
+    
+    itask->send_force(force);
+    
+    return true;
 }
+
+RosImpl::RosInteractionTask::RosInteractionTask(ros::NodeHandle nh, 
+                                                std::string distal_link):
+    
+    RosTask(nh, distal_link)
+{
+    k.setZero();
+    d.setZero();
+    
+    impedance_pub = nh.advertise<cartesian_interface::Impedance6>(distal_link + "/impedance", 1);
+    force_pub = nh.advertise<geometry_msgs::WrenchStamped>(distal_link + "/force", 1);
+    get_imp_srv = nh.serviceClient<cartesian_interface::GetImpedance>(distal_link + "/get_impedance");
+    
+    get_imp_srv.waitForExistence(ros::Duration(1.0));
+}
+
+void XBot::Cartesian::RosImpl::RosInteractionTask::get_impedance(Eigen::Matrix6d& k, 
+                                                                 Eigen::Matrix6d& d) const
+{
+    cartesian_interface::GetImpedanceRequest req;
+    cartesian_interface::GetImpedanceResponse res;
+    
+    if(!get_imp_srv.call(req, res))
+    {
+        throw std::runtime_error("Unable to get impedance for interaction task " + get_distal_link());
+    }
+    
+    k.setZero();
+    d.setZero();
+    for(int i = 0; i < 3; i++)
+    {
+        for(int j = i; j < 3; j++)
+        {
+            k(i,j) = k(j,i) = res.linear.stiffness[i+3*j];
+            d(i,j) = d(j,i) = res.linear.damping[i+3*j];
+            
+            k(i+3,j+3) = k(j+3,i+3) = res.angular.stiffness[i+3*j];
+            d(i+3,j+3) = d(j+3,i+3) = res.angular.damping[i+3*j];
+        }
+    }
+}
+
+void XBot::Cartesian::RosImpl::RosInteractionTask::send_force(const Eigen::Vector6d& f)
+{
+    geometry_msgs::WrenchStamped msg;
+    msg.header.stamp = ros::Time::now();
+    
+    tf::wrenchEigenToMsg(f, msg.wrench);
+    
+    force_pub.publish(msg);
+    
+}
+
+void XBot::Cartesian::RosImpl::RosInteractionTask::send_impedance(const Eigen::Matrix6d& k, 
+                                                                  const Eigen::Matrix6d& d)
+{
+    cartesian_interface::Impedance6 msg;
+    msg.header.stamp = ros::Time::now();
+    
+    for(int i = 0; i < 3; i++)
+    {
+        for(int j = 0; j < 3; j++)
+        {
+            msg.linear.stiffness[i+3*j] = k(i,j);
+            msg.linear.damping[i+3*j] = d(i,j);
+            
+            msg.angular.stiffness[i+3*j] =  k(i+3,j+3);
+            msg.angular.damping[i+3*j] = d(i+3,j+3);
+        }
+    }
+    
+    impedance_pub.publish(msg);
+}
+
+const std::string & XBot::Cartesian::RosImpl::RosTask::get_distal_link() const
+{
+    return distal_link;
+}
+
+
 

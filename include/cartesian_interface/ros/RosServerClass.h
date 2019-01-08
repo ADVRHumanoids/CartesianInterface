@@ -13,7 +13,7 @@
 #include <cartesian_interface/SetTaskInfo.h>
 #include <cartesian_interface/GetTaskList.h>
 #include <cartesian_interface/ResetWorld.h>
-#include <cartesian_interface/Interaction.h>
+#include <cartesian_interface/Impedance6.h>
 #include <cartesian_interface/GetImpedance.h>
 #include <actionlib/server/simple_action_server.h>
 #include <std_srvs/Empty.h>
@@ -21,6 +21,7 @@
 #include <std_srvs/Trigger.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/WrenchStamped.h>
 #include <sensor_msgs/JointState.h>
 
 #ifndef XBOT_RSPUB
@@ -109,7 +110,10 @@ namespace XBot { namespace Cartesian {
         void online_position_reference_cb(const geometry_msgs::PoseStampedConstPtr& msg,
                                           const std::string& ee_name);
         
-        void online_interaction_reference_cb(const cartesian_interface::InteractionConstPtr& msg,
+        void online_impedance_reference_cb(const cartesian_interface::Impedance6ConstPtr& msg,
+                                             const std::string& ee_name);
+        
+        void online_force_reference_cb(const geometry_msgs::WrenchStampedConstPtr& msg,
                                              const std::string& ee_name);
         
         void online_posture_reference_cb(const sensor_msgs::JointStateConstPtr& msg);
@@ -159,7 +163,7 @@ namespace XBot { namespace Cartesian {
 
         std::vector<ActionServerPtr> _action_servers;
         std::vector<bool> _is_action_active;
-        std::vector<ros::Subscriber> _pos_sub, _vel_sub, _interaction_sub;
+        std::vector<ros::Subscriber> _pos_sub, _vel_sub, _imp_sub, _force_sub;
         std::vector<ros::Publisher> _state_pub;
         ros::Publisher _com_pub, _posture_pub, _solution_pub;
         ros::Subscriber _posture_sub;

@@ -188,10 +188,38 @@ namespace XBot { namespace Cartesian {
             void send_vref_async(const Eigen::Vector6d& vref, double timeout_duration);
             void stop_vref_async();
             void send_waypoints(const Trajectory::WayPointVector& wp, bool incremental = false);
-            void get_properties(std::string& base_link, ControlType& ctrl_type);
+            void get_properties(std::string& base_link, 
+                                ControlType& ctrl_type,
+                                TaskInterface& ifc_type);
             void set_base_link(const std::string& base_link);
             void set_ctrl_mode(ControlType ctrl_type);
             bool wait_for_result(ros::Duration timeout);
+            
+            const std::string& get_distal_link() const;
+            
+        };
+        
+        class RosInteractionTask : public RosTask
+        {
+        public:
+            
+            typedef std::shared_ptr<RosInteractionTask> Ptr;
+            
+            RosInteractionTask(ros::NodeHandle nh, std::string distal_link);
+            
+            void send_force(const Eigen::Vector6d& f);
+            void send_impedance(const Eigen::Matrix6d& k, 
+                                const Eigen::Matrix6d& d);
+            
+            void get_impedance(Eigen::Matrix6d& k,
+                               Eigen::Matrix6d& d) const;
+        private:
+            
+            Eigen::Matrix6d k, d;
+            
+            ros::Publisher impedance_pub;
+            ros::Publisher force_pub;
+            mutable ros::ServiceClient get_imp_srv;
             
         };
         
@@ -202,6 +230,7 @@ namespace XBot { namespace Cartesian {
         
         void construct_from_tasklist();
         RosTask::Ptr get_task(const std::string& task_name, bool no_throw = true) const;
+        RosInteractionTask::Ptr get_interaction_task(const std::string& task_name, bool no_throw = true) const;
         
         RosInitHelper _ros_init_helper;
         
@@ -212,6 +241,7 @@ namespace XBot { namespace Cartesian {
         ros::ServiceClient _load_ctrl_srv;
         ros::Publisher _posture_pub;
         std::map<std::string, RosTask::Ptr> _task_map;
+        std::map<std::string, RosInteractionTask::Ptr> _inter_task_map;
         
         
         

@@ -18,6 +18,12 @@ LockfreeBufferImpl::LockfreeBufferImpl(CartesianInterface const * ci, ModelInter
     {
         _taskstate_map[t] = _task_tmp;
         _taskstate_queue_map[t];
+        
+        if(ci->getTaskInterface(t) == TaskInterface::Interaction)
+        {
+            _inter_taskstate_map[t];
+            _inter_taskstate_queue_map[t];
+        }
     }
     
 }
@@ -49,6 +55,16 @@ void LockfreeBufferImpl::pushState(CartesianInterface const * ci, ModelInterface
         pair.second.push(t);
     }
     
+    
+    for(auto& pair : _inter_taskstate_queue_map)
+    {
+        InteractionTaskState t;
+        ci->getDesiredInteraction(pair.first, 
+                                  t.force, 
+                                  t.k, 
+                                  t.d);
+    }
+    
     model->getJointPosition(_q_tmp);
     _model_state_queue.push(_q_tmp);
 }
@@ -58,6 +74,13 @@ void LockfreeBufferImpl::updateState()
     for(auto& pair : _taskstate_map)
     {
         auto& queue = _taskstate_queue_map.at(pair.first);
+        while(queue.pop(pair.second));
+            
+    }
+    
+    for(auto& pair : _inter_taskstate_map)
+    {
+        auto& queue = _inter_taskstate_queue_map.at(pair.first);
         while(queue.pop(pair.second));
             
     }
@@ -311,23 +334,43 @@ void LockfreeBufferImpl::setVelocityLimits(const std::string& ee_name, double ma
 
 
 
-}}
-
-bool XBot::Cartesian::LockfreeBufferImpl::getDesiredInteraction(const std::string& end_effector,
+bool LockfreeBufferImpl::getDesiredInteraction(const std::string& end_effector,
                                                                 Eigen::Vector6d& force, 
                                                                 Eigen::Matrix6d& stiffness, 
                                                                 Eigen::Matrix6d& damping) const
 {
-    NOT_IMPL;
+    const InteractionTaskState& t = _inter_taskstate_map.at(end_effector);
+    force = t.force;
+    stiffness = t.k;
+    damping = t.d;
+    
+    return true;
 }
 
 
-XBot::Cartesian::TaskInterface XBot::Cartesian::LockfreeBufferImpl::getTaskInterface(const std::string& end_effector) const
+TaskInterface LockfreeBufferImpl::getTaskInterface(const std::string& end_effector) const
 {
-    NOT_IMPL;
+    auto it = _taskstate_map.find(end_effector);
+    
+    if(it == _taskstate_map.end())
+    {
+        return TaskInterface::None;
+    }
+    
+    auto jt = _inter_taskstate_map.find(end_effector);
+    
+    if(jt == _inter_taskstate_map.end())
+    {
+        return TaskInterface::Cartesian;
+    }
+    else
+    {
+        return TaskInterface::Interaction;
+    }
+    
 }
 
-bool XBot::Cartesian::LockfreeBufferImpl::setDesiredDamping(const std::string& end_effector, 
+bool LockfreeBufferImpl::setDesiredDamping(const std::string& end_effector, 
                                                             const Eigen::Matrix6d& d)
 {
     CallbackType f = std::bind(&CartesianInterface::setDesiredDamping, 
@@ -337,7 +380,7 @@ bool XBot::Cartesian::LockfreeBufferImpl::setDesiredDamping(const std::string& e
     return _call_queue.push(f);
 }
 
-bool XBot::Cartesian::LockfreeBufferImpl::setDesiredStiffness(const std::string& end_effector,
+bool LockfreeBufferImpl::setDesiredStiffness(const std::string& end_effector,
                                                               const Eigen::Matrix6d& k)
 {
     CallbackType f = std::bind(&CartesianInterface::setDesiredStiffness, 
@@ -347,7 +390,7 @@ bool XBot::Cartesian::LockfreeBufferImpl::setDesiredStiffness(const std::string&
     return _call_queue.push(f);
 }
 
-bool XBot::Cartesian::LockfreeBufferImpl::setForceReference(const std::string& end_effector, 
+bool LockfreeBufferImpl::setForceReference(const std::string& end_effector, 
                                                             const Eigen::Vector6d& force)
 {
     CallbackType f = std::bind(&CartesianInterface::setForceReference, 
@@ -356,3 +399,7 @@ bool XBot::Cartesian::LockfreeBufferImpl::setForceReference(const std::string& e
     
     return _call_queue.push(f);
 }
+
+
+
+}}

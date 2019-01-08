@@ -102,6 +102,16 @@ void RosServerClass::online_position_reference_cb(const geometry_msgs::PoseStamp
     
 }
 
+void XBot::Cartesian::RosServerClass::online_force_reference_cb(const geometry_msgs::WrenchStampedConstPtr& msg, 
+                                                                const std::string& ee_name)
+{
+    Eigen::Vector6d f;
+    tf::wrenchMsgToEigen(msg->wrench, f);
+    
+    _cartesian_interface->setForceReference(ee_name, f);
+}
+
+
 void XBot::Cartesian::RosServerClass::__generate_interaction_topics()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
@@ -111,14 +121,19 @@ void XBot::Cartesian::RosServerClass::__generate_interaction_topics()
             continue;
         }
         
-        std::string topic_name = ee_name + "/interaction";
+        auto icb = std::bind(&RosServerClass::online_impedance_reference_cb, this, std::placeholders::_1, ee_name);
 
-        auto cb = std::bind(&RosServerClass::online_interaction_reference_cb, this, std::placeholders::_1, ee_name);
+        ros::Subscriber isub = _nh.subscribe<cartesian_interface::Impedance6>(ee_name + "/impedance",
+                                                                             1, icb);
 
-        ros::Subscriber sub = _nh.subscribe<cartesian_interface::Interaction>(topic_name,
-                                                                              1, cb);
+        _imp_sub.push_back(isub);
+        
+        auto fcb = std::bind(&RosServerClass::online_force_reference_cb, this, std::placeholders::_1, ee_name);
+        
+        ros::Subscriber fsub = _nh.subscribe<geometry_msgs::WrenchStamped>(ee_name + "/force",
+                                                                             1, fcb);
 
-        _interaction_sub.push_back(sub);
+        _force_sub.push_back(fsub);
     }
 }
 
@@ -647,6 +662,7 @@ bool XBot::Cartesian::RosServerClass::get_task_info_cb(cartesian_interface::GetT
     res.control_mode  =  CartesianInterface::ControlTypeAsString(_cartesian_interface->getControlMode(ee_name));
     res.task_state  =  CartesianInterface::StateAsString(_cartesian_interface->getTaskState(ee_name));
     res.distal_link = ee_name;
+    res.task_interface = CartesianInterface::TaskInterfaceAsString(_cartesian_interface->getTaskInterface(ee_name));
     
     return true;
 }
@@ -837,7 +853,7 @@ bool RosServerClass::get_impedance_cb(cartesian_interface::GetImpedanceRequest& 
     return true;
 }
 
-void RosServerClass::online_interaction_reference_cb(const cartesian_interface::InteractionConstPtr& msg, 
+void RosServerClass::online_impedance_reference_cb(const cartesian_interface::Impedance6ConstPtr& msg, 
                                                      const std::string& ee_name)
 {
     Eigen::Matrix6d k, d;
@@ -855,8 +871,11 @@ void RosServerClass::online_interaction_reference_cb(const cartesian_interface::
         }
     }
     
-    _cartesian_interface->setDesiredStiffness(ee_name, k);
-    _cartesian_interface->setDesiredDamping(ee_name, d);
+    if((k.diagonal().array() >= 0).all() && (d.diagonal().array() >= 0).all())
+    {
+        _cartesian_interface->setDesiredStiffness(ee_name, k);
+        _cartesian_interface->setDesiredDamping(ee_name, d);
+    }
 }
 
 

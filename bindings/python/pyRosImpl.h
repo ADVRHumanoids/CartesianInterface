@@ -35,6 +35,16 @@ auto py_get_pose_reference(const RosImpl& r, const std::string& ee)
     
 }
 
+auto py_get_interaction_reference(const RosImpl& r, const std::string& ee)
+{
+    Eigen::Matrix6d k, d;
+    Eigen::Vector6d f;
+    
+    r.getDesiredInteraction(ee, f, k, d);
+    
+    return std::make_tuple(f, k, d);
+    
+}
 
 auto py_send_waypoints(RosImpl& r, 
                        const std::string& ee, 

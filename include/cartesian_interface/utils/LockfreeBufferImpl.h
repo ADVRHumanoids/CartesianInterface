@@ -147,17 +147,27 @@ namespace XBot { namespace Cartesian {
             State state;
         };
         
+        struct InteractionTaskState
+        {
+            
+            Eigen::Vector6d force;
+            Eigen::Matrix6d k, d;
+            
+        };
+        
         
         LockFreeQueue<CallbackType, CALL_QUEUE_SIZE> _call_queue;
         
         TaskState _task_tmp;
         Eigen::VectorXd _q_tmp;
         
+        std::map<std::string, LockFreeQueue<InteractionTaskState>> _inter_taskstate_queue_map;
         std::map<std::string, LockFreeQueue<TaskState>> _taskstate_queue_map;
         LockFreeQueue<Eigen::VectorXd> _model_state_queue;
         
         Eigen::VectorXd _q_tmp_read;
         std::map<std::string, TaskState> _taskstate_map;
+        std::map<std::string, InteractionTaskState> _inter_taskstate_map;
         ModelInterface::Ptr _model;
         
         std::vector<std::string> _tasklist;

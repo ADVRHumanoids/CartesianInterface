@@ -44,8 +44,8 @@ endif()
 # Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  Impedance.msg 
-  Interaction.msg
+  Impedance3.msg 
+  Impedance6.msg
 )
 
 # Generate services in the 'srv' folder
