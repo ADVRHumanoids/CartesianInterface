@@ -24,6 +24,7 @@
 #include <cartesian_interface/CartesianInterface.h>
 #include <cartesian_interface/trajectory/Trajectory.h>
 #include <cartesian_interface/problem/ProblemDescription.h>
+#include <cartesian_interface/problem/Cartesian.h>
 #include <XBotInterface/SoLib.h>
 #include <ReflexxesTypeII/Wrappers/TrajectoryGenerator.h>
 
@@ -37,9 +38,6 @@ public:
     /* Typedefs for shared pointers */
     typedef std::shared_ptr<CartesianInterfaceImpl> Ptr;
     typedef std::shared_ptr<const CartesianInterfaceImpl> ConstPtr;
-    
-    CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
-                           std::vector<std::pair<std::string, std::string>> tasks);
     
     CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
                            ProblemDescription ik_problem);
@@ -259,16 +257,17 @@ private:
     };
     
     void add_task(TaskDescription::Ptr task);
-    
+    bool validate_cartesian(CartesianTask::Ptr cart);
     void __construct_from_vectors();
     void log_tasks();
     void init_log_tasks();
     
-    std::vector<std::pair<std::string, std::string>> _tasks_vector;
+   
     std::vector<std::string> _ee_list;
+    std::vector<std::pair<std::string, std::string>> _tasks_vector;
     
     Task::Ptr get_task(const std::string& ee_name) const;
-    InteractionTask::Ptr get_interaction_task(const std::string& ee_name) const;
+    InteractionTask::Ptr get_interaction_task(const std::string& ee_name, bool verbose = true) const;
     bool postural_task_defined() const;
     
     std::map<std::string, Task::Ptr> _task_map;

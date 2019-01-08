@@ -835,7 +835,10 @@ bool RosServerClass::get_impedance_cb(cartesian_interface::GetImpedanceRequest& 
     Eigen::Vector6d f;
     Eigen::Matrix6d k, d;
     
-    _cartesian_interface->getDesiredInteraction(ee_name, f, k, d);
+    if(!_cartesian_interface->getDesiredInteraction(ee_name, f, k, d))
+    {
+        return false;
+    }
     
     for(int i = 0; i < 3; i++)
     {

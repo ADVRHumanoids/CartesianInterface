@@ -1,6 +1,7 @@
 #include <cartesian_interface/problem/ProblemDescription.h>
 #include <cartesian_interface/problem/Task.h>
 #include <cartesian_interface/problem/Cartesian.h>
+#include <cartesian_interface/problem/Interaction.h>
 #include <cartesian_interface/problem/Com.h>
 #include <cartesian_interface/problem/Postural.h>
 #include <cartesian_interface/problem/Gaze.h>
@@ -146,6 +147,10 @@ TaskDescription::Ptr XBot::Cartesian::ProblemDescription::yaml_parse_task(YAML::
     {
         task_desc = yaml_parse_cartesian(task_node, model);
     }
+    else if(task_type == "Interaction")
+    {
+        task_desc = yaml_parse_interaction(task_node, model);
+    }
     else if(task_type == "Com")
     {
         task_desc = yaml_parse_com(task_node, model);
@@ -213,6 +218,63 @@ TaskDescription::Ptr ProblemDescription::yaml_parse_cartesian(YAML::Node task_no
     
     return task_desc;
 }
+
+TaskDescription::Ptr ProblemDescription::yaml_parse_interaction(YAML::Node task_node,
+                                                                ModelInterface::ConstPtr model)
+{
+    std::string distal_link = task_node["distal_link"].as<std::string>();
+    std::string base_link = "world";
+    
+    
+    if(task_node["base_link"])
+    {
+        base_link = task_node["base_link"].as<std::string>();
+    }
+    
+    std::vector<double> stiffness, damping;
+    
+    if(task_node["stiffness"])
+    {
+        stiffness = task_node["stiffness"].as<std::vector<double>>();
+        if(stiffness.size() != 6)
+        {
+            throw std::runtime_error("'stiffness' field for interaction tasks requires six values");
+        }
+    }
+    else
+    {
+        throw std::runtime_error("'stiffness' field required for interaction tasks (6 values)");
+    }
+        
+    
+    if(task_node["damping"])
+    {
+        damping = task_node["damping"].as<std::vector<double>>();
+        if(damping.size() != 6)
+        {
+            throw std::runtime_error("'damping' field for interaction tasks requires six values");
+        }
+    }
+    else
+    {
+        throw std::runtime_error("'damping' field required for interaction tasks (6 values)");
+    }
+    
+    auto i_task = MakeInteraction(distal_link, base_link);
+    
+    i_task->stiffness = Eigen::Vector6d::Map(stiffness.data());
+    i_task->damping = Eigen::Vector6d::Map(damping.data());
+    
+    TaskDescription::Ptr task_desc = i_task;
+
+    if(task_node["orientation_gain"])
+    {
+        i_task->orientation_gain = task_node["orientation_gain"].as<double>();
+    }
+    
+    return task_desc;
+}
+
 
 TaskDescription::Ptr ProblemDescription::yaml_parse_com(YAML::Node node, 
                                                    ModelInterface::ConstPtr model)

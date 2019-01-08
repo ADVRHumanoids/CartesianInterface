@@ -102,6 +102,9 @@ namespace XBot { namespace Cartesian {
         static TaskDescription::Ptr yaml_parse_cartesian(YAML::Node node, 
                                                          ModelInterface::ConstPtr model);
         
+        static TaskDescription::Ptr yaml_parse_interaction(YAML::Node node, 
+                                                         ModelInterface::ConstPtr model);
+        
         static TaskDescription::Ptr yaml_parse_com(YAML::Node node, 
                                                    ModelInterface::ConstPtr model);
         

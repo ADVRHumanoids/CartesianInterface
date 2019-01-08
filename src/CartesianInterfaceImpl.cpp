@@ -1,5 +1,5 @@
 #include <cartesian_interface/CartesianInterfaceImpl.h>
-#include <cartesian_interface/problem/Cartesian.h>
+#include <cartesian_interface/problem/Interaction.h>
 #include <boost/algorithm/string.hpp>  
 
 using namespace XBot::Cartesian;
@@ -139,7 +139,28 @@ bool XBot::Cartesian::CartesianInterfaceImpl::setBaseLink(const std::string& ee_
 
 CartesianInterfaceImpl::Task::Ptr CartesianInterfaceImpl::get_task(const std::string& ee_name) const
 {
+    auto it = _task_map.find(ee_name);
     
+    if(ee_name == "com")
+    {
+        if(_com_task)
+        {
+            return _com_task;
+        }
+        else
+        {
+            it = _task_map.end();
+        }
+    }
+    
+    
+    if(it == _task_map.end())
+    {
+        XBot::Logger::error("Task %s undefined \n", ee_name.c_str());
+        return nullptr;
+    }
+    
+    return it->second;
 }
 
 double CartesianInterfaceImpl::get_current_time() const
@@ -378,15 +399,6 @@ CartesianInterfaceImpl::~CartesianInterfaceImpl()
 }
 
 
-CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
-                                               std::vector< std::pair< std::string, std::string > > tasks):
-    _model(model),
-    _tasks_vector(tasks),
-    _current_time(0.0),
-    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_logger_" + std::to_string(rand())))
-{
-    __construct_from_vectors();
-}
 
 void CartesianInterfaceImpl::__construct_from_vectors()
 {
@@ -413,33 +425,7 @@ void CartesianInterfaceImpl::__construct_from_vectors()
 
     for(auto pair : _tasks_vector)
     {
-        Eigen::Affine3d T;
-        if(pair.first != "world" && !_model->getPose(pair.first, T))
-        {
-            XBot::Logger::error("CartesianInterface: unable to find frame %s inside URDF\n", pair.first.c_str());
-            continue;
-        }
         
-        if(pair.second != "com" && !_model->getPose(pair.second, T))
-        {
-            XBot::Logger::error("CartesianInterface: unable to find frame %s inside URDF\n", pair.second.c_str());
-            continue;
-        }
-        
-        auto task = std::make_shared<CartesianInterfaceImpl::Task>(pair.first, pair.second);
-        
-        if(pair.second == "com")
-        {
-            _com_task = task;
-        }
-        
-        _task_map[task->get_distal()] = task;
-        
-        Logger::success(Logger::Severity::HIGH) <<  "Successfully added task with\n" << 
-            "   BASE LINK:   " << XBot::bold_on << task->get_base() << XBot::bold_off  << "\n" << XBot::color_yellow <<
-            "   DISTAL LINK: " << XBot::bold_on << task->get_distal() << XBot::bold_off << Logger::endl();
-        
-        _ee_list.push_back(task->get_distal());
         
     }
     
@@ -541,31 +527,124 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
         }
     }
     
-    __construct_from_vectors();
+    reset(0.0);
+    init_log_tasks();
     
 }
 
+bool XBot::Cartesian::CartesianInterfaceImpl::validate_cartesian(CartesianTask::Ptr cart)
+{
+    std::string base = cart->base_link;
+    std::string distal = cart->distal_link;
+    
+    auto predicate = [distal](const std::pair<std::string, std::string>& elem)
+                     {
+                         return elem.second == distal;
+                     };
+    
+    auto it = std::find_if(_tasks_vector.begin(), 
+                           _tasks_vector.end(), 
+                           predicate);
+    
+    auto it_1 = std::find(_tasks_vector.begin(), 
+                         _tasks_vector.end(), 
+                         std::make_pair(base, distal));
+      
+    if(it_1 != _tasks_vector.end()) // duplicate found
+    {
+        return false;
+    }
+    
+    if(it != _tasks_vector.end()) // same distal link and different base link
+    {
+        throw std::runtime_error("different base links for same distal not allowed (" + distal + ")");
+    }
+    
+    Eigen::Affine3d T;
+    if(base != "world" && !_model->getPose(base, T))
+    {
+        XBot::Logger::error("CartesianInterface: unable to find frame %s inside URDF\n", base.c_str());
+        return false;
+    }
+    
+    if(distal != "com" && !_model->getPose(distal, T))
+    {
+        XBot::Logger::error("CartesianInterface: unable to find frame %s inside URDF\n", distal.c_str());
+        return false;
+    }
+    
+    return true;
+}
+
+
 void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task_desc)
 {
-    switch(task_desc->interface)
+    
+    if(task_desc->interface == TaskInterface::Cartesian)
     {
-        case TaskInterface::Cartesian:
+        auto cart_desc = GetAsCartesian(task_desc);
+        
+        if(validate_cartesian(cart_desc))
         {
-            auto cart_desc = GetAsCartesian(task_desc);
-            _tasks_vector.emplace_back(cart_desc->base_link, cart_desc->distal_link);
-            break;
-        }
-        case TaskInterface::Postural:
-        {   
-            if(!_model->getRobotState("home", _q_ref))
+            
+            auto task = std::make_shared<CartesianInterfaceImpl::Task>(cart_desc->base_link,
+                                                                       cart_desc->distal_link);
+            
+            if(cart_desc->distal_link == "com")
             {
-                Logger::warning("Group state \"home\" undefined inside SRDF: setting posture reference to zero\n");
+                _com_task = task;
             }
-            break;
-        }   
-        default:
-            Logger::warning("Unsupported task type\n");
+            
+            _task_map[cart_desc->distal_link] = task;
+            _ee_list.push_back(cart_desc->distal_link);
+            
+            Logger::success(Logger::Severity::HIGH) <<  "Successfully added task with\n" << 
+        "   BASE LINK:   " << XBot::bold_on << task->get_base() << XBot::bold_off  << "\n" << XBot::color_yellow <<
+        "   DISTAL LINK: " << XBot::bold_on << task->get_distal() << XBot::bold_off << Logger::endl();
+        
+        }
     }
+    else if(task_desc->interface == TaskInterface::Interaction)
+    {
+        auto i_desc = GetAsInteraction(task_desc);
+        
+        if(validate_cartesian(i_desc))
+        {
+            
+            auto task = std::make_shared<CartesianInterfaceImpl::InteractionTask>(i_desc->base_link,
+                                                                        i_desc->distal_link);
+            
+            task->set_stiffness(i_desc->stiffness.asDiagonal());
+            task->set_damping(i_desc->damping.asDiagonal());
+            
+            if(i_desc->distal_link == "com")
+            {
+                _com_task = task;
+            }
+            
+            _task_map[i_desc->distal_link] = task;
+            _interaction_task_map[i_desc->distal_link] = task;
+            _ee_list.push_back(i_desc->distal_link);
+            
+            Logger::success(Logger::Severity::HIGH) <<  "Successfully added interaction task with\n" << 
+        "   BASE LINK:   " << XBot::bold_on << task->get_base() << XBot::bold_off  << "\n" << XBot::color_yellow <<
+        "   DISTAL LINK: " << XBot::bold_on << task->get_distal() << XBot::bold_off << Logger::endl();
+        
+        }
+    }
+    else if(task_desc->interface == TaskInterface::Postural)
+    {   
+        if(!_model->getRobotState("home", _q_ref))
+        {
+            Logger::warning("Group state \"home\" undefined inside SRDF: setting posture reference to zero\n");
+        }
+    }   
+    else
+    {
+        Logger::warning("Unsupported task type\n");
+    }
+    
+    
 }
 
 
@@ -1338,7 +1417,7 @@ TaskInterface CartesianInterfaceImpl::getTaskInterface(const std::string& end_ef
         return TaskInterface::None;
     }
     
-    if(get_interaction_task(end_effector))
+    if(get_interaction_task(end_effector, false))
     {
         
         return TaskInterface::Interaction;
@@ -1363,13 +1442,17 @@ const Eigen::Vector6d & CartesianInterfaceImpl::InteractionTask::get_force() con
     return force;
 }
 
-CartesianInterfaceImpl::InteractionTask::Ptr CartesianInterfaceImpl::get_interaction_task(const std::string& ee_name) const
+CartesianInterfaceImpl::InteractionTask::Ptr CartesianInterfaceImpl::get_interaction_task(const std::string& ee_name, 
+                                                                                          bool verbose) const
 {
     auto it = _interaction_task_map.find(ee_name);
     
     if(it == _interaction_task_map.end())
     {
-        XBot::Logger::error("Interaction task %s undefined \n", ee_name.c_str());
+        if(verbose)
+        {
+            XBot::Logger::error("Interaction task %s undefined \n", ee_name.c_str());
+        }
         return nullptr;
     }
     
