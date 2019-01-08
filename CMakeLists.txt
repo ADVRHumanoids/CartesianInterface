@@ -235,7 +235,7 @@ install(TARGETS CartesianOpenSot CartesianOpenSot
 # Mark cpp header files for installation
 install(DIRECTORY include/cartesian_interface/
     DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-    FILES_MATCHING PATTERN "*.h"
+    FILES_MATCHING PATTERN "*.h*"
     PATTERN ".svn" EXCLUDE
 )
 
