@@ -63,6 +63,8 @@ void LockfreeBufferImpl::pushState(CartesianInterface const * ci, ModelInterface
                                   t.force, 
                                   t.k, 
                                   t.d);
+        
+        pair.second.push(t);
     }
     
     model->getJointPosition(_q_tmp);
