@@ -1,7 +1,7 @@
 #include <cartesian_interface/open_sot/OpenSotImpl.h>
 #include <cartesian_interface/problem/ProblemDescription.h>
 #include <cartesian_interface/problem/Task.h>
-#include <cartesian_interface/problem/Cartesian.h>
+#include <cartesian_interface/problem/Interaction.h>
 #include <cartesian_interface/problem/Com.h>
 #include <cartesian_interface/problem/Postural.h>
 #include <cartesian_interface/problem/Gaze.h>
@@ -111,6 +111,61 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
                             base_link.c_str(), 
                             distal_link.c_str(), 
                             cartesian_desc->lambda,
+                            indices.size()
+                            );
+
+    }
+    else if(task_desc->type == "Interaction")
+    {
+        auto i_desc = XBot::Cartesian::GetAsInteraction(task_desc);
+        std::string distal_link = i_desc->distal_link;
+        std::string base_link = i_desc->base_link;
+        
+        
+        XBot::ForceTorqueSensor::ConstPtr ft;
+        
+        
+        try
+        {
+            ft = _model->getForceTorque().at(distal_link);
+        }
+        catch(...)
+        {
+            throw std::runtime_error("Interaction task requires an FT sensor as distal link");
+        }
+        
+        auto admittance_task = boost::make_shared<OpenSoT::tasks::velocity::CartesianAdmittance>
+                                               ("adm_" + base_link + "_TO_" + distal_link,
+                                                _q,
+                                                *_model,
+                                                base_link,
+                                                ft
+                                                );
+
+        admittance_task->setLambda(i_desc->lambda);
+        admittance_task->setOrientationErrorGain(i_desc->orientation_gain);
+        
+        admittance_task->setStiffness(i_desc->stiffness);
+        admittance_task->setDamping(i_desc->damping);
+
+        std::list<uint> indices(i_desc->indices.begin(), i_desc->indices.end());
+
+        _cartesian_tasks.push_back(admittance_task);
+        _admittance_tasks.push_back(admittance_task);
+
+        if(indices.size() == 6)
+        {
+            opensot_task = i_desc->weight*(admittance_task);
+        }
+        else
+        {
+            opensot_task = i_desc->weight*(admittance_task%indices);
+        }
+        
+        XBot::Logger::info("OpenSot: Admittance found (%s -> %s), lambda = %f, dofs = %d\n", 
+                            base_link.c_str(), 
+                            distal_link.c_str(), 
+                            i_desc->lambda,
                             indices.size()
                             );
 
@@ -425,6 +480,23 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
         
         v_ref *= period;
         cart_task->setReference(T_ref, v_ref);
+
+    }
+    
+    /* Process admittance tasks */
+    for(auto i_task : _admittance_tasks)
+    {
+        Eigen::Vector6d f;
+        Eigen::Matrix6d k, d;
+
+        if(!getDesiredInteraction(i_task->getDistalLink(), f, k, d))
+        {
+            continue;
+        }
+        
+        i_task->setStiffness(k.diagonal());
+        i_task->setDamping(d.diagonal());
+        i_task->setWrenchReference(f);
 
     }
 

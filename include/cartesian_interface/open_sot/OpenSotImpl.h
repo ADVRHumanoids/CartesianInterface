@@ -5,6 +5,7 @@
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/ros/RosEnabled.h>
 #include <OpenSoT/tasks/velocity/Cartesian.h>
+#include <OpenSoT/tasks/velocity/CartesianAdmittance.h>
 #include <OpenSoT/tasks/velocity/CoM.h>
 #include <OpenSoT/tasks/velocity/Postural.h>
 #include <OpenSoT/tasks/velocity/Gaze.h>
@@ -41,6 +42,7 @@ protected:
 private:
     
     typedef OpenSoT::tasks::velocity::Cartesian CartesianTask;
+    typedef OpenSoT::tasks::velocity::CartesianAdmittance CartesianAdmittanceTask;
     typedef OpenSoT::tasks::velocity::Postural PosturalTask;
     typedef OpenSoT::tasks::velocity::CoM CoMTask;
     typedef OpenSoT::tasks::velocity::Gaze GazeTask;
@@ -60,6 +62,7 @@ private:
     Eigen::VectorXd _q, _dq, _ddq;
     
     std::vector<CartesianTask::Ptr> _cartesian_tasks;
+    std::vector<CartesianAdmittanceTask::Ptr> _admittance_tasks;
     std::vector<PosturalTask::Ptr> _postural_tasks;
     std::vector<bool> _use_inertia_matrix;
     CoMTask::Ptr _com_task;
