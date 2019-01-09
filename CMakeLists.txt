@@ -247,6 +247,7 @@ install(DIRECTORY launch/
 
 
 
+install(PROGRAMS src/postural_gui DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 #######################
 # Add Testing target  #
