@@ -115,6 +115,9 @@ void CartesianPlugin::control_loop(double time, double period)
     
     /* Callbacks from NRT */
     _sync->receive(_ci);
+    
+    /* Update model with sensor reading */
+    _model->syncFrom(*_robot, Sync::Sensors);
 
     /* Solve IK */
     if(!_ci->update(time, period))
