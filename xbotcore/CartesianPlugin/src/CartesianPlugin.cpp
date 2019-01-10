@@ -117,7 +117,7 @@ void CartesianPlugin::control_loop(double time, double period)
     _sync->receive(_ci);
     
     /* Update model with sensor reading */
-    _model->syncFrom(*_robot, Sync::Sensors);
+    _model->syncFrom(*_robot, Sync::Sensors, Sync::Effort);
 
     /* Solve IK */
     if(!_ci->update(time, period))

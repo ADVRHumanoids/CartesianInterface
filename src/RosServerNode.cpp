@@ -201,7 +201,7 @@ int main(int argc, char **argv){
         if(robot)
         {
             robot->sense(false);
-            model->syncFrom(*robot, XBot::Sync::Sensors);
+            model->syncFrom(*robot, XBot::Sync::Sensors, XBot::Sync::Effort);
         }
         
         /* Update references from ros */
