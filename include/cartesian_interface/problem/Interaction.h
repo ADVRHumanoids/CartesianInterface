@@ -19,6 +19,11 @@ namespace XBot { namespace Cartesian {
         * @brief Interaction parameters for the task (linear, then angular)
         */
         Eigen::Vector6d stiffness, damping;
+        
+        /**
+        * @brief Chains to be used for force estimation
+        */
+        std::vector<std::string> force_estimation_chains;
 
         typedef std::shared_ptr<InteractionTask> Ptr;
         typedef std::shared_ptr<const InteractionTask> ConstPtr;

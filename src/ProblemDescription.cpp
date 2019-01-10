@@ -260,10 +260,16 @@ TaskDescription::Ptr ProblemDescription::yaml_parse_interaction(YAML::Node task_
         throw std::runtime_error("'damping' field required for interaction tasks (6 values)");
     }
     
+    
     auto i_task = MakeInteraction(distal_link, base_link);
     
     i_task->stiffness = Eigen::Vector6d::Map(stiffness.data());
     i_task->damping = Eigen::Vector6d::Map(damping.data());
+    
+    if(task_node["force_estimation_chains"])
+    {
+        i_task->force_estimation_chains = task_node["force_estimation_chains"].as<std::vector<std::string>>();
+    }
     
     TaskDescription::Ptr task_desc = i_task;
 

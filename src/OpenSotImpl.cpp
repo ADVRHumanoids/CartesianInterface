@@ -136,7 +136,9 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
                 _force_estimation = std::make_shared<Utils::ForceEstimation>(_model);
             }
             
-            ft = _force_estimation->add_link(distal_link);
+            ft = _force_estimation->add_link(distal_link, 
+                                             {}, 
+                                             i_desc->force_estimation_chains);
         }
         
         auto admittance_task = boost::make_shared<OpenSoT::tasks::velocity::CartesianAdmittance>
@@ -577,6 +579,7 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
     if(_force_estimation)
     {
         _force_estimation->update();
+        _force_estimation->log(_logger);
     }
     
     _autostack->update(_q);

@@ -21,6 +21,8 @@ namespace XBot { namespace Cartesian { namespace Utils {
         
         void update();
         
+        void log(MatLogger::Ptr logger) const;
+        
         
     private:
         

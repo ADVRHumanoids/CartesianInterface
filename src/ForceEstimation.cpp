@@ -94,10 +94,12 @@ void ForceEstimation::compute_A_b()
     
     _y = _g - _tau;
     
+    int idx = 0;
     for(int i : _meas_idx)
     {
-        _b(i) = _y(i);
-        _A.row(i) = _Jtmp.col(i);
+        _b(idx) = _y(idx);
+        _A.row(idx) = _Jtmp.col(idx);
+        idx++;
     }
     
 }
@@ -134,5 +136,22 @@ void ForceEstimation::update()
         
         t.sensor->setWrench(wrench, 0.0);
         
+    }
+}
+
+void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger::Ptr logger) const
+{
+    for(const TaskInfo& t : _tasks)
+    {
+        Eigen::Vector6d wrench;
+        t.sensor->getWrench(wrench);
+        
+        Eigen::Matrix3d w_R_s;
+        _model->getOrientation(t.link_name, w_R_s);
+        
+        wrench.head<3>() = w_R_s * wrench.head<3>();
+        wrench.tail<3>() = w_R_s * wrench.tail<3>();
+        
+        logger->add(t.link_name + "_f_est", wrench);
     }
 }
