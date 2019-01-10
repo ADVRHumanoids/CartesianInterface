@@ -4,6 +4,7 @@
 #include <std_srvs/SetBool.h>
 #include <numeric> 
 #include <XBotInterface/RtLog.hpp>
+#include <tf_conversions/tf_kdl.h>
 
 #define SECS 5
 
@@ -30,6 +31,7 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
     _urdf.getLinks(_links);
 
     _start_pose = getRobotActualPose();
+    _actual_pose = _start_pose;
 
     MakeMarker(_distal_link, _base_link, false, control_type, true);
 
@@ -180,14 +182,12 @@ void CartesianMarker::resetLastWayPoints(const visualization_msgs::InteractiveMa
 {
     _T.pop_back();
     _waypoints.pop_back();
-    std_srvs::Empty::Request req;
-    std_srvs::Empty::Response res;
-    clearMarker(req, res);
+    clearMarker(_req, _res);
 
-    std::cout<<"RESET LAST WAYPOINT!"<<std::endl;
+    ROS_INFO("RESET LAST WAYPOINT!");
 
     if(_waypoints.empty())
-        spawnMarker(req,res);
+        spawnMarker(_req, _res);
     else{
         if(_server.empty())
         {
@@ -195,14 +195,7 @@ void CartesianMarker::resetLastWayPoints(const visualization_msgs::InteractiveMa
             //tf::PoseMsgToKDL(_waypoints.back(),_start_pose);
             _actual_pose = _start_pose;
 
-            _int_marker.pose.position.x = _start_pose.p.x();
-            _int_marker.pose.position.y = _start_pose.p.y();
-            _int_marker.pose.position.z = _start_pose.p.z();
-            double qx,qy,qz,qw; _start_pose.M.GetQuaternion(qx,qy,qz,qw);
-            _int_marker.pose.orientation.x = qx;
-            _int_marker.pose.orientation.y = qy;
-            _int_marker.pose.orientation.z = qz;
-            _int_marker.pose.orientation.w = qw;
+            KDLFrameToVisualizationPose(_start_pose, _int_marker);
 
             _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
             _menu_handler.apply(_server, _int_marker.name);
@@ -218,14 +211,11 @@ void CartesianMarker::resetAllWayPoints(const visualization_msgs::InteractiveMar
     _waypoints.clear();
     resetMarker(feedback);
     publishWP(_waypoints);
-    std::cout<<"RESETTING ALL WAYPOINTS!"<<std::endl;
+    ROS_INFO("RESETTING ALL WAYPOINTS!");
 }
 
 void CartesianMarker::resetMarker(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
-    std_srvs::Empty::Request req;
-    std_srvs::Empty::Response res;
-
     cartesian_interface::GetTaskInfo srv;
     _get_properties_service_client.call(srv);
 
@@ -250,8 +240,8 @@ void CartesianMarker::resetMarker(const visualization_msgs::InteractiveMarkerFee
     }
 
 
-    clearMarker(req, res);
-    spawnMarker(req,res);
+    clearMarker(_req, _res);
+    spawnMarker(_req, _res);
 }
 
 void CartesianMarker::publishWP(const std::vector<geometry_msgs::Pose>& wps)
@@ -278,9 +268,10 @@ void CartesianMarker::wayPointCallBack(const visualization_msgs::InteractiveMark
 
     if(_is_continuous == 1)
     {
-        std::cout<<_int_marker.name<<" set waypoint @: \n ["<<_actual_pose.p.x()<<" "<<_actual_pose.p.y()<<" "<<_actual_pose.p.z()<<"]"<<std::endl;
-        std::cout<<"["<<qx<<" "<<qy<<" "<<qz<<" "<<qw<<"]"<<std::endl;
-        std::cout<<"of "<<T<<" secs"<<std::endl;
+        ROS_INFO("\n %s set waypoint @: \n pos = [%f, %f, %f],\n orient = [%f, %f, %f, %f],\n of %.1f secs",
+                 _int_marker.name.c_str(),
+                 _actual_pose.p.x(), _actual_pose.p.y(), _actual_pose.p.z(),
+                 qx,qy,qz,qw, T);
 
         _waypoints.push_back(feedback->pose);
         _T.push_back(T);
@@ -396,9 +387,6 @@ void CartesianMarker::activateTask(const visualization_msgs::InteractiveMarkerFe
 
 void CartesianMarker::setContinuousCtrl(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
-    std_srvs::Empty::Request req;
-    std_srvs::Empty::Response res;
-
     _is_continuous *= -1;
     if(_is_continuous == 1)
     {
@@ -406,7 +394,7 @@ void CartesianMarker::setContinuousCtrl(const visualization_msgs::InteractiveMar
         _menu_handler.setVisible(_way_point_entry, true);
         _waypoints.clear();
         _T.clear();
-        setContinuous(req,res);
+        setContinuous(_req,_res);
     }
     else if(_is_continuous == -1)
     {
@@ -414,7 +402,7 @@ void CartesianMarker::setContinuousCtrl(const visualization_msgs::InteractiveMar
         _menu_handler.setVisible(_way_point_entry, false);
         _waypoints.clear();
         _T.clear();
-        setTrj(req, res);
+        setTrj(_req, _res);
     }
 
     _menu_handler.reApply(_server);
@@ -435,19 +423,16 @@ bool CartesianMarker::setTrj(std_srvs::Empty::Request &req, std_srvs::Empty::Res
 
 void CartesianMarker::setControlGlobalLocal(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
-    std_srvs::Empty::Request req;
-    std_srvs::Empty::Response res;
-
     _control_type *= -1;
     if(_control_type == 1)
     {
         _menu_handler.setCheckState(_global_control_entry, interactive_markers::MenuHandler::UNCHECKED);
-        setLocal(req,res);
+        setLocal(_req,_res);
     }
     else if(_control_type == -1)
     {
         _menu_handler.setCheckState(_global_control_entry, interactive_markers::MenuHandler::CHECKED);
-        setGlobal(req, res);
+        setGlobal(_req, _res);
     }
 
     _menu_handler.reApply(_server);
@@ -456,14 +441,8 @@ void CartesianMarker::setControlGlobalLocal(const visualization_msgs::Interactiv
 
 bool CartesianMarker::setGlobal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
-    _int_marker.pose.position.x = _actual_pose.p.x();
-    _int_marker.pose.position.y = _actual_pose.p.y();
-    _int_marker.pose.position.z = _actual_pose.p.z();
-    double qx,qy,qz,qw; _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
-    _int_marker.pose.orientation.x = qx;
-    _int_marker.pose.orientation.y = qy;
-    _int_marker.pose.orientation.z = qz;
-    _int_marker.pose.orientation.w = qw;
+    KDLFrameToVisualizationPose(_actual_pose, _int_marker);
+
     for(unsigned int i = 1; i < _int_marker.controls.size(); ++i)
         _int_marker.controls[i].orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
     _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback), this, _1));
@@ -473,14 +452,8 @@ bool CartesianMarker::setGlobal(std_srvs::Empty::Request& req, std_srvs::Empty::
 
 bool CartesianMarker::setLocal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
-    _int_marker.pose.position.x = _actual_pose.p.x();
-    _int_marker.pose.position.y = _actual_pose.p.y();
-    _int_marker.pose.position.z = _actual_pose.p.z();
-    double qx,qy,qz,qw; _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
-    _int_marker.pose.orientation.x = qx;
-    _int_marker.pose.orientation.y = qy;
-    _int_marker.pose.orientation.z = qz;
-    _int_marker.pose.orientation.w = qw;
+    KDLFrameToVisualizationPose(_actual_pose, _int_marker);
+
     for(unsigned int i = 1; i < _int_marker.controls.size(); ++i)
         _int_marker.controls[i].orientation_mode = visualization_msgs::InteractiveMarkerControl::INHERIT;
     _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback), this, _1));
@@ -494,14 +467,8 @@ bool CartesianMarker::spawnMarker(std_srvs::Empty::Request& req, std_srvs::Empty
     {
         _start_pose = getRobotActualPose();
         _actual_pose = _start_pose;
-        _int_marker.pose.position.x = _start_pose.p.x();
-        _int_marker.pose.position.y = _start_pose.p.y();
-        _int_marker.pose.position.z = _start_pose.p.z();
-        double qx,qy,qz,qw; _start_pose.M.GetQuaternion(qx,qy,qz,qw);
-        _int_marker.pose.orientation.x = qx;
-        _int_marker.pose.orientation.y = qy;
-        _int_marker.pose.orientation.z = qz;
-        _int_marker.pose.orientation.w = qw;
+
+        KDLFrameToVisualizationPose(_start_pose, _int_marker);
 
         _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
         _menu_handler.apply(_server, _int_marker.name);
@@ -520,10 +487,41 @@ bool CartesianMarker::clearMarker(std_srvs::Empty::Request& req, std_srvs::Empty
     return true;
 }
 
+void CartesianMarker::createInteractiveMarkerControl(const double qw, const double qx, const double qy, const double qz,
+                                    const unsigned int interaction_mode)
+{
+    _control.orientation.w = qw;
+    _control.orientation.x = qx;
+    _control.orientation.y = qy;
+    _control.orientation.z = qz;
+    if(interaction_mode == visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D)
+    {
+        _control.name = "rotate_x";
+        _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+        _int_marker.controls.push_back(_control);
+        _control.name = "move_x";
+        _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+        _int_marker.controls.push_back(_control);
+    }
+    else if(interaction_mode == visualization_msgs::InteractiveMarkerControl::MOVE_3D)
+    {
+        _control.name = "move_x";
+        _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+        _int_marker.controls.push_back(_control);
+    }
+    else if(interaction_mode == visualization_msgs::InteractiveMarkerControl::ROTATE_3D)
+    {
+        _control.name = "rotate_x";
+        _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+        _int_marker.controls.push_back(_control);
+    }
+    else throw std::invalid_argument("Invalid interaction mode!");
+}
+
 void CartesianMarker::MakeMarker(const std::string &distal_link, const std::string &base_link,
                             bool fixed, unsigned int interaction_mode, bool show)
 {
-    XBot::Logger::info(XBot::Logger::Severity::HIGH, "Creating marker %s -> %s\n", base_link.c_str(), distal_link.c_str());
+    ROS_INFO("Creating marker %s -> %s\n", base_link.c_str(), distal_link.c_str());
     _int_marker.header.frame_id = _tf_prefix+base_link;
     _int_marker.scale = 0.5;
 
@@ -539,104 +537,12 @@ void CartesianMarker::MakeMarker(const std::string &distal_link, const std::stri
 
     if(show)
     {
-        if(interaction_mode == visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D)
-        {
-          _control.orientation.w = 1;
-          _control.orientation.x = 1;
-          _control.orientation.y = 0;
-          _control.orientation.z = 0;
-          _control.name = "rotate_x";
-          _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
-          _int_marker.controls.push_back(_control);
-          _control.name = "move_x";
-          _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
-          _int_marker.controls.push_back(_control);
-
-          _control.orientation.w = 1;
-          _control.orientation.x = 0;
-          _control.orientation.y = 1;
-          _control.orientation.z = 0;
-          _control.name = "rotate_z";
-          _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
-          _int_marker.controls.push_back(_control);
-          _control.name = "move_z";
-          _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
-          _int_marker.controls.push_back(_control);
-
-          _control.orientation.w = 1;
-          _control.orientation.x = 0;
-          _control.orientation.y = 0;
-          _control.orientation.z = 1;
-          _control.name = "rotate_y";
-          _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
-          _int_marker.controls.push_back(_control);
-          _control.name = "move_y";
-          _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
-          _int_marker.controls.push_back(_control);
-        }
-        else if(interaction_mode == visualization_msgs::InteractiveMarkerControl::MOVE_3D)
-        {
-            _control.orientation.w = 1;
-            _control.orientation.x = 1;
-            _control.orientation.y = 0;
-            _control.orientation.z = 0;
-            _control.name = "move_x";
-            _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
-            _int_marker.controls.push_back(_control);
-
-            _control.orientation.w = 1;
-            _control.orientation.x = 0;
-            _control.orientation.y = 1;
-            _control.orientation.z = 0;
-            _control.name = "move_z";
-            _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
-            _int_marker.controls.push_back(_control);
-
-            _control.orientation.w = 1;
-            _control.orientation.x = 0;
-            _control.orientation.y = 0;
-            _control.orientation.z = 1;
-            _control.name = "move_y";
-            _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
-            _int_marker.controls.push_back(_control);
-        }
-        else if(interaction_mode == visualization_msgs::InteractiveMarkerControl::ROTATE_3D)
-        {
-            _control.orientation.w = 1;
-            _control.orientation.x = 1;
-            _control.orientation.y = 0;
-            _control.orientation.z = 0;
-            _control.name = "rotate_x";
-            _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
-            _int_marker.controls.push_back(_control);
-
-            _control.orientation.w = 1;
-            _control.orientation.x = 0;
-            _control.orientation.y = 1;
-            _control.orientation.z = 0;
-            _control.name = "rotate_z";
-            _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
-            _int_marker.controls.push_back(_control);
-
-            _control.orientation.w = 1;
-            _control.orientation.x = 0;
-            _control.orientation.y = 0;
-            _control.orientation.z = 1;
-            _control.name = "rotate_y";
-            _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
-            _int_marker.controls.push_back(_control);
-        }
-        else throw std::invalid_argument("Invalid interaction mode!");
+        createInteractiveMarkerControl(1,1,0,0,interaction_mode);
+        createInteractiveMarkerControl(1,0,1,0,interaction_mode);
+        createInteractiveMarkerControl(1,0,0,1,interaction_mode);
     }
 
-    _int_marker.pose.position.x = _start_pose.p.x();
-    _int_marker.pose.position.y = _start_pose.p.y();
-    _int_marker.pose.position.z = _start_pose.p.z();
-    double qx,qy,qz,qw; _start_pose.M.GetQuaternion(qx,qy,qz,qw);
-    _int_marker.pose.orientation.x = qx;
-    _int_marker.pose.orientation.y = qy;
-    _int_marker.pose.orientation.z = qz;
-    _int_marker.pose.orientation.w = qw;
+    KDLFrameToVisualizationPose(_start_pose, _int_marker);
 
     _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
 }
@@ -708,8 +614,14 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
     }
     
     T = getPose(controlled_link->name, link->name);
+    KDL::Frame T_marker;
+    URDFPoseToKDLFrame(link->visual->origin, T_marker);
+    T = T*T_marker;
+    KDLFrameToVisualizationPose(T, _marker);
 
-
+    _marker.color.r = 0.5;
+    _marker.color.g = 0.5;
+    _marker.color.b = 0.5;
 
     if(link->visual->geometry->type == urdf::Geometry::MESH)
     {
@@ -719,31 +631,6 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
                 boost::static_pointer_cast<urdf::Mesh>(link->visual->geometry);
 
         _marker.mesh_resource = mesh->filename;
-
-
-        KDL::Frame T_marker;
-        T_marker.p.x(link->visual->origin.position.x);
-        T_marker.p.y(link->visual->origin.position.y);
-        T_marker.p.z(link->visual->origin.position.z);
-        T_marker.M = T_marker.M.Quaternion(link->visual->origin.rotation.x,
-                              link->visual->origin.rotation.y,
-                              link->visual->origin.rotation.z,
-                              link->visual->origin.rotation.w);
-
-        T = T*T_marker;
-        _marker.pose.position.x = T.p.x();
-        _marker.pose.position.y = T.p.y();
-        _marker.pose.position.z = T.p.z();
-        double qx,qy,qz,qw; T.M.GetQuaternion(qx,qy,qz,qw);
-        _marker.pose.orientation.x = qx;
-        _marker.pose.orientation.y = qy;
-        _marker.pose.orientation.z = qz;
-        _marker.pose.orientation.w = qw;
-
-        _marker.color.r = 0.5;
-        _marker.color.g = 0.5;
-        _marker.color.b = 0.5;
-
         _marker.scale.x = mesh->scale.x;
         _marker.scale.y = mesh->scale.y;
         _marker.scale.z = mesh->scale.z;
@@ -756,27 +643,7 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
                 boost::static_pointer_cast<urdf::Box>(link->visual->geometry);
 
         KDL::Frame T_marker;
-        T_marker.p.x(link->visual->origin.position.x);
-        T_marker.p.y(link->visual->origin.position.y);
-        T_marker.p.z(link->visual->origin.position.z);
-        T_marker.M = T_marker.M.Quaternion(link->visual->origin.rotation.x,
-                              link->visual->origin.rotation.y,
-                              link->visual->origin.rotation.z,
-                              link->visual->origin.rotation.w);
-
-        T = T*T_marker;
-        _marker.pose.position.x = T.p.x();
-        _marker.pose.position.y = T.p.y();
-        _marker.pose.position.z = T.p.z();
-        double qx,qy,qz,qw; T.M.GetQuaternion(qx,qy,qz,qw);
-        _marker.pose.orientation.x = qx;
-        _marker.pose.orientation.y = qy;
-        _marker.pose.orientation.z = qz;
-        _marker.pose.orientation.w = qw;
-
-        _marker.color.r = 0.5;
-        _marker.color.g = 0.5;
-        _marker.color.b = 0.5;
+        URDFPoseToKDLFrame(link->visual->origin, T_marker);
 
         _marker.scale.x = mesh->dim.x;
         _marker.scale.y = mesh->dim.y;
@@ -791,31 +658,22 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
                 boost::static_pointer_cast<urdf::Cylinder>(link->visual->geometry);
 
         KDL::Frame T_marker;
-        T_marker.p.x(link->visual->origin.position.x);
-        T_marker.p.y(link->visual->origin.position.y);
-        T_marker.p.z(link->visual->origin.position.z);
-        T_marker.M = T_marker.M.Quaternion(link->visual->origin.rotation.x,
-                              link->visual->origin.rotation.y,
-                              link->visual->origin.rotation.z,
-                              link->visual->origin.rotation.w);
+        URDFPoseToKDLFrame(link->visual->origin, T_marker);
 
-        T = T*T_marker;
-        _marker.pose.position.x = T.p.x();
-        _marker.pose.position.y = T.p.y();
-        _marker.pose.position.z = T.p.z();
-        double qx,qy,qz,qw; T.M.GetQuaternion(qx,qy,qz,qw);
-        _marker.pose.orientation.x = qx;
-        _marker.pose.orientation.y = qy;
-        _marker.pose.orientation.z = qz;
-        _marker.pose.orientation.w = qw;
-
-        _marker.color.r = 0.5;
-        _marker.color.g = 0.5;
-        _marker.color.b = 0.5;
-
-        _marker.scale.x = mesh->radius;
-        _marker.scale.y = mesh->radius;
+        _marker.scale.x = _marker.scale.y = mesh->radius;
         _marker.scale.z = mesh->length;
+    }
+    else if(link->visual->geometry->type == urdf::Geometry::SPHERE)
+    {
+        _marker.type = visualization_msgs::Marker::SPHERE;
+
+        boost::shared_ptr<urdf::Sphere> mesh =
+                boost::static_pointer_cast<urdf::Sphere>(link->visual->geometry);
+
+        KDL::Frame T_marker;
+        URDFPoseToKDLFrame(link->visual->origin, T_marker);
+
+        _marker.scale.x = _marker.scale.y = _marker.scale.z = 2.*mesh->radius;
     }
 
     _marker.color.a = .9;
@@ -837,15 +695,8 @@ KDL::Frame CartesianMarker::getRobotActualPose()
         ROS_ERROR("%s",ex.what());
         ros::Duration(1.0).sleep();
     }}
-    KDL::Frame transform_KDL; transform_KDL = transform_KDL.Identity();
-    transform_KDL.p.x(_transform.getOrigin().x());
-    transform_KDL.p.y(_transform.getOrigin().y());
-    transform_KDL.p.z(_transform.getOrigin().z());
-
-    transform_KDL.M = transform_KDL.M.Quaternion(
-                _transform.getRotation().getX(), _transform.getRotation().getY(),
-                _transform.getRotation().getZ(), _transform.getRotation().getW()
-                );
+    KDL::Frame transform_KDL;
+    tf::TransformTFToKDL(_transform, transform_KDL);
 
     return transform_KDL;
 }
@@ -865,15 +716,9 @@ KDL::Frame CartesianMarker::getPose(const std::string& base_link, const std::str
         ROS_ERROR("%s",ex.what());
         ros::Duration(1.0).sleep();
     }}
-    KDL::Frame transform_KDL; transform_KDL = transform_KDL.Identity();
-    transform_KDL.p.x(_transform.getOrigin().x());
-    transform_KDL.p.y(_transform.getOrigin().y());
-    transform_KDL.p.z(_transform.getOrigin().z());
 
-    transform_KDL.M = transform_KDL.M.Quaternion(
-                _transform.getRotation().getX(), _transform.getRotation().getY(),
-                _transform.getRotation().getZ(), _transform.getRotation().getW()
-                );
+    KDL::Frame transform_KDL;
+    tf::TransformTFToKDL(_transform, transform_KDL);
 
     return transform_KDL;
 }
@@ -882,9 +727,7 @@ void XBot::Cartesian::CartesianMarker::setBaseLink(std::string base_link)
 {
     _base_link = base_link;
     _int_marker.header.frame_id = _tf_prefix + base_link;
-    std_srvs::EmptyRequest req;
-    std_srvs::EmptyResponse res;
-    
-    clearMarker(req, res);
-    spawnMarker(req, res);
+
+    clearMarker(_req, _res);
+    spawnMarker(_req, _res);
 }
