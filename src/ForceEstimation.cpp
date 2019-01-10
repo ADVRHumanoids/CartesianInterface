@@ -67,6 +67,11 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
     
     _ndofs += dofs.size();
     
+    std::cout << "Force estimation using joints:\n";
+    std::for_each(_meas_idx.begin(), _meas_idx.end(), 
+                  [](int i){ std::cout << i << " "; });
+    std::cout << std::endl;
+    
     return t.sensor;
     
 }
@@ -97,8 +102,8 @@ void ForceEstimation::compute_A_b()
     int idx = 0;
     for(int i : _meas_idx)
     {
-        _b(idx) = _y(idx);
-        _A.row(idx) = _Jtmp.col(idx);
+        _b(idx) = _y(i);
+        _A.row(idx) = _Jtmp.col(i);
         idx++;
     }
     
