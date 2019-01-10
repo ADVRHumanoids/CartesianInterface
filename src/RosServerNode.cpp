@@ -197,6 +197,13 @@ int main(int argc, char **argv){
     
     while(ros::ok())
     {
+        /* Update sensors */
+        if(robot)
+        {
+            robot->sense(false);
+            model->syncFrom(*robot, XBot::Sync::Sensors);
+        }
+        
         /* Update references from ros */
         ros::spinOnce();
         auto tic_ros = high_resolution_clock::now();

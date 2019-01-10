@@ -4,6 +4,7 @@
 
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/ros/RosEnabled.h>
+#include <cartesian_interface/utils/estimation/ForceEstimation.h>
 #include <OpenSoT/tasks/velocity/Cartesian.h>
 #include <OpenSoT/tasks/velocity/CartesianAdmittance.h>
 #include <OpenSoT/tasks/velocity/CoM.h>
@@ -70,6 +71,7 @@ private:
     AngularMomentumTask::Ptr _angular_momentum_task;
     bool _minimize_rate_of_change;
     
+    Utils::ForceEstimation::Ptr _force_estimation;
     OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr _solver;
     OpenSoT::AutoStack::Ptr _autostack;
     

@@ -131,7 +131,12 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
         }
         catch(...)
         {
-            throw std::runtime_error("Interaction task requires an FT sensor as distal link");
+            if(!_force_estimation)
+            {
+                _force_estimation = std::make_shared<Utils::ForceEstimation>(_model);
+            }
+            
+            ft = _force_estimation->add_link(distal_link);
         }
         
         auto admittance_task = boost::make_shared<OpenSoT::tasks::velocity::CartesianAdmittance>
@@ -566,6 +571,12 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
         }
         
         _update_lambda = false;
+    }
+    
+    /* Force estimation */
+    if(_force_estimation)
+    {
+        _force_estimation->update();
     }
     
     _autostack->update(_q);

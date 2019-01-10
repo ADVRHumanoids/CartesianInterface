@@ -98,6 +98,7 @@ set(CartesianInterface_SRC
         src/ProblemDescription.cpp
         src/TaskImpl.cpp
         src/ConstraintImpl.cpp
+        src/ForceEstimation.cpp
     )
 
 # OpenSot implementation
