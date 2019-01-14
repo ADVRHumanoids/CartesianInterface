@@ -497,7 +497,7 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
     }
     
     _autostack->update(_q);
-    _autostack->log(_logger);
+    // _autostack->log(_logger);
 
     if(!_solver->solve(_dq))
     {
