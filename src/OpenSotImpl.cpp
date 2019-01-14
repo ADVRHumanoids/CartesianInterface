@@ -149,11 +149,20 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
                                                 ft
                                                 );
 
-        admittance_task->setLambda(i_desc->lambda);
         admittance_task->setOrientationErrorGain(i_desc->orientation_gain);
         
-        admittance_task->setStiffness(i_desc->stiffness);
-        admittance_task->setDamping(i_desc->damping);
+        double control_dt = 0.01;
+        if(!get_control_dt(control_dt))
+        {
+            Logger::warning("Unable to find control period \
+in configuration file (add problem_description/solver_options/control_dt field)\n");
+        }
+        
+        admittance_task->setImpedanceParams(i_desc->stiffness,
+                                            i_desc->damping, 
+                                            i_desc->lambda, 
+                                            control_dt
+                                           );
 
         std::list<uint> indices(i_desc->indices.begin(), i_desc->indices.end());
 
@@ -304,8 +313,15 @@ OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr XBot::Car
         Eigen::VectorXd qdotmax;
         _model->getVelocityLimits(qdotmax);
         
+        double control_dt = 0.01;
+        if(!get_control_dt(control_dt))
+        {
+            Logger::warning("Unable to find control period \
+in configuration file (add problem_description/solver_options/control_dt field)\n");
+        }
+        
         auto vel_lims = boost::make_shared<OpenSoT::constraints::velocity::VelocityLimits>
-                                            (qdotmax, 0.01);
+                                            (qdotmax, control_dt);
 
         return vel_lims;
 
@@ -666,6 +682,17 @@ bool XBot::Cartesian::OpenSotImpl::setControlMode(const std::string& ee_name,
             
         }
         
+        return true;
+    }
+    
+    return false;
+}
+
+bool XBot::Cartesian::OpenSotImpl::get_control_dt(double& dt)
+{
+    if(has_config() && get_config()["control_dt"])
+    {
+        dt = get_config()["control_dt"].as<double>();
         return true;
     }
     

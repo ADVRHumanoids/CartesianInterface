@@ -69,7 +69,7 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
     
     std::cout << "Force estimation using joints:\n";
     std::for_each(_meas_idx.begin(), _meas_idx.end(), 
-                  [](int i){ std::cout << i << " "; });
+                  [this](int i){ std::cout << _model->getEnabledJointNames().at(i) << "\n"; });
     std::cout << std::endl;
     
     return t.sensor;

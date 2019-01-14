@@ -52,6 +52,7 @@ private:
     typedef OpenSoT::constraints::Aggregated::ConstraintPtr ConstraintPtr;
     
     void set_adaptive_lambda(CartesianTask::Ptr cartesian_task);
+    bool get_control_dt(double& dt);
     
     TaskPtr construct_task(TaskDescription::Ptr);
     TaskPtr aggregated_from_stack(AggregatedTask stack);

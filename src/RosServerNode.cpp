@@ -56,18 +56,8 @@ int main(int argc, char **argv){
     ros::NodeHandle nh_private("~");
     
     
-    /* By default, MID verbosity level */
-    const int verbosity = nh_private.param("verbosity", (int)XBot::Logger::Severity::MID);
-    XBot::Logger::SetVerbosityLevel((XBot::Logger::Severity)verbosity);
-    
     /* Should we run in visual mode? */
-    std::string param_name = "visual_mode";
-    bool visual_mode = false;
-    
-    if(nh.hasParam(param_name))
-    {
-        nh.getParam(param_name, visual_mode);
-    }
+    bool visual_mode = nh.param("visual_mode", false);
     
     /* Obtain xbot config object */
     bool use_xbot_config = nh_private.param("use_xbot_config", false);

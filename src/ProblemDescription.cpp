@@ -69,6 +69,11 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
     
     _solver_options_node = yaml_node["solver_options"];
     
+    if(_solver_options_node)
+    {
+        Logger::success("Solver options node found\n");
+    }
+    
     YAML::Node stack = yaml_node["stack"];
     
     for(auto stack_level : stack)
