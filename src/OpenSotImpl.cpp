@@ -64,7 +64,10 @@ OpenSoT::tasks::Aggregated::TaskPtr XBot::Cartesian::OpenSotImpl::aggregated_fro
     /* Return Aggregated */
     if(tasks_list.size() > 1)
     {
-        return boost::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _q.size());
+        OpenSoT::tasks::Aggregated::Ptr aggregated;
+        aggregated.reset(new OpenSoT::tasks::Aggregated(tasks_list, _q.size()));
+        return aggregated;
+        //return boost::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _q.size());
     }
     else
     {
@@ -83,13 +86,19 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
         std::string distal_link = cartesian_desc->distal_link;
         std::string base_link = cartesian_desc->base_link;
         
-        auto cartesian_task = boost::make_shared<OpenSoT::tasks::velocity::Cartesian>
-                                            (base_link + "_TO_" + distal_link,
-                                                _q,
-                                                *_model,
-                                                distal_link,
-                                                base_link
-                                                );
+//        auto cartesian_task = boost::make_shared<OpenSoT::tasks::velocity::Cartesian>
+//                                            (base_link + "_TO_" + distal_link,
+//                                                _q,
+//                                                *_model,
+//                                                distal_link,
+//                                                base_link
+//                                                );
+        OpenSoT::tasks::velocity::Cartesian::Ptr cartesian_task;
+        cartesian_task.reset(new OpenSoT::tasks::velocity::Cartesian(base_link + "_TO_" + distal_link,
+                                                                     _q,
+                                                                     *_model,
+                                                                     distal_link,
+                                                                     base_link));
 
         cartesian_task->setLambda(cartesian_desc->lambda);
         cartesian_task->setOrientationErrorGain(cartesian_desc->orientation_gain);
@@ -121,7 +130,8 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
         auto gaze_desc = XBot::Cartesian::GetAsGaze(task_desc);
         std::string base_link = gaze_desc->base_link;
 
-        _gaze_task = boost::make_shared<GazeTask>(base_link + "_TO_" + "gaze",_q, *_model, base_link);
+        //_gaze_task = boost::make_shared<GazeTask>(base_link + "_TO_" + "gaze",_q, *_model, base_link);
+        _gaze_task.reset(new GazeTask(base_link + "_TO_" + "gaze",_q, *_model, base_link));
         _gaze_task->setLambda(gaze_desc->lambda);
         
         
@@ -257,7 +267,10 @@ OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr XBot::Car
             
             if(opensot_task)
             {
-                return boost::make_shared<OpenSoT::constraints::TaskToConstraint>(opensot_task);
+                OpenSoT::constraints::TaskToConstraint::Ptr tmp;
+                tmp.reset(new OpenSoT::constraints::TaskToConstraint(opensot_task));
+                return tmp;
+                //return boost::make_shared<OpenSoT::constraints::TaskToConstraint>(opensot_task);
             }
             else
             {
@@ -293,7 +306,8 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
 
     /* Parse stack #0 and create autostack */
     auto stack_0 = aggregated_from_stack(ik_problem.getTask(0));
-    _autostack = boost::make_shared<OpenSoT::AutoStack>(stack_0);
+    _autostack.reset(new OpenSoT::AutoStack(stack_0));
+    //_autostack = boost::make_shared<OpenSoT::AutoStack>(stack_0);
 
     /* Parse remaining stacks  */
     for(int i = 1; i < ik_problem.getNumTasks(); i++)
