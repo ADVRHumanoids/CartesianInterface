@@ -13,12 +13,15 @@
 #include <cartesian_interface/SetTaskInfo.h>
 #include <cartesian_interface/GetTaskList.h>
 #include <cartesian_interface/ResetWorld.h>
+#include <cartesian_interface/Impedance6.h>
+#include <cartesian_interface/GetImpedance.h>
 #include <actionlib/server/simple_action_server.h>
 #include <std_srvs/Empty.h>
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/WrenchStamped.h>
 #include <sensor_msgs/JointState.h>
 
 #ifndef XBOT_RSPUB
@@ -29,11 +32,8 @@
 
 #include <tf/transform_broadcaster.h>
 #include <tf_conversions/tf_eigen.h>
-#include <cartesian_interface/ReferenceStamped.h>
 
 #include <cartesian_interface/CartesianInterfaceImpl.h>
-#include <cartesian_interface/markers/CartesianMarker.h>
-#include <thread>
 
 namespace XBot { namespace Cartesian {
 
@@ -52,13 +52,12 @@ namespace XBot { namespace Cartesian {
         
         struct Options
         {
-            bool spawn_markers;
             std::string tf_prefix;
             
             Options();
         };
 
-        RosServerClass(CartesianInterfaceImpl::Ptr intfc,
+        RosServerClass(CartesianInterface::Ptr intfc,
                        ModelInterface::ConstPtr model, 
                        Options opt = Options()
                       );
@@ -89,10 +88,11 @@ namespace XBot { namespace Cartesian {
         void __generate_state_broadcasting();
         void __generate_online_pos_topics();
         void __generate_online_vel_topics();
+        void __generate_interaction_topics();
+        void __generate_interaction_srvs();
         void __generate_task_info_services();
         void __generate_reset_service();
         void __generate_rspub();
-        void __generate_markers();
         void __generate_task_info_setters();
         void __generate_task_list_service();
         void __generate_postural_task_topics_and_services();
@@ -108,15 +108,25 @@ namespace XBot { namespace Cartesian {
         static geometry_msgs::Pose get_normalized_pose(const geometry_msgs::Pose& pose);
 
         void online_position_reference_cb(const geometry_msgs::PoseStampedConstPtr& msg,
-                                           const std::string& ee_name);
+                                          const std::string& ee_name);
+        
+        void online_impedance_reference_cb(const cartesian_interface::Impedance6ConstPtr& msg,
+                                             const std::string& ee_name);
+        
+        void online_force_reference_cb(const geometry_msgs::WrenchStampedConstPtr& msg,
+                                             const std::string& ee_name);
         
         void online_posture_reference_cb(const sensor_msgs::JointStateConstPtr& msg);
 
         void online_velocity_reference_cb(const geometry_msgs::TwistStampedConstPtr& msg,
-                                           const std::string& ee_name);
+                                          const std::string& ee_name);
 
         bool get_task_info_cb(cartesian_interface::GetTaskInfoRequest& req,
                             cartesian_interface::GetTaskInfoResponse& res,
+                            const std::string& ee_name);
+        
+        bool get_impedance_cb(cartesian_interface::GetImpedanceRequest& req,
+                            cartesian_interface::GetImpedanceResponse& res,
                             const std::string& ee_name);
         
         bool set_task_info_cb(cartesian_interface::SetTaskInfoRequest& req,
@@ -145,7 +155,7 @@ namespace XBot { namespace Cartesian {
         ros::NodeHandle _nh;
         ros::CallbackQueue _cbk_queue;
 
-        CartesianInterfaceImpl::Ptr _cartesian_interface;
+        CartesianInterface::Ptr _cartesian_interface;
         RosEnabled::Ptr _ros_enabled_ci;
         ModelInterface::ConstPtr _model;
         tf::TransformBroadcaster _tf_broadcaster;
@@ -153,16 +163,19 @@ namespace XBot { namespace Cartesian {
 
         std::vector<ActionServerPtr> _action_servers;
         std::vector<bool> _is_action_active;
-        std::vector<ros::Subscriber> _pos_sub, _vel_sub;
+        std::vector<ros::Subscriber> _pos_sub, _vel_sub, _imp_sub, _force_sub;
         std::vector<ros::Publisher> _state_pub;
         ros::Publisher _com_pub, _posture_pub, _solution_pub;
         ros::Subscriber _posture_sub;
-        std::vector<ros::ServiceServer> _get_task_info_srv, _set_task_info_srv;
-        std::map<std::string, CartesianMarker::Ptr> _markers;
-        ros::ServiceServer _reset_srv, _tasklist_srv, _reset_posture_srv, _update_limits_srv, _reset_world_srv;
+        std::vector<ros::ServiceServer> _get_task_info_srv, _set_task_info_srv, _impedance_srv;
+        ros::ServiceServer _reset_srv, 
+                           _tasklist_srv, 
+                           _reset_posture_srv, 
+                           _update_limits_srv, 
+                           _reset_world_srv;
 
-        std::shared_ptr<std::thread> _marker_thread;
-
+        
+        
     };
 
 } }

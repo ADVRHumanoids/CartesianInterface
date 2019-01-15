@@ -56,8 +56,7 @@ private:
     ModelInterface::Ptr _model;
     
     CartesianInterfaceImpl::Ptr _ci;
-    Utils::SyncFromIO::Ptr _sync_from_nrt;
-    bool _first_sync_done;
+    Utils::SyncFromIO::Ptr _sync;
 
     double _start_time;
 

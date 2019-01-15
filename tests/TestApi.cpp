@@ -131,22 +131,22 @@ TEST_F(TestApi, checkTaskProperties)
     
     for(auto task : ci->getTaskList())
     {
-        ASSERT_EQ(ci->getTaskState(task), XBot::Cartesian::CartesianInterface::State::Online);
+        ASSERT_EQ(ci->getTaskState(task), XBot::Cartesian::State::Online);
     }
     
     for(auto task : ci->getTaskList())
     {
-        ASSERT_EQ(ci->getControlMode(task), XBot::Cartesian::CartesianInterface::ControlType::Position);
+        ASSERT_EQ(ci->getControlMode(task), XBot::Cartesian::ControlType::Position);
     }
     
     for(auto task : ci->getTaskList())
     {
-        ASSERT_TRUE(ci->setControlMode(task, XBot::Cartesian::CartesianInterface::ControlType::Velocity));
-        ASSERT_EQ(ci->getControlMode(task), XBot::Cartesian::CartesianInterface::ControlType::Velocity);
-        ASSERT_TRUE(ci->setControlMode(task, XBot::Cartesian::CartesianInterface::ControlType::Disabled));
-        ASSERT_EQ(ci->getControlMode(task), XBot::Cartesian::CartesianInterface::ControlType::Disabled);
-        ASSERT_TRUE(ci->setControlMode(task, XBot::Cartesian::CartesianInterface::ControlType::Position));
-        ASSERT_EQ(ci->getControlMode(task), XBot::Cartesian::CartesianInterface::ControlType::Position);
+        ASSERT_TRUE(ci->setControlMode(task, XBot::Cartesian::ControlType::Velocity));
+        ASSERT_EQ(ci->getControlMode(task), XBot::Cartesian::ControlType::Velocity);
+        ASSERT_TRUE(ci->setControlMode(task, XBot::Cartesian::ControlType::Disabled));
+        ASSERT_EQ(ci->getControlMode(task), XBot::Cartesian::ControlType::Disabled);
+        ASSERT_TRUE(ci->setControlMode(task, XBot::Cartesian::ControlType::Position));
+        ASSERT_EQ(ci->getControlMode(task), XBot::Cartesian::ControlType::Position);
     }
     
     
@@ -161,38 +161,36 @@ TEST_F(TestApi, checkReferences)
         auto T = GetRandomFrame();
         Eigen::Vector6d vel, acc;
         vel.setRandom(); acc.setRandom();
-        ASSERT_TRUE(ci->setPoseReference(ee, T, vel, acc));
+        ASSERT_TRUE(ci->setPoseReference(ee, T));
+        ASSERT_TRUE(ci->setVelocityReference(ee, vel));
         Eigen::Affine3d T1;
         Eigen::Vector6d vel1, acc1;
         ASSERT_TRUE(ci->getPoseReference(ee, T1, &vel1, &acc1));
         EXPECT_TRUE( T.isApprox(T1) );
         EXPECT_TRUE( vel.isApprox(vel1) );
-        EXPECT_TRUE( acc.isApprox(acc1) );
     }
     
     {
         auto T = GetRandomFrame();
         Eigen::Vector6d vel, acc;
         vel.setRandom(); acc.setRandom();
-        ASSERT_TRUE(ci->setPoseReferenceRaw(ee, T, vel, acc));
+        ASSERT_TRUE(ci->setPoseReferenceRaw(ee, T));
         Eigen::Affine3d T1;
         Eigen::Vector6d vel1, acc1;
         ASSERT_TRUE(ci->getPoseReferenceRaw(ee, T1, &vel1, &acc1));
         EXPECT_TRUE( T.isApprox(T1) );
-        EXPECT_TRUE( vel.isApprox(vel1) );
-        EXPECT_TRUE( acc.isApprox(acc1) );
     }
     
     Eigen::Vector3d pcom, vcom, acom;
     pcom.setRandom();
     vcom.setRandom();
     acom.setRandom();
-    ASSERT_TRUE(ci->setComPositionReference(pcom, vcom, acom));
+    ASSERT_TRUE(ci->setComPositionReference(pcom));
+    ASSERT_TRUE(ci->setComVelocityReference(vcom));
     Eigen::Vector3d pcom1, vcom1, acom1;
     ASSERT_TRUE(ci->getComPositionReference(pcom1, &vcom1, &acom1));
     EXPECT_TRUE( pcom.isApprox(pcom1) );
     EXPECT_TRUE( vcom.isApprox(vcom1) );
-    EXPECT_TRUE( acom.isApprox(acom1) );
     
     XBot::JointNameMap posture_ref;
     int i = 0;
@@ -229,11 +227,11 @@ TEST_F(TestApi, checkTrajectories)
         
         if(t < 2.0)
         {
-            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::CartesianInterface::State::Reaching);
+            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::State::Reaching);
         }
         else
         {
-            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::CartesianInterface::State::Online);
+            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::State::Online);
             Eigen::Affine3d T1;
             ci->getPoseReference(ee, T1);
             EXPECT_TRUE( T.isApprox(T1) );
@@ -252,11 +250,11 @@ TEST_F(TestApi, checkTrajectories)
         
         if(t < (2.5 + 3.0))
         {
-            EXPECT_EQ(ci->getTaskState(ee), XBot::Cartesian::CartesianInterface::State::Reaching);
+            EXPECT_EQ(ci->getTaskState(ee), XBot::Cartesian::State::Reaching);
         }
         else if(t > (2.5 + 3.0))
         {
-            EXPECT_EQ(ci->getTaskState(ee), XBot::Cartesian::CartesianInterface::State::Online);
+            EXPECT_EQ(ci->getTaskState(ee), XBot::Cartesian::State::Online);
             Eigen::Affine3d T1;
             ci->getPoseReference(ee, T1);
             EXPECT_TRUE( T.isApprox(T1) );
@@ -289,11 +287,11 @@ TEST_F(TestApi, checkWaypoints)
         
         if(t < 4.0)
         {
-            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::CartesianInterface::State::Reaching);
+            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::State::Reaching);
         }
         else
         {
-            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::CartesianInterface::State::Online);
+            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::State::Online);
             Eigen::Affine3d T1;
             ci->getPoseReference(ee, T1);
             EXPECT_TRUE( T1.isApprox(wpvec.back().frame) );
@@ -318,24 +316,24 @@ TEST_F(TestApi, checkWaypoints)
         
         if(t < 9.5)
         {
-            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::CartesianInterface::State::Reaching);
+            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::State::Reaching);
             Eigen::Affine3d T1;
             ci->getPoseReference(ee, T1);
             if(std::fabs(t-6.5) < 0.015)
             {
                 EXPECT_TRUE( T1.isApprox(wpvec1[0].frame, 0.001) );
             }
-            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::CartesianInterface::State::Reaching);
+            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::State::Reaching);
             if(std::fabs(t-7.0) < 0.015)
             {
                 EXPECT_TRUE( T1.isApprox(wpvec1[1].frame, 0.001) );
             }
-            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::CartesianInterface::State::Reaching);
+            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::State::Reaching);
             if(std::fabs(t-8.5) < 0.015)
             {
                 EXPECT_TRUE( T1.isApprox(wpvec1[2].frame, 0.001) );
             }
-            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::CartesianInterface::State::Reaching);
+            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::State::Reaching);
             if(std::fabs(t-9.5) < 0.015)
             {
                 EXPECT_TRUE( T1.isApprox(wpvec1[3].frame, 0.001) );
@@ -343,7 +341,7 @@ TEST_F(TestApi, checkWaypoints)
         }
         else
         {
-            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::CartesianInterface::State::Online);
+            ASSERT_EQ(ci->getTaskState(ee), XBot::Cartesian::State::Online);
             Eigen::Affine3d T1;
             ci->getPoseReference(ee, T1);
             EXPECT_TRUE( T1.isApprox(wpvec1.back().frame) );

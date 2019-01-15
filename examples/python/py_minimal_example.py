@@ -10,6 +10,7 @@ from cartesian_interface.pyci_all import *
 if __name__ == '__main__':
 
     ci = pyci.CartesianInterfaceRos()
+
     
     left_ee_ref  = Affine3(pos=[   1.183, -0.02465,    1.522], rot=[0.5817, 0.2247, 0.5606, 0.5447])
     right_ee_ref = Affine3(pos=[ 0.1477, -0.2796,   1.205], rot=[-0.001817,    0.3351,    0.7231,     0.604])

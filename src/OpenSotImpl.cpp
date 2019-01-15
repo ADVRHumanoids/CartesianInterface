@@ -1,7 +1,7 @@
 #include <cartesian_interface/open_sot/OpenSotImpl.h>
 #include <cartesian_interface/problem/ProblemDescription.h>
 #include <cartesian_interface/problem/Task.h>
-#include <cartesian_interface/problem/Cartesian.h>
+#include <cartesian_interface/problem/Interaction.h>
 #include <cartesian_interface/problem/Com.h>
 #include <cartesian_interface/problem/Postural.h>
 #include <cartesian_interface/problem/Gaze.h>
@@ -111,6 +111,77 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
                             base_link.c_str(), 
                             distal_link.c_str(), 
                             cartesian_desc->lambda,
+                            indices.size()
+                            );
+
+    }
+    else if(task_desc->type == "Interaction")
+    {
+        auto i_desc = XBot::Cartesian::GetAsInteraction(task_desc);
+        std::string distal_link = i_desc->distal_link;
+        std::string base_link = i_desc->base_link;
+        
+        
+        XBot::ForceTorqueSensor::ConstPtr ft;
+        
+        
+        try
+        {
+            ft = _model->getForceTorque().at(distal_link);
+        }
+        catch(...)
+        {
+            if(!_force_estimation)
+            {
+                _force_estimation = std::make_shared<Utils::ForceEstimation>(_model);
+            }
+            
+            ft = _force_estimation->add_link(distal_link, 
+                                             {}, 
+                                             i_desc->force_estimation_chains);
+        }
+        
+        auto admittance_task = boost::make_shared<OpenSoT::tasks::velocity::CartesianAdmittance>
+                                               ("adm_" + base_link + "_TO_" + distal_link,
+                                                _q,
+                                                *_model,
+                                                base_link,
+                                                ft
+                                                );
+
+        admittance_task->setOrientationErrorGain(i_desc->orientation_gain);
+        
+        double control_dt = 0.01;
+        if(!get_control_dt(control_dt))
+        {
+            Logger::warning("Unable to find control period \
+in configuration file (add problem_description/solver_options/control_dt field)\n");
+        }
+        
+        admittance_task->setImpedanceParams(i_desc->stiffness,
+                                            i_desc->damping, 
+                                            i_desc->lambda, 
+                                            control_dt
+                                           );
+
+        std::list<uint> indices(i_desc->indices.begin(), i_desc->indices.end());
+
+        _cartesian_tasks.push_back(admittance_task);
+        _admittance_tasks.push_back(admittance_task);
+
+        if(indices.size() == 6)
+        {
+            opensot_task = i_desc->weight*(admittance_task);
+        }
+        else
+        {
+            opensot_task = i_desc->weight*(admittance_task%indices);
+        }
+        
+        XBot::Logger::info("OpenSot: Admittance found (%s -> %s), lambda = %f, dofs = %d\n", 
+                            base_link.c_str(), 
+                            distal_link.c_str(), 
+                            i_desc->lambda,
                             indices.size()
                             );
 
@@ -241,9 +312,16 @@ OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr XBot::Car
     {
         Eigen::VectorXd qdotmax;
         _model->getVelocityLimits(qdotmax);
-
+        
+        double control_dt = 0.01;
+        if(!get_control_dt(control_dt))
+        {
+            Logger::warning("Unable to find control period \
+in configuration file (add problem_description/solver_options/control_dt field)\n");
+        }
+        
         auto vel_lims = boost::make_shared<OpenSoT::constraints::velocity::VelocityLimits>
-                                            (qdotmax, 0.01);
+                                            (qdotmax, control_dt);
 
         return vel_lims;
 
@@ -379,20 +457,20 @@ bool XBot::Cartesian::OpenSotImpl::initRos(ros::NodeHandle nh)
 {
     
     
-    for(auto t: _cartesian_tasks)
-    {
-        std::string ee_name = t->getDistalLink();
-        auto sub = nh.subscribe<std_msgs::Float32>(ee_name + "/lambda", 
-                                                    1, 
-                                                    boost::bind(&OpenSotImpl::lambda_callback, 
-                                                                this,
-                                                                _1,
-                                                                ee_name
-                                                                )
-                                                   );
-        _lambda_sub_map[ee_name] = sub;
-        
-    }
+//     for(auto t: _cartesian_tasks)
+//     {
+//         std::string ee_name = t->getDistalLink();
+//         auto sub = nh.subscribe<std_msgs::Float32>(ee_name + "/lambda", 
+//                                                     1, 
+//                                                     boost::bind(&OpenSotImpl::lambda_callback, 
+//                                                                 this,
+//                                                                 _1,
+//                                                                 ee_name
+//                                                                 )
+//                                                    );
+//         _lambda_sub_map[ee_name] = sub;
+//         
+//     }
     
     return true;
 }
@@ -425,6 +503,23 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
         
         v_ref *= period;
         cart_task->setReference(T_ref, v_ref);
+
+    }
+    
+    /* Process admittance tasks */
+    for(auto i_task : _admittance_tasks)
+    {
+        Eigen::Vector6d f;
+        Eigen::Matrix6d k, d;
+
+        if(!getDesiredInteraction(i_task->getDistalLink(), f, k, d))
+        {
+            continue;
+        }
+        
+        i_task->setStiffness(k.diagonal());
+        i_task->setDamping(d.diagonal());
+        i_task->setWrenchReference(f);
 
     }
 
@@ -496,6 +591,13 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
         _update_lambda = false;
     }
     
+    /* Force estimation */
+    if(_force_estimation)
+    {
+        _force_estimation->update();
+        _force_estimation->log(_logger);
+    }
+    
     _autostack->update(_q);
     _autostack->log(_logger);
 
@@ -520,7 +622,7 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
 }
 
 bool XBot::Cartesian::OpenSotImpl::setControlMode(const std::string& ee_name, 
-                                                  XBot::Cartesian::CartesianInterface::ControlType ctrl_type)
+                                                  ControlType ctrl_type)
 {
     if(!XBot::Cartesian::CartesianInterfaceImpl::setControlMode(ee_name, ctrl_type))
     {
@@ -580,6 +682,17 @@ bool XBot::Cartesian::OpenSotImpl::setControlMode(const std::string& ee_name,
             
         }
         
+        return true;
+    }
+    
+    return false;
+}
+
+bool XBot::Cartesian::OpenSotImpl::get_control_dt(double& dt)
+{
+    if(has_config() && get_config()["control_dt"])
+    {
+        dt = get_config()["control_dt"].as<double>();
         return true;
     }
     

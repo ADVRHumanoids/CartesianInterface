@@ -1,0 +1,16 @@
+<launch>
+
+    <arg name="rate" default="100.0"/>
+    <arg name="prefix" default=""/>
+    
+    <param name="robot_description" textfile="$(env ROBOTOLOGY_ROOT)/configs/ADVR_shared/centauro/urdf/centauro.urdf"/>
+    <param name="robot_description_semantic" textfile="$(env ROBOTOLOGY_ROOT)/configs/ADVR_shared/centauro/srdf/centauro.srdf"/>
+    <param name="problem_description" textfile="$(find cartesian_interface)/examples/configs/centauro_simple_stack.yaml"/>
+
+    <include file="$(find cartesian_interface)/launch/cartesio.launch">
+        <arg name="rate" value="$(arg rate)"/>
+        <arg name="prefix" value="$(arg prefix)"/>
+    </include>
+
+
+</launch>

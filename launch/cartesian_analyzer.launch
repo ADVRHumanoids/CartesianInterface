@@ -1,8 +1,8 @@
 <launch>
     
-    <arg name="namespace" default=""/>
+    <arg name="namespace" default="/"/>
 
-    <group unless="$(eval namespace=='')" ns="$(arg namespace)">
+    <group ns="$(arg namespace)">
         
         <node pkg="cartesian_interface" type="cartesian_analyzer" 
                                     name="cartesian_analyzer" 
@@ -16,18 +16,4 @@
     
     </group>
     
-    <group if="$(eval namespace=='')">
-        
-        <node pkg="cartesian_interface" type="cartesian_analyzer" 
-                                    name="cartesian_analyzer" 
-                                    required="true" 
-                                    output="screen">
-                                    
-            <param name="is_model_floating_base" type="bool" value="true"/>
-            <param name="model_type" value="RBDL"/>
-            
-        </node>
-    
-    </group>
-
 </launch>

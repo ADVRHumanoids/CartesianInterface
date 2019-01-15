@@ -35,25 +35,15 @@ auto py_get_pose_reference(const RosImpl& r, const std::string& ee)
     
 }
 
-bool py_set_pose_reference(RosImpl& r, 
-                           const std::string& ee,
-                           const Eigen::Affine3d& Tref,
-                           const Eigen::Vector6d& vel_ref
-                          )
+auto py_get_interaction_reference(const RosImpl& r, const std::string& ee)
 {
-    Eigen::Vector6d a;
-    a.setZero();
+    Eigen::Matrix6d k, d;
+    Eigen::Vector6d f;
     
-    return r.setPoseReference(ee, Tref, vel_ref, a);
+    r.getDesiredInteraction(ee, f, k, d);
     
-}
-
-bool py_set_pose_reference_novel(RosImpl& r, 
-                           const std::string& ee,
-                           const Eigen::Affine3d& Tref
-                          )
-{
-    return py_set_pose_reference(r, ee, Tref, Eigen::Vector6d::Zero());
+    return std::make_tuple(f, k, d);
+    
 }
 
 auto py_send_waypoints(RosImpl& r, 

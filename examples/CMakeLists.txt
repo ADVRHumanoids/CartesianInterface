@@ -1,0 +1,9 @@
+install(DIRECTORY configs/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/examples/configs
+  FILES_MATCHING PATTERN "*.yaml"
+)
+
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/examples/launch
+  FILES_MATCHING PATTERN "*.launch"
+)

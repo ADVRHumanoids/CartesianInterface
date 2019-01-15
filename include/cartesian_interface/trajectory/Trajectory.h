@@ -23,11 +23,11 @@
 #include <XBotInterface/ModelInterface.h>
 
 namespace XBot { namespace Cartesian {
-   
+
     class Trajectory {
-        
+
     public:
-        
+
         typedef std::shared_ptr<Trajectory> Ptr;
         typedef std::shared_ptr<const Trajectory> ConstPtr;
         
@@ -49,13 +49,12 @@ namespace XBot { namespace Cartesian {
                          const Eigen::Affine3d& frame);
         
         void addWayPoint(const WayPoint& way_point, double time_offset = 0.0);
-        
-        void setVelocityLimit(const Eigen::Vector6d& vel_max);
-        void setAccelerationLimit(const Eigen::Vector6d& acc_max);
-        
+
         void clear();
         
         const std::vector<WayPoint>& getWayPoints() const;
+        
+        virtual void compute();
         
         virtual Eigen::Affine3d evaluate(double time, 
                                  Eigen::Vector6d * const vel = nullptr, 
@@ -71,7 +70,6 @@ namespace XBot { namespace Cartesian {
         void sort_frames();
         
         std::vector<WayPoint> _frames;
-        Eigen::Vector6d _vel_max, _acc_max;
         
     };
     

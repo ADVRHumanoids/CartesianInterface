@@ -1,7 +1,6 @@
 #include <cartesian_interface/CartesianInterfaceImpl.h>
-#include <cartesian_interface/problem/Cartesian.h>
+#include <cartesian_interface/problem/Interaction.h>
 #include <boost/algorithm/string.hpp>  
-
 
 using namespace XBot::Cartesian;
 
@@ -9,7 +8,7 @@ namespace {
     const double DEFAULT_TTL = 0.1;
 }
 
-std::string CartesianInterface::ControlTypeAsString(CartesianInterface::ControlType ctrl)
+std::string CartesianInterface::ControlTypeAsString(ControlType ctrl)
 {
     switch(ctrl)
     {
@@ -31,7 +30,7 @@ std::string CartesianInterface::ControlTypeAsString(CartesianInterface::ControlT
 }
 
 
-std::string CartesianInterface::StateAsString(CartesianInterface::State ctrl)
+std::string CartesianInterface::StateAsString(State ctrl)
 {
     switch(ctrl)
     {
@@ -48,8 +47,32 @@ std::string CartesianInterface::StateAsString(CartesianInterface::State ctrl)
     }
 }
 
+std::string CartesianInterface::TaskInterfaceAsString(TaskInterface ifc)
+{
+    switch(ifc)
+    {
+        case TaskInterface::None:
+            return "None";
+            break;
+            
+        case TaskInterface::Postural:
+            return "Postural";
+            break;
+            
+        case TaskInterface::Cartesian:
+            return "Cartesian";
+            break;
+            
+        case TaskInterface::Interaction:
+            return "Interaction";
+            break;
+            
+        default:
+            throw std::runtime_error("Invalid task interface");
+    }
+}
 
-CartesianInterface::ControlType CartesianInterface::ControlTypeFromString(const std::string& ctrl)
+ControlType CartesianInterface::ControlTypeFromString(const std::string& ctrl)
 {
     
     std::string ctrl_lower = ctrl;
@@ -64,7 +87,20 @@ CartesianInterface::ControlType CartesianInterface::ControlTypeFromString(const 
 }
 
 
-CartesianInterface::State CartesianInterface::StateFromString(const std::string& state)
+TaskInterface CartesianInterface::TaskInterfaceFromString(const std::string& ifc)
+{
+    std::string ifc_lower = ifc;
+    boost::algorithm::to_lower(ifc_lower);
+    
+    if(ifc_lower == "none") return TaskInterface::None;
+    if(ifc_lower == "postural") return TaskInterface::Postural;
+    if(ifc_lower == "cartesian") return TaskInterface::Cartesian;
+    if(ifc_lower == "interaction") return TaskInterface::Interaction;
+    
+    throw std::invalid_argument("Invalid state '" + ifc + "'");
+}
+
+State CartesianInterface::StateFromString(const std::string& state)
 {
     std::string state_lower = state;
     boost::algorithm::to_lower(state_lower);
@@ -116,8 +152,8 @@ CartesianInterfaceImpl::Task::Ptr CartesianInterfaceImpl::get_task(const std::st
             it = _task_map.end();
         }
     }
-
-
+    
+    
     if(it == _task_map.end())
     {
         XBot::Logger::error("Task %s undefined \n", ee_name.c_str());
@@ -200,13 +236,11 @@ bool CartesianInterfaceImpl::getPoseTarget(const std::string& end_effector, Eige
 
 
 bool CartesianInterfaceImpl::setPoseReference(const std::string& end_effector, 
-                                              const Eigen::Affine3d& w_T_ref, 
-                                              const Eigen::Vector6d& w_vel_ref, 
-                                              const Eigen::Vector6d& w_acc_ref)
+                                              const Eigen::Affine3d& w_T_ref)
 {
     auto task = get_task(end_effector);
     
-    if(!task || !task->set_reference(w_T_ref, w_vel_ref, w_acc_ref))
+    if(!task || !task->set_pose_reference(w_T_ref))
     {
         return false;
     }
@@ -214,14 +248,27 @@ bool CartesianInterfaceImpl::setPoseReference(const std::string& end_effector,
     return true;
 }
 
-bool CartesianInterfaceImpl::setPoseReferenceRaw(const std::string& end_effector, 
-                                              const Eigen::Affine3d& w_T_ref, 
-                                              const Eigen::Vector6d& w_vel_ref, 
-                                              const Eigen::Vector6d& w_acc_ref)
+bool XBot::Cartesian::CartesianInterfaceImpl::setVelocityReference(const std::string& end_effector, 
+                                                                   const Eigen::Vector6d& base_vel_ref)
 {
     auto task = get_task(end_effector);
     
-    if(!task || !task->set_reference(w_T_ref, w_vel_ref, w_acc_ref))
+    if(!task || !task->set_vel_reference(base_vel_ref))
+    {
+        return false;
+    }
+    
+    return true;
+}
+
+
+
+bool CartesianInterfaceImpl::setPoseReferenceRaw(const std::string& end_effector, 
+                                              const Eigen::Affine3d& w_T_ref)
+{
+    auto task = get_task(end_effector);
+    
+    if(!task || !task->set_pose_reference(w_T_ref))
     {
         return false;
     }
@@ -352,15 +399,6 @@ CartesianInterfaceImpl::~CartesianInterfaceImpl()
 }
 
 
-CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
-                                               std::vector< std::pair< std::string, std::string > > tasks):
-    _model(model),
-    _tasks_vector(tasks),
-    _current_time(0.0),
-    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_logger_" + std::to_string(rand())))
-{
-    __construct_from_vectors();
-}
 
 void CartesianInterfaceImpl::__construct_from_vectors()
 {
@@ -387,33 +425,7 @@ void CartesianInterfaceImpl::__construct_from_vectors()
 
     for(auto pair : _tasks_vector)
     {
-        Eigen::Affine3d T;
-        if(pair.first != "world" && !_model->getPose(pair.first, T))
-        {
-            XBot::Logger::error("CartesianInterface: unable to find frame %s inside URDF\n", pair.first.c_str());
-            continue;
-        }
         
-        if(pair.second != "com" && !_model->getPose(pair.second, T))
-        {
-            XBot::Logger::error("CartesianInterface: unable to find frame %s inside URDF\n", pair.second.c_str());
-            continue;
-        }
-        
-        auto task = std::make_shared<CartesianInterfaceImpl::Task>(pair.first, pair.second);
-        
-        if(pair.second == "com")
-        {
-            _com_task = task;
-        }
-        
-        _task_map[task->get_distal()] = task;
-        
-        Logger::success(Logger::Severity::HIGH) <<  "Successfully added task with\n" << 
-            "   BASE LINK:   " << XBot::bold_on << task->get_base() << XBot::bold_off  << "\n" << XBot::color_yellow <<
-            "   DISTAL LINK: " << XBot::bold_on << task->get_distal() << XBot::bold_off << Logger::endl();
-        
-        _ee_list.push_back(task->get_distal());
         
     }
     
@@ -515,37 +527,128 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
         }
     }
     
-    __construct_from_vectors();
+    reset(0.0);
+    init_log_tasks();
     
 }
 
-void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task_desc)
+bool XBot::Cartesian::CartesianInterfaceImpl::validate_cartesian(CartesianTask::Ptr cart)
 {
-    switch(task_desc->interface)
+    std::string base = cart->base_link;
+    std::string distal = cart->distal_link;
+    
+    auto predicate = [distal](const std::pair<std::string, std::string>& elem)
+                     {
+                         return elem.second == distal;
+                     };
+    
+    auto it = std::find_if(_tasks_vector.begin(), 
+                           _tasks_vector.end(), 
+                           predicate);
+    
+    auto it_1 = std::find(_tasks_vector.begin(), 
+                         _tasks_vector.end(), 
+                         std::make_pair(base, distal));
+      
+    if(it_1 != _tasks_vector.end()) // duplicate found
     {
-        case TaskInterface::Cartesian:
-        {
-            auto cart_desc = GetAsCartesian(task_desc);
-            _tasks_vector.emplace_back(cart_desc->base_link, cart_desc->distal_link);
-            break;
-        }
-        case TaskInterface::Postural:
-        {   
-            if(!_model->getRobotState("home", _q_ref))
-            {
-                Logger::warning("Group state \"home\" undefined inside SRDF: setting posture reference to zero\n");
-            }
-            break;
-        }   
-        default:
-            Logger::warning("Unsupported task type\n");
+        return false;
     }
+    
+    if(it != _tasks_vector.end()) // same distal link and different base link
+    {
+        throw std::runtime_error("different base links for same distal not allowed (" + distal + ")");
+    }
+    
+    Eigen::Affine3d T;
+    if(base != "world" && !_model->getPose(base, T))
+    {
+        XBot::Logger::error("CartesianInterface: unable to find frame %s inside URDF\n", base.c_str());
+        return false;
+    }
+    
+    if(distal != "com" && !_model->getPose(distal, T))
+    {
+        XBot::Logger::error("CartesianInterface: unable to find frame %s inside URDF\n", distal.c_str());
+        return false;
+    }
+    
+    return true;
 }
 
 
-bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_com_ref, 
-                                                     const Eigen::Vector3d& w_vel_ref, 
-                                                     const Eigen::Vector3d& w_acc_ref)
+void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task_desc)
+{
+    
+    if(task_desc->interface == TaskInterface::Cartesian)
+    {
+        auto cart_desc = GetAsCartesian(task_desc);
+        
+        if(validate_cartesian(cart_desc))
+        {
+            
+            auto task = std::make_shared<CartesianInterfaceImpl::Task>(cart_desc->base_link,
+                                                                       cart_desc->distal_link);
+            
+            if(cart_desc->distal_link == "com")
+            {
+                _com_task = task;
+            }
+            
+            _task_map[cart_desc->distal_link] = task;
+            _ee_list.push_back(cart_desc->distal_link);
+            
+            Logger::success(Logger::Severity::HIGH) <<  "Successfully added task with\n" << 
+        "   BASE LINK:   " << XBot::bold_on << task->get_base() << XBot::bold_off  << "\n" << XBot::color_yellow <<
+        "   DISTAL LINK: " << XBot::bold_on << task->get_distal() << XBot::bold_off << Logger::endl();
+        
+        }
+    }
+    else if(task_desc->interface == TaskInterface::Interaction)
+    {
+        auto i_desc = GetAsInteraction(task_desc);
+        
+        if(validate_cartesian(i_desc))
+        {
+            
+            auto task = std::make_shared<CartesianInterfaceImpl::InteractionTask>(i_desc->base_link,
+                                                                        i_desc->distal_link);
+            
+            task->set_stiffness(i_desc->stiffness.asDiagonal());
+            task->set_damping(i_desc->damping.asDiagonal());
+            
+            if(i_desc->distal_link == "com")
+            {
+                _com_task = task;
+            }
+            
+            _task_map[i_desc->distal_link] = task;
+            _interaction_task_map[i_desc->distal_link] = task;
+            _ee_list.push_back(i_desc->distal_link);
+            
+            Logger::success(Logger::Severity::HIGH) <<  "Successfully added interaction task with\n" << 
+        "   BASE LINK:   " << XBot::bold_on << task->get_base() << XBot::bold_off  << "\n" << XBot::color_yellow <<
+        "   DISTAL LINK: " << XBot::bold_on << task->get_distal() << XBot::bold_off << Logger::endl();
+        
+        }
+    }
+    else if(task_desc->interface == TaskInterface::Postural)
+    {   
+        if(!_model->getRobotState("home", _q_ref))
+        {
+            Logger::warning("Group state \"home\" undefined inside SRDF: setting posture reference to zero\n");
+        }
+    }   
+    else
+    {
+        Logger::warning("Unsupported task type\n");
+    }
+    
+    
+}
+
+
+bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_com_ref)
 {
     if(!_com_task)
     {
@@ -553,17 +656,25 @@ bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_co
     }
     
     Eigen::Affine3d Tref;
-    Eigen::Vector6d velref, accref;
-    velref.setZero();
-    accref.setZero();
-    velref.head<3>() = w_vel_ref;
-    accref.head<3>() = w_acc_ref;
-    
     Tref.setIdentity();
     Tref.translation() = w_com_ref;
     
-    return _com_task->set_reference(Tref, velref, accref);
+    return _com_task->set_pose_reference(Tref);
 }
+
+bool XBot::Cartesian::CartesianInterfaceImpl::setComVelocityReference(const Eigen::Vector3d& base_vel_ref)
+{
+    if(!_com_task)
+    {
+        return false;
+    }
+        
+    Eigen::Vector6d twist;
+    twist << base_vel_ref, 0., 0., 0.;
+    
+    return _com_task->set_vel_reference(twist);
+}
+
 
 
 bool CartesianInterfaceImpl::setTargetComPosition(const Eigen::Vector3d& w_com_ref, 
@@ -632,7 +743,7 @@ const std::string& CartesianInterfaceImpl::getBaseLink(const std::string& ee_nam
     return task->get_base();
 }
 
-CartesianInterface::ControlType CartesianInterfaceImpl::getControlMode(const std::string& ee_name) const
+ControlType CartesianInterfaceImpl::getControlMode(const std::string& ee_name) const
 {
     auto task = get_task(ee_name);
     
@@ -646,7 +757,7 @@ CartesianInterface::ControlType CartesianInterfaceImpl::getControlMode(const std
 }
 
 
-bool CartesianInterfaceImpl::setControlMode(const std::string& ee_name, CartesianInterface::ControlType ctrl_type)
+bool CartesianInterfaceImpl::setControlMode(const std::string& ee_name, ControlType ctrl_type)
 {
     auto task = get_task(ee_name);
     
@@ -665,14 +776,14 @@ bool CartesianInterfaceImpl::setControlMode(const std::string& ee_name, Cartesia
 }
 
 
-CartesianInterface::State CartesianInterfaceImpl::getTaskState(const std::string& end_effector) const
+State CartesianInterfaceImpl::getTaskState(const std::string& end_effector) const
 {
     auto task = get_task(end_effector);
     
     if(!task)
     {
         XBot::Logger::error("Undefined end effector \n");
-        return CartesianInterface::State::Online;
+        return State::Online;
     }
     
     return task->get_state();
@@ -875,9 +986,7 @@ bool CartesianInterfaceImpl::Task::get_pose_target(Eigen::Affine3d& pose_target)
     }
 }
 
-bool CartesianInterfaceImpl::Task::set_reference(const Eigen::Affine3d& pose, 
-                                                 const Eigen::Vector6d& vel_ref, 
-                                                 const Eigen::Vector6d& acc_ref)
+bool CartesianInterfaceImpl::Task::set_pose_reference(const Eigen::Affine3d& pose)
 {
     if(state == State::Reaching)
     {
@@ -891,11 +1000,6 @@ bool CartesianInterfaceImpl::Task::set_reference(const Eigen::Affine3d& pose,
         return false;
     }
     
-    if((T.translation() - pose.translation()).norm() > 0.01)
-    {
-        XBot::Logger::warning("Task %s: jump detected in reference \n", distal_frame.c_str());
-    }
-    
     if(control_type == ControlType::Position)
     {
         T = pose;
@@ -905,17 +1009,21 @@ bool CartesianInterfaceImpl::Task::set_reference(const Eigen::Affine3d& pose,
         Logger::warning(Logger::Severity::DEBUG, "Task %s: not setting position reference\n", distal_frame.c_str());
     }
     
-    vel = vel_ref;
-    acc = acc_ref;
-    
-    if(!vel_ref.isZero())
+    return true;
+}
+
+bool XBot::Cartesian::CartesianInterfaceImpl::Task::set_vel_reference(const Eigen::Vector6d& vref)
+{
+    if(control_type == ControlType::Disabled)
     {
-        vref_time_to_live = DEFAULT_TTL;
+        XBot::Logger::error("Unable to set pose reference. Task %s is in DISABLED mode \n", distal_frame.c_str());
+        return false;
     }
     
-    new_data_available = true;
+    vel = vref;
+    vref_time_to_live = DEFAULT_TTL;
     
-    return true;
+    new_data_available = true;
 }
 
 
@@ -942,6 +1050,7 @@ bool CartesianInterfaceImpl::Task::set_waypoints(double time, const Trajectory::
         trajectory->addWayPoint(wp, time);
     }
 
+    trajectory->compute();
     new_data_available = true;
     return true;
 }
@@ -965,6 +1074,7 @@ bool CartesianInterfaceImpl::Task::set_target_pose(double current_time, double t
     trajectory->clear();
     trajectory->addWayPoint(current_time, T);
     trajectory->addWayPoint(target_time, pose);
+    trajectory->compute();
     new_data_available = true;
     
     return true;
@@ -1047,7 +1157,7 @@ bool CartesianInterfaceImpl::Task::check_reach() const
     return trajectory->getWayPoints().back().frame.isApprox(get_pose_otg());
 }
 
-CartesianInterface::ControlType CartesianInterfaceImpl::Task::get_ctrl() const
+ControlType CartesianInterfaceImpl::Task::get_ctrl() const
 {
     return control_type;
 }
@@ -1100,7 +1210,7 @@ const Eigen::Affine3d& CartesianInterfaceImpl::Task::get_pose() const
     return T;
 }
 
-CartesianInterface::State CartesianInterfaceImpl::Task::get_state() const
+State CartesianInterfaceImpl::Task::get_state() const
 {
     return state;
 }
@@ -1250,9 +1360,9 @@ void XBot::Cartesian::CartesianInterfaceImpl::getAccelerationLimits(const std::s
     task->get_otg_acc_limits(max_acc_lin, max_acc_ang);
 }
 
-void XBot::Cartesian::CartesianInterfaceImpl::getVelocityLimits(const std::string& ee_name, 
-                                                                double& max_vel_lin, 
-                                                                double& max_vel_ang) const
+void CartesianInterfaceImpl::getVelocityLimits(const std::string& ee_name, 
+                                               double& max_vel_lin, 
+                                               double& max_vel_ang) const
 {
     auto task = get_task(ee_name);
     
@@ -1264,7 +1374,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::getVelocityLimits(const std::strin
     task->get_otg_vel_limits(max_vel_lin, max_vel_ang);
 }
 
-bool XBot::Cartesian::CartesianInterfaceImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
+bool CartesianInterfaceImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
 {
     Eigen::Affine3d w_T_fb;
     if(!_model->getFloatingBasePose(w_T_fb))
@@ -1278,6 +1388,154 @@ bool XBot::Cartesian::CartesianInterfaceImpl::resetWorld(const Eigen::Affine3d& 
     }
     
     return reset(get_current_time());
+}
+
+CartesianInterfaceImpl::InteractionTask::InteractionTask():
+    Task()
+{
+    d.setZero();
+    k.setZero();
+    force.setZero();
+}
+
+CartesianInterfaceImpl::InteractionTask::InteractionTask(const std::string& base,
+                                                                          const std::string& distal):
+    Task(base, distal)
+{
+    d.setZero();
+    k.setZero();
+    force.setZero();
+}
+
+
+TaskInterface CartesianInterfaceImpl::getTaskInterface(const std::string& end_effector) const
+{
+    auto t = get_task(end_effector);
+    
+    if(!t)
+    {
+        return TaskInterface::None;
+    }
+    
+    if(get_interaction_task(end_effector, false))
+    {
+        
+        return TaskInterface::Interaction;
+    }
+    
+    return TaskInterface::Cartesian;
+}
+
+
+const Eigen::Matrix6d & CartesianInterfaceImpl::InteractionTask::get_stiffness() const
+{
+    return k;
+}
+
+const Eigen::Matrix6d & CartesianInterfaceImpl::InteractionTask::get_damping() const
+{
+    return d;
+}
+
+const Eigen::Vector6d & CartesianInterfaceImpl::InteractionTask::get_force() const
+{
+    return force;
+}
+
+CartesianInterfaceImpl::InteractionTask::Ptr CartesianInterfaceImpl::get_interaction_task(const std::string& ee_name, 
+                                                                                          bool verbose) const
+{
+    auto it = _interaction_task_map.find(ee_name);
+    
+    if(it == _interaction_task_map.end())
+    {
+        if(verbose)
+        {
+            XBot::Logger::error("Interaction task %s undefined \n", ee_name.c_str());
+        }
+        return nullptr;
+    }
+    
+    return it->second;
+}
+
+void CartesianInterfaceImpl::InteractionTask::set_damping(const Eigen::Matrix6d& damping)
+{
+    d = damping;
+}
+
+void CartesianInterfaceImpl::InteractionTask::set_force(const Eigen::Vector6d& arg_force)
+{
+    force = arg_force;
+}
+
+void CartesianInterfaceImpl::InteractionTask::set_stiffness(const Eigen::Matrix6d& stiffness)
+{
+    k = stiffness;
+}
+
+bool CartesianInterfaceImpl::setDesiredDamping(const std::string& end_effector, 
+                                                                const Eigen::Matrix6d& d)
+{
+    auto itask = get_interaction_task(end_effector);
+    
+    if(!itask)
+    {
+        return false;
+    }
+    
+    itask->set_damping(d);
+    
+    return true;
+}
+
+bool CartesianInterfaceImpl::setDesiredStiffness(const std::string& end_effector, 
+                                                                  const Eigen::Matrix6d& k)
+{
+    auto itask = get_interaction_task(end_effector);
+    
+    if(!itask)
+    {
+        return false;
+    }
+    
+    itask->set_stiffness(k);
+    
+    return true;
+}
+
+bool CartesianInterfaceImpl::setForceReference(const std::string& end_effector, 
+                                                                const Eigen::Vector6d& force)
+{
+    auto itask = get_interaction_task(end_effector);
+    
+    if(!itask)
+    {
+        return false;
+    }
+    
+    itask->set_force(force);
+    
+    return true;
+}
+
+bool XBot::Cartesian::CartesianInterfaceImpl::getDesiredInteraction(const std::string& end_effector, 
+                                                                    Eigen::Vector6d& force, 
+                                                                    Eigen::Matrix6d& stiffness, 
+                                                                    Eigen::Matrix6d& damping) const
+{
+    auto itask = get_interaction_task(end_effector);
+    
+    if(!itask)
+    {
+        return false;
+    }
+    
+    force = itask->get_force();
+    stiffness = itask->get_stiffness();
+    damping = itask->get_damping();
+    
+    return true;
 }
 
 

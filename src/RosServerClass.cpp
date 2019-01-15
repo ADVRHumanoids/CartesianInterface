@@ -4,7 +4,6 @@
 using namespace XBot::Cartesian;
 
 RosServerClass::Options::Options():
-    spawn_markers(true),
     tf_prefix("ci")
 {
 
@@ -33,11 +32,15 @@ void RosServerClass::__generate_rspub()
 
     _rspub.reset(new RsPub(kdl_tree));
 
-    std::string _urdf_param_name = "/xbotcore/" + _model->getUrdf().getName() + "/robot_description";
-    std::string _tf_prefix = "/xbotcore/" + _model->getUrdf().getName();
-    _nh.setParam(_urdf_param_name, _model->getUrdfString());
-    _nh.setParam("/robot_description", _model->getUrdfString());
-    _nh.setParam("/robot_description_semantic", _model->getSrdfString());
+    ros::NodeHandle base_nh;
+    if(!base_nh.hasParam("robot_description"))
+    {
+        base_nh.setParam("robot_description", _model->getUrdfString());
+    }
+    if(!base_nh.hasParam("robot_description_semantic"))
+    {
+        base_nh.setParam("robot_description_semantic", _model->getSrdfString());
+    }
     
     _com_pub = _nh.advertise<geometry_msgs::PointStamped>("com_position", 1);
 }
@@ -95,25 +98,75 @@ void RosServerClass::online_position_reference_cb(const geometry_msgs::PoseStamp
     Eigen::Affine3d T;
     tf::poseMsgToEigen(msg->pose, T);
     
+    _cartesian_interface->setPoseReference(ee_name, T);
     
+}
+
+void XBot::Cartesian::RosServerClass::online_force_reference_cb(const geometry_msgs::WrenchStampedConstPtr& msg, 
+                                                                const std::string& ee_name)
+{
+    Eigen::Vector6d f;
+    tf::wrenchMsgToEigen(msg->wrench, f);
     
-    if(ee_name == "com")
+    _cartesian_interface->setForceReference(ee_name, f);
+}
+
+
+void XBot::Cartesian::RosServerClass::__generate_interaction_topics()
+{
+    for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        _cartesian_interface->setComPositionReference(T.translation());
-    }
-    else
-    {
-        _cartesian_interface->setPoseReference(ee_name, T);
+        if(_cartesian_interface->getTaskInterface(ee_name) != TaskInterface::Interaction)
+        {
+            continue;
+        }
+        
+        auto icb = std::bind(&RosServerClass::online_impedance_reference_cb, this, std::placeholders::_1, ee_name);
+
+        ros::Subscriber isub = _nh.subscribe<cartesian_interface::Impedance6>(ee_name + "/impedance",
+                                                                             1, icb);
+
+        _imp_sub.push_back(isub);
+        
+        auto fcb = std::bind(&RosServerClass::online_force_reference_cb, this, std::placeholders::_1, ee_name);
+        
+        ros::Subscriber fsub = _nh.subscribe<geometry_msgs::WrenchStamped>(ee_name + "/force",
+                                                                             1, fcb);
+
+        _force_sub.push_back(fsub);
     }
 }
 
+void XBot::Cartesian::RosServerClass::__generate_interaction_srvs()
+{
+    for(std::string ee_name : _cartesian_interface->getTaskList())
+    {
+        if(_cartesian_interface->getTaskInterface(ee_name) != TaskInterface::Interaction)
+        {
+            continue;
+        }
+        
+        std::string srv_name = ee_name + "/get_impedance";
+
+        auto cb = boost::bind(&RosServerClass::get_impedance_cb,
+                            this,
+                            _1,
+                            _2,
+                            ee_name);
+        
+        ros::ServiceServer srv = _nh.advertiseService<cartesian_interface::GetImpedanceRequest,
+                                                      cartesian_interface::GetImpedanceResponse>(srv_name, cb);
+
+        _impedance_srv.push_back(srv);
+    }
+}
 
 
 void RosServerClass::__generate_online_vel_topics()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string topic_name = "" + ee_name + "/velocity_reference";
+        std::string topic_name = ee_name + "/velocity_reference";
 
         auto cb = std::bind(&RosServerClass::online_velocity_reference_cb, this, std::placeholders::_1, ee_name);
 
@@ -157,21 +210,8 @@ void RosServerClass::online_velocity_reference_cb(const geometry_msgs::TwistStam
         vel.tail<3>() = b_R_f * vel.tail<3>();
     }
     
+    _cartesian_interface->setVelocityReference(ee_name, vel);
     
-    if(ee_name == "com")
-    {
-        Eigen::Vector3d com_ref, com_vref;
-        _cartesian_interface->getComPositionReference(com_ref);
-        com_vref = vel.head<3>();
-        
-        _cartesian_interface->setComPositionReference(com_ref, com_vref);
-    }
-    else
-    {
-        Eigen::Affine3d T;
-        _cartesian_interface->getPoseReferenceRaw(ee_name, T);
-        _cartesian_interface->setPoseReference(ee_name, T, vel);
-    }
 }
 
 void RosServerClass::__generate_online_pos_topics()
@@ -212,9 +252,9 @@ void RosServerClass::manage_reach_actions()
 
         const std::string& ee_name = _cartesian_interface->getTaskList()[i];
 
-        CartesianInterface::State current_state = _cartesian_interface->getTaskState(ee_name);
+        State current_state = _cartesian_interface->getTaskState(ee_name);
 
-        if(as->isNewGoalAvailable() && current_state != CartesianInterface::State::Reaching)
+        if(as->isNewGoalAvailable() && current_state != State::Reaching)
         {
             if(!_is_action_active[i])
             {
@@ -283,7 +323,7 @@ void RosServerClass::manage_reach_actions()
 
         if(as->isActive())
         {
-            if(current_state == CartesianInterface::State::Online)
+            if(current_state == State::Online)
             {
                 
                 cartesian_interface::ReachPoseResult result;
@@ -340,12 +380,12 @@ void XBot::Cartesian::RosServerClass::publish_posture_state(ros::Time time)
     sensor_msgs::JointState msg;
     Eigen::VectorXd _posture_ref;
     
-    if(!_cartesian_interface->getReferencePosture(_posture_ref))
+    if(_posture_pub.getNumSubscribers() == 0)
     {
         return;
     }
     
-    if(_posture_pub.getNumSubscribers() == 0)
+    if(!_cartesian_interface->getReferencePosture(_posture_ref))
     {
         return;
     }
@@ -414,7 +454,7 @@ void RosServerClass::run()
 
 }
 
-RosServerClass::RosServerClass(CartesianInterfaceImpl::Ptr intfc, 
+RosServerClass::RosServerClass(CartesianInterface::Ptr intfc, 
                                ModelInterface::ConstPtr model, 
                                Options opt):
     _cartesian_interface(intfc),
@@ -429,21 +469,18 @@ RosServerClass::RosServerClass(CartesianInterfaceImpl::Ptr intfc,
     
     __generate_online_pos_topics();
     __generate_online_vel_topics();
+    __generate_interaction_topics();
     __generate_reach_pose_action_servers();
     __generate_state_broadcasting();
     __generate_rspub();
     __generate_task_info_services();
+    __generate_interaction_srvs();
     __generate_task_info_setters();
     __generate_task_list_service();
     __generate_postural_task_topics_and_services();
     __generate_update_param_services();
     __generate_reset_world_service();
 
-    if(_opt.spawn_markers)
-    {
-        _marker_thread = std::make_shared<std::thread>(&RosServerClass::__generate_markers, this);
-    }
-    
     _ros_enabled_ci = std::dynamic_pointer_cast<RosEnabled>(_cartesian_interface);
     if(!_ros_enabled_ci || !_ros_enabled_ci->initRos(_nh))
     {
@@ -615,34 +652,6 @@ void XBot::Cartesian::RosServerClass::__generate_update_param_services()
 
 
 
-void RosServerClass::__generate_markers()
-{
-
-    for(std::string ee_name : _cartesian_interface->getTaskList())
-    {
-        unsigned int control_type;
-        
-        if(ee_name == "com")
-        {
-            control_type = visualization_msgs::InteractiveMarkerControl::MOVE_3D;
-        }
-        else
-        {
-            control_type = visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D;
-        }
-        
-        std::string base_link = _cartesian_interface->getBaseLink(ee_name);
-        base_link = base_link == "world" ? "world_odom" : base_link;
-        auto marker = std::make_shared<CartesianMarker>(base_link,
-                                                   ee_name,
-                                                   static_cast<const urdf::Model&>(_model->getUrdf()),
-                                                   control_type,
-                                                   _tf_prefix_slash
-                                                  );
-        
-        _markers[ee_name] = marker;
-    }
-}
 
 bool XBot::Cartesian::RosServerClass::get_task_info_cb(cartesian_interface::GetTaskInfoRequest& req,
                                                        cartesian_interface::GetTaskInfoResponse& res,
@@ -653,6 +662,7 @@ bool XBot::Cartesian::RosServerClass::get_task_info_cb(cartesian_interface::GetT
     res.control_mode  =  CartesianInterface::ControlTypeAsString(_cartesian_interface->getControlMode(ee_name));
     res.task_state  =  CartesianInterface::StateAsString(_cartesian_interface->getTaskState(ee_name));
     res.distal_link = ee_name;
+    res.task_interface = CartesianInterface::TaskInterfaceAsString(_cartesian_interface->getTaskInterface(ee_name));
     
     return true;
 }
@@ -662,7 +672,6 @@ bool XBot::Cartesian::RosServerClass::get_task_info_cb(cartesian_interface::GetT
 
 RosServerClass::~RosServerClass()
 {
-    if(_marker_thread) _marker_thread->join();
 }
 
 XBot::ModelInterface::ConstPtr RosServerClass::getModel() const
@@ -701,12 +710,6 @@ bool XBot::Cartesian::RosServerClass::set_task_info_cb(cartesian_interface::SetT
     {
         res.message = "Successfully set base link of task " + ee_name + " to " + new_base_link;
         res.success = true;
-        
-        std::string __new_base_link = new_base_link == "world" ? "world_odom" : new_base_link;
-        if(_markers.count(ee_name) != 0)
-        {
-            _markers.at(ee_name)->setBaseLink(__new_base_link);
-        }
     }
     else if(new_base_link != "")
     {
@@ -822,6 +825,60 @@ bool XBot::Cartesian::RosServerClass::reset_world_cb(cartesian_interface::ResetW
     }
     
     return true;
+}
+
+
+bool RosServerClass::get_impedance_cb(cartesian_interface::GetImpedanceRequest& req, 
+                                      cartesian_interface::GetImpedanceResponse& res, 
+                                      const std::string& ee_name)
+{
+    Eigen::Vector6d f;
+    Eigen::Matrix6d k, d;
+    
+    if(!_cartesian_interface->getDesiredInteraction(ee_name, f, k, d))
+    {
+        return false;
+    }
+    
+    for(int i = 0; i < 3; i++)
+    {
+        for(int j = 0; j < 3; j++)
+        {
+            res.linear.stiffness[i+3*j] = k(i,j);
+            res.linear.damping[i+3*j] = d(i,j);
+            
+            res.angular.stiffness[i+3*j] =  k(i+3,j+3);
+            res.angular.damping[i+3*j] = d(i+3,j+3);
+        }
+    }
+    
+    
+    return true;
+}
+
+void RosServerClass::online_impedance_reference_cb(const cartesian_interface::Impedance6ConstPtr& msg, 
+                                                     const std::string& ee_name)
+{
+    Eigen::Matrix6d k, d;
+    k.setZero();
+    d.setZero();
+    for(int i = 0; i < 3; i++)
+    {
+        for(int j = i; j < 3; j++)
+        {
+            k(i,j) = k(j,i) = msg->linear.stiffness[i+3*j];
+            d(i,j) = d(j,i) = msg->linear.damping[i+3*j];
+            
+            k(i+3,j+3) = k(j+3,i+3) = msg->angular.stiffness[i+3*j];
+            d(i+3,j+3) = d(j+3,i+3) = msg->angular.damping[i+3*j];
+        }
+    }
+    
+    if((k.diagonal().array() >= 0).all() && (d.diagonal().array() >= 0).all())
+    {
+        _cartesian_interface->setDesiredStiffness(ee_name, k);
+        _cartesian_interface->setDesiredDamping(ee_name, d);
+    }
 }
 
 

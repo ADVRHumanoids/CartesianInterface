@@ -8,6 +8,7 @@ find_package(XBotInterface REQUIRED)
 find_package(XCM QUIET)
 find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
+find_package(alglib QUIET)
 find_package(catkin REQUIRED COMPONENTS roscpp
                                         std_msgs
                                         geometry_msgs
@@ -24,6 +25,7 @@ include_directories(include
                     ${EIGEN3_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
                     ${ReflexxesTypeII_INCLUDE_DIRS}
+                    ${alglib_INCLUDE_DIRS}
                     )
 
 
@@ -42,7 +44,8 @@ endif()
 # Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  ReferenceStamped.msg
+  Impedance3.msg 
+  Impedance6.msg
 )
 
 # Generate services in the 'srv' folder
@@ -53,6 +56,7 @@ add_service_files(
   LoadController.srv
   GetTaskList.srv
   ResetWorld.srv
+  GetImpedance.srv
 )
 
 # Generate actions in the 'action' folder
@@ -90,9 +94,11 @@ catkin_package(
 # Interface implementation
 set(CartesianInterface_SRC
         src/CartesianInterfaceImpl.cpp
+        src/LockfreeBufferImpl.cpp
         src/ProblemDescription.cpp
         src/TaskImpl.cpp
         src/ConstraintImpl.cpp
+        src/ForceEstimation.cpp
     )
 
 # OpenSot implementation
@@ -110,9 +116,12 @@ set(CartesianInterfaceROS_SRC
     )
 
 # Trajectory
-set(Trajectory_SRC
-        src/Trajectory.cpp
-    )
+set(Trajectory_SRC src/Trajectory.cpp)
+    
+if(${alglib_FOUND})
+    set(Trajectory_SRC ${Trajectory_SRC}
+                       src/Spline.cpp)
+endif()
 
 # should we use xbot internal robot state publisher?
 option(USE_XBOT_ROBOT_STATE_PUB FALSE)
@@ -137,6 +146,7 @@ target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
                                                 ${XBOT_RSPUB_LIBRARIES}
                                                 yaml-cpp
                                                 ${ReflexxesTypeII_LIBRARIES}
+                                                ${alglib_LIBRARIES}
                       )
 add_dependencies(CartesianInterface ${PROJECT_NAME}_generate_messages)
 
@@ -226,23 +236,19 @@ install(TARGETS CartesianOpenSot CartesianOpenSot
 # Mark cpp header files for installation
 install(DIRECTORY include/cartesian_interface/
     DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-    FILES_MATCHING PATTERN "*.h"
+    FILES_MATCHING PATTERN "*.h*"
     PATTERN ".svn" EXCLUDE
 )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 install(DIRECTORY launch/
-#   # myfile2
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
   FILES_MATCHING PATTERN "*.launch"
 )
 
-install(DIRECTORY examples/configs/
-#   # myfile2
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/examples/configs
-  FILES_MATCHING PATTERN "*.yaml"
-)
 
+
+install(PROGRAMS src/postural_gui DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 #######################
 # Add Testing target  #

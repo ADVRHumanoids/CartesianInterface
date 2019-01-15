@@ -4,7 +4,9 @@
 
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/ros/RosEnabled.h>
+#include <cartesian_interface/utils/estimation/ForceEstimation.h>
 #include <OpenSoT/tasks/velocity/Cartesian.h>
+#include <OpenSoT/tasks/velocity/CartesianAdmittance.h>
 #include <OpenSoT/tasks/velocity/CoM.h>
 #include <OpenSoT/tasks/velocity/Postural.h>
 #include <OpenSoT/tasks/velocity/Gaze.h>
@@ -41,6 +43,7 @@ protected:
 private:
     
     typedef OpenSoT::tasks::velocity::Cartesian CartesianTask;
+    typedef OpenSoT::tasks::velocity::CartesianAdmittance CartesianAdmittanceTask;
     typedef OpenSoT::tasks::velocity::Postural PosturalTask;
     typedef OpenSoT::tasks::velocity::CoM CoMTask;
     typedef OpenSoT::tasks::velocity::Gaze GazeTask;
@@ -49,6 +52,7 @@ private:
     typedef OpenSoT::constraints::Aggregated::ConstraintPtr ConstraintPtr;
     
     void set_adaptive_lambda(CartesianTask::Ptr cartesian_task);
+    bool get_control_dt(double& dt);
     
     TaskPtr construct_task(TaskDescription::Ptr);
     TaskPtr aggregated_from_stack(AggregatedTask stack);
@@ -60,6 +64,7 @@ private:
     Eigen::VectorXd _q, _dq, _ddq;
     
     std::vector<CartesianTask::Ptr> _cartesian_tasks;
+    std::vector<CartesianAdmittanceTask::Ptr> _admittance_tasks;
     std::vector<PosturalTask::Ptr> _postural_tasks;
     std::vector<bool> _use_inertia_matrix;
     CoMTask::Ptr _com_task;
@@ -67,6 +72,7 @@ private:
     AngularMomentumTask::Ptr _angular_momentum_task;
     bool _minimize_rate_of_change;
     
+    Utils::ForceEstimation::Ptr _force_estimation;
     OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr _solver;
     OpenSoT::AutoStack::Ptr _autostack;
     
