@@ -517,9 +517,11 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
             continue;
         }
         
-        i_task->setStiffness(k.diagonal());
-        i_task->setDamping(d.diagonal());
-        i_task->setWrenchReference(f);
+        i_task->setImpedanceParams(k.diagonal(), 
+                                   d.diagonal(), 
+                                   i_task->getLambda(),
+                                   i_task->getFilterTimeStep()
+                                  );
 
     }
 
