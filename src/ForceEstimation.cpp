@@ -103,7 +103,7 @@ void ForceEstimation::compute_A_b()
     for(int i : _meas_idx)
     {
         _b(idx) = _y(i);
-        _A.row(idx) = _Jtmp.col(i);
+        _A.row(idx) = _Jtot.col(i);
         idx++;
     }
     
