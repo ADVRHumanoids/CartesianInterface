@@ -7,7 +7,7 @@ ForceEstimation::ForceEstimation(ModelInterface::ConstPtr model):
     _model(model),
     _ndofs(0)
 {
-    
+
 }
 
 
@@ -67,10 +67,21 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
     
     _ndofs += dofs.size();
     
+
     std::cout << "Force estimation using joints:\n";
     std::for_each(_meas_idx.begin(), _meas_idx.end(), 
-                  [this](int i){ std::cout << _model->getEnabledJointNames().at(i) << "\n"; });
-    std::cout << std::endl;
+                  [this](int i){ std::cout<<_model->getEnabledJointNames().at(i)<<"\n"; });
+    std::cout<<std::endl;
+
+    compute_A_b();
+
+    _id = _id + name + "_";
+    _generic_task = boost::make_shared<OpenSoT::tasks::GenericTask>("force_estimation_"+_id,_A, _b);
+    _generic_task->setLambda(OpenSoT::HessianType::HST_POSDEF);
+
+    OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::Stack stack;
+    stack.push_back(_generic_task);
+    _solver = boost::make_shared<OpenSoT::solvers::iHQP>(stack);
     
     return t.sensor;
     
@@ -109,15 +120,20 @@ void ForceEstimation::compute_A_b()
     
 }
 
-void ForceEstimation::solve()
+bool ForceEstimation::solve()
 {
-    _sol = _A.jacobiSvd(Eigen::ComputeThinU|Eigen::ComputeThinV).solve(_b);
+    //_sol = _A.jacobiSvd(Eigen::ComputeThinU|Eigen::ComputeThinV).solve(_b);
+    return _solver->solve(_sol);
 }
 
 
 void ForceEstimation::update()
 {
     compute_A_b();
+
+    _generic_task->setA(_A);
+    _generic_task->setb(_b);
+    _generic_task->update(Eigen::VectorXd(0));
     
     solve();
     

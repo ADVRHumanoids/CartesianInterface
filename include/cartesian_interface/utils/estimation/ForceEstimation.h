@@ -3,6 +3,8 @@
 
 #include <XBotInterface/ModelInterface.h>
 #include <algorithm>
+#include <OpenSoT/solvers/iHQP.h>
+#include <OpenSoT/tasks/GenericTask.h>
 
 namespace XBot { namespace Cartesian { namespace Utils {
     
@@ -27,7 +29,7 @@ namespace XBot { namespace Cartesian { namespace Utils {
     private:
         
         void compute_A_b();
-        void solve();
+        bool solve();
         
         struct TaskInfo
         {
@@ -48,6 +50,13 @@ namespace XBot { namespace Cartesian { namespace Utils {
         std::vector<TaskInfo> _tasks;
         std::set<int> _meas_idx;
         int _ndofs; 
+
+        OpenSoT::tasks::GenericTask::Ptr _generic_task;
+        OpenSoT::solvers::iHQP::Ptr _solver;
+
+        std::string _id;
+
+        bool _solver_inited;
         
     };   
     
