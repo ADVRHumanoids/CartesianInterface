@@ -87,7 +87,7 @@ catkin_package(
    INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIRS}
    LIBRARIES CartesianInterface
 #  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
+   DEPENDS XBotInterface yaml-cpp
    CFG_EXTRAS ${PROJECT_NAME}-extras.cmake
 )
 
