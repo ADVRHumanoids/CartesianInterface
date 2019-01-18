@@ -18,3 +18,8 @@ ComTask::Ptr XBot::Cartesian::GetAsCom(TaskDescription::Ptr task)
 {
     return std::dynamic_pointer_cast<ComTask>(task);
 }
+
+TaskDescription::Ptr ComTask::yaml_parse_com(YAML::Node node, ModelInterface::ConstPtr model)
+{
+    return MakeCom();
+}

@@ -20,3 +20,27 @@ CartesianTask::Ptr XBot::Cartesian::GetAsCartesian(TaskDescription::Ptr task)
 {
     return std::dynamic_pointer_cast<CartesianTask>(task);
 }
+
+TaskDescription::Ptr CartesianTask::yaml_parse_cartesian(YAML::Node task_node, ModelInterface::ConstPtr model)
+{
+
+    std::string distal_link = task_node["distal_link"].as<std::string>();
+    std::string base_link = "world";
+
+
+    if(task_node["base_link"])
+    {
+        base_link = task_node["base_link"].as<std::string>();
+    }
+
+    auto cart_task = MakeCartesian(distal_link, base_link);
+    TaskDescription::Ptr task_desc = cart_task;
+
+
+    if(task_node["orientation_gain"])
+    {
+        cart_task->orientation_gain = task_node["orientation_gain"].as<double>();
+    }
+
+    return task_desc;
+}

@@ -93,26 +93,19 @@ namespace XBot { namespace Cartesian {
         
     private:
 
-        static TaskDescription::Ptr yaml_parse_angular_momentum(YAML::Node node,
-                                                                ModelInterface::ConstPtr model);
+
         
         static TaskDescription::Ptr yaml_parse_task(YAML::Node node, 
                                                     ModelInterface::ConstPtr model);
         
-        static TaskDescription::Ptr yaml_parse_cartesian(YAML::Node node, 
-                                                         ModelInterface::ConstPtr model);
         
-        static TaskDescription::Ptr yaml_parse_interaction(YAML::Node node, 
-                                                         ModelInterface::ConstPtr model);
+
         
-        static TaskDescription::Ptr yaml_parse_com(YAML::Node node, 
-                                                   ModelInterface::ConstPtr model);
+
         
-        static TaskDescription::Ptr yaml_parse_gaze(YAML::Node node, 
-                                                    ModelInterface::ConstPtr model);
+
         
-        static TaskDescription::Ptr yaml_parse_postural(YAML::Node node, 
-                                                        ModelInterface::ConstPtr model);
+
         
         static ConstraintDescription::Ptr yaml_parse_joint_pos_lims(YAML::Node node, 
                                                          ModelInterface::ConstPtr model);

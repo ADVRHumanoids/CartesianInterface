@@ -19,3 +19,17 @@ XBot::Cartesian::AngularMomentumTask::AngularMomentumTask():
 {
 
 }
+
+TaskDescription::Ptr AngularMomentumTask::yaml_parse_angular_momentum(YAML::Node node, ModelInterface::ConstPtr model)
+{
+    auto task_desc = MakeAngularMomentum();
+    auto angularmom_desc = GetAsAngularMomentum(task_desc);
+
+    if(node["min_rate"] && node["min_rate"].as<bool>())
+    {
+        angularmom_desc->min_rate = true;
+    }
+
+    return task_desc;
+}
+
