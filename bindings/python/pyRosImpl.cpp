@@ -49,7 +49,8 @@ PYBIND11_MODULE(pyci, m) {
         .def("setForceReference", &RosImpl::setForceReference)
         .def("setDesiredStiffness", &RosImpl::setDesiredStiffness)
         .def("setDesiredDamping", &RosImpl::setDesiredDamping)
-        .def("resetWorld", &RosImpl::resetWorld)
+        .def("resetWorld", (bool (RosImpl::*)(const Eigen::Affine3d&)) &RosImpl::resetWorld)
+        .def("resetWorld", (bool (RosImpl::*)(const std::string&))     &RosImpl::resetWorld)
         .def("setVelocityReference", &RosImpl::setVelocityReference)
         .def("setVelocityReferenceAsync", &RosImpl::setVelocityReferenceAsync)
         .def("stopVelocityReferenceAsync", &RosImpl::stopVelocityReferenceAsync);

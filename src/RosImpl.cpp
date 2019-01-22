@@ -291,6 +291,12 @@ void RosImpl::RosTask::send_waypoints(const Trajectory::WayPointVector& wp, bool
     
 }
 
+void XBot::Cartesian::RosImpl::RosTask::abort()
+{
+    reach_action.cancelAllGoals();
+}
+
+
 bool RosImpl::RosTask::wait_for_result(ros::Duration timeout)
 {
     return reach_action.waitForResult(timeout);
@@ -367,10 +373,7 @@ RosImpl::~RosImpl()
 
 }
 
-bool RosImpl::abort(const std::string& end_effector)
-{
-    THROW_NOT_IMPL
-}
+
 
 const std::string& RosImpl::getBaseLink(const std::string& ee_name) const
 {
@@ -509,6 +512,15 @@ bool RosImpl::setWayPoints(const std::string& end_effector,
     return true;
 }
 
+bool RosImpl::abort(const std::string& end_effector)
+{
+    auto task = get_task(end_effector, false);
+    
+    task->abort();
+    
+    return true;
+}
+
 void RosImpl::getAccelerationLimits(const std::string& ee_name, double& max_acc_lin, double& max_acc_ang) const
 {
     get_task(ee_name, false);
@@ -546,31 +558,48 @@ void RosImpl::getVelocityLimits(const std::string& ee_name, double& max_vel_lin,
     }
 }
 
+namespace
+{
+    bool call_reset_world_service(ros::NodeHandle& nh, 
+                                  const Eigen::Affine3d& w_T_new_world, 
+                                  const std::string& ee_name)
+    {
+        auto client = nh.serviceClient<cartesian_interface::ResetWorld>("reset_world");
+        if(!client.waitForExistence(ros::Duration(3.0)))
+        {
+            throw std::runtime_error("unable to reset world, service unavailable");
+        }
+        
+        cartesian_interface::ResetWorld srv;
+        tf::poseEigenToMsg(w_T_new_world, srv.request.new_world);  
+        srv.request.from_link = ee_name;
+        
+        if(!client.call(srv))
+        {
+            throw std::runtime_error("unable to reset world, service call failed");
+        }
+        
+        ROS_INFO("%s", srv.response.message.c_str());
+        
+        if(!srv.response.success)
+        {
+            throw std::runtime_error("unable to reset world, service responded with an error");
+        }
+        
+        return true;
+    }
+}
+
 bool RosImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
 {
-    auto client = _nh.serviceClient<cartesian_interface::ResetWorld>("reset_world");
-    if(!client.waitForExistence(ros::Duration(3.0)))
-    {
-        throw std::runtime_error("unable to reset world, service unavailable");
-    }
-    
-    cartesian_interface::ResetWorld srv;
-    tf::poseEigenToMsg(w_T_new_world, srv.request.new_world);  
-    
-    if(!client.call(srv))
-    {
-        throw std::runtime_error("unable to reset world, service call failed");
-    }
-    
-    ROS_INFO("%s", srv.response.message.c_str());
-    
-    if(!srv.response.success)
-    {
-        throw std::runtime_error("unable to reset world, service responded with an error");
-    }
-    
-    return true;
+    return ::call_reset_world_service(_nh, w_T_new_world, "");
 }
+
+bool XBot::Cartesian::RosImpl::resetWorld(const std::string& ee_name)
+{
+    return ::call_reset_world_service(_nh, Eigen::Affine3d::Identity(), ee_name);
+}
+
 
 void RosImpl::setAccelerationLimits(const std::string& ee_name, double max_acc_lin, double max_acc_ang)
 {

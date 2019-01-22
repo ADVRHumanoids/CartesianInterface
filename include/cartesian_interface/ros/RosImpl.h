@@ -100,6 +100,7 @@ namespace XBot { namespace Cartesian {
         virtual void setVelocityLimits(const std::string& ee_name, double max_vel_lin, double max_vel_ang);
         virtual void setAccelerationLimits(const std::string& ee_name, double max_acc_lin, double max_acc_ang);
         virtual bool resetWorld(const Eigen::Affine3d& w_T_new_world);
+        bool resetWorld(const std::string& ee_name);
         virtual bool setReferencePosture(const XBot::JointNameMap& qref);
         virtual bool setWayPoints(const std::string& end_effector, 
                                   const Trajectory::WayPointVector& way_points);
@@ -194,6 +195,7 @@ namespace XBot { namespace Cartesian {
             void set_base_link(const std::string& base_link);
             void set_ctrl_mode(ControlType ctrl_type);
             bool wait_for_result(ros::Duration timeout);
+            void abort();
             
             const std::string& get_distal_link() const;
             
