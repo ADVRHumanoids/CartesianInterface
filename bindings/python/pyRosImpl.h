@@ -78,3 +78,17 @@ auto py_get_acceleration_limits(RosImpl& r, const std::string& ee)
     r.getAccelerationLimits(ee, lin, ang);
     return std::make_tuple(lin, ang);
 }
+
+auto py_get_pose_from_tf(RosImpl& r, const std::string& source_frame, const std::string& target_frame)
+{
+    Eigen::Affine3d T;
+
+    if(!r.getPoseFromTf(source_frame, target_frame, T))
+    {
+        throw std::runtime_error("Unable to get pose from '" + source_frame  + "'' to '" + target_frame + "'");
+    }
+
+
+    return T;
+
+}

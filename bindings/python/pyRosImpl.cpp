@@ -53,7 +53,8 @@ PYBIND11_MODULE(pyci, m) {
         .def("resetWorld", (bool (RosImpl::*)(const std::string&))     &RosImpl::resetWorld)
         .def("setVelocityReference", &RosImpl::setVelocityReference)
         .def("setVelocityReferenceAsync", &RosImpl::setVelocityReferenceAsync)
-        .def("stopVelocityReferenceAsync", &RosImpl::stopVelocityReferenceAsync);
+        .def("stopVelocityReferenceAsync", &RosImpl::stopVelocityReferenceAsync)
+        .def("getPoseFromTf", py_get_pose_from_tf);
         
     
 }

@@ -13,6 +13,9 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <eigen_conversions/eigen_msg.h>
 
+#include <tf/transform_listener.h>
+#include <tf_conversions/tf_eigen.h>
+
 #include <cartesian_interface/CartesianInterface.h>
 
 
@@ -121,6 +124,8 @@ namespace XBot { namespace Cartesian {
         bool stopVelocityReferenceAsync(const std::string& ee_name);
         virtual bool abort(const std::string& end_effector);
         virtual bool update(double time, double period);
+
+        bool getPoseFromTf(const std::string& source_frame, const std::string& target_frame, Eigen::Affine3d& t_T_s);
             
     private:
         
