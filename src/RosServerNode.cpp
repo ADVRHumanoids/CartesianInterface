@@ -141,6 +141,7 @@ int main(int argc, char **argv){
     
     /* Load controller from string */
     __g_current_impl = load_controller(impl_name, model, ik_problem);
+    __g_impl_map[impl_name] = __g_current_impl;
     if(!__g_current_impl)
     {
         exit(1);
