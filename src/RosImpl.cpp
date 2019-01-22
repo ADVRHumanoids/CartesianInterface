@@ -739,7 +739,14 @@ void RosImpl::RosTask::stop_vref_async()
 
 TaskInterface RosImpl::getTaskInterface(const std::string& end_effector) const
 {
-    THROW_NOT_IMPL
+    auto task = get_task(end_effector, false);
+    
+    ControlType ctrl_tmp;
+    TaskInterface ifc_tmp;
+    std::string base_link_tmp; // NOTE: user must copy the output
+    task->get_properties(base_link_tmp, ctrl_tmp, ifc_tmp);
+    
+    return ifc_tmp;
 }
 
 bool RosImpl::getDesiredInteraction(const std::string& end_effector, 
