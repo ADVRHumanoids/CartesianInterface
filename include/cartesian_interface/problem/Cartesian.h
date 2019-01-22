@@ -29,8 +29,9 @@ namespace XBot { namespace Cartesian {
         CartesianTask(std::string distal_link, 
                       std::string base_link = "world", 
                       int size = 6,
-                      std::string type = "Cartesian");
-        
+                      std::string type = "Cartesian");        
+
+        static TaskDescription::Ptr yaml_parse_cartesian(YAML::Node node, ModelInterface::ConstPtr model);
         
     };
     
@@ -45,10 +46,8 @@ namespace XBot { namespace Cartesian {
      * @return A null pointer if the cast is unsuccessful (i.e. task is not a CartesianTask)
      */
     CartesianTask::Ptr GetAsCartesian(TaskDescription::Ptr task);
-    
-    
-    
-  
+
+
     
 } }
 

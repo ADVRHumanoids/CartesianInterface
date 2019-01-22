@@ -150,27 +150,27 @@ TaskDescription::Ptr XBot::Cartesian::ProblemDescription::yaml_parse_task(YAML::
             
     if(task_type == "Cartesian") // TBD ERROR CHECKING
     {
-        task_desc = yaml_parse_cartesian(task_node, model);
+        task_desc = CartesianTask::yaml_parse_cartesian(task_node, model);
     }
     else if(task_type == "Interaction")
     {
-        task_desc = yaml_parse_interaction(task_node, model);
+        task_desc = InteractionTask::yaml_parse_interaction(task_node, model);
     }
     else if(task_type == "Com")
     {
-        task_desc = yaml_parse_com(task_node, model);
+        task_desc = ComTask::yaml_parse_com(task_node, model);
     }
     else if(task_type == "Postural")
     {
-        task_desc = yaml_parse_postural(task_node, model);    
+        task_desc = PosturalTask::yaml_parse_postural(task_node, model);
     }
     else if(task_type == "Gaze")
     {
-        task_desc = yaml_parse_gaze(task_node, model);  
+        task_desc = GazeTask::yaml_parse_gaze(task_node, model);
     }
     else if(task_type == "AngularMomentum")
     {
-        task_desc = yaml_parse_angular_momentum(task_node, model);
+        task_desc = AngularMomentumTask::yaml_parse_angular_momentum(task_node, model);
     }
     else
     {
@@ -198,115 +198,6 @@ TaskDescription::Ptr XBot::Cartesian::ProblemDescription::yaml_parse_task(YAML::
 }
 
 
-
-TaskDescription::Ptr ProblemDescription::yaml_parse_cartesian(YAML::Node task_node, 
-                                                   ModelInterface::ConstPtr model)
-{
-    
-    std::string distal_link = task_node["distal_link"].as<std::string>();
-    std::string base_link = "world";
-    
-    
-    if(task_node["base_link"])
-    {
-        base_link = task_node["base_link"].as<std::string>();
-    }
-    
-    auto cart_task = MakeCartesian(distal_link, base_link);
-    TaskDescription::Ptr task_desc = cart_task;
-    
-
-    if(task_node["orientation_gain"])
-    {
-        cart_task->orientation_gain = task_node["orientation_gain"].as<double>();
-    }
-    
-    return task_desc;
-}
-
-TaskDescription::Ptr ProblemDescription::yaml_parse_interaction(YAML::Node task_node,
-                                                                ModelInterface::ConstPtr model)
-{
-    std::string distal_link = task_node["distal_link"].as<std::string>();
-    std::string base_link = "world";
-    
-    
-    if(task_node["base_link"])
-    {
-        base_link = task_node["base_link"].as<std::string>();
-    }
-    
-    std::vector<double> stiffness, damping;
-    
-    if(task_node["stiffness"])
-    {
-        stiffness = task_node["stiffness"].as<std::vector<double>>();
-        if(stiffness.size() != 6)
-        {
-            throw std::runtime_error("'stiffness' field for interaction tasks requires six values");
-        }
-    }
-    else
-    {
-        throw std::runtime_error("'stiffness' field required for interaction tasks (6 values)");
-    }
-        
-    
-    if(task_node["damping"])
-    {
-        damping = task_node["damping"].as<std::vector<double>>();
-        if(damping.size() != 6)
-        {
-            throw std::runtime_error("'damping' field for interaction tasks requires six values");
-        }
-    }
-    else
-    {
-        throw std::runtime_error("'damping' field required for interaction tasks (6 values)");
-    }
-    
-    
-    auto i_task = MakeInteraction(distal_link, base_link);
-    
-    i_task->stiffness = Eigen::Vector6d::Map(stiffness.data());
-    i_task->damping = Eigen::Vector6d::Map(damping.data());
-    
-    if(task_node["force_estimation_chains"])
-    {
-        i_task->force_estimation_chains = task_node["force_estimation_chains"].as<std::vector<std::string>>();
-    }
-    
-    TaskDescription::Ptr task_desc = i_task;
-
-    if(task_node["orientation_gain"])
-    {
-        i_task->orientation_gain = task_node["orientation_gain"].as<double>();
-    }
-    
-    return task_desc;
-}
-
-
-TaskDescription::Ptr ProblemDescription::yaml_parse_com(YAML::Node node, 
-                                                   ModelInterface::ConstPtr model)
-{
-    return MakeCom();
-}
-
-TaskDescription::Ptr ProblemDescription::yaml_parse_gaze(YAML::Node task_node, 
-                                                   ModelInterface::ConstPtr model)
-{
-    
-    std::string base_link = "world";
-
-    if(task_node["base_link"])
-    {
-        base_link = task_node["base_link"].as<std::string>();
-    }
-
-    return MakeGaze(base_link);
-}
-
 ConstraintDescription::Ptr ProblemDescription::yaml_parse_joint_pos_lims(YAML::Node node, 
                                                    ModelInterface::ConstPtr model)
 {
@@ -319,46 +210,4 @@ ConstraintDescription::Ptr ProblemDescription::yaml_parse_joint_vel_lims(YAML::N
     return MakeVelocityLimits();
 }
 
-TaskDescription::Ptr ProblemDescription::yaml_parse_postural(YAML::Node task_node, 
-                                                   ModelInterface::ConstPtr model)
-{
-    auto task_desc = MakePostural(model->getJointNum());
-    auto postural_desc = GetAsPostural(task_desc);
-    
-    if(task_node["weight"] && task_node["weight"].IsMap())
-    {
-        for(const auto& pair : task_node["weight"])
-        {
-            if(!model->hasJoint(pair.first.as<std::string>()))
-            {
-                std::string err = "Joint " + pair.first.as<std::string>() + " is undefined";
-                throw std::invalid_argument(err);
-            }
-            
-            int idx = model->getDofIndex(pair.first.as<std::string>());
-            task_desc->weight(idx, idx) = pair.second.as<double>();
-            
-        }
-    }
-
-    if(task_node["use_inertia"] && task_node["use_inertia"].as<bool>())
-    {
-        postural_desc->use_inertia_matrix = true;
-    }
-
-    return task_desc;
-}
-
-TaskDescription::Ptr ProblemDescription::yaml_parse_angular_momentum(YAML::Node node, ModelInterface::ConstPtr model)
-{
-    auto task_desc = MakeAngularMomentum();
-    auto angularmom_desc = GetAsAngularMomentum(task_desc);
-
-    if(node["min_rate"] && node["min_rate"].as<bool>())
-    {
-        angularmom_desc->min_rate = true;
-    }
-
-    return task_desc;
-}
 

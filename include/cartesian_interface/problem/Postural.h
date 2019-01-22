@@ -28,6 +28,8 @@ namespace XBot { namespace Cartesian {
          * @param ndof The number of robot dofs (including 6 virtual joints)
          */
         PosturalTask(int ndof);
+
+        static TaskDescription::Ptr yaml_parse_postural(YAML::Node node, ModelInterface::ConstPtr model);
         
     };
     

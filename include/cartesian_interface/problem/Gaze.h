@@ -15,6 +15,8 @@ namespace XBot { namespace Cartesian {
 
         GazeTask() = default;
         GazeTask(std::string base_link = "world");
+
+        static TaskDescription::Ptr yaml_parse_gaze(YAML::Node node, ModelInterface::ConstPtr model);
     };
 
     /**
@@ -28,6 +30,7 @@ namespace XBot { namespace Cartesian {
      * @return A null pointer if the cast is unsuccessful (i.e. task is not a GazeTask)
      */
     GazeTask::Ptr GetAsGaze(TaskDescription::Ptr task);
+
   
     
 } }
