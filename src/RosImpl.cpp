@@ -3,6 +3,7 @@
 #include <cartesian_interface/GetTaskList.h>
 #include <cartesian_interface/GetTaskInfo.h>
 #include <cartesian_interface/SetTaskInfo.h>
+#include <cartesian_interface/ResetWorld.h>
 #include <cartesian_interface/LoadController.h>
 #include <cartesian_interface/Impedance6.h>
 #include <cartesian_interface/GetImpedance.h>
@@ -547,7 +548,28 @@ void RosImpl::getVelocityLimits(const std::string& ee_name, double& max_vel_lin,
 
 bool RosImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
 {
-    THROW_NOT_IMPL
+    auto client = _nh.serviceClient<cartesian_interface::ResetWorld>("reset_world");
+    if(!client.waitForExistence(ros::Duration(3.0)))
+    {
+        throw std::runtime_error("unable to reset world, service unavailable");
+    }
+    
+    cartesian_interface::ResetWorld srv;
+    tf::poseEigenToMsg(w_T_new_world, srv.request.new_world);  
+    
+    if(!client.call(srv))
+    {
+        throw std::runtime_error("unable to reset world, service call failed");
+    }
+    
+    ROS_INFO("%s", srv.response.message.c_str());
+    
+    if(!srv.response.success)
+    {
+        throw std::runtime_error("unable to reset world, service responded with an error");
+    }
+    
+    return true;
 }
 
 void RosImpl::setAccelerationLimits(const std::string& ee_name, double max_acc_lin, double max_acc_ang)
@@ -871,6 +893,7 @@ const std::string & XBot::Cartesian::RosImpl::RosTask::get_distal_link() const
 {
     return distal_link;
 }
+
 
 
 
