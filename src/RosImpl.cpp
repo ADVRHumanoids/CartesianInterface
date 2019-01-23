@@ -344,11 +344,11 @@ bool RosImpl::setPoseReferenceRaw(const std::string& end_effector,
     THROW_NOT_IMPL
 }
 
-void RosImpl::loadController(const std::string& controller_name)
+void RosImpl::loadController(const std::string& controller_name, const bool force_reload)
 {
     cartesian_interface::LoadController srv;
     srv.request.controller_name = controller_name;
-    srv.request.force_reload = false;
+    srv.request.force_reload = force_reload;
     
     _task_map.clear();
     
@@ -923,11 +923,19 @@ const std::string & XBot::Cartesian::RosImpl::RosTask::get_distal_link() const
     return distal_link;
 }
 
-bool getPoseFromTf(const std::string& source_frame, const std::string& target_frame, Eigen::Affine3d& t_T_s)
+bool XBot::Cartesian::RosImpl::getPoseFromTf(const std::string& source_frame, const std::string& target_frame, Eigen::Affine3d& t_T_s)
 {
     tf::TransformListener listener;
 
     tf::StampedTransform T;
+
+
+    if(!listener.waitForTransform(target_frame, source_frame, ros::Time(0), ros::Duration(1)))
+    {
+        ROS_ERROR("Wait for transform timed out");
+        return false;
+    }
+
 
     try{
             listener.lookupTransform(target_frame, source_frame, ros::Time(0), T);

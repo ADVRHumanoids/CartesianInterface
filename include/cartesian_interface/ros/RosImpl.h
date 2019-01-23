@@ -115,7 +115,7 @@ namespace XBot { namespace Cartesian {
         virtual bool reset(double time);
         virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link);
 
-        void loadController(const std::string& controller_name);
+        void loadController(const std::string& controller_name, const bool force_reload = false);
         bool waitReachCompleted(const std::string& ee_name, double timeout_sec = 0);
         bool setVelocityReferenceAsync(const std::string& ee_name, 
                                        const Eigen::Vector6d& vref,
