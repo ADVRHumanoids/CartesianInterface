@@ -72,7 +72,7 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromParamServer(YA
 {
     auto xbot_cfg = XBot::ConfigOptionsFromParamServer();
     ros::NodeHandle nh_private("~");
-    ros::NodeHandle nh;
+    ros::NodeHandle nh("cartesian");
     
     std::string world_frame;
     if(nh_private.hasParam("world_frame") && nh_private.getParam("world_frame", world_frame))
