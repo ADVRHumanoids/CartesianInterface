@@ -17,8 +17,8 @@ int main(int argc, char **argv)
     
     XBot::Logger::SetVerbosityLevel(XBot::Logger::Severity::HIGH);
     
-    YAML::Node problem_yaml;
-    auto xbot_cfg = Utils::LoadOptionsFromParamServer(problem_yaml);
+    auto problem_yaml = Utils::LoadProblemDescription(Utils::LoadFrom::PARAM);
+    auto xbot_cfg = Utils::LoadOptions(Utils::LoadFrom::PARAM);
     
     _model = XBot::ModelInterface::getModel(xbot_cfg);
     

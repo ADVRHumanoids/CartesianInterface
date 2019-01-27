@@ -37,6 +37,11 @@ namespace XBot { namespace Cartesian {
     public:
         
         /**
+        * @brief Default (empty) problem
+        */
+        ProblemDescription() = default;
+        
+        /**
          * @brief Construct from a single task (i.e. single priority level, single task)
          */
         ProblemDescription(TaskDescription::Ptr task);
@@ -97,15 +102,6 @@ namespace XBot { namespace Cartesian {
         
         static TaskDescription::Ptr yaml_parse_task(YAML::Node node, 
                                                     ModelInterface::ConstPtr model);
-        
-        
-
-        
-
-        
-
-        
-
         
         static ConstraintDescription::Ptr yaml_parse_joint_pos_lims(YAML::Node node, 
                                                          ModelInterface::ConstPtr model);
