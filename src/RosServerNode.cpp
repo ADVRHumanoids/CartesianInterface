@@ -122,6 +122,15 @@ int main(int argc, char **argv){
                         XBot::Sync::Impedance);
     }
     
+    /* Get torque offsets if available */
+    Eigen::VectorXd tau_offset;
+    tau_offset.setZero(model->getJointNum());
+    XBot::JointNameMap tau_off_map;
+    if(xbot_cfg.get_parameter("torque_offset", tau_off_map))
+    {
+        model->mapToEigen(tau_off_map, tau_offset);
+    }
+    
     /* Get tf_prefix */
     std::string tf_prefix = nh_private.param<std::string>("tf_prefix", "ci");
     if(tf_prefix == "null")
@@ -203,7 +212,7 @@ int main(int argc, char **argv){
     g_current_impl->enableOtg(1.0/freq);
     ros::Rate loop_rate(freq);
     
-    Eigen::VectorXd q, qdot;
+    Eigen::VectorXd q, qdot, tau;
     model->getJointPosition(q);
     double time = 0.0;
     g_time = &time;
@@ -218,7 +227,11 @@ int main(int argc, char **argv){
         if(robot)
         {
             robot->sense(false);
-            model->syncFrom(*robot, XBot::Sync::Sensors, XBot::Sync::Effort);
+            model->syncFrom_no_update(*robot, XBot::Sync::Sensors, XBot::Sync::Effort);
+            model->getJointEffort(tau);
+            tau += tau_offset;
+            model->setJointEffort(tau);
+            model->update();
         }
         
         /* Update references from ros */
