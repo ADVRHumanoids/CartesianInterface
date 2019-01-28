@@ -35,6 +35,8 @@ TaskDescription::Ptr InteractionTask::yaml_parse_interaction(YAML::Node task_nod
     {
         base_link = task_node["base_link"].as<std::string>();
     }
+    
+    auto i_task = MakeInteraction(distal_link, base_link);
 
     std::vector<double> stiffness, damping, inertia, deadzone;
 
@@ -45,6 +47,7 @@ TaskDescription::Ptr InteractionTask::yaml_parse_interaction(YAML::Node task_nod
         {
             throw std::runtime_error("'stiffness' field for interaction tasks requires six values");
         }
+        i_task->stiffness = Eigen::Vector6d::Map(stiffness.data());
     }
     else
     {
@@ -59,6 +62,7 @@ TaskDescription::Ptr InteractionTask::yaml_parse_interaction(YAML::Node task_nod
         {
             throw std::runtime_error("'damping' field for interaction tasks requires six values");
         }
+        i_task->damping = Eigen::Vector6d::Map(damping.data());
     }
     else
     {
@@ -72,6 +76,7 @@ TaskDescription::Ptr InteractionTask::yaml_parse_interaction(YAML::Node task_nod
         {
             throw std::runtime_error("'force_dead_zone' field for interaction tasks requires six values");
         }
+        i_task->force_dead_zone = Eigen::Vector6d::Map(deadzone.data());
     }
     
     if(task_node["inertia"])
@@ -81,19 +86,9 @@ TaskDescription::Ptr InteractionTask::yaml_parse_interaction(YAML::Node task_nod
         {
             throw std::runtime_error("'inertia' field for interaction tasks requires six values");
         }
-    }
-    else
-    {
-        throw std::runtime_error("'inertia' field required for interaction tasks (6 values)");
+        i_task->inertia = Eigen::Vector6d::Map(inertia.data());
     }
 
-
-    auto i_task = MakeInteraction(distal_link, base_link);
-
-    i_task->stiffness = Eigen::Vector6d::Map(stiffness.data());
-    i_task->damping = Eigen::Vector6d::Map(damping.data());
-    i_task->force_dead_zone = Eigen::Vector6d::Map(deadzone.data());
-    i_task->inertia = Eigen::Vector6d::Map(inertia.data());
 
     if(task_node["force_estimation_chains"])
     {

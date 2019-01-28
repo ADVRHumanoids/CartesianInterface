@@ -175,8 +175,8 @@ in configuration file (add problem_description/solver_options/control_dt field)\
                 throw std::invalid_argument("all inertias must be > 0 when lambda = 0");
             }
             
-            admittance_task->setRawParams(i_desc->damping / control_dt, 
-                control_dt*control_dt*(i_desc->inertia.cwiseProduct(i_desc->damping)).cwiseInverse(),
+            admittance_task->setRawParams(i_desc->damping.cwiseInverse() * control_dt, 
+                i_desc->damping.cwiseProduct(i_desc->inertia.cwiseInverse()),
                 0.0, 
                 control_dt
             );
@@ -550,8 +550,8 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
         {
             double dt = i_task->getFilterTimeStep();
             Eigen::Vector6d inertia = i_task->getInertia().diagonal();
-            i_task->setRawParams(d.diagonal() / i_task->getFilterTimeStep(), 
-                dt*dt*(inertia.cwiseProduct(d.diagonal())).cwiseInverse(),
+            i_task->setRawParams(d.diagonal().cwiseInverse() * dt, 
+                d.diagonal().cwiseProduct(inertia.cwiseInverse()),
                 0.0, 
                 dt
             );
