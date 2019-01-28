@@ -25,7 +25,11 @@ PYBIND11_MODULE(pyci, m) {
         .def("setControlMode", &RosImpl::setControlMode)
         .def("getBaseLink", &RosImpl::getBaseLink)
         .def("setBaseLink", &RosImpl::setBaseLink)
-        .def("loadController", &RosImpl::loadController, py::arg("controller_name"), py::arg("force_reload") = false)
+        .def("loadController", &RosImpl::loadController, 
+             py::arg("controller_name"), 
+             py::arg("problem_description_name") = "",
+             py::arg("problem_description_string") = "",
+             py::arg("force_reload") = true)
         .def("getVelocityLimits", py_get_velocity_limits)
         .def("getAccelerationLimits", py_get_acceleration_limits)
         .def("setVelocityLimits", &RosImpl::setVelocityLimits)

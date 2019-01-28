@@ -344,11 +344,16 @@ bool RosImpl::setPoseReferenceRaw(const std::string& end_effector,
     THROW_NOT_IMPL
 }
 
-void RosImpl::loadController(const std::string& controller_name, const bool force_reload)
+void RosImpl::loadController(const std::string& controller_name, 
+                             const std::string& problem_description_name,
+                             const std::string& problem_description_string,
+                             const bool force_reload)
 {
     cartesian_interface::LoadController srv;
     srv.request.controller_name = controller_name;
     srv.request.force_reload = force_reload;
+    srv.request.problem_description_name = problem_description_name;
+    srv.request.problem_description_string = problem_description_string;
     
     _task_map.clear();
     
