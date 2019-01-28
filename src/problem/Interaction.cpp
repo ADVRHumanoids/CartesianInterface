@@ -15,6 +15,8 @@ InteractionTask::InteractionTask(std::string distal_link,
     CartesianTask(distal_link, base_link, 6, type)
 {
     interface = TaskInterface::Interaction;
+    force_dead_zone.setZero();
+    inertia.setZero();
 }
 
 InteractionTask::Ptr XBot::Cartesian::MakeInteraction(std::string distal_link,
@@ -34,7 +36,7 @@ TaskDescription::Ptr InteractionTask::yaml_parse_interaction(YAML::Node task_nod
         base_link = task_node["base_link"].as<std::string>();
     }
 
-    std::vector<double> stiffness, damping;
+    std::vector<double> stiffness, damping, inertia, deadzone;
 
     if(task_node["stiffness"])
     {
@@ -62,12 +64,36 @@ TaskDescription::Ptr InteractionTask::yaml_parse_interaction(YAML::Node task_nod
     {
         throw std::runtime_error("'damping' field required for interaction tasks (6 values)");
     }
+    
+    if(task_node["force_dead_zone"])
+    {
+        deadzone = task_node["force_dead_zone"].as<std::vector<double>>();
+        if(deadzone.size() != 6)
+        {
+            throw std::runtime_error("'force_dead_zone' field for interaction tasks requires six values");
+        }
+    }
+    
+    if(task_node["inertia"])
+    {
+        inertia = task_node["inertia"].as<std::vector<double>>();
+        if(inertia.size() != 6)
+        {
+            throw std::runtime_error("'inertia' field for interaction tasks requires six values");
+        }
+    }
+    else
+    {
+        throw std::runtime_error("'inertia' field required for interaction tasks (6 values)");
+    }
 
 
     auto i_task = MakeInteraction(distal_link, base_link);
 
     i_task->stiffness = Eigen::Vector6d::Map(stiffness.data());
     i_task->damping = Eigen::Vector6d::Map(damping.data());
+    i_task->force_dead_zone = Eigen::Vector6d::Map(deadzone.data());
+    i_task->inertia = Eigen::Vector6d::Map(inertia.data());
 
     if(task_node["force_estimation_chains"])
     {
