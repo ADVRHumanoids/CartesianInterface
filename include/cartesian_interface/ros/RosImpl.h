@@ -13,6 +13,9 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <eigen_conversions/eigen_msg.h>
 
+#include <tf/transform_listener.h>
+#include <tf_conversions/tf_eigen.h>
+
 #include <cartesian_interface/CartesianInterface.h>
 
 
@@ -100,6 +103,7 @@ namespace XBot { namespace Cartesian {
         virtual void setVelocityLimits(const std::string& ee_name, double max_vel_lin, double max_vel_ang);
         virtual void setAccelerationLimits(const std::string& ee_name, double max_acc_lin, double max_acc_ang);
         virtual bool resetWorld(const Eigen::Affine3d& w_T_new_world);
+        bool resetWorld(const std::string& ee_name);
         virtual bool setReferencePosture(const XBot::JointNameMap& qref);
         virtual bool setWayPoints(const std::string& end_effector, 
                                   const Trajectory::WayPointVector& way_points);
@@ -111,7 +115,7 @@ namespace XBot { namespace Cartesian {
         virtual bool reset(double time);
         virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link);
 
-        void loadController(const std::string& controller_name);
+        void loadController(const std::string& controller_name, const bool force_reload = false);
         bool waitReachCompleted(const std::string& ee_name, double timeout_sec = 0);
         bool setVelocityReferenceAsync(const std::string& ee_name, 
                                        const Eigen::Vector6d& vref,
@@ -120,6 +124,8 @@ namespace XBot { namespace Cartesian {
         bool stopVelocityReferenceAsync(const std::string& ee_name);
         virtual bool abort(const std::string& end_effector);
         virtual bool update(double time, double period);
+
+        bool getPoseFromTf(const std::string& source_frame, const std::string& target_frame, Eigen::Affine3d& t_T_s);
             
     private:
         
@@ -194,6 +200,7 @@ namespace XBot { namespace Cartesian {
             void set_base_link(const std::string& base_link);
             void set_ctrl_mode(ControlType ctrl_type);
             bool wait_for_result(ros::Duration timeout);
+            void abort();
             
             const std::string& get_distal_link() const;
             

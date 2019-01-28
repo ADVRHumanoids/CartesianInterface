@@ -87,7 +87,7 @@ catkin_package(
    INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIRS}
    LIBRARIES CartesianInterface
 #  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
+   DEPENDS XBotInterface yaml-cpp
    CFG_EXTRAS ${PROJECT_NAME}-extras.cmake
 )
 
@@ -96,6 +96,12 @@ set(CartesianInterface_SRC
         src/CartesianInterfaceImpl.cpp
         src/LockfreeBufferImpl.cpp
         src/ProblemDescription.cpp
+        src/problem/Cartesian.cpp
+        src/problem/Com.cpp
+        src/problem/Gaze.cpp
+        src/problem/AngularMomentum.cpp
+        src/problem/Postural.cpp
+        src/problem/Interaction.cpp
         src/TaskImpl.cpp
         src/ConstraintImpl.cpp
         src/ForceEstimation.cpp

@@ -17,6 +17,8 @@ namespace XBot { namespace Cartesian {
         bool min_rate;
 
         AngularMomentumTask();
+
+        static TaskDescription::Ptr yaml_parse_angular_momentum(YAML::Node node, ModelInterface::ConstPtr model);
     };
 
     AngularMomentumTask::Ptr MakeAngularMomentum();

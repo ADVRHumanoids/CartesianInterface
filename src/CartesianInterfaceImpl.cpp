@@ -1154,7 +1154,10 @@ void CartesianInterfaceImpl::Task::update(double time, double period)
 
 bool CartesianInterfaceImpl::Task::check_reach() const
 {
-    return trajectory->getWayPoints().back().frame.isApprox(get_pose_otg());
+    auto T = get_pose_otg();
+    auto Tref = trajectory->getWayPoints().back().frame;
+    
+    return Tref.isApprox(T, 1e-6);
 }
 
 ControlType CartesianInterfaceImpl::Task::get_ctrl() const

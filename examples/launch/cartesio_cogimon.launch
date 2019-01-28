@@ -2,9 +2,12 @@
 
     <arg name="solver" default="OpenSot"/>
     <arg name="prefix" default=""/>
-    <param name="robot_description" textfile="$(find cogimon_urdf)/urdf/cogimon.urdf"/>
-    <param name="robot_description_semantic" textfile="$(find cogimon_srdf)/srdf/cogimon.srdf"/>
-    <param name="problem_description" textfile="$(find cartesian_interface)/examples/configs/cogimon_simple_stack.yaml"/>
+    <param name="robot_description" 
+        textfile="$(find cogimon_urdf)/urdf/cogimon.urdf"/>
+    <param name="robot_description_semantic" 
+        textfile="$(find cogimon_srdf)/srdf/cogimon.srdf"/>
+    <param name="cartesian/problem_description" 
+        textfile="$(find cartesian_interface)/examples/configs/cogimon_simple_stack.yaml"/>
     
 
     <node pkg="cartesian_interface" type="ros_server_node" name="ros_server_node" required="true" output="screen" launch-prefix="$(arg prefix)">

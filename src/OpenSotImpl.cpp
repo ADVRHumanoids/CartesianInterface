@@ -410,10 +410,7 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     if(has_config() && get_config()["regularization"])
     {
         eps_regularization = get_config()["regularization"].as<double>();
-        if(solver_backend == BackEnd::qpOASES)
-        {
-            eps_regularization *= 1e12;
-        }
+        eps_regularization *= 1e12;
     }
     
     std::string back_end = solver_backend == BackEnd::qpOASES ? "qpOASES" : "OSQP";

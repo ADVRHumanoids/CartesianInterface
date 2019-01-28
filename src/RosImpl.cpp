@@ -3,6 +3,7 @@
 #include <cartesian_interface/GetTaskList.h>
 #include <cartesian_interface/GetTaskInfo.h>
 #include <cartesian_interface/SetTaskInfo.h>
+#include <cartesian_interface/ResetWorld.h>
 #include <cartesian_interface/LoadController.h>
 #include <cartesian_interface/Impedance6.h>
 #include <cartesian_interface/GetImpedance.h>
@@ -290,6 +291,12 @@ void RosImpl::RosTask::send_waypoints(const Trajectory::WayPointVector& wp, bool
     
 }
 
+void XBot::Cartesian::RosImpl::RosTask::abort()
+{
+    reach_action.cancelAllGoals();
+}
+
+
 bool RosImpl::RosTask::wait_for_result(ros::Duration timeout)
 {
     return reach_action.waitForResult(timeout);
@@ -337,11 +344,11 @@ bool RosImpl::setPoseReferenceRaw(const std::string& end_effector,
     THROW_NOT_IMPL
 }
 
-void RosImpl::loadController(const std::string& controller_name)
+void RosImpl::loadController(const std::string& controller_name, const bool force_reload)
 {
     cartesian_interface::LoadController srv;
     srv.request.controller_name = controller_name;
-    srv.request.force_reload = false;
+    srv.request.force_reload = force_reload;
     
     _task_map.clear();
     
@@ -366,10 +373,7 @@ RosImpl::~RosImpl()
 
 }
 
-bool RosImpl::abort(const std::string& end_effector)
-{
-    THROW_NOT_IMPL
-}
+
 
 const std::string& RosImpl::getBaseLink(const std::string& ee_name) const
 {
@@ -508,6 +512,15 @@ bool RosImpl::setWayPoints(const std::string& end_effector,
     return true;
 }
 
+bool RosImpl::abort(const std::string& end_effector)
+{
+    auto task = get_task(end_effector, false);
+    
+    task->abort();
+    
+    return true;
+}
+
 void RosImpl::getAccelerationLimits(const std::string& ee_name, double& max_acc_lin, double& max_acc_ang) const
 {
     get_task(ee_name, false);
@@ -545,10 +558,48 @@ void RosImpl::getVelocityLimits(const std::string& ee_name, double& max_vel_lin,
     }
 }
 
+namespace
+{
+    bool call_reset_world_service(ros::NodeHandle& nh, 
+                                  const Eigen::Affine3d& w_T_new_world, 
+                                  const std::string& ee_name)
+    {
+        auto client = nh.serviceClient<cartesian_interface::ResetWorld>("reset_world");
+        if(!client.waitForExistence(ros::Duration(3.0)))
+        {
+            throw std::runtime_error("unable to reset world, service unavailable");
+        }
+        
+        cartesian_interface::ResetWorld srv;
+        tf::poseEigenToMsg(w_T_new_world, srv.request.new_world);  
+        srv.request.from_link = ee_name;
+        
+        if(!client.call(srv))
+        {
+            throw std::runtime_error("unable to reset world, service call failed");
+        }
+        
+        ROS_INFO("%s", srv.response.message.c_str());
+        
+        if(!srv.response.success)
+        {
+            throw std::runtime_error("unable to reset world, service responded with an error");
+        }
+        
+        return true;
+    }
+}
+
 bool RosImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
 {
-    THROW_NOT_IMPL
+    return ::call_reset_world_service(_nh, w_T_new_world, "");
 }
+
+bool XBot::Cartesian::RosImpl::resetWorld(const std::string& ee_name)
+{
+    return ::call_reset_world_service(_nh, Eigen::Affine3d::Identity(), ee_name);
+}
+
 
 void RosImpl::setAccelerationLimits(const std::string& ee_name, double max_acc_lin, double max_acc_ang)
 {
@@ -739,7 +790,14 @@ void RosImpl::RosTask::stop_vref_async()
 
 TaskInterface RosImpl::getTaskInterface(const std::string& end_effector) const
 {
-    THROW_NOT_IMPL
+    auto task = get_task(end_effector, false);
+    
+    ControlType ctrl_tmp;
+    TaskInterface ifc_tmp;
+    std::string base_link_tmp; // NOTE: user must copy the output
+    task->get_properties(base_link_tmp, ctrl_tmp, ifc_tmp);
+    
+    return ifc_tmp;
 }
 
 bool RosImpl::getDesiredInteraction(const std::string& end_effector, 
@@ -864,6 +922,34 @@ const std::string & XBot::Cartesian::RosImpl::RosTask::get_distal_link() const
 {
     return distal_link;
 }
+
+bool XBot::Cartesian::RosImpl::getPoseFromTf(const std::string& source_frame, const std::string& target_frame, Eigen::Affine3d& t_T_s)
+{
+    tf::TransformListener listener;
+
+    tf::StampedTransform T;
+
+
+    if(!listener.waitForTransform(target_frame, source_frame, ros::Time(0), ros::Duration(1)))
+    {
+        ROS_ERROR("Wait for transform timed out");
+        return false;
+    }
+
+
+    try{
+            listener.lookupTransform(target_frame, source_frame, ros::Time(0), T);
+    }
+    catch (tf::TransformException ex){
+             ROS_ERROR("%s",ex.what());
+             ros::Duration(1.0).sleep();
+             return false;
+    }
+
+    tf::transformTFToEigen(T, t_T_s);
+    return true;
+}
+
 
 
 

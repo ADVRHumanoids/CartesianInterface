@@ -15,6 +15,7 @@ namespace XBot { namespace Cartesian {
         
         ComTask();
         
+        static TaskDescription::Ptr yaml_parse_com(YAML::Node node, ModelInterface::ConstPtr model);
     };
     
     /**

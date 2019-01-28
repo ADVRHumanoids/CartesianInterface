@@ -1,4 +1,6 @@
 string controller_name
+string problem_description_name
+string problem_description_string
 bool force_reload
 ---
 string message

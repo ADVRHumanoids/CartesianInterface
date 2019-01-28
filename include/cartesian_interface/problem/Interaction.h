@@ -33,6 +33,8 @@ namespace XBot { namespace Cartesian {
                         std::string base_link = "world", 
                         int size = 6,
                         std::string type = "Interaction");
+
+        static TaskDescription::Ptr yaml_parse_interaction(YAML::Node node, ModelInterface::ConstPtr model);
         
         
     };
