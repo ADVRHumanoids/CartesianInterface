@@ -158,11 +158,33 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
 in configuration file (add problem_description/solver_options/control_dt field)\n");
         }
         
-        admittance_task->setImpedanceParams(i_desc->stiffness,
-                                            i_desc->damping, 
-                                            i_desc->lambda, 
-                                            control_dt
-                                           );
+        if(i_desc->lambda > 0)
+        {
+        
+            admittance_task->setImpedanceParams(i_desc->stiffness,
+                                                i_desc->damping, 
+                                                i_desc->lambda, 
+                                                control_dt
+                                            );
+            
+        }
+        else
+        {
+            if((i_desc->inertia.array() <= 0).any())
+            {
+                throw std::invalid_argument("all inertias must be > 0 when lambda = 0");
+            }
+            
+            admittance_task->setRawParams(i_desc->damping.cwiseInverse() * control_dt, 
+                i_desc->damping.cwiseProduct(i_desc->inertia.cwiseInverse()),
+                0.0, 
+                control_dt
+            );
+        }
+        
+        admittance_task->setDeadZone(i_desc->force_dead_zone);
+        
+            
 
         std::list<uint> indices(i_desc->indices.begin(), i_desc->indices.end());
 
@@ -514,11 +536,28 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
             continue;
         }
         
-        i_task->setImpedanceParams(k.diagonal(), 
-                                   d.diagonal(), 
-                                   i_task->getLambda(),
-                                   i_task->getFilterTimeStep()
-                                  );
+        if(i_task->getLambda() > 0)
+        {
+        
+            i_task->setImpedanceParams(k.diagonal(),
+                                       d.diagonal(), 
+                                       i_task->getLambda(), 
+                                       i_task->getFilterTimeStep()
+                                      );
+            
+            i_task->setWrenchReference(f);
+            
+        }
+        else
+        {
+            double dt = i_task->getFilterTimeStep();
+            Eigen::Vector6d inertia = i_task->getInertia().diagonal();
+            i_task->setRawParams(d.diagonal().cwiseInverse() * dt, 
+                d.diagonal().cwiseProduct(inertia.cwiseInverse()),
+                0.0, 
+                dt
+            );
+        }
 
     }
 

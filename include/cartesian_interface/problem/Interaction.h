@@ -18,7 +18,7 @@ namespace XBot { namespace Cartesian {
         /**
         * @brief Interaction parameters for the task (linear, then angular)
         */
-        Eigen::Vector6d stiffness, damping;
+        Eigen::Vector6d stiffness, damping, inertia, force_dead_zone;
         
         /**
         * @brief Chains to be used for force estimation

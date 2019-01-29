@@ -141,12 +141,13 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromParamServer()
     {
         xbot_cfg.set_parameter("velocity_whitelist", velocity_whitelist);
     }
-    
-    std::string js_msg_type = nh_private.param<std::string>("jointstate_message_type", "AdvrJointStateMessage");
-    std::string ctrl_msg_type = nh_private.param<std::string>("control_message_type", "AdvrCommandMessage");
-    
-    xbot_cfg.set_parameter("jointstate_message_type", js_msg_type);
-    xbot_cfg.set_parameter("control_message_type", ctrl_msg_type);
+        
+    std::map<std::string, double> tau_offset_map;
+    if(nh.hasParam("torque_offset") && nh.getParam("torque_offset", tau_offset_map))
+    {
+        std::unordered_map<std::string, double> jmap(tau_offset_map.begin(), tau_offset_map.end());
+        xbot_cfg.set_parameter("torque_offset", jmap);
+    }
     
     return xbot_cfg;
 }
