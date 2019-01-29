@@ -4,7 +4,8 @@
 using namespace XBot::Cartesian;
 
 RosServerClass::Options::Options():
-    tf_prefix("ci")
+    tf_prefix("ci"),
+    ros_namespace("cartesian")
 {
 
 }
@@ -460,7 +461,7 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     _cartesian_interface(intfc),
     _model(model),
     _opt(opt),
-    _nh("cartesian")
+    _nh(opt.ros_namespace)
 {
     _tf_prefix = _opt.tf_prefix;
     _tf_prefix_slash = _tf_prefix == "" ? "" : (_tf_prefix + "/");
