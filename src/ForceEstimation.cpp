@@ -100,7 +100,12 @@ void ForceEstimation::compute_A_b()
     _model->getJointEffort(_tau);
     _model->computeGravityCompensation(_g);
     
-    _y = _g - _tau;
+    /* Check for torque spikes */
+    const double MAX_ALLOWED_TORQUE = 300.0;
+    if((_tau.array().abs() < MAX_ALLOWED_TORQUE).all())
+    {
+        _y = _g - _tau;
+    }
     
     int idx = 0;
     for(int i : _meas_idx)

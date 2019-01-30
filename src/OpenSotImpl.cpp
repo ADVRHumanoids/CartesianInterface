@@ -545,6 +545,8 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
                                        i_task->getFilterTimeStep()
                                       );
             
+            i_task->setWrenchReference(f);
+            
         }
         else
         {

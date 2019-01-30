@@ -18,7 +18,8 @@ namespace XBot { namespace Cartesian { namespace Utils {
         SyncFromIO(XBot::Handle::Ptr handle, 
                 XBot::Cartesian::CartesianInterface::ConstPtr ci, 
                 XBot::ModelInterface::ConstPtr model,
-                std::string tf_prefix = "ci"
+                std::string tf_prefix = "ci",
+                std::string ros_namespace = "cartesian"
                 );
         
         void set_solver_active(bool is_active);
@@ -44,7 +45,8 @@ namespace XBot { namespace Cartesian { namespace Utils {
 inline XBot::Cartesian::Utils::SyncFromIO::SyncFromIO(XBot::Handle::Ptr handle, 
                                                       XBot::Cartesian::CartesianInterface::ConstPtr ci, 
                                                       XBot::ModelInterface::ConstPtr model,
-                                                      std::string tf_prefix
+                                                      std::string tf_prefix,
+                                                      std::string ros_namespace
                                                      )
 {
     /* Model to be used on the nrt side */
@@ -58,6 +60,7 @@ inline XBot::Cartesian::Utils::SyncFromIO::SyncFromIO(XBot::Handle::Ptr handle,
     /* Ros API server */
     RosServerClass::Options opt;
     opt.tf_prefix = tf_prefix;
+    opt.ros_namespace = ros_namespace;
     auto ci_ros = std::make_shared<RosServerClass>(_ci_buf, ros_model, opt);
     
     /* Initialize required variables in shared memory */

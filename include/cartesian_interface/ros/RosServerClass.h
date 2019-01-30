@@ -53,6 +53,7 @@ namespace XBot { namespace Cartesian {
         struct Options
         {
             std::string tf_prefix;
+            std::string ros_namespace;
             
             Options();
         };
