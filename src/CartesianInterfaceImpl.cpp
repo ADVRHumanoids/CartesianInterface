@@ -1399,15 +1399,17 @@ CartesianInterfaceImpl::InteractionTask::InteractionTask():
     d.setZero();
     k.setZero();
     force.setZero();
+    force_time_to_live = -1.0;
 }
 
 CartesianInterfaceImpl::InteractionTask::InteractionTask(const std::string& base,
-                                                                          const std::string& distal):
+                                                         const std::string& distal):
     Task(base, distal)
 {
     d.setZero();
     k.setZero();
     force.setZero();
+    force_time_to_live = -1.0;
 }
 
 
@@ -1462,6 +1464,22 @@ CartesianInterfaceImpl::InteractionTask::Ptr CartesianInterfaceImpl::get_interac
     return it->second;
 }
 
+void XBot::Cartesian::CartesianInterfaceImpl::InteractionTask::update(double time, double period)
+{
+    Task::update(time, period);
+    
+    if(force_time_to_live > 0)
+    {
+        force_time_to_live -= period;
+    }
+    else
+    {
+        force.setZero();
+        force_time_to_live = -1.0;
+    }
+}
+
+
 void CartesianInterfaceImpl::InteractionTask::set_damping(const Eigen::Matrix6d& damping)
 {
     d = damping;
@@ -1470,6 +1488,8 @@ void CartesianInterfaceImpl::InteractionTask::set_damping(const Eigen::Matrix6d&
 void CartesianInterfaceImpl::InteractionTask::set_force(const Eigen::Vector6d& arg_force)
 {
     force = arg_force;
+    
+    force_time_to_live = DEFAULT_TTL;
 }
 
 void CartesianInterfaceImpl::InteractionTask::set_stiffness(const Eigen::Matrix6d& stiffness)

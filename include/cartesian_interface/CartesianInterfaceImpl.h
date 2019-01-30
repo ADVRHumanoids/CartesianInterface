@@ -163,7 +163,7 @@ private:
         Task();
         Task(const std::string& base, const std::string& distal);
         
-        void update(double time, double period);
+        virtual void update(double time, double period);
         
         const std::string& get_name() const;
         const std::string& get_base() const;
@@ -242,6 +242,8 @@ private:
         InteractionTask();
         InteractionTask(const std::string& base, const std::string& distal);
         
+        void update(double time, double period) override;
+        
         const Eigen::Vector6d& get_force() const;
         const Eigen::Matrix6d& get_stiffness() const;
         const Eigen::Matrix6d& get_damping() const;
@@ -254,6 +256,8 @@ private:
         Eigen::Vector6d force;
         Eigen::Matrix6d k;
         Eigen::Matrix6d d;
+        
+        double force_time_to_live;
     };
     
     void add_task(TaskDescription::Ptr task);
