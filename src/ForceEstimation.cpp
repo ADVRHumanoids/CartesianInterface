@@ -3,11 +3,12 @@
 
 using namespace XBot::Cartesian::Utils;
 
-ForceEstimation::ForceEstimation(ModelInterface::ConstPtr model):
+ForceEstimation::ForceEstimation(ModelInterface::ConstPtr model, 
+                                 double svd_threshold):
     _model(model),
     _ndofs(0)
 {
-    
+    _svd.setThreshold(svd_threshold);
 }
 
 
@@ -72,8 +73,6 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
                   [this](int i){ std::cout << _model->getEnabledJointNames().at(i) << "\n"; });
     std::cout << std::endl;
     
-    const double SVD_THRESHOLD = 0.05;
-    _svd.setThreshold(SVD_THRESHOLD);
     
     return t.sensor;
     

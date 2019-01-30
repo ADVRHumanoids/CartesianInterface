@@ -557,6 +557,8 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
                 0.0, 
                 dt
             );
+            
+            i_task->setWrenchReference(f);
         }
 
     }

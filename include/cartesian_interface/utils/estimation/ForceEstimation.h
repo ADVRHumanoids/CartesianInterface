@@ -12,8 +12,11 @@ namespace XBot { namespace Cartesian { namespace Utils {
     public:
         
         typedef std::shared_ptr<ForceEstimation> Ptr;
+        
+        static constexpr double DEFAULT_SVD_THRESHOLD = 0.05;
 
-        ForceEstimation(ModelInterface::ConstPtr model);
+        ForceEstimation(ModelInterface::ConstPtr model, 
+                        double svd_threshold = DEFAULT_SVD_THRESHOLD);
         
         ForceTorqueSensor::ConstPtr add_link(std::string name, 
                                              std::vector<int> dofs = {}, 
