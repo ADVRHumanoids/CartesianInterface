@@ -49,6 +49,8 @@ namespace XBot { namespace Cartesian { namespace Utils {
         std::set<int> _meas_idx;
         int _ndofs; 
         
+        Eigen::JacobiSVD<Eigen::MatrixXd> _svd;
+        
     };   
     
     
