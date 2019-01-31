@@ -34,7 +34,10 @@ void LockfreeBufferImpl::callAvailable(CartesianInterface* ci)
     (
         [ci](CallbackType& f)
         {
-            f(ci);
+            if(ci)
+            {
+                f(ci);
+            }
         }
     );
 }
