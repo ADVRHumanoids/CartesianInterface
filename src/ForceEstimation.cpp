@@ -3,11 +3,12 @@
 
 using namespace XBot::Cartesian::Utils;
 
-ForceEstimation::ForceEstimation(ModelInterface::ConstPtr model):
+ForceEstimation::ForceEstimation(ModelInterface::ConstPtr model, 
+                                 double svd_threshold):
     _model(model),
     _ndofs(0)
 {
-    
+    _svd.setThreshold(svd_threshold);
 }
 
 
@@ -72,6 +73,7 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
                   [this](int i){ std::cout << _model->getEnabledJointNames().at(i) << "\n"; });
     std::cout << std::endl;
     
+    
     return t.sensor;
     
 }
@@ -116,7 +118,8 @@ void ForceEstimation::compute_A_b()
 
 void ForceEstimation::solve()
 {
-    _sol = _A.jacobiSvd(Eigen::ComputeThinU|Eigen::ComputeThinV).solve(_b);
+    _svd.compute(_A, Eigen::ComputeThinU|Eigen::ComputeThinV);
+    _sol = _svd.solve(_b);
 }
 
 
@@ -164,4 +167,9 @@ void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger::Ptr logger) const
         
         logger->add(t.link_name + "_f_est", wrench);
     }
+    
+    logger->add("fest_A", _A);
+    logger->add("fest_b", _b);
+    logger->add("fest_tau", _tau);
+    logger->add("fest_g", _g);
 }
