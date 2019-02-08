@@ -356,7 +356,10 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
     
     /* Solve ik */
     auto tic =  high_resolution_clock::now();
-    _current_impl->update(_time, _period);
+    if(!_current_impl->update(_time, _period))
+    {
+        return;
+    }
     auto toc =  high_resolution_clock::now();
     
     /* Integrate solution */
@@ -393,6 +396,10 @@ bool RosExecutor::reset_callback(std_srvs::TriggerRequest& req,
     reset_model_state();
     
     _current_impl->reset(_time);
+    
+    XBot::JointNameMap q_map;
+    _model->getJointPosition(q_map);
+    _current_impl->setReferencePosture(q_map);
     
     Logger::info(Logger::Severity::HIGH, "Reset was performed successfully\n");
     

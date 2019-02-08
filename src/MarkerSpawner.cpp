@@ -17,7 +17,7 @@
 
 
 using namespace XBot::Cartesian;
-typedef std::map<std::string, XBot::Cartesian::CartesianMarker::Ptr> MarkerMap;
+typedef std::map<std::string, CartesianMarker::Ptr> MarkerMap;
 
 MarkerMap __g_markers;
 std::string __g_tf_prefix_slash;
