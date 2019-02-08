@@ -52,9 +52,6 @@ int main(int argc, char **argv){
     }
     __g_tf_prefix_slash = __g_tf_prefix_slash == "" ? "" : (__g_tf_prefix_slash + "/");
     
-    construct_markers(nh, __g_markers);
-    
-    Logger::success(Logger::Severity::HIGH, "Marker spawner: started spinning...\n");
     ros::spin();
     
     __g_markers.clear();
