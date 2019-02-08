@@ -105,6 +105,7 @@ set(CartesianInterface_SRC
         src/TaskImpl.cpp
         src/ConstraintImpl.cpp
         src/ForceEstimation.cpp
+        src/RosExecutor.cpp
     )
 
 # OpenSot implementation
