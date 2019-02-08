@@ -28,7 +28,7 @@ namespace XBot { namespace Cartesian {
         
         friend std::ostream& operator<<(std::ostream& os, const RosImpl& r);
         
-        RosImpl(std::string node_namespace = "");
+        RosImpl(std::string ns = "cartesian");
         virtual ~RosImpl();
         
         virtual bool reset();

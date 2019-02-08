@@ -82,9 +82,9 @@ void RosImpl::construct_from_tasklist()
 }
 
 
-RosImpl::RosImpl(std::string node_namespace):
-    _ros_init_helper(node_namespace),
-    _nh("cartesian")
+RosImpl::RosImpl(std::string ns):
+    _ros_init_helper(""),
+    _nh(ns)
 {
     _nh.setCallbackQueue(&_queue);
     
