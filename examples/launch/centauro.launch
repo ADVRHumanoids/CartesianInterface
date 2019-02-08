@@ -4,10 +4,10 @@
     <arg name="prefix" default=""/>
     
     <param name="robot_description" 
-        textfile="$(env ROBOTOLOGY_ROOT)/configs/ADVR_shared/centauro/urdf/centauro.urdf"/>
+        textfile="$(env ROBOTOLOGY_ROOT)/configs/CentauroConfig/urdf/centauro.urdf"/>
     
     <param name="robot_description_semantic"
-        textfile="$(env ROBOTOLOGY_ROOT)/configs/ADVR_shared/centauro/srdf/centauro.srdf"/>
+        textfile="$(env ROBOTOLOGY_ROOT)/configs/CentauroConfig/srdf/centauro.srdf"/>
     
     <param name="cartesian/problem_description" 
         textfile="$(find cartesian_interface)/examples/configs/centauro_simple_stack.yaml"/>
