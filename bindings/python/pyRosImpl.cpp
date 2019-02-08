@@ -17,7 +17,7 @@ PYBIND11_MODULE(pyci, m) {
         .def("__repr__", waypoint_repr);
     
     py::class_<RosImpl>(m, "CartesianInterfaceRos")
-        .def(py::init<std::string>(), py::arg("namespace") = "")
+        .def(py::init<std::string>(), py::arg("namespace") = "cartesian")
         .def("__repr__", ci_repr)
         .def("update", &RosImpl::update, py::arg("time") = 0, py::arg("period") = 0)
         .def("getTaskList", &RosImpl::getTaskList)
