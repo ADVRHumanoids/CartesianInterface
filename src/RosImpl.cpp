@@ -422,7 +422,17 @@ State RosImpl::getTaskState(const std::string& end_effector) const
 
 bool RosImpl::reset()
 {
-    THROW_NOT_IMPL
+    auto client = _nh.serviceClient<std_srvs::Trigger>("reset");
+    
+    std_srvs::Trigger msg;
+    if(!client.call(msg))
+    {
+        throw std::runtime_error("Unable to reset");
+    }
+    
+    ROS_INFO("%s", msg.response.message.c_str());
+    
+    return true;
 }
 
 bool RosImpl::setComPositionReference(const Eigen::Vector3d& base_com_ref)
