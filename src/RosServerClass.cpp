@@ -51,7 +51,16 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     /* Publish TF */
     XBot::JointNameMap _joint_name_map;
     _model->getJointPosition(_joint_name_map);
-    std::map<std::string, double> _joint_name_std_map(_joint_name_map.begin(), _joint_name_map.end());
+    std::map<std::string, double> _joint_name_std_map;
+    
+    auto predicate = [](const std::pair<std::string, double>& pair)
+    {
+        return pair.first.find("VIRTUALJOINT") == std::string::npos;
+    };
+    
+    std::copy_if(_joint_name_map.begin(), _joint_name_map.end(),
+                 std::inserter(_joint_name_std_map, _joint_name_std_map.end()),
+                 predicate);
 
     _rspub->publishTransforms(_joint_name_std_map, time, _tf_prefix);
     _rspub->publishFixedTransforms(_tf_prefix, true);

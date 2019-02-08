@@ -18,7 +18,7 @@ namespace XBot { namespace Cartesian { namespace Utils {
 } } }
 
 
-XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptions(XBot::Cartesian::Utils::LoadFrom options_source)
+inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptions(XBot::Cartesian::Utils::LoadFrom options_source)
 {
     switch(options_source)
     {
@@ -68,6 +68,10 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromConfig()
         std::string solver = ci_node["solver"].as<std::string>();
         xbot_cfg.set_parameter("solver", solver);
     }
+    else
+    {
+        throw std::runtime_error("solver parameter missing");
+    }
     
     if(ci_node["joint_blacklist"])
     {
@@ -87,6 +91,14 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromConfig()
         xbot_cfg.set_parameter("world_frame", world_frame);
     }
     
+    std::string tf_prefix = "ci";
+    if(ci_node["tf_prefix"])
+    {
+        tf_prefix = ci_node["tf_prefix"].as<std::string>();
+    }
+    xbot_cfg.set_parameter("tf_prefix", tf_prefix);
+        
+    
     
     return xbot_cfg;
     
@@ -98,6 +110,9 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromParamServer()
     ros::NodeHandle nh_private("~");
     ros::NodeHandle nh("cartesian");
     
+    std::string tf_prefix = nh_private.param<std::string>("tf_prefix", "ci");
+    xbot_cfg.set_parameter("tf_prefix", tf_prefix);
+    
     std::string world_frame;
     if(nh_private.hasParam("world_frame") && nh_private.getParam("world_frame", world_frame))
     {
@@ -106,12 +121,12 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromParamServer()
     
     std::vector<double> linear(3), angular(4);
     bool has_linear = nh.hasParam("floating_base_pose/linear") && \
-                        nh.getParam("floating_base_pose/linear", linear) && \
-                        linear.size() == 3;
+                      nh.getParam("floating_base_pose/linear", linear) && \
+                      linear.size() == 3;
                         
     bool has_angular = nh.hasParam("floating_base_pose/angular") && \
-                        nh.getParam("floating_base_pose/angular", angular) && \
-                        angular.size() == 4;
+                       nh.getParam("floating_base_pose/angular", angular) && \
+                       angular.size() == 4;
                         
                         
     if(has_linear && has_angular)
@@ -127,6 +142,10 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromParamServer()
     if(nh_private.hasParam("solver") && nh_private.getParam("solver", solver))
     {
         xbot_cfg.set_parameter("solver", solver);
+    }
+    else
+    {
+        throw std::runtime_error("solver parameter missing");
     }
     
     
@@ -153,7 +172,7 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromParamServer()
 }
 
 
-YAML::Node XBot::Cartesian::Utils::LoadProblemDescription(XBot::Cartesian::Utils::LoadFrom description_source,
+inline YAML::Node XBot::Cartesian::Utils::LoadProblemDescription(XBot::Cartesian::Utils::LoadFrom description_source,
                                                           std::string pd_name)
 
 {

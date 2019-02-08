@@ -105,6 +105,7 @@ set(CartesianInterface_SRC
         src/TaskImpl.cpp
         src/ConstraintImpl.cpp
         src/ForceEstimation.cpp
+        src/RosExecutor.cpp
     )
 
 # OpenSot implementation
@@ -138,8 +139,6 @@ if(${USE_XBOT_ROBOT_STATE_PUB})
     include_directories(${robot_state_publisher_advr_solver_INCLUDE_DIRS})
     set(XBOT_RSPUB_LIBRARIES ${robot_state_publisher_advr_solver_LIBRARIES})
 endif()
-
-message("************************** ${XBOT_RSPUB_LIBRARIES}")
 
 # libCartesianInterface
 add_library(CartesianInterface SHARED ${CartesianInterface_SRC}
@@ -182,6 +181,10 @@ target_link_libraries(joystick_spawner CartesianInterface)
 add_executable(cartesian_analyzer src/CartesianAnalyzer.cpp)
 target_link_libraries(cartesian_analyzer CartesianInterface)
 
+# ForceEstimationNode executable
+add_executable(force_estimation_node src/ForceEstimationNode.cpp)
+target_link_libraries(force_estimation_node CartesianInterface)
+
 # WorldConnecter executable
 add_executable(world_connecter src/WorldConnecter.cpp)
 target_link_libraries(world_connecter ${catkin_LIBRARIES})
@@ -210,6 +213,12 @@ install(TARGETS marker_spawner marker_spawner
 )
 
 install(TARGETS joystick_spawner joystick_spawner
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(TARGETS force_estimation_node force_estimation_node
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
