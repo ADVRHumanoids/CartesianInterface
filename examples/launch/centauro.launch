@@ -23,6 +23,22 @@
         <arg name="rate" value="$(arg rate)"/>
         <arg name="prefix" value="$(arg prefix)"/>
     </include>
+    
+    <node pkg="cartesian_interface" 
+          type="force_estimation_node" 
+          name="force_estimator"
+          output="screen">
+          
+        <param name="is_model_floating_base" value="true"/>
+        <param name="model_type" value="RBDL"/>
+        
+        <param name="links" type="yaml" value="[arm1_8, arm2_8]"/>
+        <param name="chains" type="yaml" value="[left_arm, right_arm, torso]"/>
+        
+        <param name="arm1_8/dofs" type="yaml" value="[0, 1, 2]"/>
+        <param name="arm2_8/dofs" type="yaml" value="[0, 1, 2]"/>
+        
+    </node>
 
 
 </launch>
