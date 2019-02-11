@@ -31,8 +31,8 @@ void constructJoyStick(ros::NodeHandle nh, JoyStick::Ptr& joystick)
 
     for(int i = 0; i < res.distal_links.size(); i++)
     {
-        std::string ee_name = res.distal_links[i].data;
-        std::string base_link = res.base_links[i].data;
+        std::string ee_name = res.distal_links[i];
+        std::string base_link = res.base_links[i];
 
 
         base_link = base_link == "world" ? "world_odom" : base_link;

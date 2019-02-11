@@ -109,8 +109,8 @@ void construct_markers(ros::NodeHandle nh, MarkerMap& markers)
 
     for(int i = 0; i < res.distal_links.size(); i++)
     {
-        std::string ee_name = res.distal_links[i].data;
-        std::string base_link = res.base_links[i].data;
+        std::string ee_name = res.distal_links[i];
+        std::string base_link = res.base_links[i];
         unsigned int control_type;
         bool use_mesh = true;
         

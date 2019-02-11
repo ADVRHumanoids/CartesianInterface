@@ -180,11 +180,7 @@ const std::vector< std::string >& RosImpl::getTaskList() const
         throw std::runtime_error("Unable to call service " + _tasklist_srv.getService());
     }
     
-    _tasklist.clear();
-    for(auto dl : srv.response.distal_links)
-    {
-        _tasklist.push_back(dl.data);
-    }
+    _tasklist = srv.response.distal_links;
     
     return _tasklist;
 }

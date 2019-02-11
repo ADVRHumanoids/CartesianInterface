@@ -573,10 +573,8 @@ bool XBot::Cartesian::RosServerClass::task_list_cb(cartesian_interface::GetTaskL
     
     for(const auto& task : _cartesian_interface->getTaskList())
     {
-        std_msgs::String dist_str; dist_str.data = task;
-        std_msgs::String base_str; base_str.data = _cartesian_interface->getBaseLink(task);
-        res.distal_links.push_back(dist_str);
-        res.base_links.push_back(base_str);
+        res.distal_links.push_back(task);
+        res.base_links.push_back(_cartesian_interface->getBaseLink(task));
     }
     
     return true;
