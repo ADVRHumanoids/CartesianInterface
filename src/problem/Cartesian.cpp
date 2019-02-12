@@ -42,9 +42,9 @@ TaskDescription::Ptr CartesianTask::yaml_parse_cartesian(YAML::Node task_node, M
         cart_task->orientation_gain = task_node["orientation_gain"].as<double>();
     }
 
-    if(task_node["is_body_jacobian"])
+    if(task_node["body_jacobian"])
     {
-        cart_task->is_body_jacobian = task_node["is_body_jacobian"].as<bool>();
+        cart_task->is_body_jacobian = task_node["body_jacobian"].as<bool>();
     }
 
     return task_desc;
