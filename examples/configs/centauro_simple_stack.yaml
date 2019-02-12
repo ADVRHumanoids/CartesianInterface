@@ -35,12 +35,12 @@ Postural:
     type: "Postural"
     lambda: 0.01
     weight:
-    VIRTUALJOINT_1: 0.0
-    VIRTUALJOINT_2: 0.0
-    VIRTUALJOINT_3: 0.0
-    VIRTUALJOINT_4: 0.0
-    VIRTUALJOINT_5: 0.0
-    VIRTUALJOINT_6: 0.0
+        VIRTUALJOINT_1: 0.0
+        VIRTUALJOINT_2: 0.0
+        VIRTUALJOINT_3: 0.0
+        VIRTUALJOINT_4: 0.0
+        VIRTUALJOINT_5: 0.0
+        VIRTUALJOINT_6: 0.0
 
     
 Com:

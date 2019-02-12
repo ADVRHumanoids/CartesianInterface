@@ -185,6 +185,10 @@ target_link_libraries(cartesian_analyzer CartesianInterface)
 add_executable(force_estimation_node src/ForceEstimationNode.cpp)
 target_link_libraries(force_estimation_node CartesianInterface)
 
+# TorqueFeedforward executable
+add_executable(torque_feedforward_node src/TorqueFeedforward.cpp)
+target_link_libraries(torque_feedforward_node CartesianInterface)
+
 # WorldConnecter executable
 add_executable(world_connecter src/WorldConnecter.cpp)
 target_link_libraries(world_connecter ${catkin_LIBRARIES})
@@ -219,6 +223,12 @@ install(TARGETS joystick_spawner joystick_spawner
 )
 
 install(TARGETS force_estimation_node force_estimation_node
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(TARGETS torque_feedforward_node torque_feedforward_node
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

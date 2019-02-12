@@ -7,9 +7,9 @@
 
 std::map<std::string, Eigen::Vector6d> * g_fmap_ptr;
 
-void on_force_recv(const geometry_msgs::WrenchStamped& msg, std::string l)
+void on_force_recv(const geometry_msgs::WrenchStampedConstPtr& msg, std::string l)
 {
-    tf::wrenchMsgToEigen(msg.wrench, g_fmap_ptr->at(l));
+    tf::wrenchMsgToEigen(msg->wrench, g_fmap_ptr->at(l));
 }
 
 int main(int argc, char ** argv)
@@ -32,19 +32,31 @@ int main(int argc, char ** argv)
     
     if(links.size() == 0)
     {
-        ROS_INFO("Private parameter ~/links is empty, exiting..");
-        return 0;
+        ROS_INFO("Private parameter ~/links is empty");
     }
     
     std::map<std::string, XBot::ControlMode> ctrl_map;
-    for(auto l : blacklist)
+    for(auto j : blacklist)
     {
-        if(!robot->hasJoint(l))
+        if(!robot->hasJoint(j))
         {
-            throw std::runtime_error("Joint '" + l + "' undefined");
+            if(!robot->hasChain(j))
+            {
+                throw std::runtime_error("Joint or chain '" + j + "' undefined");
+            }
+            else
+            {
+                for(auto jc: robot->chain(j).getJointNames())
+                {
+                    ROS_INFO("Joint '%s' is blacklisted", jc.c_str());
+                    ctrl_map[jc] = XBot::ControlMode::Idle();
+                }
+            }
+            
         }
         
-        ctrl_map[l] = XBot::ControlMode::Idle();
+        ROS_INFO("Joint '%s' is blacklisted", j.c_str());
+        ctrl_map[j] = XBot::ControlMode::Idle();
     }
     robot->setControlMode(ctrl_map);
     
@@ -53,6 +65,7 @@ int main(int argc, char ** argv)
     Eigen::VectorXd tau_offset;
     tau_offset.setZero(model->getJointNum());
     model->mapToEigen(tau_off_map_xbot, tau_offset);
+    std::cout << "Torque offset: " << tau_offset.transpose() << std::endl;
     
     std::map<std::string, ros::Subscriber> sub_map;
     std::map<std::string, Eigen::Vector6d> f_map;
@@ -62,7 +75,7 @@ int main(int argc, char ** argv)
     {
         auto sub = nh.subscribe<geometry_msgs::WrenchStamped>("force_ffwd/" + l,
                                                               1, 
-                                                              std::bind(on_force_recv, std::placeholders::_1, l));
+                                                              boost::bind(on_force_recv, _1, l));
         
         sub_map[l] = sub;
         f_map[l] = Eigen::Vector6d::Zero();
@@ -73,6 +86,8 @@ int main(int argc, char ** argv)
     
     while(ros::ok())
     {
+        ros::spinOnce();
+        
         robot->sense(false);
         model->syncFrom(*robot, XBot::Sync::All, XBot::Sync::MotorSide);
         model->setFloatingBaseState(imu);
