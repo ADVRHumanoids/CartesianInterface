@@ -1,4 +1,5 @@
 #include <cartesian_interface/ros/RosExecutor.h>
+#include <xbot_msgs/JointState.h>
 
 using namespace XBot::Cartesian;
 
@@ -142,10 +143,25 @@ void RosExecutor::reset_model_state()
     
     if(_robot)
     {
-        _robot->sense(false);
-        _model->syncFrom(*_robot, 
-                        XBot::Sync::Position, 
-                        XBot::Sync::MotorSide);
+        auto msg = ros::topic::waitForMessage<xbot_msgs::JointState>("xbotcore/joint_states", ros::Duration(1.0));
+        if(!msg || msg->name.size() == 0)
+        {
+            throw std::runtime_error("Unable to get current joint states from xbotcore");
+        }
+        
+        XBot::JointNameMap qref;
+        for(auto j : _robot->getEnabledJointNames())
+        {
+            auto it = std::find(msg->name.begin(), msg->name.end(), j);
+            if(it == msg->name.end())
+            {
+                throw std::runtime_error("Unable to get current joint state for joint '" + j + "'");
+            }
+            int idx = std::distance(msg->name.begin(), it);
+            qref[j] = msg->position_reference.at(idx);
+        }
+        _model->setJointPosition(qref);
+        _model->update();
     }  
     else
     {
