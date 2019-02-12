@@ -93,6 +93,7 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
 
         cartesian_task->setLambda(cartesian_desc->lambda);
         cartesian_task->setOrientationErrorGain(cartesian_desc->orientation_gain);
+        cartesian_task->setIsBodyJacobian(cartesian_desc->is_body_jacobian);
 
         std::list<uint> indices(cartesian_desc->indices.begin(), cartesian_desc->indices.end());
 

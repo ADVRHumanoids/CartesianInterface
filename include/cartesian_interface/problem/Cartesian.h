@@ -21,6 +21,8 @@ namespace XBot { namespace Cartesian {
          * 2 rad is recovered in the same time as an error of 1 meter.
          */
         double orientation_gain;
+
+        bool is_body_jacobian;
         
         typedef std::shared_ptr<CartesianTask> Ptr;
         typedef std::shared_ptr<const CartesianTask> ConstPtr;
