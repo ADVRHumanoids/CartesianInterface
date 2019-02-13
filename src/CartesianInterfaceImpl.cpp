@@ -542,20 +542,18 @@ bool XBot::Cartesian::CartesianInterfaceImpl::validate_cartesian(CartesianTask::
                          return elem.second == distal;
                      };
     
-    auto it = std::find_if(_tasks_vector.begin(), 
-                           _tasks_vector.end(), 
-                           predicate);
+    auto it = _task_map.find(distal);
     
-    auto it_1 = std::find(_tasks_vector.begin(), 
-                         _tasks_vector.end(), 
-                         std::make_pair(base, distal));
+    if(it == _task_map.end()) // distal not found
+    {
+        return true;
+    }
       
-    if(it_1 != _tasks_vector.end()) // duplicate found
+    if(it->second->get_base() == base) // duplicate found
     {
         return false;
     }
-    
-    if(it != _tasks_vector.end()) // same distal link and different base link
+    else // same distal link and different base link
     {
         throw std::runtime_error("different base links for same distal not allowed (" + distal + ")");
     }

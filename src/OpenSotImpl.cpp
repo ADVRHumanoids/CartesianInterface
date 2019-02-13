@@ -12,22 +12,23 @@
 #include <OpenSoT/constraints/velocity/VelocityLimits.h>
 #include <OpenSoT/constraints/TaskToConstraint.h>
 
+using namespace XBot::Cartesian;
 
 
-extern "C" XBot::Cartesian::CartesianInterface* create_instance(XBot::ModelInterface::Ptr model,
-                                                                XBot::Cartesian::ProblemDescription pb)
+extern "C" CartesianInterface* create_instance(XBot::ModelInterface::Ptr model,
+                                                                ProblemDescription pb)
 {
-    return new XBot::Cartesian::OpenSotImpl(model, pb);
+    return new OpenSotImpl(model, pb);
 }
 
-extern "C" void destroy_instance( XBot::Cartesian::CartesianInterface* instance )
+extern "C" void destroy_instance( CartesianInterface* instance )
 {
     delete instance;
 }
 
-bool XBot::Cartesian::OpenSotImpl::setBaseLink(const std::string& ee_name, const std::string& new_base_link)
+bool OpenSotImpl::setBaseLink(const std::string& ee_name, const std::string& new_base_link)
 {
-    if(!XBot::Cartesian::CartesianInterfaceImpl::setBaseLink(ee_name, new_base_link))
+    if(!CartesianInterfaceImpl::setBaseLink(ee_name, new_base_link))
     {
         return false;
     }
@@ -46,11 +47,11 @@ bool XBot::Cartesian::OpenSotImpl::setBaseLink(const std::string& ee_name, const
 }
 
 
-OpenSoT::tasks::Aggregated::TaskPtr XBot::Cartesian::OpenSotImpl::aggregated_from_stack(XBot::Cartesian::AggregatedTask stack)
+OpenSoT::tasks::Aggregated::TaskPtr OpenSotImpl::aggregated_from_stack(AggregatedTask stack)
 {
     std::list<OpenSoT::tasks::Aggregated::TaskPtr> tasks_list;
 
-    for(XBot::Cartesian::TaskDescription::Ptr task_desc : stack)
+    for(TaskDescription::Ptr task_desc : stack)
     {
         auto task = construct_task(task_desc);
         
@@ -72,14 +73,14 @@ OpenSoT::tasks::Aggregated::TaskPtr XBot::Cartesian::OpenSotImpl::aggregated_fro
     }
 }
 
-XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_task(XBot::Cartesian::TaskDescription::Ptr task_desc)
+OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
 {
     
-    XBot::Cartesian::OpenSotImpl::TaskPtr opensot_task;
+    OpenSotImpl::TaskPtr opensot_task;
     
     if(task_desc->type == "Cartesian")
     {
-        auto cartesian_desc = XBot::Cartesian::GetAsCartesian(task_desc);
+        auto cartesian_desc = GetAsCartesian(task_desc);
         std::string distal_link = cartesian_desc->distal_link;
         std::string base_link = cartesian_desc->base_link;
         
@@ -117,7 +118,7 @@ XBot::Cartesian::OpenSotImpl::TaskPtr XBot::Cartesian::OpenSotImpl::construct_ta
     }
     else if(task_desc->type == "Interaction")
     {
-        auto i_desc = XBot::Cartesian::GetAsInteraction(task_desc);
+        auto i_desc = GetAsInteraction(task_desc);
         std::string distal_link = i_desc->distal_link;
         std::string base_link = i_desc->base_link;
         
@@ -211,7 +212,7 @@ in configuration file (add problem_description/solver_options/control_dt field)\
     else if(task_desc->type == "Gaze")
     {
         
-        auto gaze_desc = XBot::Cartesian::GetAsGaze(task_desc);
+        auto gaze_desc = GetAsGaze(task_desc);
         std::string base_link = gaze_desc->base_link;
 
         _gaze_task = boost::make_shared<GazeTask>(base_link + "_TO_" + "gaze",_q, *_model, base_link);
@@ -237,7 +238,7 @@ in configuration file (add problem_description/solver_options/control_dt field)\
     }
     else if(task_desc->type == "Com")
     {
-        auto com_desc = XBot::Cartesian::GetAsCom(task_desc);
+        auto com_desc = GetAsCom(task_desc);
         _com_task = boost::make_shared<CoMTask>(_q, *_model);
         
         _com_task->setLambda(com_desc->lambda);
@@ -257,7 +258,7 @@ in configuration file (add problem_description/solver_options/control_dt field)\
     }
     else if(task_desc->type == "AngularMomentum")
     {
-        auto angular_mom_desc = XBot::Cartesian::GetAsAngularMomentum(task_desc);
+        auto angular_mom_desc = GetAsAngularMomentum(task_desc);
         _minimize_rate_of_change = angular_mom_desc->min_rate;
 
         _angular_momentum_task = boost::make_shared<AngularMomentumTask>(_q, *_model);
@@ -277,7 +278,7 @@ in configuration file (add problem_description/solver_options/control_dt field)\
     }
     else if(task_desc->type == "Postural")
     {
-        auto postural_desc = XBot::Cartesian::GetAsPostural(task_desc);
+        auto postural_desc = GetAsPostural(task_desc);
         _use_inertia_matrix.push_back(postural_desc->use_inertia_matrix);
 
         auto postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
@@ -313,7 +314,7 @@ in configuration file (add problem_description/solver_options/control_dt field)\
 
 
 
-OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr XBot::Cartesian::OpenSotImpl::constraint_from_description(XBot::Cartesian::ConstraintDescription::Ptr constr_desc)
+OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr OpenSotImpl::constraint_from_description(ConstraintDescription::Ptr constr_desc)
 {
     if(constr_desc->type == "JointLimits")
     {
@@ -379,8 +380,8 @@ in configuration file (add problem_description/solver_options/control_dt field)\
 }
 
 
-XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
-                                          XBot::Cartesian::ProblemDescription ik_problem):
+OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
+                                          ProblemDescription ik_problem):
     CartesianInterfaceImpl(model, ik_problem),
     _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_opensot_log")),
     _update_lambda(false)
@@ -465,15 +466,16 @@ XBot::Cartesian::OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     
 }
 
-void XBot::Cartesian::OpenSotImpl::lambda_callback(const std_msgs::Float32ConstPtr& msg, const string& ee_name)
+void OpenSotImpl::lambda_callback(const std_msgs::Float32ConstPtr& msg, const string& ee_name)
 {
     _lambda_map.at(ee_name) = msg->data;
     _update_lambda = true;
 }
 
 
-bool XBot::Cartesian::OpenSotImpl::initRos(ros::NodeHandle nh)
+bool OpenSotImpl::initRos(ros::NodeHandle nh)
 {
+    
     
     
 //     for(auto t: _cartesian_tasks)
@@ -494,18 +496,18 @@ bool XBot::Cartesian::OpenSotImpl::initRos(ros::NodeHandle nh)
     return true;
 }
 
-void XBot::Cartesian::OpenSotImpl::updateRos()
+void OpenSotImpl::updateRos()
 {
 
 }
 
 
 
-bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
+bool OpenSotImpl::update(double time, double period)
 {
     bool success = true;
 
-    XBot::Cartesian::CartesianInterfaceImpl::update(time, period);
+    CartesianInterfaceImpl::update(time, period);
 
     _model->getJointPosition(_q);
 
@@ -661,10 +663,10 @@ bool XBot::Cartesian::OpenSotImpl::update(double time, double period)
 
 }
 
-bool XBot::Cartesian::OpenSotImpl::setControlMode(const std::string& ee_name, 
+bool OpenSotImpl::setControlMode(const std::string& ee_name, 
                                                   ControlType ctrl_type)
 {
-    if(!XBot::Cartesian::CartesianInterfaceImpl::setControlMode(ee_name, ctrl_type))
+    if(!CartesianInterfaceImpl::setControlMode(ee_name, ctrl_type))
     {
         return false;
     }
@@ -728,7 +730,7 @@ bool XBot::Cartesian::OpenSotImpl::setControlMode(const std::string& ee_name,
     return false;
 }
 
-bool XBot::Cartesian::OpenSotImpl::get_control_dt(double& dt)
+bool OpenSotImpl::get_control_dt(double& dt)
 {
     if(has_config() && get_config()["control_dt"])
     {
@@ -740,7 +742,7 @@ bool XBot::Cartesian::OpenSotImpl::get_control_dt(double& dt)
 }
 
 
-XBot::Cartesian::OpenSotImpl::~OpenSotImpl()
+OpenSotImpl::~OpenSotImpl()
 {
     _logger->flush();
 }
