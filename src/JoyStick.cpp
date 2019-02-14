@@ -12,7 +12,9 @@
 
 using namespace XBot::Cartesian;
 
-JoyStick::JoyStick(const std::vector<std::string> &distal_links, const std::vector<std::string> &base_links, std::string tf_prefix):
+JoyStick::JoyStick(const std::vector<std::string>& distal_links, 
+                   const std::vector<std::string>& base_links, 
+                   std::string tf_prefix):
     _tf_prefix(tf_prefix),
     _distal_links(distal_links),
     _base_links(base_links),
@@ -79,21 +81,33 @@ JoyStick::~JoyStick()
 
 void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
+    /* Print documentation to terminal */
     if(joy->buttons[6])
+    {
         ROS_INFO(Doc().c_str());
-
+    }
+    
+    /* Change selected task */
     if(joy->buttons[4])
+    {
         _selected_task--;
+    }
 
     if(joy->buttons[5])
+    {
         _selected_task++;
-
+    }
+    
     if(_selected_task < 0)
+    {
         _selected_task = _distal_links.size()-1;
+    }
+    
+    _selected_task = _selected_task % _distal_links.size();
 
-    _selected_task = _selected_task%_distal_links.size();
-
-    if(joy->buttons[4] || joy->buttons[5]){
+    /* Print info on selected task, if changed */
+    if(joy->buttons[4] || joy->buttons[5])
+    {
         std::stringstream ss;
         ss<<"Selected Task \n               distal_link: "<<_distal_links[_selected_task].c_str()<<std::endl;
         ss<<"               base_link:   "<<_base_links[_selected_task].c_str()<<std::endl;
@@ -105,42 +119,59 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 
     }
 
+    /* Activate control */
     if(joy->buttons[7])
+    {
         setVelocityCtrl();
-
+    }
+    
+    /* Change speed scale (linear) */
     if(joy->axes[2] <= -0.99)
     {
         if(joy->buttons[2])
+        {
             _linear_speed_sf -= 0.05;
+        }
+        
         if(joy->buttons[3])
+        {
             _linear_speed_sf += 0.05;
+        }
 
-        if(_linear_speed_sf < MIN_SPEED_SF)
-            _linear_speed_sf = MIN_SPEED_SF;
-        if(_linear_speed_sf > MAX_SPEED_SF)
-            _linear_speed_sf = MAX_SPEED_SF;
+        /* Clamp resulting value */
+        _linear_speed_sf = std::max(MIN_SPEED_SF, std::min(_linear_speed_sf, MAX_SPEED_SF));
     }
 
+    /* Print info on speed scale change */
     if(joy->axes[2] <= -0.99 && (joy->buttons[2] || joy->buttons[3]))
+    {
         ROS_INFO("_linear_speed_sf: %f", _linear_speed_sf);
+    }
 
+    /* Change speed scale (angular) */
     if(joy->axes[5] <= -0.99)
     {
         if(joy->buttons[2])
+        {
             _angular_speed_sf -= 0.05;
+        }
+        
         if(joy->buttons[3])
+        {
             _angular_speed_sf += 0.05;
+        }
 
-        if(_angular_speed_sf < MIN_SPEED_SF)
-            _angular_speed_sf = MIN_SPEED_SF;
-        if(_angular_speed_sf > MAX_SPEED_SF)
-            _angular_speed_sf = MAX_SPEED_SF;
+        /* Clamp resulting value */
+        _angular_speed_sf = std::max(MIN_SPEED_SF, std::min(_angular_speed_sf, MAX_SPEED_SF));
     }
 
+    /* Print info on speed scale change */
     if(joy->axes[5] <= -0.99 && (joy->buttons[2] || joy->buttons[3]))
+    {
         ROS_INFO("_angular_speed_sf: %f", _angular_speed_sf);
+    }
 
-
+    /* Define desired twist */
     _twist.setZero(6);
     _twist[0] = _linear_speed_sf * joy->axes[1];
     _twist[1] = _linear_speed_sf * joy->axes[0];
@@ -149,8 +180,13 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     _twist[4] = _angular_speed_sf * joy->axes[4];
     _twist[5] = _angular_speed_sf * joy->axes[3];
 
-    if(joy->buttons[3] && joy->axes[5] > -0.99 && joy->axes[2] > -0.99){
+    /* Toggle base control (control w.r.t. base_link) */
+    _desired_twist.header.frame_id = ""; 
+    
+    if(joy->buttons[3] && joy->axes[5] > -0.99 && joy->axes[2] > -0.99)
+    {
         _base_ctrl *= -1;
+        
         if(_base_ctrl == 1)
         {
             std::stringstream ss;
@@ -159,22 +195,36 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
             ROS_INFO("%s", ss.str().c_str());
         }
         else
+        {
             ROS_INFO("              \n    BASE ctrl OFF");
+        }
+        
     }
 
     if(_base_ctrl == 1)
+    {
         twistInBase();
-
-    if(joy->buttons[0]){
-        _local_ctrl *= -1;
-        if(_local_ctrl == 1)
-            ROS_INFO("              \n    LOCAL ctrl");
-        else
-            ROS_INFO("              \n    GLOBAL ctrl");
     }
+    
+    /* Toggle local control */
+    if(joy->buttons[0])
+    {
+        _local_ctrl *= -1;
+        
+        if(_local_ctrl == 1)
+        {
+            ROS_INFO("              \n    LOCAL ctrl");
+        }
+        else
+        {
+            ROS_INFO("              \n    GLOBAL ctrl");
+        }
+    }
+    
     if(_local_ctrl == 1)
+    {
         localCtrl();
-
+    }
 
     _desired_twist.twist.linear.x = _twist[0];
     _desired_twist.twist.linear.y = _twist[1];
@@ -184,39 +234,9 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     _desired_twist.twist.angular.z = _twist[5];
 
     if(joy->buttons[1])
+    {
         activateDeactivateTask();
-
-}
-
-void JoyStick::twistInBase()
-{
-    cartesian_interface::GetTaskInfo srv;
-    _get_properties_service_clients[_selected_task].call(srv);
-
-    std::string _task_base_link = srv.response.base_link;
-    if(_task_base_link == "world")
-        _task_base_link = "world_odom";
-
-    try{
-        ros::Time now = ros::Time::now();
-        _listener.waitForTransform(_tf_prefix+_task_base_link,
-                                   _tf_prefix+_robot_base_link,ros::Time(0),ros::Duration(1.0));
-
-        _listener.lookupTransform(_tf_prefix+_task_base_link, _tf_prefix+"base_link",
-            ros::Time(0), _transform);
     }
-    catch (tf::TransformException ex){
-        ROS_ERROR("%s",ex.what());
-        ros::Duration(1.0).sleep();
-    }
-
-    Eigen::Affine3d T;
-    tf::transformTFToEigen(_transform, T);
-    Eigen::MatrixXd A(6,6);
-    A<<T.linear(),Eigen::MatrixXd::Zero(3,3),
-       Eigen::MatrixXd::Zero(3,3),T.linear();
-
-    _twist = A*_twist;
 }
 
 void JoyStick::sendVelRefs()
@@ -241,34 +261,14 @@ void JoyStick::setVelocityCtrl()
 
 void JoyStick::localCtrl()
 {
-    cartesian_interface::GetTaskInfo srv;
-    _get_properties_service_clients[_selected_task].call(srv);
-
-    std::string _base_link = srv.response.base_link;
-    if(_base_link == "world")
-        _base_link = "world_odom";
-
-    try{
-        ros::Time now = ros::Time::now();
-        _listener.waitForTransform(_tf_prefix+_base_link,
-                                   _tf_prefix+_distal_links[_selected_task],ros::Time(0),ros::Duration(1.0));
-
-        _listener.lookupTransform(_tf_prefix+_base_link, _tf_prefix+_distal_links[_selected_task],
-            ros::Time(0), _transform);
-    }
-    catch (tf::TransformException ex){
-        ROS_ERROR("%s",ex.what());
-        ros::Duration(1.0).sleep();
-    }
-
-    Eigen::Affine3d T;
-    tf::transformTFToEigen(_transform, T);
-    Eigen::MatrixXd A(6,6);
-    A<<T.linear(),Eigen::MatrixXd::Zero(3,3),
-       Eigen::MatrixXd::Zero(3,3),T.linear();
-
-    _twist = A*_twist;
+    _desired_twist.header.frame_id =  _distal_links[_selected_task];
 }
+
+void XBot::Cartesian::JoyStick::twistInBase()
+{
+    _desired_twist.header.frame_id = "base_link";
+}
+
 
 void JoyStick::activateDeactivateTask()
 {
