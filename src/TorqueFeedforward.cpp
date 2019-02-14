@@ -6,10 +6,13 @@
 #include <RobotInterfaceROS/ConfigFromParam.h>
 
 std::map<std::string, Eigen::Vector6d> * g_fmap_ptr;
+std::map<std::string, ros::Time> * g_timeoutmap_ptr;
+const double FORCE_TTL = 0.1;
 
 void on_force_recv(const geometry_msgs::WrenchStampedConstPtr& msg, std::string l)
 {
     tf::wrenchMsgToEigen(msg->wrench, g_fmap_ptr->at(l));
+    g_timeoutmap_ptr->at(l) = ros::Time::now() + ros::Duration(FORCE_TTL);
 }
 
 int main(int argc, char ** argv)
@@ -30,10 +33,6 @@ int main(int argc, char ** argv)
     auto links = nh_priv.param("links", std::vector<std::string>());
     auto blacklist = nh_priv.param("blacklist", std::vector<std::string>());
     
-    if(links.size() == 0)
-    {
-        ROS_INFO("Private parameter ~/links is empty");
-    }
     
     std::map<std::string, XBot::ControlMode> ctrl_map;
     for(auto j : blacklist)
@@ -69,7 +68,9 @@ int main(int argc, char ** argv)
     
     std::map<std::string, ros::Subscriber> sub_map;
     std::map<std::string, Eigen::Vector6d> f_map;
+    std::map<std::string, ros::Time> timeout_map; 
     g_fmap_ptr = &f_map;
+    g_timeoutmap_ptr = &timeout_map;
     
     for(auto l : links)
     {
@@ -79,6 +80,8 @@ int main(int argc, char ** argv)
         
         sub_map[l] = sub;
         f_map[l] = Eigen::Vector6d::Zero();
+        
+        ROS_INFO("Subscribed to topic '%s'", sub.getTopic().c_str());
     }
     
     Eigen::VectorXd tau;
@@ -88,14 +91,26 @@ int main(int argc, char ** argv)
     {
         ros::spinOnce();
         
+        /* Sense robot state and update model */
         robot->sense(false);
         model->syncFrom(*robot, XBot::Sync::All, XBot::Sync::MotorSide);
         model->setFloatingBaseState(imu);
         model->update();
         
+        /* Compute gcomp */
         model->computeGravityCompensation(tau);
         tau -= tau_offset;
         
+        /* Check for expired force refs */
+        for(const auto& pair : timeout_map)
+        {
+            if(ros::Time::now() > pair.second)
+            {
+                f_map.at(pair.first).setZero();
+            }
+        }
+        
+        /* Add force feedforward  term */
         for(const auto& pair : f_map)
         {
             Eigen::MatrixXd J;
@@ -112,6 +127,7 @@ int main(int argc, char ** argv)
             
         }
         
+        /* Send torque to joints */
         model->setJointEffort(tau);
         robot->setReferenceFrom(*model, XBot::Sync::Effort);
         robot->move();
