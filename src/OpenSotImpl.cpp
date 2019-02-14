@@ -69,7 +69,7 @@ OpenSoT::tasks::Aggregated::TaskPtr OpenSotImpl::aggregated_from_stack(Aggregate
     }
     else
     {
-        return *tasks_list.begin();
+        return tasks_list.front();
     }
 }
 
@@ -155,8 +155,9 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
         double control_dt = 0.01;
         if(!get_control_dt(control_dt))
         {
-            Logger::warning("Unable to find control period \
-in configuration file (add problem_description/solver_options/control_dt field)\n");
+            throw std::runtime_error("Unable to find control period in configuration file " 
+                                     "required by admittance task "  
+                                     "(add problem_description/solver_options/control_dt field)");
         }
         
         if(i_desc->lambda > 0)
@@ -184,8 +185,6 @@ in configuration file (add problem_description/solver_options/control_dt field)\
         }
         
         admittance_task->setDeadZone(i_desc->force_dead_zone);
-        
-            
 
         std::list<uint> indices(i_desc->indices.begin(), i_desc->indices.end());
 
