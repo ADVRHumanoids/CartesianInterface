@@ -10,7 +10,7 @@ RosServerClass::Options::Options():
 
 }
 
-void RosServerClass::__generate_state_broadcasting()
+void RosServerClass::init_state_broadcasting()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
@@ -26,7 +26,7 @@ void RosServerClass::__generate_state_broadcasting()
 }
 
 
-void RosServerClass::__generate_rspub()
+void RosServerClass::init_rspub()
 {
     KDL::Tree kdl_tree;
     kdl_parser::treeFromUrdfModel(_model->getUrdf(), kdl_tree);
@@ -122,7 +122,7 @@ void XBot::Cartesian::RosServerClass::online_force_reference_cb(const geometry_m
 }
 
 
-void XBot::Cartesian::RosServerClass::__generate_interaction_topics()
+void XBot::Cartesian::RosServerClass::init_interaction_topics()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
@@ -147,7 +147,7 @@ void XBot::Cartesian::RosServerClass::__generate_interaction_topics()
     }
 }
 
-void XBot::Cartesian::RosServerClass::__generate_interaction_srvs()
+void XBot::Cartesian::RosServerClass::init_interaction_srvs()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
@@ -172,7 +172,7 @@ void XBot::Cartesian::RosServerClass::__generate_interaction_srvs()
 }
 
 
-void RosServerClass::__generate_online_vel_topics()
+void RosServerClass::init_online_vel_topics()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
@@ -192,39 +192,37 @@ void RosServerClass::online_velocity_reference_cb(const geometry_msgs::TwistStam
 {
     Eigen::Vector6d vel;
     tf::twistMsgToEigen(msg->twist, vel);
+    
     Eigen::Matrix3d b_R_f;
     b_R_f.setIdentity();
     
     if(msg->header.frame_id == "world")
     {
-        XBot::Logger::error("frame_id = world not supported (TBD)\n");
-        return;
+        _model->getOrientation(_cartesian_interface->getBaseLink(ee_name), b_R_f);
+        b_R_f.transposeInPlace();
     }
-    
-    if(msg->header.frame_id != "")
+    else if(msg->header.frame_id != "")
     {
-        Eigen::Matrix3d b_R_f;
-        b_R_f.setIdentity();
         
         if(!_model->getOrientation(msg->header.frame_id, _cartesian_interface->getBaseLink(ee_name), b_R_f))
         {
-            XBot::Logger::error("Unable to set velocity reference for task %s (frame_id \"%s\" undefined)\n", 
-                                    ee_name.c_str(), 
-                                    msg->header.frame_id.c_str()
+            XBot::Logger::error("Unable to set velocity reference for task '%s' (frame_id '%s' undefined)\n", 
+                                ee_name.c_str(), 
+                                msg->header.frame_id.c_str()
             );
             
             return;
         }
         
-        vel.head<3>() = b_R_f * vel.head<3>();
-        vel.tail<3>() = b_R_f * vel.tail<3>();
     }
     
+    vel.head<3>() = b_R_f * vel.head<3>();
+    vel.tail<3>() = b_R_f * vel.tail<3>();
     _cartesian_interface->setVelocityReference(ee_name, vel);
     
 }
 
-void RosServerClass::__generate_online_pos_topics()
+void RosServerClass::init_online_pos_topics()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
@@ -239,7 +237,7 @@ void RosServerClass::__generate_online_pos_topics()
     }
 }
 
-void RosServerClass::__generate_reach_pose_action_servers()
+void RosServerClass::init_reach_pose_action_servers()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
@@ -477,19 +475,19 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     
     _nh.setCallbackQueue(&_cbk_queue);
     
-    __generate_online_pos_topics();
-    __generate_online_vel_topics();
-    __generate_interaction_topics();
-    __generate_reach_pose_action_servers();
-    __generate_state_broadcasting();
-    __generate_rspub();
-    __generate_task_info_services();
-    __generate_interaction_srvs();
-    __generate_task_info_setters();
-    __generate_task_list_service();
-    __generate_postural_task_topics_and_services();
-    __generate_update_param_services();
-    __generate_reset_world_service();
+    init_online_pos_topics();
+    init_online_vel_topics();
+    init_interaction_topics();
+    init_reach_pose_action_servers();
+    init_state_broadcasting();
+    init_rspub();
+    init_task_info_services();
+    init_interaction_srvs();
+    init_task_info_setters();
+    init_task_list_service();
+    init_postural_task_topics_and_services();
+    init_update_param_services();
+    init_reset_world_service();
 
     _ros_enabled_ci = std::dynamic_pointer_cast<RosEnabled>(_cartesian_interface);
     if(!_ros_enabled_ci || !_ros_enabled_ci->initRos(_nh))
@@ -561,7 +559,7 @@ geometry_msgs::Pose RosServerClass::get_normalized_pose(const geometry_msgs::Pos
 
 }
 
-void XBot::Cartesian::RosServerClass::__generate_task_list_service()
+void XBot::Cartesian::RosServerClass::init_task_list_service()
 {
     std::string srv_name = "get_task_list";
     _tasklist_srv = _nh.advertiseService(srv_name, &RosServerClass::task_list_cb, this);
@@ -582,7 +580,7 @@ bool XBot::Cartesian::RosServerClass::task_list_cb(cartesian_interface::GetTaskL
 
 
 
-void XBot::Cartesian::RosServerClass::__generate_task_info_services()
+void XBot::Cartesian::RosServerClass::init_task_info_services()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
@@ -623,7 +621,7 @@ bool XBot::Cartesian::RosServerClass::reset_params_cb(std_srvs::TriggerRequest& 
     return true;
 }
 
-void XBot::Cartesian::RosServerClass::__generate_update_param_services()
+void XBot::Cartesian::RosServerClass::init_update_param_services()
 {
     
     for(std::string task : _cartesian_interface->getTaskList())
@@ -687,7 +685,7 @@ XBot::ModelInterface::ConstPtr RosServerClass::getModel() const
     return _model;
 }
 
-void XBot::Cartesian::RosServerClass::__generate_task_info_setters()
+void XBot::Cartesian::RosServerClass::init_task_info_setters()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
@@ -742,7 +740,7 @@ bool XBot::Cartesian::RosServerClass::set_task_info_cb(cartesian_interface::SetT
 }
 
 
-void XBot::Cartesian::RosServerClass::__generate_postural_task_topics_and_services()
+void XBot::Cartesian::RosServerClass::init_postural_task_topics_and_services()
 {
     std::string postural_ref_topic_name = "posture/reference";
     std::string postural_state_topic_name = "posture/state";
@@ -797,7 +795,7 @@ bool XBot::Cartesian::RosServerClass::reset_posture_cb(std_srvs::TriggerRequest&
     return true;
 }
 
-void XBot::Cartesian::RosServerClass::__generate_reset_world_service()
+void XBot::Cartesian::RosServerClass::init_reset_world_service()
 {
     _reset_world_srv = _nh.advertiseService("reset_world", &RosServerClass::reset_world_cb, this);
 }
