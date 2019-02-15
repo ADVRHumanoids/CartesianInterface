@@ -217,7 +217,8 @@ void JoyStick::sendVelRefs()
     cartesian_interface::GetTaskInfo srv;
     _get_properties_service_clients[_selected_task].call(srv);
     
-    if(srv.response.control_mode.compare("Disabled") != 0 )
+    if(srv.response.control_mode.compare("Disabled") != 0 && 
+	srv.response.control_mode.compare("Velocity") == 1)
     {
         _ref_pose_pubs[_selected_task].publish(_desired_twist);
     }
