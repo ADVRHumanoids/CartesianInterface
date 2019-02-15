@@ -52,6 +52,7 @@ private:
     std::vector<std::string> _distal_links;
     std::vector<std::string> _base_links;
 
+    ros::Publisher _joy_audio_pub;
     ros::Subscriber _joy_sub;
 
     void joyCallback(const sensor_msgs::Joy::ConstPtr& joy);

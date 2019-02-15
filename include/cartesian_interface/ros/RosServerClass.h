@@ -85,20 +85,20 @@ namespace XBot { namespace Cartesian {
         typedef robot_state_publisher_advr::RobotStatePublisher RsPub;
 #endif
 
-        void __generate_reach_pose_action_servers();
-        void __generate_state_broadcasting();
-        void __generate_online_pos_topics();
-        void __generate_online_vel_topics();
-        void __generate_interaction_topics();
-        void __generate_interaction_srvs();
-        void __generate_task_info_services();
-        void __generate_reset_service();
-        void __generate_rspub();
-        void __generate_task_info_setters();
-        void __generate_task_list_service();
-        void __generate_postural_task_topics_and_services();
-        void __generate_update_param_services();
-        void __generate_reset_world_service();
+        void init_reach_pose_action_servers();
+        void init_state_broadcasting();
+        void init_online_pos_topics();
+        void init_online_vel_topics();
+        void init_interaction_topics();
+        void init_interaction_srvs();
+        void init_task_info_services();
+        void init_reset_service();
+        void init_rspub();
+        void init_task_info_setters();
+        void init_task_list_service();
+        void init_postural_task_topics_and_services();
+        void init_update_param_services();
+        void init_reset_world_service();
 
         void manage_reach_actions();
         void publish_posture_state(ros::Time time);

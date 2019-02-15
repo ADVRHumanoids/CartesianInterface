@@ -4,6 +4,7 @@
 #include <tf_conversions/tf_eigen.h>
 #include <geometry_msgs/Transform.h>
 #include <std_srvs/SetBool.h>
+#include <std_msgs/String.h>
 
 
 #define MAX_SPEED_SF 1.0
@@ -17,14 +18,15 @@ JoyStick::JoyStick(const std::vector<std::string> &distal_links, const std::vect
     _base_links(base_links),
     _robot_base_link("base_link"),
     _selected_task(0),
-    _linear_speed_sf(0.1),
-    _angular_speed_sf(0.1),
+    _linear_speed_sf(0.2),
+    _angular_speed_sf(0.2),
     _twist(6), _local_ctrl(-1), _base_ctrl(-1),
     _nh("cartesian")
 {
     _twist.setZero(6);
     _joy_sub = _nh.subscribe<sensor_msgs::Joy>("joy", 10, &JoyStick::joyCallback, this);
 
+    _joy_audio_pub = _nh.advertise<std_msgs::String>("audio", 1);
 
     ros::ServiceClient srv_client;
     for(unsigned int i = 0; i < distal_links.size(); ++i)
@@ -96,6 +98,11 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
         ss<<"Selected Task \n               distal_link: "<<_distal_links[_selected_task].c_str()<<std::endl;
         ss<<"               base_link:   "<<_base_links[_selected_task].c_str()<<std::endl;
         ROS_INFO("%s", ss.str().c_str());
+        
+        std_msgs::String msg;
+        msg.data = _distal_links[_selected_task];
+        _joy_audio_pub.publish(msg);
+
     }
 
     if(joy->buttons[7])
