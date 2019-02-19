@@ -1155,7 +1155,7 @@ bool CartesianInterfaceImpl::Task::check_reach() const
     auto T = get_pose_otg();
     auto Tref = trajectory->getWayPoints().back().frame;
     
-    return Tref.isApprox(T, 1e-6);
+    return Tref.isApprox(T, 1e-6); 
 }
 
 ControlType CartesianInterfaceImpl::Task::get_ctrl() const

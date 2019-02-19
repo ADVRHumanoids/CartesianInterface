@@ -3,6 +3,7 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <eigen3/Eigen/Dense>
 #include <tf/transform_listener.h>
+#include <XBotInterface/Utils.h>
 
 namespace Eigen 
 {
@@ -87,6 +88,7 @@ private:
     geometry_msgs::TwistStamped _desired_twist;
     Eigen::Vector6d _twist;
     Eigen::Vector6i _twist_mask;
+    XBot::Utils::SecondOrderFilter<Eigen::Vector6d> _twist_filt;
 
     tf::TransformListener _listener;
     tf::StampedTransform _transform;

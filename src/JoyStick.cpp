@@ -27,6 +27,9 @@ JoyStick::JoyStick(const std::vector<std::string>& distal_links,
 {
     _twist.setZero();
     _twist_mask.setOnes();
+    _twist_filt.setDamping(1.0);
+    _twist_filt.setOmega(2.0 * M_PI * 2.0);
+    _twist_filt.setTimeStep(1./30.);
     
     _joy_sub = _nh.subscribe<sensor_msgs::Joy>("joy", 10, &JoyStick::joyCallback, this);
 
@@ -236,12 +239,6 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
         localCtrl();
     }
 
-    _desired_twist.twist.linear.x = _twist[0];
-    _desired_twist.twist.linear.y = _twist[1];
-    _desired_twist.twist.linear.z = _twist[2];
-    _desired_twist.twist.angular.x = _twist[3];
-    _desired_twist.twist.angular.y = _twist[4];
-    _desired_twist.twist.angular.z = _twist[5];
 
     if(joy->buttons[1])
     {
@@ -253,6 +250,15 @@ void JoyStick::sendVelRefs()
 {
     cartesian_interface::GetTaskInfo srv;
     _get_properties_service_clients[_selected_task].call(srv);
+    
+    _twist_filt.process(_twist);
+    
+    _desired_twist.twist.linear.x  = _twist_filt.getOutput()[0];
+    _desired_twist.twist.linear.y  = _twist_filt.getOutput()[1];
+    _desired_twist.twist.linear.z  = _twist_filt.getOutput()[2];
+    _desired_twist.twist.angular.x = _twist_filt.getOutput()[3];
+    _desired_twist.twist.angular.y = _twist_filt.getOutput()[4];
+    _desired_twist.twist.angular.z = _twist_filt.getOutput()[5];
     
     if(srv.response.control_mode == "Velocity")
     {
