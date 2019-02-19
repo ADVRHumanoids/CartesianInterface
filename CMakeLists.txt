@@ -57,6 +57,7 @@ add_service_files(
   GetTaskList.srv
   ResetWorld.srv
   GetImpedance.srv
+  ToggleAxis.srv
 )
 
 # Generate actions in the 'action' folder

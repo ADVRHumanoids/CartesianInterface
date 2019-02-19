@@ -4,6 +4,12 @@
 #include <eigen3/Eigen/Dense>
 #include <tf/transform_listener.h>
 
+namespace Eigen 
+{
+    typedef Eigen::Matrix<double, 6, 1> Vector6d;
+    typedef Eigen::Matrix<int, 6, 1> Vector6i;
+}
+
 namespace XBot { namespace Cartesian {
 class JoyStick{
 public:
@@ -12,6 +18,8 @@ public:
     JoyStick(const std::vector<std::string>& distal_links, const std::vector<std::string> &base_links, std::string tf_prefix = "");
 
     ~JoyStick();
+    
+    void setTwistMask(const Eigen::Vector6i& mask);
 
     void sendVelRefs();
 
@@ -71,7 +79,8 @@ private:
     double _angular_speed_sf;
 
     geometry_msgs::TwistStamped _desired_twist;
-    Eigen::VectorXd _twist;
+    Eigen::Vector6d _twist;
+    Eigen::Vector6i _twist_mask;
 
     tf::TransformListener _listener;
     tf::StampedTransform _transform;

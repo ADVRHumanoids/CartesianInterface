@@ -1,0 +1,5 @@
+# Select enable axis (tx, ty, tz, rx, ry, rz)
+bool[6] axis_mask
+---
+string message
+bool success

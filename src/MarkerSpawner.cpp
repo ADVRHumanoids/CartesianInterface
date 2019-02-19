@@ -19,8 +19,8 @@
 using namespace XBot::Cartesian;
 typedef std::map<std::string, CartesianMarker::Ptr> MarkerMap;
 
-MarkerMap __g_markers;
-std::string __g_tf_prefix_slash;
+MarkerMap g_markers;
+std::string g_tf_prefix_slash;
 
 void construct_markers(ros::NodeHandle nh, MarkerMap& markers);
 bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res, ros::NodeHandle nh);
@@ -45,19 +45,19 @@ int main(int argc, char **argv){
     auto event_sub = nh.subscribe<std_msgs::Empty>("changed_controller_event", 1, event_sub_cbk);
     
     /* TF prefix from param */
-    __g_tf_prefix_slash = nh_priv.param<std::string>("tf_prefix", "ci");
-    if(__g_tf_prefix_slash == "null")
+    g_tf_prefix_slash = nh_priv.param<std::string>("tf_prefix", "ci");
+    if(g_tf_prefix_slash == "null")
     {
-        __g_tf_prefix_slash = "";
+        g_tf_prefix_slash = "";
     }
-    __g_tf_prefix_slash = __g_tf_prefix_slash == "" ? "" : (__g_tf_prefix_slash + "/");
+    g_tf_prefix_slash = g_tf_prefix_slash == "" ? "" : (g_tf_prefix_slash + "/");
     
-    construct_markers(nh, __g_markers);
+    construct_markers(nh, g_markers);
     
     Logger::success(Logger::Severity::HIGH, "Marker spawner: started spinning...\n");
     ros::spin();
     
-    __g_markers.clear();
+    g_markers.clear();
 }
 
 void controller_changed_callback(const std_msgs::EmptyConstPtr& msg, ros::NodeHandle nh)
@@ -78,9 +78,9 @@ void controller_changed_callback(const std_msgs::EmptyConstPtr& msg, ros::NodeHa
 
 bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res, ros::NodeHandle nh)
 {
-    __g_markers.clear();
+    g_markers.clear();
     
-    construct_markers(nh, __g_markers); // will THROW on failure
+    construct_markers(nh, g_markers); // will THROW on failure
     
     res.message = "Successfully reset markers";
     res.success = true;
@@ -91,7 +91,7 @@ bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& re
 void construct_markers(ros::NodeHandle nh, MarkerMap& markers)
 {
     /* Get task list from cartesian server */
-    ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskListRequest, cartesian_interface::GetTaskListResponse>("get_task_list");
+    ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskList>("get_task_list");
     cartesian_interface::GetTaskListRequest req;
     cartesian_interface::GetTaskListResponse res;
     task_list_client.waitForExistence();
@@ -129,7 +129,7 @@ void construct_markers(ros::NodeHandle nh, MarkerMap& markers)
                                                    ee_name,
                                                    robot_urdf,
                                                    control_type,
-                                                   __g_tf_prefix_slash,
+                                                   g_tf_prefix_slash,
                                                    use_mesh
                                                   );
         

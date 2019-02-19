@@ -232,7 +232,7 @@ CartesianInterfaceImpl::Ptr RosExecutor::load_controller(std::string impl_name,
 
 
 bool RosExecutor::loader_callback(cartesian_interface::LoadControllerRequest& req,
-                                                   cartesian_interface::LoadControllerResponse& res)
+                                  cartesian_interface::LoadControllerResponse& res)
 {
     /* Construct problem description */
     ProblemDescription ik_prob;

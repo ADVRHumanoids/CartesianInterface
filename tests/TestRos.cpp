@@ -185,16 +185,9 @@ TEST_F(TestRos, checkBindings)
 {
     using namespace XBot::Cartesian;
     
-    RosImpl * ci;
+    RosImpl * ci = nullptr;
     
-    try
-    {
-        ci = new RosImpl;
-    }
-    catch(std::exception& e)
-    {
-        ASSERT_TRUE(e.what() && false);
-    }
+    ASSERT_NO_THROW(ci = new RosImpl);
     
     ASSERT_TRUE(ci->getControlMode("com") == ControlType::Disabled);
     ASSERT_TRUE(ci->getBaseLink("wheel_1") == "pelvis");
@@ -202,14 +195,34 @@ TEST_F(TestRos, checkBindings)
     ASSERT_NO_THROW(ci->setControlMode("arm1_8", ControlType::Velocity));
     ASSERT_TRUE(ci->getControlMode("arm1_8") == ControlType::Velocity);
     
+    ASSERT_NO_THROW(ci->setControlMode("arm1_8", ControlType::Position));
+    ASSERT_TRUE(ci->getControlMode("arm1_8") == ControlType::Position);
+    
+    ASSERT_NO_THROW(ci->setControlMode("com", ControlType::Position));
+    ASSERT_TRUE(ci->getControlMode("com") == ControlType::Position);
+    
+    ASSERT_NO_THROW(ci->setBaseLink("wheel_1", "world"));
+    ASSERT_TRUE(ci->getBaseLink("wheel_1") == "world");
+    
+    
+    
     delete ci;
     
 }
 
 int main(int argc, char ** argv)
 {                    
+    /* Run tests on an isolated roscore */
+    if(setenv("ROS_MASTER_URI", "http://localhost:11322", 1) == -1)
+    {
+        perror("setenv");
+        return 1;
+    }
+    
+    Process roscore({"roscore", "-p", "11322"});
+    
+    
     /* Launch ros server node */
-                     
     ros::init(argc, argv, "cartesian_interface_ros_test_node");
     ros::NodeHandle  nh("cartesian");
     
@@ -220,7 +233,7 @@ int main(int argc, char ** argv)
     
     ros::param::set("/robot_description", urdf);
     ros::param::set("/robot_description_semantic", srdf);
-    ros::param::set("cartesian/problem_description", prob);
+    ros::param::set("/cartesian/problem_description", prob);
     
     Process proc({"rosrun", 
         "cartesian_interface", 

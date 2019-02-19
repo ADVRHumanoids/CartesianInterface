@@ -3,6 +3,7 @@
 #include <XBotInterface/SoLib.h>
 
 #include <cartesian_interface/GetTaskList.h>
+#include <cartesian_interface/ToggleAxis.h>
 #include <cartesian_interface/joystick/JoyStick.h>
 #include <ros/ros.h>
 
@@ -69,6 +70,28 @@ bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& re
     return true;
 }
 
+bool toggle_axis_cbk(cartesian_interface::ToggleAxisRequest& req, 
+                     cartesian_interface::ToggleAxisResponse& res)
+{
+    static const std::vector<std::string> field_names = {"TX", "TY", "TZ", "RX", "RY", "RZ"};
+    
+    res.message = "Succesfully set axis mask to\n";
+    
+    Eigen::Vector6i mask;
+    for(int i = 0; i < 6; i++)
+    {
+        mask[i] = req.axis_mask[i];
+        res.message += "  " + field_names[i] + ": " + (req.axis_mask[i] ? "enabled" : "disabled");
+    }
+    
+    joystick->setTwistMask(mask);
+    
+    res.success = true;
+    
+    return true;
+    
+}
+
 void controller_changed_callback(const std_msgs::EmptyConstPtr& msg, ros::NodeHandle nh)
 {
     std_srvs::TriggerRequest req;
@@ -95,7 +118,12 @@ int main(int argc, char **argv){
 
     /* Reset service */
     auto srv_cbk = std::bind(reset_callback, std::placeholders::_1, std::placeholders::_2, nh);
-    auto srv = nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>("joystick/reset", srv_cbk);
+    auto srv = nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>("joystick/reset",
+                                                                                        srv_cbk);
+    
+    /* Toggle axis service */
+    auto toggle_axis_srv = nh.advertiseService("joystick/toggle_axis",
+                                               toggle_axis_cbk);
 
     /* Controller changed subscriber */
     auto event_sub_cbk = std::bind(controller_changed_callback, std::placeholders::_1, nh);
