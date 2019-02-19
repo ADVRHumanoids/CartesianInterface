@@ -50,7 +50,7 @@ void constructJoyStick(ros::NodeHandle nh, JoyStick::Ptr& joystick)
         tf_prefix = "";
     }
 
-    joystick = boost::make_shared<XBot::Cartesian::JoyStick>(distal_links, base_links, tf_prefix);
+    joystick = std::make_shared<XBot::Cartesian::JoyStick>(distal_links, base_links, tf_prefix);
 
     std::string robot_base_link;
     if(nh.getParam("robot_base_link", robot_base_link))
@@ -113,7 +113,7 @@ int main(int argc, char **argv){
     XBot::Logger::SetVerbosityLevel(XBot::Logger::Severity::MID);
 
     /* Init ROS node */
-    ros::init(argc, argv, "xbot_joystick_spawner");
+    ros::init(argc, argv, "joystick_spawner");
     ros::NodeHandle nh("cartesian");
 
     /* Reset service */
@@ -132,14 +132,14 @@ int main(int argc, char **argv){
 
     constructJoyStick(nh, joystick);
 
-
-    ros::Rate loop_rate(100);
+    ros::Rate loop_rate(30.0);
+    
     while(ros::ok())
     {
-        joystick->sendVelRefs();
         ros::spinOnce();
+        joystick->sendVelRefs();
         loop_rate.sleep();
     }
-
-    ros::spin();
+    
+    joystick.reset();
 }

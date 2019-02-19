@@ -11,11 +11,16 @@ namespace Eigen
 }
 
 namespace XBot { namespace Cartesian {
-class JoyStick{
+    
+class JoyStick {
+    
 public:
-    typedef boost::shared_ptr<JoyStick> Ptr;
+    
+    typedef std::shared_ptr<JoyStick> Ptr;
 
-    JoyStick(const std::vector<std::string>& distal_links, const std::vector<std::string> &base_links, std::string tf_prefix = "");
+    JoyStick(const std::vector<std::string>& distal_links, 
+             const std::vector<std::string>& base_links, 
+             std::string tf_prefix = "");
 
     ~JoyStick();
     
@@ -66,8 +71,9 @@ private:
     void joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
     void setVelocityCtrl();
     void localCtrl();
-    void activateDeactivateTask();
     void twistInBase();
+    void activateDeactivateTask();
+
     int _selected_task;
 
     std::vector<ros::ServiceClient> _set_properties_service_clients;
