@@ -934,27 +934,28 @@ const std::string & XBot::Cartesian::RosImpl::RosTask::get_distal_link() const
     return distal_link;
 }
 
-bool XBot::Cartesian::RosImpl::getPoseFromTf(const std::string& source_frame, const std::string& target_frame, Eigen::Affine3d& t_T_s)
+bool XBot::Cartesian::RosImpl::getPoseFromTf(const std::string& source_frame, 
+                                             const std::string& target_frame, 
+                                             Eigen::Affine3d& t_T_s)
 {
-    tf::TransformListener listener;
 
     tf::StampedTransform T;
 
-
-    if(!listener.waitForTransform(target_frame, source_frame, ros::Time(0), ros::Duration(1)))
+    if(!_listener.waitForTransform(target_frame, source_frame, ros::Time(0), ros::Duration(1.0)))
     {
         ROS_ERROR("Wait for transform timed out");
         return false;
     }
 
 
-    try{
-            listener.lookupTransform(target_frame, source_frame, ros::Time(0), T);
+    try
+    {
+        _listener.lookupTransform(target_frame, source_frame, ros::Time(0), T);
     }
-    catch (tf::TransformException ex){
-             ROS_ERROR("%s",ex.what());
-             ros::Duration(1.0).sleep();
-             return false;
+    catch(tf::TransformException ex)
+    {
+        ROS_ERROR("%s",ex.what());
+        return false;
     }
 
     tf::transformTFToEigen(T, t_T_s);

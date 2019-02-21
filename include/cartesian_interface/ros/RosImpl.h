@@ -246,6 +246,7 @@ namespace XBot { namespace Cartesian {
         
         ros::NodeHandle _nh;
         ros::CallbackQueue _queue;
+        tf::TransformListener _listener;
         
         ros::ServiceClient _upd_limits_srv;
         ros::ServiceClient _load_ctrl_srv;
