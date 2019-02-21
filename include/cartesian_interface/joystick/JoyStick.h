@@ -1,8 +1,8 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <std_msgs/Empty.h>
 #include <eigen3/Eigen/Dense>
-#include <tf/transform_listener.h>
 #include <XBotInterface/Utils.h>
 
 namespace Eigen 
@@ -90,8 +90,6 @@ private:
     Eigen::Vector6i _twist_mask;
     XBot::Utils::SecondOrderFilter<Eigen::Vector6d> _twist_filt;
 
-    tf::TransformListener _listener;
-    tf::StampedTransform _transform;
 
     int _local_ctrl;
     int _base_ctrl;
