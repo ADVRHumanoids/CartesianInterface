@@ -636,10 +636,14 @@ void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task
         {
             Logger::warning("Group state \"home\" undefined inside SRDF: setting posture reference to zero\n");
         }
-    }   
+    } 
+    else if(task_desc->interface == TaskInterface::None)
+    {
+        
+    }
     else
     {
-        Logger::warning("Unsupported task type\n");
+        Logger::warning("Unsupported task interface for task '%s'\n", task_desc->type.c_str());
     }
     
     
