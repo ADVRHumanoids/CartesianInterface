@@ -28,6 +28,11 @@ namespace XBot { namespace Cartesian {
         std::string type;
         
         /**
+         * @brief Library where task factories can be found
+         */
+        std::string lib_name;
+        
+        /**
          * @brief Task weight. Inside an aggregated task, each component
          * is weighted according to this variable, that is therefore useful
          * to model soft priorities. It MUST be a positive-definite symmetric
@@ -49,6 +54,11 @@ namespace XBot { namespace Cartesian {
          */
         double lambda;
         
+        /**
+         * @brief Vector of joint names that are disabled from 
+         * contributing to the task.
+         */
+        std::vector<std::string> disabled_joints;
         
         typedef std::shared_ptr<TaskDescription> Ptr;
         typedef std::shared_ptr<const TaskDescription> ConstPtr;

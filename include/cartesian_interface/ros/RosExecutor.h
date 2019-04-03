@@ -65,7 +65,7 @@ namespace XBot { namespace Cartesian {
         
         ros::NodeHandle _nh, _nh_priv;
         
-        XBot::ConfigOptions _xbot_cfg;
+        XBot::ConfigOptions _xbot_cfg, _xbot_cfg_robot;
         Utils::LoadFrom _options_source;
         
         RobotInterface::Ptr _robot;

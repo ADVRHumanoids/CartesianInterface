@@ -1,4 +1,5 @@
 #include <cartesian_interface/problem/Postural.h>
+#include <cartesian_interface/utils/TaskFactory.h>
 
 using namespace XBot::Cartesian;
 

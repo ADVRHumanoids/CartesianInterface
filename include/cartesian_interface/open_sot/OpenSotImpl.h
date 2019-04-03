@@ -5,6 +5,8 @@
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/ros/RosEnabled.h>
 #include <cartesian_interface/utils/estimation/ForceEstimation.h>
+#include <cartesian_interface/open_sot/TaskInterface.h>
+
 #include <OpenSoT/tasks/velocity/Cartesian.h>
 #include <OpenSoT/tasks/velocity/CartesianAdmittance.h>
 #include <OpenSoT/tasks/velocity/CoM.h>
@@ -63,6 +65,7 @@ private:
     Eigen::VectorXd _qref;
     Eigen::VectorXd _q, _dq, _ddq;
     
+    std::vector<SoT::TaskInterface::Ptr> _task_ifc;
     std::vector<CartesianTask::Ptr> _cartesian_tasks;
     std::vector<CartesianAdmittanceTask::Ptr> _admittance_tasks;
     std::vector<PosturalTask::Ptr> _postural_tasks;

@@ -8,9 +8,9 @@ namespace XBot { namespace Cartesian { namespace Utils {
     
     enum class LoadFrom { CONFIG, PARAM };
     
-    ConfigOptions LoadOptionsFromConfig();
-    ConfigOptions LoadOptionsFromParamServer();
-    ConfigOptions LoadOptions(LoadFrom options_source);
+    ConfigOptions LoadOptionsFromConfig(std::string ns = "");
+    ConfigOptions LoadOptionsFromParamServer(std::string ns = "");
+    ConfigOptions LoadOptions(LoadFrom options_source, std::string ns = "");
     YAML::Node LoadProblemDescription(LoadFrom description_source, 
                                       std::string pd_name = "problem_description");
     
@@ -18,16 +18,18 @@ namespace XBot { namespace Cartesian { namespace Utils {
 } } }
 
 
-inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptions(XBot::Cartesian::Utils::LoadFrom options_source)
+inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptions(XBot::Cartesian::Utils::LoadFrom options_source, 
+    std::string ns
+)
 {
     switch(options_source)
     {
         case LoadFrom::CONFIG:
-            return LoadOptionsFromConfig();
+            return LoadOptionsFromConfig(ns);
             break;
             
         case LoadFrom::PARAM:
-            return LoadOptionsFromParamServer();
+            return LoadOptionsFromParamServer(ns);
             break;
             
         default:
@@ -56,7 +58,7 @@ namespace
     }
 }
 
-inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromConfig()
+inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromConfig(std::string)
 {
     
     YAML::Node ci_node = ::GetCiYamlNode();
@@ -104,9 +106,9 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromConfig()
     
 }
 
-inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromParamServer()
+inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromParamServer(std::string ns)
 {
-    auto xbot_cfg = XBot::ConfigOptionsFromParamServer();
+    auto xbot_cfg = XBot::ConfigOptionsFromParamServer(ros::NodeHandle(ns));
     ros::NodeHandle nh_private("~");
     ros::NodeHandle nh("cartesian");
     
