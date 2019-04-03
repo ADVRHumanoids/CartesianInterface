@@ -939,6 +939,7 @@ bool XBot::Cartesian::RosImpl::getPoseFromTf(const std::string& source_frame,
                                              Eigen::Affine3d& t_T_s)
 {
 
+    _listener.clear();
     tf::StampedTransform T;
     
 
