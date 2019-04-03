@@ -41,6 +41,12 @@ TaskDescription::Ptr PosturalTask::yaml_parse_postural(YAML::Node task_node,
 
         }
     }
+    
+    if(task_node["indices"])
+    {
+        throw std::runtime_error("Specifying indices is not allowed for postural tasks. Use disabled_joints instead.");
+    }
+    
 
     if(task_node["use_inertia"] && task_node["use_inertia"].as<bool>())
     {

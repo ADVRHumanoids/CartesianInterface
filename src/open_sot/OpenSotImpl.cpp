@@ -305,6 +305,22 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
     /* Apply weight and extract subtask */
     std::list<uint> indices(task_desc->indices.begin(), task_desc->indices.end());
 
+    // for postural tasks, active joint masks acts on indices as well    
+    if(task_desc->type == "Postural")
+    {
+
+        auto is_disabled = [opensot_task](uint i)
+        {
+            return !opensot_task->getActiveJointsMask().at(i);
+        };
+        
+        indices.remove_if(is_disabled);
+        
+        std::vector<int> indices_vec(indices.begin(), indices.end());
+        task_desc = indices_vec % task_desc;
+        
+    }
+    
     if(indices.size() == opensot_task->getTaskSize())
     {
         opensot_task = task_desc->weight*(opensot_task);
