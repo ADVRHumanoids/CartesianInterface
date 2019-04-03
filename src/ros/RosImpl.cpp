@@ -940,6 +940,7 @@ bool XBot::Cartesian::RosImpl::getPoseFromTf(const std::string& source_frame,
 {
 
     tf::StampedTransform T;
+    
 
     if(!_listener.waitForTransform(target_frame, source_frame, ros::Time(0), ros::Duration(1.0)))
     {

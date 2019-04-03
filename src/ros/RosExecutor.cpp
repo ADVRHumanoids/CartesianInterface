@@ -56,7 +56,16 @@ void RosExecutor::init_load_config()
         Logger::info("Configuring from ROS parameter server\n"); 
     }
     
-    _xbot_cfg = Utils::LoadOptions(_options_source);
+    _xbot_cfg_robot = Utils::LoadOptions(_options_source);
+    
+    try
+    {
+        _xbot_cfg = Utils::LoadOptions(_options_source, "model_description");
+    }
+    catch(std::exception& e)
+    {
+        _xbot_cfg = _xbot_cfg_robot;
+    }
 }
 
 
@@ -71,7 +80,7 @@ void RosExecutor::init_load_robot()
     {
         try
         {
-            _robot = XBot::RobotInterface::getRobot(_xbot_cfg);
+            _robot = XBot::RobotInterface::getRobot(_xbot_cfg_robot);
         }
         catch(std::exception& e)
         {
@@ -303,9 +312,16 @@ bool RosExecutor::loader_callback(cartesian_interface::LoadControllerRequest& re
     // reload ros api
     load_ros_api();
     
-    // notify controller has changed
-    std_msgs::Empty msg;
-    _ctrl_changed_pub.publish(msg);
+    // notify controller has changed, unless we are at system startup
+    static bool first_time_controller_loaded = true;
+    
+    if(!first_time_controller_loaded)
+    {
+        std_msgs::Empty msg;
+        _ctrl_changed_pub.publish(msg);
+    }
+    
+    first_time_controller_loaded = false;
 
     /* If we arrive here, the controller was successfully loaded */
     res.success = true;

@@ -7,6 +7,7 @@
 #include <cartesian_interface/problem/Gaze.h>
 #include <cartesian_interface/problem/Limits.h>
 #include <cartesian_interface/problem/AngularMomentum.h>
+#include <cartesian_interface/utils/TaskFactory.h>
 #include <XBotInterface/Logger.hpp>
 
 using namespace XBot::Cartesian;
@@ -90,7 +91,21 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
                 throw std::runtime_error("problem description parsing failed: node '" + task_name + "' undefined");
             }
             
-            auto task_desc = yaml_parse_task(yaml_node[task_name], model);
+            if(!yaml_node[task_name]["type"])
+            {
+                throw std::runtime_error("problem description parsing failed: missing type for '" + task_name + "'");
+            }
+            
+            std::string lib_name = "";
+            
+            if(yaml_node[task_name]["lib_name"])
+            {
+                lib_name = yaml_node[task_name]["lib_name"].as<std::string>();
+            }
+            
+            auto task_desc = MakeTaskDescription(yaml_node[task_name], 
+                                                 model, 
+                                                 lib_name);
             
             aggr_task.push_back(task_desc);
             
@@ -117,20 +132,42 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
             }
             else if(yaml_node[constr_type])
             {
-                auto task = yaml_parse_task(yaml_node[constr_type], model);
-                if(task)
+                
+                std::string lib_name = "";
+            
+                if(yaml_node[constr_type]["lib_name"])
                 {
+                    lib_name = yaml_node[constr_type]["lib_name"].as<std::string>();
+                }
+                
+                /* Maybe it's a task? */
+                try 
+                {
+                    auto task = MakeTaskDescription(yaml_node[constr_type], 
+                                                    model, 
+                                                    lib_name);
+                    
                     _bounds.push_back(MakeConstraintFromTask(task));
                 }
-                else
+                catch(std::exception& e)
                 {
-                    XBot::Logger::error("Unsupported constraint type %s: not a task\n", constr_type.c_str());
-                    throw std::runtime_error("Bad problem description");
+                    /* It's not a task, maybe it's a custom constraint? */
+                    if(lib_name.empty())
+                    {
+                        throw std::runtime_error("Constraint '" + constr_type + "' not a task, and no 'lib_name' was provided");
+                    }
+                    
+                    auto constr = MakeConstraintDescription(yaml_node[constr_type], 
+                                                            model, 
+                                                            lib_name);
+                    
+                    _bounds.push_back(constr);
+                    
                 }
             }
             else
             {
-                XBot::Logger::error("Unsupported constraint type %s\n", constr_type.c_str());
+                XBot::Logger::error("Unsupported constraint type '%s'\n", constr_type.c_str());
                 throw std::runtime_error("Bad problem description");
             }
             
@@ -138,63 +175,6 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
     }
     
     
-}
-
-TaskDescription::Ptr XBot::Cartesian::ProblemDescription::yaml_parse_task(YAML::Node task_node,
-                                                                          XBot::ModelInterface::ConstPtr model)
-{
-    
-    std::string task_type = task_node["type"].as<std::string>();
-    
-    TaskDescription::Ptr task_desc;
-            
-    if(task_type == "Cartesian") // TBD ERROR CHECKING
-    {
-        task_desc = CartesianTask::yaml_parse_cartesian(task_node, model);
-    }
-    else if(task_type == "Interaction")
-    {
-        task_desc = InteractionTask::yaml_parse_interaction(task_node, model);
-    }
-    else if(task_type == "Com")
-    {
-        task_desc = ComTask::yaml_parse_com(task_node, model);
-    }
-    else if(task_type == "Postural")
-    {
-        task_desc = PosturalTask::yaml_parse_postural(task_node, model);
-    }
-    else if(task_type == "Gaze")
-    {
-        task_desc = GazeTask::yaml_parse_gaze(task_node, model);
-    }
-    else if(task_type == "AngularMomentum")
-    {
-        task_desc = AngularMomentumTask::yaml_parse_angular_momentum(task_node, model);
-    }
-    else
-    {
-        XBot::Logger::error("Unsupported task type %s\n", task_type.c_str());
-        throw std::runtime_error("Bad problem description");
-    }
-        
-    if(task_node["weight"] && task_node["weight"].IsScalar())
-    {
-        task_desc->weight *= task_node["weight"].as<double>();
-    }
-    
-    if(task_node["lambda"])
-    {
-        task_desc->lambda = task_node["lambda"].as<double>();
-    }
-    
-    if(task_node["indices"])
-    {
-        std::vector<int> indices = task_node["indices"].as<std::vector<int>>();
-        task_desc = indices % task_desc;
-    }
-    
-    return task_desc;
 }
 
 

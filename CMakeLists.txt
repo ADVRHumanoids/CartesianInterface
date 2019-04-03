@@ -95,40 +95,43 @@ catkin_package(
 # Interface implementation
 set(CartesianInterface_SRC
         src/CartesianInterfaceImpl.cpp
-        src/LockfreeBufferImpl.cpp
-        src/ProblemDescription.cpp
+        src/utils/LockfreeBufferImpl.cpp
+        src/utils/ManipulabilityAnalyzer.cpp
+        src/problem/ProblemDescription.cpp
         src/problem/Cartesian.cpp
         src/problem/Com.cpp
         src/problem/Gaze.cpp
         src/problem/AngularMomentum.cpp
         src/problem/Postural.cpp
         src/problem/Interaction.cpp
-        src/TaskImpl.cpp
-        src/ConstraintImpl.cpp
-        src/ForceEstimation.cpp
-        src/RosExecutor.cpp
+        src/problem/TaskFactory.cpp
+        src/problem/TaskImpl.cpp
+        src/problem/ConstraintImpl.cpp
+        src/utils/ForceEstimation.cpp
+        
     )
 
 # OpenSot implementation
 set(CartesianInterfaceSOT_SRC
-        src/OpenSotImpl.cpp
+        src/open_sot/OpenSotImpl.cpp
     )
 
 # Ros implementation
 set(CartesianInterfaceROS_SRC
-        src/RosImpl.cpp
-        src/RosServerClass.cpp
-        src/CartesianMarker.cpp
-        src/JoyStick.cpp
-        src/ManipulabilityAnalyzer.cpp
+        src/ros/RosImpl.cpp
+        src/ros/RosServerClass.cpp
+        src/ros/CartesianMarker.cpp
+        src/ros/JoyStick.cpp
+        src/ros/CartesianAnalyzer.cpp
+        src/ros/RosExecutor.cpp
     )
 
 # Trajectory
-set(Trajectory_SRC src/Trajectory.cpp)
+set(Trajectory_SRC src/trajectory/Trajectory.cpp)
     
 if(${alglib_FOUND})
     set(Trajectory_SRC ${Trajectory_SRC}
-                       src/Spline.cpp)
+                       src/trajectory/Spline.cpp)
 endif()
 
 # should we use xbot internal robot state publisher?
@@ -167,31 +170,31 @@ target_link_libraries(CartesianOpenSot PUBLIC ${OpenSoT_LIBRARIES}
 
 
 # Cartesian Server executable
-add_executable(ros_server_node src/RosServerNode.cpp)
+add_executable(ros_server_node src/ros/RosServerNode.cpp)
 target_link_libraries(ros_server_node CartesianInterface dl)
 
 # Marker spawner executable
-add_executable(marker_spawner src/MarkerSpawner.cpp)
+add_executable(marker_spawner src/ros/MarkerSpawner.cpp)
 target_link_libraries(marker_spawner CartesianInterface)
 
 # JoyStick spawner executable
-add_executable(joystick_spawner src/JoyStickSpawner.cpp)
+add_executable(joystick_spawner src/ros/JoyStickSpawner.cpp)
 target_link_libraries(joystick_spawner CartesianInterface)
 
 # CartesianAnalyzer executable
-add_executable(cartesian_analyzer src/CartesianAnalyzer.cpp)
+add_executable(cartesian_analyzer src/ros/CartesianAnalyzer.cpp)
 target_link_libraries(cartesian_analyzer CartesianInterface)
 
 # ForceEstimationNode executable
-add_executable(force_estimation_node src/ForceEstimationNode.cpp)
+add_executable(force_estimation_node src/ros/ForceEstimationNode.cpp)
 target_link_libraries(force_estimation_node CartesianInterface)
 
 # TorqueFeedforward executable
-add_executable(torque_feedforward_node src/TorqueFeedforward.cpp)
+add_executable(torque_feedforward_node src/ros/TorqueFeedforward.cpp)
 target_link_libraries(torque_feedforward_node CartesianInterface)
 
 # WorldConnecter executable
-add_executable(world_connecter src/WorldConnecter.cpp)
+add_executable(world_connecter src/ros/WorldConnecter.cpp)
 target_link_libraries(world_connecter ${catkin_LIBRARIES})
 
 add_subdirectory(examples)

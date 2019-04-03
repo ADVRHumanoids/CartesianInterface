@@ -7,6 +7,7 @@
 #include <cartesian_interface/problem/Gaze.h>
 #include <cartesian_interface/problem/Limits.h>
 #include <cartesian_interface/problem/AngularMomentum.h>
+#include <cartesian_interface/utils/LoadObject.hpp>
 #include <boost/make_shared.hpp>
 #include <OpenSoT/constraints/velocity/JointLimits.h>
 #include <OpenSoT/constraints/velocity/VelocityLimits.h>
@@ -16,15 +17,34 @@ using namespace XBot::Cartesian;
 
 
 extern "C" CartesianInterface* create_instance(XBot::ModelInterface::Ptr model,
-                                                                ProblemDescription pb)
+                                               ProblemDescription pb)
 {
     return new OpenSotImpl(model, pb);
 }
 
-extern "C" void destroy_instance( CartesianInterface* instance )
+namespace
 {
-    delete instance;
+    OpenSoT::solvers::solver_back_ends backend_from_string(std::string back_end_string)
+    {
+        if(back_end_string == "qpoases")
+        {
+            return OpenSoT::solvers::solver_back_ends::qpOASES;
+        }
+        else if(back_end_string == "osqp")
+        {
+            return OpenSoT::solvers::solver_back_ends::OSQP;
+        }
+        else if(back_end_string == "uquadprog")
+        {
+            return OpenSoT::solvers::solver_back_ends::uQuadProg;
+        }
+        else
+        {
+            throw std::runtime_error("Invalid back end '" + back_end_string + "'");
+        }
+    }
 }
+
 
 bool OpenSotImpl::setBaseLink(const std::string& ee_name, const std::string& new_base_link)
 {
@@ -92,27 +112,18 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
                                                 base_link
                                                 );
 
+        opensot_task = cartesian_task;
+        
         cartesian_task->setLambda(cartesian_desc->lambda);
         cartesian_task->setOrientationErrorGain(cartesian_desc->orientation_gain);
 
-        std::list<uint> indices(cartesian_desc->indices.begin(), cartesian_desc->indices.end());
-
         _cartesian_tasks.push_back(cartesian_task);
-
-        if(indices.size() == 6)
-        {
-            opensot_task = cartesian_desc->weight*(cartesian_task);
-        }
-        else
-        {
-            opensot_task = cartesian_desc->weight*(cartesian_task%indices);
-        }
         
         XBot::Logger::info("OpenSot: Cartesian found (%s -> %s), lambda = %f, dofs = %d\n", 
                             base_link.c_str(), 
                             distal_link.c_str(), 
                             cartesian_desc->lambda,
-                            indices.size()
+                            cartesian_desc->indices.size()
                             );
 
     }
@@ -149,6 +160,8 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
                                                 base_link,
                                                 ft
                                                 );
+                                               
+        opensot_task = admittance_task;
 
         admittance_task->setOrientationErrorGain(i_desc->orientation_gain);
         
@@ -186,25 +199,14 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
         
         admittance_task->setDeadZone(i_desc->force_dead_zone);
 
-        std::list<uint> indices(i_desc->indices.begin(), i_desc->indices.end());
-
         _cartesian_tasks.push_back(admittance_task);
         _admittance_tasks.push_back(admittance_task);
 
-        if(indices.size() == 6)
-        {
-            opensot_task = i_desc->weight*(admittance_task);
-        }
-        else
-        {
-            opensot_task = i_desc->weight*(admittance_task%indices);
-        }
-        
         XBot::Logger::info("OpenSot: Admittance found (%s -> %s), lambda = %f, dofs = %d\n", 
                             base_link.c_str(), 
                             distal_link.c_str(), 
                             i_desc->lambda,
-                            indices.size()
+                            i_desc->indices.size()
                             );
 
     }
@@ -214,20 +216,9 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
         auto gaze_desc = GetAsGaze(task_desc);
         std::string base_link = gaze_desc->base_link;
 
-        _gaze_task = boost::make_shared<GazeTask>(base_link + "_TO_" + "gaze",_q, *_model, base_link);
+        opensot_task = _gaze_task = boost::make_shared<GazeTask>(base_link + "_TO_" + "gaze",_q, *_model, base_link);
         _gaze_task->setLambda(gaze_desc->lambda);
-        
-        
-        std::list<uint> indices(gaze_desc->indices.begin(), gaze_desc->indices.end());
 
-        if(indices.size() == 2)
-        {
-            opensot_task = gaze_desc->weight*(_gaze_task);
-        }
-        else
-        {
-            opensot_task = gaze_desc->weight*(_gaze_task%indices);
-        }
         
         XBot::Logger::info("OpenSot: Gaze found, base_link is %s, lambda is %f\n", 
             gaze_desc->base_link.c_str(),
@@ -238,20 +229,9 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
     else if(task_desc->type == "Com")
     {
         auto com_desc = GetAsCom(task_desc);
-        _com_task = boost::make_shared<CoMTask>(_q, *_model);
+        opensot_task = _com_task = boost::make_shared<CoMTask>(_q, *_model);
         
         _com_task->setLambda(com_desc->lambda);
-
-        std::list<uint> indices(com_desc->indices.begin(), com_desc->indices.end());
-
-        if(indices.size() == 3)
-        {
-            opensot_task = com_desc->weight*(_com_task);
-        }
-        else
-        {
-            opensot_task = com_desc->weight*(_com_task%indices);
-        }
         
         XBot::Logger::info("OpenSot: Com found, lambda is %f\n", com_desc->lambda);
     }
@@ -260,18 +240,8 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
         auto angular_mom_desc = GetAsAngularMomentum(task_desc);
         _minimize_rate_of_change = angular_mom_desc->min_rate;
 
-        _angular_momentum_task = boost::make_shared<AngularMomentumTask>(_q, *_model);
+        opensot_task = _angular_momentum_task = boost::make_shared<AngularMomentumTask>(_q, *_model);
 
-        std::list<uint> indices(angular_mom_desc->indices.begin(), angular_mom_desc->indices.end());
-
-        if(indices.size() == 3)
-        {
-            opensot_task = angular_mom_desc->weight*(_angular_momentum_task);
-        }
-        else
-        {
-            opensot_task = angular_mom_desc->weight*(_angular_momentum_task%indices);
-        }
 
         XBot::Logger::info("OpenSot: Angular Momentum found, rate of change minimization set to: %d\n", _minimize_rate_of_change);
     }
@@ -285,17 +255,8 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
         _postural_tasks.push_back(postural_task);
         
         postural_task->setLambda(postural_desc->lambda);
-
-        std::list<uint> indices(postural_desc->indices.begin(), postural_desc->indices.end());
-
-        if(indices.size() == _model->getJointNum())
-        {
-            opensot_task = postural_desc->weight*(postural_task);
-        }
-        else
-        {
-            opensot_task = postural_desc->weight*(postural_task%indices);
-        }
+        
+        opensot_task = postural_task;
         
         XBot::Logger::info("OpenSot: Postural found, lambda is %f, %d dofs, use inertia matrix: %d\n",
             postural_desc->lambda,
@@ -303,11 +264,57 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
             postural_desc->use_inertia_matrix
         );
     }
+    else if(!task_desc->lib_name.empty())
+    {
+        auto task_ifc = Utils::LoadObject<SoT::TaskInterface>(task_desc->lib_name, 
+                                          task_desc->type + "OpenSotFactory",
+                                          task_desc, _model
+                                         );
+        
+        if(task_ifc)
+        {
+            opensot_task = task_ifc->getTaskPtr();
+            _task_ifc.emplace_back(std::move(task_ifc));
+        }
+        else
+        {
+            Logger::warning("OpenSot: unable to construct task type '%s'd\n", 
+                task_desc->type.c_str());
+        }
+    }
     else
     {
-            Logger::warning("OpenSot: task type not supported\n");
+        Logger::warning("OpenSot: task type '%s' not supported\n",
+            task_desc->type.c_str()
+        );
     }
     
+    /* Apply active joint mask */
+    if(task_desc->disabled_joints.size() > 0)
+    {
+        std::vector<bool> active_joints_mask(_model->getJointNum(), true);
+        
+        for(auto jstr : task_desc->disabled_joints)
+        {
+            active_joints_mask.at(_model->getDofIndex(jstr)) = false;
+        }
+        
+        opensot_task->setActiveJointsMask(active_joints_mask);
+    }
+    
+    /* Apply weight and extract subtask */
+    std::list<uint> indices(task_desc->indices.begin(), task_desc->indices.end());
+
+    if(indices.size() == opensot_task->getTaskSize())
+    {
+        opensot_task = task_desc->weight*(opensot_task);
+    }
+    else
+    {
+        opensot_task = task_desc->weight*(opensot_task%indices);
+    }
+    
+    /* Return task */
     return opensot_task;
 }
 
@@ -380,7 +387,7 @@ in configuration file (add problem_description/solver_options/control_dt field)\
 
 
 OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
-                                          ProblemDescription ik_problem):
+                         ProblemDescription ik_problem):
     CartesianInterfaceImpl(model, ik_problem),
     _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_opensot_log")),
     _update_lambda(false)
@@ -426,7 +433,7 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
             Logger::warning("OpenSot: unrecognised solver %s, falling back to qpOASES (available options: qpoases, osqp)\n", back_end_string.c_str());
         }
         
-        solver_backend = back_end_string == "qpoases" ? BackEnd::qpOASES : BackEnd::OSQP;
+        solver_backend = ::backend_from_string(back_end_string);
     }
     
     if(has_config() && get_config()["regularization"])
@@ -509,6 +516,12 @@ bool OpenSotImpl::update(double time, double period)
     CartesianInterfaceImpl::update(time, period);
 
     _model->getJointPosition(_q);
+    
+    /* Update all plugin-based tasks */
+    for(auto t : _task_ifc)
+    {
+        t->update(this, time, period);
+    }
 
     /* Update reference for all cartesian tasks */
     for(auto cart_task : _cartesian_tasks)
@@ -663,7 +676,7 @@ bool OpenSotImpl::update(double time, double period)
 }
 
 bool OpenSotImpl::setControlMode(const std::string& ee_name, 
-                                                  ControlType ctrl_type)
+                                 ControlType ctrl_type)
 {
     if(!CartesianInterfaceImpl::setControlMode(ee_name, ctrl_type))
     {
