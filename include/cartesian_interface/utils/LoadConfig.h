@@ -108,7 +108,7 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromConfig(std::st
 
 inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromParamServer(std::string ns)
 {
-    auto xbot_cfg = XBot::ConfigOptionsFromParamServer();
+    auto xbot_cfg = XBot::ConfigOptionsFromParamServer(ros::NodeHandle(ns));
     ros::NodeHandle nh_private("~");
     ros::NodeHandle nh("cartesian");
     
