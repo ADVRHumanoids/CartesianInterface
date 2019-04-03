@@ -34,9 +34,9 @@ namespace
         {
             return OpenSoT::solvers::solver_back_ends::OSQP;
         }
-        else if(back_end_string == "uquadprog")
+        else if(back_end_string == "eiquadprog")
         {
-            return OpenSoT::solvers::solver_back_ends::uQuadProg;
+            return OpenSoT::solvers::solver_back_ends::eiQuadProg;
         }
         else
         {
