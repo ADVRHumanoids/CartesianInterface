@@ -45,7 +45,25 @@ namespace XBot { namespace Cartesian { namespace SoT {
         
     public:
         
+        typedef std::shared_ptr<ConstraintInterface> Ptr;
         
+        ConstraintInterface(ConstraintDescription::Ptr task_desc, 
+                      ModelInterface::ConstPtr model
+                      ){}
+        
+        virtual ConstraintPtr getConstraintPtr() const = 0;
+        
+        virtual bool update(const CartesianInterface * ci,
+                            double time, 
+                            double period) = 0;
+                            
+        virtual bool setControlMode(const std::string& ee_name,
+                                    ControlType ctrl_mode) = 0;
+                                    
+        virtual bool setBaseLink(const std::string& ee_name,
+                                 const std::string& base_link) = 0;
+        
+        virtual ~ConstraintInterface() = default;
         
     };
     
