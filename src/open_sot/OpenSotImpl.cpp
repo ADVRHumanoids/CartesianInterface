@@ -267,7 +267,7 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
     else if(!task_desc->lib_name.empty())
     {
         auto task_ifc = Utils::LoadObject<SoT::TaskInterface>(task_desc->lib_name, 
-                                          task_desc->type + "OpenSotFactory",
+                                          task_desc->type + "OpenSotTaskFactory",
                                           task_desc, _model
                                          );
         
@@ -391,6 +391,25 @@ in configuration file (add problem_description/solver_options/control_dt field)\
         else
         {
             XBot::Logger::warning("Unable to construct task description (%s)\n", constr_desc->type.c_str());
+            return nullptr;
+        }
+    }
+    else if(!constr_desc->lib_name.empty())
+    {
+        auto constr_ifc = Utils::LoadObject<SoT::ConstraintInterface>(constr_desc->lib_name, 
+                                          constr_desc->type + "OpenSotConstraintFactory",
+                                          constr_desc, _model
+                                         );
+        
+        if(constr_ifc)
+        {
+            return constr_ifc->getConstraintPtr();
+        }
+        else
+        {
+            Logger::warning("OpenSot: unable to construct task type '%s'd\n", 
+                constr_desc->type.c_str());
+            
             return nullptr;
         }
     }
