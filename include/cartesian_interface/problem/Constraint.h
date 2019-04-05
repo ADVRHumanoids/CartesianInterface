@@ -13,8 +13,15 @@ namespace XBot { namespace Cartesian {
      */
     struct ConstraintDescription 
     {
-        
+        /**
+         * @brief Constraint type
+         */
         std::string type;
+        
+        /**
+         * @brief Library where constraint factories can be found
+         */
+        std::string lib_name;
         
         typedef std::shared_ptr<ConstraintDescription> Ptr;
         typedef std::shared_ptr<const ConstraintDescription> ConstPtr;
