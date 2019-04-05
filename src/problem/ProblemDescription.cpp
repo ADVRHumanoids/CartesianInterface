@@ -65,7 +65,7 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
 {
     if(!yaml_node["stack"])
     {
-        throw std::runtime_error("Missing node \"stack\"");
+        throw std::runtime_error("Missing node 'stack'");
     }
     
     _solver_options_node = yaml_node["solver_options"];
@@ -151,6 +151,11 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
                 }
                 catch(std::exception& e)
                 {
+                    Logger::warning("Interpreting constraint '%s' as task failed: %s\n", 
+                                    constr_type.c_str(),
+                                    e.what()
+                                    );
+                    
                     /* It's not a task, maybe it's a custom constraint? */
                     if(lib_name.empty())
                     {
