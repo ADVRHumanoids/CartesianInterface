@@ -6,7 +6,8 @@ CartesianTask::CartesianTask(std::string distal_link, std::string base_link, int
     TaskDescription(TaskInterface::Cartesian, type, size),
     distal_link(distal_link),
     base_link(base_link),
-    orientation_gain(1.0)
+    orientation_gain(1.0),
+    is_body_jacobian(false)
 {
 
 }
@@ -40,6 +41,11 @@ TaskDescription::Ptr CartesianTask::yaml_parse_cartesian(YAML::Node task_node, M
     if(task_node["orientation_gain"])
     {
         cart_task->orientation_gain = task_node["orientation_gain"].as<double>();
+    }
+
+    if(task_node["use_body_jacobian"] && task_node["use_body_jacobian"].as<bool>())
+    {
+        cart_task->is_body_jacobian = true;
     }
 
     return task_desc;
