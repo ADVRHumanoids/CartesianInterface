@@ -15,6 +15,8 @@ namespace XBot { namespace Cartesian {
          */
         std::string base_link, distal_link;
 
+        bool is_body_jacobian;
+
         /**
          * @brief Parameter that weights orientation errors w.r.t. position errors.
          * For example, setting it to orientation_gain = 2.0 means that an error of

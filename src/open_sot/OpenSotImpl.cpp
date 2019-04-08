@@ -117,6 +117,8 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
         cartesian_task->setLambda(cartesian_desc->lambda);
         cartesian_task->setOrientationErrorGain(cartesian_desc->orientation_gain);
 
+        cartesian_task->setIsBodyJacobian(cartesian_desc->is_body_jacobian);
+
         _cartesian_tasks.push_back(cartesian_task);
         
         XBot::Logger::info("OpenSot: Cartesian found (%s -> %s), lambda = %f, dofs = %d\n", 
