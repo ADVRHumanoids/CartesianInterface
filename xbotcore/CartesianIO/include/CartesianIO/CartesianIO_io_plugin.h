@@ -20,9 +20,11 @@
 #ifndef CartesianIO_IOPLUGIN_H_
 #define CartesianIO_IOPLUGIN_H_
 
+#include <atomic>
+
 #include <XCM/IOPlugin.h>
 #include <cartesian_interface/ros/RosServerClass.h>
-#include <cartesian_interface/CartesianInterfaceImpl.h>
+#include <cartesian_interface/utils/LockfreeBufferImpl.h>
 
 
 namespace XBot { namespace Cartesian {
@@ -50,10 +52,11 @@ protected:
 
 private:
     
-    ModelInterface::Ptr _model;
     RosServerClass::Ptr _ros_server;
-    CartesianInterfaceImpl::Ptr _ci;
-    SharedObject<CartesianInterfaceImpl::Ptr> _ci_shobj;
+    LockfreeBufferImpl::Ptr _ci;
+    SharedObject<RosServerClass::Ptr> _ros_shobj;
+    SharedObject<LockfreeBufferImpl::Ptr> _ci_shobj;
+    SharedObject<std::atomic<bool>> _solver_running_shobj;
 
 
 };
@@ -65,28 +68,26 @@ private:
 
 bool XBot::Cartesian::CartesianIO::init(std::string path_to_config_file, XBot::SharedMemory::Ptr shmem)
 {
-    _model = ModelInterface::getModel(path_to_config_file);
+    _ci_shobj = shmem->getSharedObject<LockfreeBufferImpl::Ptr>("/xbotcore/ci_buffer");
     
-    /* Load IK problem and solver */
-    auto yaml_file = YAML::LoadFile(path_to_config_file);
-    ProblemDescription ik_problem(yaml_file["CartesianInterface"]["problem_description"], _model);
-    std::string impl_name = yaml_file["CartesianInterface"]["solver"].as<std::string>();
+    _solver_running_shobj = shmem->getSharedObject<std::atomic<bool>>("/xbotcore/ci_running");
+    _solver_running_shobj.get_object_ptr()->store(false);
     
-    _ci = std::make_shared<CartesianInterfaceImpl>(_model, ik_problem);
-    
-    /* Obtain class to expose ROS API */
-    RosServerClass::Options options;
-    options.spawn_markers = false;
-    _ros_server = std::make_shared<RosServerClass>(_ci, _model, options);
-    
-    _ci_shobj = shmem->getSharedObject<CartesianInterfaceImpl::Ptr>("/xbotcore/cartesian_interface");
-    _ci_shobj.set(_ci);
+    _ros_shobj = shmem->getSharedObject<RosServerClass::Ptr>("/xbotcore/ci_ros_server_class");
 }
 
 void XBot::Cartesian::CartesianIO::run()
 {
-    std::lock_guard<XBot::Mutex> lock_guard(*_ci_shobj.get_mutex());
-    _ros_server->run();
+    
+    bool ros_server_acquired = _ros_server || (_ros_shobj.try_get(_ros_server) && _ros_server);
+    bool ci_buffer_acquired = _ci || (_ci_shobj.try_get(_ci) && _ci);
+    bool ci_solver_running = _solver_running_shobj.get_object_ptr()->load();
+    
+    if(ros_server_acquired && ci_buffer_acquired && ci_solver_running)
+    {
+        _ci->updateState();
+        _ros_server->run();
+    }
 }
 
 void XBot::Cartesian::CartesianIO::close()

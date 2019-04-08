@@ -1,0 +1,18 @@
+<launch>
+
+    <node pkg="cartesian_interface" 
+          type="torque_feedforward_node" 
+          name="centauro_torque"
+          output="screen">
+          
+        <param name="is_model_floating_base" value="true"/>
+        <param name="model_type" value="RBDL"/>
+        
+        <param name="blacklist" type="yaml" value="[front_left_leg, front_right_leg, rear_right_leg, rear_left_leg, neck, velodyne]"/>
+        
+        <remap from="~torque_offset" to="cartesian/torque_offset"/>
+        
+    </node>
+
+
+</launch>

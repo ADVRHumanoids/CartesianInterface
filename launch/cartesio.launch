@@ -3,24 +3,38 @@
     <arg name="solver" default="OpenSot"/>
     <arg name="prefix" default=""/>
     <arg name="use_xbot_config" default="false"/>
-    <arg name="verbosity" default="2"/>
     <arg name="rate" default="100.0"/>
     <arg name="tf_prefix" default="ci"/>
     <arg name="markers" default="true"/>
-    <arg name="namespace" default=""/>
+    <arg name="namespace" default="/"/> 
+    <arg name="is_model_floating_base" default="true"/>
+    <arg name="xbot" default="false"/>
+       
+    <group ns="$(arg namespace)">
     
-    <group unless="$(eval namespace=='')" ns="$(arg namespace)">
-        
-         <include file="$(find cartesian_interface)/launch/cartesio_include.launch" pass_all_args="true"/>
+        <remap if="$(arg xbot)" from="robot_description" to="xbotcore/robot_description"/>
     
+        <node pkg="cartesian_interface" type="ros_server_node" 
+                                        name="ros_server_node" 
+                                        required="true" 
+                                        output="screen" 
+                                        launch-prefix="$(arg prefix)"
+                                        rosmon-stop-timeout="1000">
+                                        
+            <param name="is_model_floating_base" value="$(arg is_model_floating_base)"/>
+            <param name="model_type" value="RBDL"/>
+            <param name="solver" value="$(arg solver)"/>
+            <param name="use_xbot_config" value="$(arg use_xbot_config)"/>
+            <param name="rate" value="$(arg rate)"/>
+            <param name="tf_prefix" value="$(arg tf_prefix)"/>
+            
+        </node>
+
+        <node if="$(arg markers)" pkg="cartesian_interface" type="marker_spawner" name="interactive_markers" output="screen">
+            <param name="tf_prefix" value="$(arg tf_prefix)"/>
+        </node>
+
     </group>
-    
-    <group if="$(eval namespace=='')">
-        
-         <include file="$(find cartesian_interface)/launch/cartesio_include.launch" pass_all_args="true"/>
-    
-    </group>
-    
     
 
 </launch>

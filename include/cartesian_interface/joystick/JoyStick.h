@@ -1,17 +1,31 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <std_msgs/Empty.h>
 #include <eigen3/Eigen/Dense>
-#include <tf/transform_listener.h>
+#include <XBotInterface/Utils.h>
+
+namespace Eigen 
+{
+    typedef Eigen::Matrix<double, 6, 1> Vector6d;
+    typedef Eigen::Matrix<int, 6, 1> Vector6i;
+}
 
 namespace XBot { namespace Cartesian {
-class JoyStick{
+    
+class JoyStick {
+    
 public:
-    typedef boost::shared_ptr<JoyStick> Ptr;
+    
+    typedef std::shared_ptr<JoyStick> Ptr;
 
-    JoyStick(const std::vector<std::string>& distal_links, const std::vector<std::string> &base_links, std::string tf_prefix = "");
+    JoyStick(const std::vector<std::string>& distal_links, 
+             const std::vector<std::string>& base_links, 
+             std::string tf_prefix = "");
 
     ~JoyStick();
+    
+    void setTwistMask(const Eigen::Vector6i& mask);
 
     void sendVelRefs();
 
@@ -52,13 +66,15 @@ private:
     std::vector<std::string> _distal_links;
     std::vector<std::string> _base_links;
 
+    ros::Publisher _joy_audio_pub;
     ros::Subscriber _joy_sub;
 
     void joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
     void setVelocityCtrl();
     void localCtrl();
-    void activateDeactivateTask();
     void twistInBase();
+    void activateDeactivateTask();
+
     int _selected_task;
 
     std::vector<ros::ServiceClient> _set_properties_service_clients;
@@ -70,10 +86,10 @@ private:
     double _angular_speed_sf;
 
     geometry_msgs::TwistStamped _desired_twist;
-    Eigen::VectorXd _twist;
+    Eigen::Vector6d _twist;
+    Eigen::Vector6i _twist_mask;
+    XBot::Utils::SecondOrderFilter<Eigen::Vector6d> _twist_filt;
 
-    tf::TransformListener _listener;
-    tf::StampedTransform _transform;
 
     int _local_ctrl;
     int _base_ctrl;

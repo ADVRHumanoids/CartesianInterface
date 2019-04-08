@@ -1,0 +1,32 @@
+<launch>
+	
+	<node pkg="centauro_tools" 
+          type="centauro_cop_estimation" 
+          name="centauro_cop_estimation"
+          output="screen"/>
+
+     
+    <node pkg="cartesian_interface" 
+          type="force_estimation_node" 
+          name="force_estimator"
+          output="screen">
+		  
+		<remap from="~torque_offset" to="cartesian/torque_offset"/>
+          
+        <param name="is_model_floating_base" value="true"/>
+        <param name="model_type" value="RBDL"/>
+        
+        <param name="links" type="yaml" value="[arm1_8, arm2_8, wheel_1, wheel_2, wheel_3, wheel_4]"/>
+        <param name="chains" type="yaml" value="[left_arm, right_arm, front_left_leg, front_right_leg, rear_right_leg, rear_left_leg]"/>
+        
+        <param name="arm1_8/dofs" type="yaml" value="[0, 1, 2]"/>
+        <param name="arm2_8/dofs" type="yaml" value="[0, 1, 2]"/>
+		<param name="wheel_1/dofs" type="yaml" value="[0, 1, 2]"/>
+        <param name="wheel_2/dofs" type="yaml" value="[0, 1, 2]"/>
+		<param name="wheel_3/dofs" type="yaml" value="[0, 1, 2]"/>
+        <param name="wheel_4/dofs" type="yaml" value="[0, 1, 2]"/>
+        
+    </node>
+
+
+</launch>

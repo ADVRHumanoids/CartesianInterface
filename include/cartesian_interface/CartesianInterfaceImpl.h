@@ -23,7 +23,8 @@
 
 #include <cartesian_interface/CartesianInterface.h>
 #include <cartesian_interface/trajectory/Trajectory.h>
-#include <cartesian_interface/ProblemDescription.h>
+#include <cartesian_interface/problem/ProblemDescription.h>
+#include <cartesian_interface/problem/Cartesian.h>
 #include <XBotInterface/SoLib.h>
 #include <ReflexxesTypeII/Wrappers/TrajectoryGenerator.h>
 
@@ -39,9 +40,6 @@ public:
     typedef std::shared_ptr<const CartesianInterfaceImpl> ConstPtr;
     
     CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
-                           std::vector<std::pair<std::string, std::string>> tasks);
-    
-    CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
                            ProblemDescription ik_problem);
     
     void syncFrom(CartesianInterfaceImpl::ConstPtr other);
@@ -50,7 +48,7 @@ public:
     
     virtual const std::vector<std::string>& getTaskList() const;
     virtual const std::string& getBaseLink(const std::string& ee_name) const;
-    
+    virtual TaskInterface getTaskInterface(const std::string& end_effector) const;
     virtual ControlType getControlMode(const std::string& ee_name) const;
     virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type);
     virtual void getVelocityLimits(const std::string& ee_name, double& max_vel_lin, double& max_vel_ang) const;
@@ -66,7 +64,12 @@ public:
                           Eigen::Vector6d * base_vel_ref = nullptr,
                           Eigen::Vector6d * base_acc_ref = nullptr) const;
                           
-    bool getPoseReferenceRaw(const std::string& end_effector, 
+    virtual bool getDesiredInteraction(const std::string& end_effector, 
+                          Eigen::Vector6d& force, 
+                          Eigen::Matrix6d& stiffness,
+                          Eigen::Matrix6d& damping) const;
+                          
+    virtual bool getPoseReferenceRaw(const std::string& end_effector, 
                           Eigen::Affine3d& base_T_ref, 
                           Eigen::Vector6d * base_vel_ref = nullptr,
                           Eigen::Vector6d * base_acc_ref = nullptr) const;
@@ -87,33 +90,41 @@ public:
                             
     virtual State getTaskState(const std::string& end_effector) const;
                             
-    virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref, 
-                                         const Eigen::Vector3d& base_vel_ref = Eigen::Vector3d::Zero(), 
-                                         const Eigen::Vector3d& base_acc_ref = Eigen::Vector3d::Zero());
-
     virtual bool setPoseReference(const std::string& end_effector, 
-                                  const Eigen::Affine3d& base_T_ref, 
-                                  const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
-                                  const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
+                          const Eigen::Affine3d& base_T_ref);
+                          
+    virtual bool setVelocityReference(const std::string& end_effector, 
+                          const Eigen::Vector6d& base_vel_ref);
     
-    bool setPoseReferenceRaw(const std::string& end_effector, 
-                                  const Eigen::Affine3d& base_T_ref, 
-                                  const Eigen::Vector6d& base_vel_ref = Eigen::Vector6d::Zero(), 
-                                  const Eigen::Vector6d& base_acc_ref = Eigen::Vector6d::Zero());
+    virtual bool setForceReference(const std::string& end_effector,
+                                   const Eigen::Vector6d& force);
+                                   
+    virtual bool setDesiredStiffness(const std::string& end_effector,
+                                   const Eigen::Matrix6d& k);
+                                   
+    virtual bool setDesiredDamping(const std::string& end_effector,
+                                   const Eigen::Matrix6d& d);
+                          
+    virtual bool setPoseReferenceRaw(const std::string& end_effector, 
+                             const Eigen::Affine3d& base_T_ref);
+    
+    virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref);
+                                 
+    virtual bool setComVelocityReference(const Eigen::Vector3d& base_vel_ref);
 
     virtual bool setTargetComPosition(const Eigen::Vector3d& base_com_ref, double time = 0);
 
     virtual bool setTargetPose(const std::string& end_effector, 
-                            const Eigen::Affine3d& base_T_ref, 
-                            double time = 0);
+                               const Eigen::Affine3d& base_T_ref, 
+                               double time = 0);
     
     virtual bool setWayPoints(const std::string& end_effector, 
-                       const Trajectory::WayPointVector& way_points
-                      );
+                              const Trajectory::WayPointVector& way_points
+                            );
 
     virtual bool setTargetPosition(const std::string& end_effector, 
-                                const Eigen::Vector3d& base_pos_ref, 
-                                double time = 0);
+                                   const Eigen::Vector3d& base_pos_ref, 
+                                   double time = 0);
     
     virtual bool setReferencePosture(const JointNameMap& qref);
 
@@ -130,6 +141,16 @@ public:
     
 protected:
     
+    double get_current_time() const;
+    
+    bool has_config() const;
+    const YAML::Node& get_config() const;
+    
+    XBot::ModelInterface::Ptr _model;
+    
+    
+private:
+    
     class Task
     {
         
@@ -142,7 +163,7 @@ protected:
         Task();
         Task(const std::string& base, const std::string& distal);
         
-        void update(double time, double period);
+        virtual void update(double time, double period);
         
         const std::string& get_name() const;
         const std::string& get_base() const;
@@ -159,14 +180,13 @@ protected:
         
         
         void set_ctrl(ControlType ctrl, ModelInterface::ConstPtr model);
-        bool set_reference(const Eigen::Affine3d& pose, 
-                           const Eigen::Vector6d& vel, 
-                           const Eigen::Vector6d& acc);
-        bool set_reference_raw(const Eigen::Affine3d& pose, 
-                           const Eigen::Vector6d& vel, 
-                           const Eigen::Vector6d& acc);
-        bool set_waypoints(double current_time, const Trajectory::WayPointVector& wp);
-        bool set_target_pose(double current_time, double target_time, const Eigen::Affine3d& pose);
+        bool set_pose_reference(const Eigen::Affine3d& pose);
+        bool set_vel_reference(const Eigen::Vector6d& vref);
+        bool set_waypoints(double current_time, 
+                           const Trajectory::WayPointVector& wp);
+        bool set_target_pose(double current_time, 
+                             double target_time,
+                             const Eigen::Affine3d& pose);
         void reset(ModelInterface::ConstPtr model);
         void sync_from(const Task& other);
         void set_otg_dt(double expected_dt);
@@ -176,7 +196,8 @@ protected:
         void set_otg_acc_limits(double linear, double angular);
         
         void abort();
-        bool change_base_link(const std::string& new_base_link, ModelInterface::ConstPtr model);
+        bool change_base_link(const std::string& new_base_link, 
+                              ModelInterface::ConstPtr model);
         
         void reset_otg();
         
@@ -210,27 +231,51 @@ protected:
         
     };
     
-    double get_current_time() const;
+    class InteractionTask : public Task
+    {
+        
+    public:
+        
+        typedef std::shared_ptr<InteractionTask> Ptr;
+        typedef std::shared_ptr<const InteractionTask> ConstPtr;
+        
+        InteractionTask();
+        InteractionTask(const std::string& base, const std::string& distal);
+        
+        void update(double time, double period) override;
+        
+        const Eigen::Vector6d& get_force() const;
+        const Eigen::Matrix6d& get_stiffness() const;
+        const Eigen::Matrix6d& get_damping() const;
+        void set_force(const Eigen::Vector6d& force);
+        void set_stiffness(const Eigen::Matrix6d& stiffness);
+        void set_damping(const Eigen::Matrix6d& damping);
+        
+    private:
+        
+        Eigen::Vector6d force;
+        Eigen::Matrix6d k;
+        Eigen::Matrix6d d;
+        
+        double force_time_to_live;
+    };
     
-    bool has_config() const;
-    const YAML::Node& get_config() const;
-    
-    XBot::ModelInterface::Ptr _model;
-    
-    
-private:
-    
+    void add_task(TaskDescription::Ptr task);
+    bool validate_cartesian(CartesianTask::Ptr cart);
     void __construct_from_vectors();
     void log_tasks();
     void init_log_tasks();
     
-    std::vector<std::pair<std::string, std::string>> _tasks_vector;
+   
     std::vector<std::string> _ee_list;
+    std::vector<std::pair<std::string, std::string>> _tasks_vector;
     
     Task::Ptr get_task(const std::string& ee_name) const;
+    InteractionTask::Ptr get_interaction_task(const std::string& ee_name, bool verbose = true) const;
     bool postural_task_defined() const;
     
     std::map<std::string, Task::Ptr> _task_map;
+    std::map<std::string, InteractionTask::Ptr> _interaction_task_map;
     Task::Ptr _com_task;
     Eigen::VectorXd _q_ref;
     

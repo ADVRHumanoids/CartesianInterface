@@ -41,12 +41,14 @@ public:
      *  visualization_msgs::InteractiveMarkerControl::MOVE_3D
      *  visualization_msgs::InteractiveMarkerControl::ROTATE_3D
      * @param tf_prefix
+     * @param use_mesh, if false sphere is used
      */
     CartesianMarker(const std::string& base_link, 
                     const std::string& distal_link,
                     const urdf::Model& robot_urdf,
                     const unsigned int control_type,
-                    std::string tf_prefix = "");
+                    std::string tf_prefix = "",
+                    const bool use_mesh = true);
     
     ~CartesianMarker();
 
@@ -174,6 +176,8 @@ private:
 //    ros::ServiceServer _global_service;
 //    ros::ServiceServer _local_service;
 
+    bool _use_mesh;
+
     /**
      * @brief _waypoints contains all the waypoints BUT not the initial position!
      */
@@ -186,6 +190,10 @@ private:
 
     std::vector<urdf::LinkSharedPtr> _links;
     int _base_link_entry_active;
+    std::map<std::string, int> _map_link_entry;
+
+    std_srvs::EmptyRequest _req;
+    std_srvs::EmptyResponse _res;
 
     /**
      * @brief MakeMarker
@@ -251,6 +259,31 @@ private:
 
     ros::Publisher _way_points_pub;
     void publishWP(const std::vector<geometry_msgs::Pose>& wps);
+
+    template <class Marker_Type>
+    void KDLFrameToVisualizationPose(const KDL::Frame& Frame, Marker_Type& Marker)
+    {
+        Marker.pose.position.x = Frame.p.x();
+        Marker.pose.position.y = Frame.p.y();
+        Marker.pose.position.z = Frame.p.z();
+        double qx,qy,qz,qw;
+        Frame.M.GetQuaternion(qx,qy,qz,qw);
+        Marker.pose.orientation.x = qx;
+        Marker.pose.orientation.y = qy;
+        Marker.pose.orientation.z = qz;
+        Marker.pose.orientation.w = qw;
+    }
+
+    void URDFPoseToKDLFrame(const urdf::Pose& Pose, KDL::Frame& Frame)
+    {
+        Frame.p.x(Pose.position.x);
+        Frame.p.y(Pose.position.y);
+        Frame.p.z(Pose.position.z);
+        Frame.M = Frame.M.Quaternion(Pose.rotation.x, Pose.rotation.y, Pose.rotation.z, Pose.rotation.w);
+    }
+
+    void createInteractiveMarkerControl(const double qw, const double qx, const double qy, const double qz,
+                                        const unsigned int interaction_mode);
 };
 
 } }

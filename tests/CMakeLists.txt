@@ -1,14 +1,13 @@
 cmake_minimum_required(VERSION 2.8.11)
 include(ExternalProject)
 
-set(PROJECTNAME openmpc_tests)
-project(${PROJECTNAME} C CXX)
+project(cartesian_interface_tests C CXX)
 
 
 # compite GTest
 find_package(GTest)
 find_package(Threads)
-if (NOT GTEST_FOUND)
+if(NOT GTEST_FOUND)
     set(gTestSource "/usr/src/gtest")
     ExternalProject_Add(GTest-ext SOURCE_DIR ${gTestSource}
                                   PREFIX "${CMAKE_CURRENT_BINARY_DIR}/external"
@@ -18,18 +17,19 @@ if (NOT GTEST_FOUND)
     set(GTEST_BOTH_LIBRARIES gtest gtest_main)
 endif()
 
+add_definitions(-DCARTESIO_TEST_CONFIG_PATH="${CMAKE_CURRENT_SOURCE_DIR}/configs/")
+
+set(TestLibs CartesianInterface ${GTEST_BOTH_LIBRARIES})
 include_directories(${GTEST_INCLUDE_DIRS})
 link_directories(${GTEST_LIB_DIRS})
 
-# add local include
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} )
-enable_testing()
+add_executable(TestApi TestApi.cpp)
+target_link_libraries(TestApi ${TestLibs})
+add_dependencies(TestApi GTest-ext CartesianInterface)
+add_test(NAME TestApi COMMAND TestApi)
 
-add_custom_command( TARGET OpenMpC POST_BUILD
-                    COMMAND ${CMAKE_CTEST_COMMAND}
-                    MAIN_DEPENDENCY OpenMpC
-                    DEPENDS
-                    testBasics
-                   )
-# endif()
+add_executable(TestRos TestRos.cpp)
+target_link_libraries(TestRos ${TestLibs})
+add_dependencies(TestRos GTest-ext CartesianInterface)
+add_test(NAME TestRos COMMAND TestRos)
 

@@ -8,6 +8,7 @@ find_package(XBotInterface REQUIRED)
 find_package(XCM QUIET)
 find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
+find_package(alglib QUIET)
 find_package(catkin REQUIRED COMPONENTS roscpp
                                         std_msgs
                                         geometry_msgs
@@ -24,6 +25,7 @@ include_directories(include
                     ${EIGEN3_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
                     ${ReflexxesTypeII_INCLUDE_DIRS}
+                    ${alglib_INCLUDE_DIRS}
                     )
 
 
@@ -42,7 +44,8 @@ endif()
 # Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  ReferenceStamped.msg
+  Impedance3.msg 
+  Impedance6.msg
 )
 
 # Generate services in the 'srv' folder
@@ -53,6 +56,8 @@ add_service_files(
   LoadController.srv
   GetTaskList.srv
   ResetWorld.srv
+  GetImpedance.srv
+  ToggleAxis.srv
 )
 
 # Generate actions in the 'action' folder
@@ -83,34 +88,51 @@ catkin_package(
    INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIRS}
    LIBRARIES CartesianInterface
 #  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
+   DEPENDS XBotInterface yaml-cpp
    CFG_EXTRAS ${PROJECT_NAME}-extras.cmake
 )
 
 # Interface implementation
 set(CartesianInterface_SRC
         src/CartesianInterfaceImpl.cpp
-        src/ProblemDescription.cpp
+        src/utils/LockfreeBufferImpl.cpp
+        src/utils/ManipulabilityAnalyzer.cpp
+        src/problem/ProblemDescription.cpp
+        src/problem/Cartesian.cpp
+        src/problem/Com.cpp
+        src/problem/Gaze.cpp
+        src/problem/AngularMomentum.cpp
+        src/problem/Postural.cpp
+        src/problem/Interaction.cpp
+        src/problem/TaskFactory.cpp
+        src/problem/TaskImpl.cpp
+        src/problem/ConstraintImpl.cpp
+        src/utils/ForceEstimation.cpp
+        
     )
 
 # OpenSot implementation
 set(CartesianInterfaceSOT_SRC
-        src/OpenSotImpl.cpp
+        src/open_sot/OpenSotImpl.cpp
     )
 
 # Ros implementation
 set(CartesianInterfaceROS_SRC
-        src/RosImpl.cpp
-        src/RosServerClass.cpp
-        src/CartesianMarker.cpp
-        src/JoyStick.cpp
-        src/ManipulabilityAnalyzer.cpp
+        src/ros/RosImpl.cpp
+        src/ros/RosServerClass.cpp
+        src/ros/CartesianMarker.cpp
+        src/ros/JoyStick.cpp
+        src/ros/CartesianAnalyzer.cpp
+        src/ros/RosExecutor.cpp
     )
 
 # Trajectory
-set(Trajectory_SRC
-        src/Trajectory.cpp
-    )
+set(Trajectory_SRC src/trajectory/Trajectory.cpp)
+    
+if(${alglib_FOUND})
+    set(Trajectory_SRC ${Trajectory_SRC}
+                       src/trajectory/Spline.cpp)
+endif()
 
 # should we use xbot internal robot state publisher?
 option(USE_XBOT_ROBOT_STATE_PUB FALSE)
@@ -121,8 +143,6 @@ if(${USE_XBOT_ROBOT_STATE_PUB})
     include_directories(${robot_state_publisher_advr_solver_INCLUDE_DIRS})
     set(XBOT_RSPUB_LIBRARIES ${robot_state_publisher_advr_solver_LIBRARIES})
 endif()
-
-message("************************** ${XBOT_RSPUB_LIBRARIES}")
 
 # libCartesianInterface
 add_library(CartesianInterface SHARED ${CartesianInterface_SRC}
@@ -135,8 +155,16 @@ target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
                                                 ${XBOT_RSPUB_LIBRARIES}
                                                 yaml-cpp
                                                 ${ReflexxesTypeII_LIBRARIES}
+                                                ${alglib_LIBRARIES}
                       )
 add_dependencies(CartesianInterface ${PROJECT_NAME}_generate_messages)
+
+install(TARGETS CartesianInterface CartesianInterface
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 
 
 # libCartesianOpenSot
@@ -144,31 +172,94 @@ add_library(CartesianOpenSot SHARED ${CartesianInterfaceSOT_SRC})
 target_link_libraries(CartesianOpenSot PUBLIC ${OpenSoT_LIBRARIES}
                                               CartesianInterface
                       )
+install(TARGETS CartesianOpenSot CartesianOpenSot
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
+## Addons for libCartesianOpenSot
+
+find_package(PCL REQUIRED)
+include_directories(${PCL_INCLUDE_DIRS})
+add_library(CartesioConvexHullAddon SHARED src/open_sot/ConvexHullAddon.cpp)
+target_link_libraries(CartesioConvexHullAddon PRIVATE ${OpenSoT_LIBRARIES}
+                                                      CartesianInterface
+                                                      ${PCL_LIBRARIES})
+install(TARGETS CartesioConvexHullAddon CartesioConvexHullAddon
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 
 
 # Cartesian Server executable
-add_executable(ros_server_node src/RosServerNode.cpp)
+add_executable(ros_server_node src/ros/RosServerNode.cpp)
 target_link_libraries(ros_server_node CartesianInterface dl)
+install(TARGETS ros_server_node ros_server_node
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 # Marker spawner executable
-add_executable(marker_spawner src/MarkerSpawner.cpp)
+add_executable(marker_spawner src/ros/MarkerSpawner.cpp)
 target_link_libraries(marker_spawner CartesianInterface)
+install(TARGETS marker_spawner marker_spawner
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 # JoyStick spawner executable
-add_executable(joystick_spawner src/JoyStickSpawner.cpp)
+add_executable(joystick_spawner src/ros/JoyStickSpawner.cpp)
 target_link_libraries(joystick_spawner CartesianInterface)
+install(TARGETS joystick_spawner joystick_spawner
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 
 # CartesianAnalyzer executable
-add_executable(cartesian_analyzer src/CartesianAnalyzer.cpp)
+add_executable(cartesian_analyzer src/ros/CartesianAnalyzer.cpp)
 target_link_libraries(cartesian_analyzer CartesianInterface)
+install(TARGETS cartesian_analyzer cartesian_analyzer
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+# ForceEstimationNode executable
+add_executable(force_estimation_node src/ros/ForceEstimationNode.cpp)
+target_link_libraries(force_estimation_node CartesianInterface)
+install(TARGETS force_estimation_node force_estimation_node
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+# TorqueFeedforward executable
+add_executable(torque_feedforward_node src/ros/TorqueFeedforward.cpp)
+target_link_libraries(torque_feedforward_node CartesianInterface)
+install(TARGETS torque_feedforward_node torque_feedforward_node
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 # WorldConnecter executable
-add_executable(world_connecter src/WorldConnecter.cpp)
+add_executable(world_connecter src/ros/WorldConnecter.cpp)
 target_link_libraries(world_connecter ${catkin_LIBRARIES})
+install(TARGETS world_connecter world_connecter
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 add_subdirectory(examples)
+add_subdirectory(bindings/python/)
 
 
 option(COMPILE_XBOT_PLUGIN OFF)
@@ -177,69 +268,23 @@ if(${XCM_FOUND} AND ${COMPILE_XBOT_PLUGIN})
     add_subdirectory(xbotcore)
 endif()
 
-# Mark executables and/or libraries for installation
-install(TARGETS ros_server_node ros_server_node
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(TARGETS marker_spawner marker_spawner
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(TARGETS joystick_spawner joystick_spawner
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(TARGETS cartesian_analyzer cartesian_analyzer
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(TARGETS CartesianInterface CartesianInterface
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(TARGETS world_connecter world_connecter
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(TARGETS CartesianOpenSot CartesianOpenSot
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
 
 # Mark cpp header files for installation
 install(DIRECTORY include/cartesian_interface/
     DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-    FILES_MATCHING PATTERN "*.h"
+    FILES_MATCHING PATTERN "*.h*"
     PATTERN ".svn" EXCLUDE
 )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 install(DIRECTORY launch/
-#   # myfile2
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
   FILES_MATCHING PATTERN "*.launch"
 )
 
-install(DIRECTORY examples/configs/
-#   # myfile2
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/examples/configs
-  FILES_MATCHING PATTERN "*.yaml"
-)
 
+
+install(PROGRAMS src/postural_gui DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 #######################
 # Add Testing target  #

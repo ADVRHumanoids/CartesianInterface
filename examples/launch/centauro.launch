@@ -1,0 +1,44 @@
+<launch>
+
+    <arg name="rate" default="100.0"/>
+    <arg name="prefix" default=""/>
+    
+    <param name="robot_description" 
+        textfile="$(env ROBOTOLOGY_ROOT)/configs/CentauroConfig/urdf/centauro.urdf"/>
+    
+    <param name="robot_description_semantic"
+        textfile="$(env ROBOTOLOGY_ROOT)/configs/CentauroConfig/srdf/centauro.srdf"/>
+    
+    <param name="cartesian/problem_description" 
+        textfile="$(find cartesian_interface)/examples/configs/centauro_simple_stack.yaml"/>
+    
+    <param name="cartesian/joint_blacklist" type="yaml" 
+        value="[neck_velodyne]"/>
+        
+    <param name="cartesian/velocity_whitelist" type="yaml" 
+        value="[j_wheel_1, j_wheel_2, j_wheel_3, j_wheel_4]"/>
+    
+
+    <include file="$(find cartesian_interface)/launch/cartesio.launch">
+        <arg name="rate" value="$(arg rate)"/>
+        <arg name="prefix" value="$(arg prefix)"/>
+    </include>
+    
+    <node pkg="cartesian_interface" 
+          type="force_estimation_node" 
+          name="force_estimator"
+          output="screen">
+          
+        <param name="is_model_floating_base" value="true"/>
+        <param name="model_type" value="RBDL"/>
+        
+        <param name="links" type="yaml" value="[arm1_8, arm2_8]"/>
+        <param name="chains" type="yaml" value="[left_arm, right_arm, torso]"/>
+        
+        <param name="arm1_8/dofs" type="yaml" value="[0, 1, 2]"/>
+        <param name="arm2_8/dofs" type="yaml" value="[0, 1, 2]"/>
+        
+    </node>
+
+
+</launch>

@@ -1,7 +1,7 @@
 #ifndef __CI_MANIPULABILITY_H__
 #define __CI_MANIPULABILITY_H__
 
-#include <cartesian_interface/ProblemDescription.h>
+#include <cartesian_interface/problem/ProblemDescription.h>
 #include <cartesian_interface/utils/LoadConfig.h>
 
 #include <XBotInterface/MatLogger.hpp>
@@ -23,6 +23,11 @@ public:
                            ProblemDescription ik_problem, 
                            std::string tf_prefix
                           );
+
+    ~ManipulabilityAnalyzer()
+    {
+        _logger->flush();
+    }
     
     void compute();
     
