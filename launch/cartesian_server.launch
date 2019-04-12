@@ -1,0 +1,32 @@
+<launch>
+
+    <arg name="solver" default="OpenSot"/>
+    <arg name="prefix" default=""/>
+    <param name="problem_description" textfile="$(find cartesian_interface)/examples/configs/centauro_simple_stack.yaml"/>
+    <arg name="use_xbot_config" default="false"/>
+    <arg name="verbosity" default="2"/>
+    <arg name="rate" default="100.0"/>
+    
+    <node pkg="cartesian_interface" type="ros_server_node" 
+                                    name="ros_server_node" 
+                                    required="true" 
+                                    output="screen" 
+                                    launch-prefix="$(arg prefix)">
+                                    
+        <remap from="robot_description" to="xbotcore/centauro/robot_description"/>
+        <remap from="robot_description_semantic" to="xbotcore/centauro/robot_description_semantic"/>
+        <remap from="robot_description_joint_id_map" to="xbotcore/centauro/robot_description_joint_id_map"/>
+        <param name="is_model_floating_base" type="bool" value="true"/>
+        <param name="model_type" value="RBDL"/>
+        <param name="solver" value="$(arg solver)"/>
+        <param name="use_xbot_config" value="$(arg use_xbot_config)"/>
+        <param name="verbosity" value="$(arg verbosity)"/>
+        <param name="rate" value="$(arg rate)"/>
+        
+    </node>
+
+    <node pkg="cartesian_interface" type="marker_spawner" name="interactive_markers" output="screen"/>
+
+    <node pkg="tf" type="static_transform_publisher" name="ci_to_perception_broadcaster" args="0 0 -0.926 0 0 0 1 base_link ci/world 10"/>
+
+</launch>
