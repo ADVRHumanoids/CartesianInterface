@@ -69,7 +69,7 @@ CoMStabilizer::CoMStabilizer(const std::string& ft_sensor_l_sole_, const std::st
     foot_size(foot_size_),
     K(K_), D(D_), Fzmin(Fzmin_),
     MaxLims(MaxLims_),MinLims(MinLims_),
-    samples2ODE(samples2ODE_), freq(freq_)
+    samples2ODE(samples2ODE_), freq(freq_), dT(dT_)
 {
 
 }
@@ -83,8 +83,14 @@ CoMStabilizer::CoMStabilizer(const std::string& ft_sensor_l_sole_, const std::st
 extern "C" TaskDescription * CoMStabilizerTaskDescriptionFactory(YAML::Node task_node,
                                                                  XBot::ModelInterface::ConstPtr model)
 {
-    XBot::Logger::info("CoMStabilizer Initialization");
+    XBot::Logger::info("CoMStabilizer Initialization\n");
 
+    double lambda = 1.;
+    if(task_node["lambda"])
+    {
+        lambda = task_node["lambda"].as<double>();
+    }
+    
     Eigen::Vector3d K(0.01, 0.01, 0.0);
     if(task_node["K"])
     {
@@ -98,8 +104,8 @@ extern "C" TaskDescription * CoMStabilizerTaskDescriptionFactory(YAML::Node task
         }
     }
     else
-        XBot::Logger::warning("Compliance not set, default values will be used.");
-    XBot::Logger::info("K: [ %f, %f, %f ]", K[0], K[1], K[2]);
+        XBot::Logger::warning("Compliance not set, default values will be used.\n");
+    XBot::Logger::info("K: [ %f, %f, %f ]\n", K[0], K[1], K[2]);
 
     Eigen::Vector3d D(0.0001, 0.0001, 0.0);
     if(task_node["D"])
@@ -114,8 +120,8 @@ extern "C" TaskDescription * CoMStabilizerTaskDescriptionFactory(YAML::Node task
         }
     }
     else
-        XBot::Logger::warning("Damping not set, default values will be used.");
-    XBot::Logger::info("D: [ %f, %f, %f ]", D[0], D[1], D[2]);
+        XBot::Logger::warning("Damping not set, default values will be used.\n");
+    XBot::Logger::info("D: [ %f, %f, %f ]\n", D[0], D[1], D[2]);
 
     Eigen::Vector2d foot_size;
     if(task_node["foot_size"])
@@ -165,28 +171,28 @@ extern "C" TaskDescription * CoMStabilizerTaskDescriptionFactory(YAML::Node task
     if(task_node["Fzmin"])
         Fzmin = task_node["Fzmin"].as<double>();
     else
-        XBot::Logger::warning("Fzmin not set, default values will be used.");
-    XBot::Logger::info("Fzmin: %f", Fzmin);
+        XBot::Logger::warning("Fzmin not set, default values will be used.\n");
+    XBot::Logger::info("Fzmin: %f\n", Fzmin);
 
     double samples2ODE = 50.;
     if(task_node["samples2ODE"])
         samples2ODE = task_node["samples2ODE"].as<double>();
     else
-        XBot::Logger::warning("samples2ODE not set, default values will be used.");
-    XBot::Logger::info("samples2ODE: %f", samples2ODE);
+        XBot::Logger::warning("samples2ODE not set, default values will be used.\n");
+    XBot::Logger::info("samples2ODE: %f \n", samples2ODE);
 
     double freq = 10.;
     if(task_node["freq"])
         freq = task_node["freq"].as<double>();
     else
-        XBot::Logger::warning("freq not set, default values will be used.");
-    XBot::Logger::info("freq: %f", freq);
+        XBot::Logger::warning("freq not set, default values will be used.\n");
+    XBot::Logger::info("freq: %f \n", freq);
 
     double dT;
     if(task_node["dT"])
         dT = task_node["dT"].as<double>();
     else
-        throw std::runtime_error("dT mandatory information is missing");
+        throw std::runtime_error("dT mandatory information is missing\n");
 
 
     Eigen::Vector3d MaxLims(0.3, 0.15, 0.001);
@@ -202,8 +208,8 @@ extern "C" TaskDescription * CoMStabilizerTaskDescriptionFactory(YAML::Node task
         }
     }
     else
-        XBot::Logger::warning("MaxLims not set, default values will be used.");
-    XBot::Logger::info("MaxLims: [ %f, %f, %f ]", MaxLims[0], MaxLims[1], MaxLims[2]);
+        XBot::Logger::warning("MaxLims not set, default values will be used.\n");
+    XBot::Logger::info("MaxLims: [ %f, %f, %f ] \n", MaxLims[0], MaxLims[1], MaxLims[2]);
 
     Eigen::Vector3d MinLims(-0.2, -0.15, -0.1);
     if(task_node["MinLims"])
@@ -218,8 +224,8 @@ extern "C" TaskDescription * CoMStabilizerTaskDescriptionFactory(YAML::Node task
         }
     }
     else
-        XBot::Logger::warning("MinLims not set, default values will be used.");
-    XBot::Logger::info("MinLims: [ %f, %f, %f ]", MinLims[0], MinLims[1], MinLims[2]);
+        XBot::Logger::warning("MinLims not set, default values will be used.\n");
+    XBot::Logger::info("MinLims: [ %f, %f, %f ] \n", MinLims[0], MinLims[1], MinLims[2]);
 
 
     CoMStabilizer * task_desc = new CoMStabilizer(ft_sensor_l_sole, ft_sensor_r_sole,
@@ -230,6 +236,7 @@ extern "C" TaskDescription * CoMStabilizerTaskDescriptionFactory(YAML::Node task
                                                   Fzmin,
                                                   MaxLims, MinLims,
                                                   samples2ODE,freq, dT);
+    task_desc->lambda = lambda;
 
 
 
@@ -260,11 +267,20 @@ public:
         Affine3d Tlsole, Trsole;
         model->getPose(comstabilizer_desc->l_sole, Tlsole);
         model->getPose(comstabilizer_desc->r_sole, Trsole);
+       
 
         XBot::ForceTorqueSensor::ConstPtr ft_sensor_l_sole, ft_sensor_r_sole;
-        ft_sensor_l_sole = model->getForceTorque()[comstabilizer_desc->ft_sensor_l_sole];
-        ft_sensor_r_sole = model->getForceTorque()[comstabilizer_desc->ft_sensor_r_sole];
-
+        try 
+        {
+            ft_sensor_l_sole = model->getForceTorque().at(comstabilizer_desc->ft_sensor_l_sole);
+            ft_sensor_r_sole = model->getForceTorque().at(comstabilizer_desc->ft_sensor_r_sole);
+        }
+        catch (std::out_of_range e)
+        {
+                throw std::runtime_error("Force/Torque sensor does not exist, specify a valid one.");
+        }
+        
+            
         Affine3d Tankles;
         model->getPose(comstabilizer_desc->l_sole, comstabilizer_desc->ankle , Tankles);
 
@@ -285,6 +301,8 @@ public:
                                  comstabilizer_desc->MinLims,
                                  comstabilizer_desc->samples2ODE,
                                  comstabilizer_desc->freq);
+                                
+        _task->setLambda(comstabilizer_desc->lambda);
     }
 
     SoT::TaskPtr getTaskPtr() const override
@@ -319,7 +337,7 @@ private:
 };
 
 /* (4) Define the factory function for the SoT::[Task/Constraint]Interface as well. */
-extern "C" SoT::TaskInterface * CoMStabilizerTaskFactory(TaskDescription::Ptr task_desc,
+extern "C" SoT::TaskInterface * CoMStabilizerOpenSotTaskFactory(TaskDescription::Ptr task_desc,
                                                          XBot::ModelInterface::ConstPtr model)
 {
     return new CoMStabilizerOpenSot(task_desc, model);
