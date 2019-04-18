@@ -64,7 +64,7 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node task_node,
         }
         else
         {
-            throw std::runtime_error("Unsupported task type '" + task_type + "'");
+            throw std::runtime_error("Unsupported task type '" + task_type + "', maybe you forgot to specify the 'lib_name' field");
         }
     }
     
