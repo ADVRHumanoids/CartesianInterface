@@ -58,6 +58,7 @@ add_service_files(
   ResetWorld.srv
   GetImpedance.srv
   ToggleAxis.srv
+  SetContactFrame.srv
 )
 
 # Generate actions in the 'action' folder
