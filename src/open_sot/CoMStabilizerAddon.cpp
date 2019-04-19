@@ -1,14 +1,19 @@
 #include <cartesian_interface/problem/Task.h>
+#include <cartesian_interface/problem/Cartesian.h>
 #include <cartesian_interface/open_sot/TaskInterface.h>
 #include <OpenSoT/tasks/velocity/CoMStabilizer.h>
 #include <boost/make_shared.hpp>
+#include <ros/subscriber.h>
+#include <ros/node_handle.h>
+
+#include <geometry_msgs/PoseStamped.h>
 
 using namespace XBot::Cartesian;
 
 /* (1) Define struct that contains the description of the task/constraint,
  * to be parsed from the problem description YAML file
  */
-struct CoMStabilizer : public TaskDescription // inherit from [Constraint/Task]Description!
+struct CoMStabilizer : public CartesianTask // inherit from [Constraint/Task]Description!
 {
     // Stabilizer gains
     Eigen::Vector3d K;
@@ -61,7 +66,7 @@ CoMStabilizer::CoMStabilizer(const std::string& ft_sensor_l_sole_, const std::st
                              const Eigen::Vector3d& MaxLims_,
                              const Eigen::Vector3d& MinLims_,
                              const double samples2ODE_, const double freq_, const double dT_):
-    TaskDescription(TaskInterface::None, "CoMStabilizer", 3),
+    CartesianTask("com", "world", 3, "CoMStabilizer"),
     ft_sensor_l_sole(ft_sensor_l_sole_),
     ft_sensor_r_sole(ft_sensor_r_sole_),
     l_sole(l_sole_), r_sole(r_sole_),
@@ -70,8 +75,9 @@ CoMStabilizer::CoMStabilizer(const std::string& ft_sensor_l_sole_, const std::st
     K(K_), D(D_), Fzmin(Fzmin_),
     MaxLims(MaxLims_),MinLims(MinLims_),
     samples2ODE(samples2ODE_), freq(freq_), dT(dT_)
+   
+     
 {
-
 }
 
 /* (2) Define a factory function that dynamically allocates the struct defined in (1)
@@ -259,21 +265,21 @@ public:
         SoT::TaskInterface(task_desc, model)
     {
 
-        auto comstabilizer_desc = std::dynamic_pointer_cast<CoMStabilizer>(task_desc);
+        _comstabilizer_desc = std::dynamic_pointer_cast<CoMStabilizer>(task_desc);
 
         Eigen::VectorXd q;
         model->getJointPosition(q);
 
         Affine3d Tlsole, Trsole;
-        model->getPose(comstabilizer_desc->l_sole, Tlsole);
-        model->getPose(comstabilizer_desc->r_sole, Trsole);
+        model->getPose(_comstabilizer_desc->l_sole, Tlsole);
+        model->getPose(_comstabilizer_desc->r_sole, Trsole);
        
 
         XBot::ForceTorqueSensor::ConstPtr ft_sensor_l_sole, ft_sensor_r_sole;
         try 
         {
-            ft_sensor_l_sole = model->getForceTorque().at(comstabilizer_desc->ft_sensor_l_sole);
-            ft_sensor_r_sole = model->getForceTorque().at(comstabilizer_desc->ft_sensor_r_sole);
+            ft_sensor_l_sole = model->getForceTorque().at(_comstabilizer_desc->ft_sensor_l_sole);
+            ft_sensor_r_sole = model->getForceTorque().at(_comstabilizer_desc->ft_sensor_r_sole);
         }
         catch (std::out_of_range e)
         {
@@ -282,7 +288,7 @@ public:
         
             
         Affine3d Tankles;
-        model->getPose(comstabilizer_desc->l_sole, comstabilizer_desc->ankle , Tankles);
+        model->getPose(_comstabilizer_desc->l_sole, _comstabilizer_desc->ankle , Tankles);
 
 
         _task = boost::make_shared<OpenSoT::tasks::velocity::CoMStabilizer>
@@ -291,18 +297,20 @@ public:
                                  Tlsole, Trsole,
                                  ft_sensor_l_sole,
                                  ft_sensor_r_sole,
-                                 comstabilizer_desc->dT,
+                                 _comstabilizer_desc->dT,
                                  model->getMass(),
                                  fabs(Tankles.translation()[2]),
-                                 comstabilizer_desc->foot_size,
-                                 comstabilizer_desc->Fzmin,
-                                 comstabilizer_desc->K, comstabilizer_desc->D,
-                                 comstabilizer_desc->MaxLims,
-                                 comstabilizer_desc->MinLims,
-                                 comstabilizer_desc->samples2ODE,
-                                 comstabilizer_desc->freq);
+                                 _comstabilizer_desc->foot_size,
+                                 _comstabilizer_desc->Fzmin,
+                                 _comstabilizer_desc->K, _comstabilizer_desc->D,
+                                 _comstabilizer_desc->MaxLims,
+                                 _comstabilizer_desc->MinLims,
+                                 _comstabilizer_desc->samples2ODE,
+                                 _comstabilizer_desc->freq);
                                 
-        _task->setLambda(comstabilizer_desc->lambda);
+        _task->setLambda(_comstabilizer_desc->lambda);
+        _zmp_sub = n_CoMStab.subscribe("cartesian/com_stabilizer/zmp/reference", 1, &CoMStabilizerOpenSot::zmp_callback, this); 
+        _zmp_ref.setZero();
     }
 
     SoT::TaskPtr getTaskPtr() const override
@@ -314,6 +322,18 @@ public:
                 double time,
                 double period)
     {
+        Eigen::Vector3d com_ref;
+        ci->getComPositionReference(com_ref);
+        
+        Eigen::Affine3d l_sole_ref;
+        Eigen::Affine3d r_sole_ref;
+        ci->getPoseReference(_comstabilizer_desc->l_sole, l_sole_ref);
+        ci->getPoseReference(_comstabilizer_desc->r_sole, r_sole_ref);
+        
+        _task->setSoleRef(l_sole_ref, r_sole_ref);
+        _task->setReference(com_ref);
+        _task->setZMP(_zmp_ref);
+        
         return false;
     }
 
@@ -331,9 +351,21 @@ public:
 
 private:
 
-    SoT::TaskPtr _task;
+    OpenSoT::tasks::velocity::CoMStabilizer::Ptr _task;
+    
+        
+    ros::NodeHandle n_CoMStab;
+    ros::Subscriber _zmp_sub;
+    
+    Eigen::Vector2d _zmp_ref;
 
-
+    std::shared_ptr<CoMStabilizer> _comstabilizer_desc;
+    
+    void zmp_callback(const geometry_msgs::PoseStamped msg_rcv)
+    {
+        _zmp_ref << msg_rcv.pose.position.x, msg_rcv.pose.position.y;
+    }
+    
 };
 
 /* (4) Define the factory function for the SoT::[Task/Constraint]Interface as well. */
