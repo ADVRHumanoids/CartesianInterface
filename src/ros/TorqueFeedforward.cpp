@@ -28,12 +28,13 @@ bool on_contact_frame_changed(cartesian_interface::SetContactFrameRequest& req,
     q.normalize();
     
     std::stringstream ss;
-    ss << q.toRotationMatrix() << std::endl;
+    Eigen::IOFormat print_fmt(Eigen::StreamPrecision, 0, ", ", ";", "", "", "[", "]");
+    ss << q.toRotationMatrix().format(print_fmt) << std::endl;
     
     g_fopt->setContactRotationMatrix(req.link_name, q.toRotationMatrix());
     
     res.success = true;
-    res.message = "Successfully changed contact frame for link '" + req.link_name + "' to \n" + ss.str();
+    res.message = "Successfully changed contact frame for link '" + req.link_name + "' to: " + ss.str();
     
     return true;
 }
