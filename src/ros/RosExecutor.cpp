@@ -207,6 +207,20 @@ void RosExecutor::init_load_world_frame()
         _model->setFloatingBasePose(w_T_fb);
         _model->update();
     }
+    
+    /* If set_world_from_param is false, and a world_frame_link is defined... */
+    std::string world_frame_link;
+    if(!set_world_from_tf && _xbot_cfg.get_parameter("world_frame_link", world_frame_link))
+    {
+        Eigen::Affine3d w_T_l;
+        if(!_model->getPose(world_frame_link, w_T_l))
+        {
+            throw std::runtime_error("World frame link '" + world_frame_link + "' is undefined");
+        }
+        
+        _model->setFloatingBasePose(w_T_l.inverse());
+        _model->update();
+    }
 }
 
 CartesianInterfaceImpl::Ptr RosExecutor::load_controller(std::string impl_name, 

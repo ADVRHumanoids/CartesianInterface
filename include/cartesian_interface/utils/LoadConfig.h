@@ -116,9 +116,9 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromParamServer(st
     xbot_cfg.set_parameter("tf_prefix", tf_prefix);
     
     std::string world_frame;
-    if(nh_private.hasParam("world_frame") && nh_private.getParam("world_frame", world_frame))
+    if(nh_private.hasParam("world_frame_link") && nh_private.getParam("world_frame_link", world_frame))
     {
-        xbot_cfg.set_parameter("world_frame", world_frame);
+        xbot_cfg.set_parameter("world_frame_link", world_frame);
     }
     
     std::vector<double> linear(3), angular(4);
