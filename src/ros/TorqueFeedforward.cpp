@@ -28,12 +28,13 @@ bool on_contact_frame_changed(cartesian_interface::SetContactFrameRequest& req,
     q.normalize();
     
     std::stringstream ss;
-    ss << q.toRotationMatrix() << std::endl;
+    Eigen::IOFormat print_fmt(Eigen::StreamPrecision, 0, ", ", ";", "", "", "[", "]");
+    ss << q.toRotationMatrix().format(print_fmt) << std::endl;
     
     g_fopt->setContactRotationMatrix(req.link_name, q.toRotationMatrix());
     
     res.success = true;
-    res.message = "Successfully changed contact frame for link '" + req.link_name + "' to \n" + ss.str();
+    res.message = "Successfully changed contact frame for link '" + req.link_name + "' to: " + ss.str();
     
     return true;
 }
@@ -111,18 +112,28 @@ int main(int argc, char ** argv)
         ROS_INFO("Subscribed to topic '%s'", sub.getTopic().c_str());
     }
     
-    Eigen::VectorXd tau;
-    ros::Rate loop_rate(rate);
-    
+    /* Force distribution */
     auto f_opt = g_fopt = boost::make_shared<OpenSoT::utils::ForceOptimization>(model, 
                                                                        contact_links, 
                                                                        optimize_contact_torque);
     
     std::vector<Eigen::Vector6d> forces;
     
+    /* Publish optimized forces */
+    std::vector<ros::Publisher> f_pubs;
+    
+    for(auto c : contact_links)
+    {
+        auto pub = nh.advertise<geometry_msgs::WrenchStamped>("optimized_force/" + c, 1);
+        f_pubs.push_back(pub);
+    }
+    
     /* Service to change link orientation */
     auto contact_rot_srv = nh.advertiseService("change_contact_frame", 
                                                on_contact_frame_changed);
+    
+    Eigen::VectorXd tau;
+    ros::Rate loop_rate(rate);
     
     while(ros::ok())
     {
@@ -141,9 +152,21 @@ int main(int argc, char ** argv)
         /* Contact force distribution */
         f_opt->compute(tau, forces, tau);
         
-        for(auto f : forces)
+        for(int i = 0; i < forces.size(); i++)
         {
-            std::cout << f.transpose() << std::endl;
+            geometry_msgs::WrenchStamped msg;
+            msg.header.frame_id = contact_links[i];
+            msg.header.stamp = ros::Time::now();
+            
+            Eigen::Matrix3d w_R_l;
+            model->getOrientation(contact_links[i], w_R_l);
+            
+            auto f = forces[i];
+            f.head<3>() = w_R_l.transpose() * f.head<3>();
+            f.tail<3>() = w_R_l.transpose() * f.tail<3>();
+            
+            tf::wrenchEigenToMsg(f, msg.wrench);
+            f_pubs[i].publish(msg);
         }
         
         
