@@ -334,7 +334,7 @@ public:
         _task->setReference(com_ref);
         _task->setZMP(_zmp_ref);
         
-        return false;
+        return true; /*??*/
     }
 
     bool setControlMode(const std::string& ee_name,
