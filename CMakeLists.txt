@@ -133,6 +133,7 @@ set(CartesianInterfaceROS_SRC
         src/ros/RosServerClass.cpp
         #src/ros/CartesianMarker.cpp
         src/ros/JoyStick.cpp
+        src/ros/Aeronav.cpp
         src/ros/CartesianAnalyzer.cpp
         src/ros/RosExecutor.cpp
     )
@@ -229,6 +230,15 @@ install(TARGETS ros_server_node ros_server_node
 add_executable(joystick_spawner src/ros/JoyStickSpawner.cpp)
 target_link_libraries(joystick_spawner CartesianInterface)
 install(TARGETS joystick_spawner joystick_spawner
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+# Aeronav spawner executable
+add_executable(aeronav_spawner src/ros/AeronavSpawner.cpp)
+target_link_libraries(aeronav_spawner CartesianInterface)
+install(TARGETS aeronav_spawner aeronav_spawner
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
