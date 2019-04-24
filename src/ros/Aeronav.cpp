@@ -116,8 +116,8 @@ void Aeronav::aeronavCallback ( const sensor_msgs::Joy::ConstPtr& joy ) {
     }
 
     /* Activate control */
-    if ( joy->buttons[14] ) {
-        setVelocityCtrl();
+    if ( (joy->buttons[2]) && !(joy->buttons[1]) ) {
+	setVelocityCtrl();
     }
 
 // //     /* Change speed scale (linear) */
@@ -191,7 +191,7 @@ void Aeronav::aeronavCallback ( const sensor_msgs::Joy::ConstPtr& joy ) {
 // //     }
 
     /* Toggle local control */
-    if ( joy->buttons[4] ) {
+    if ( joy->buttons[4] && !joy->buttons[3] ) {
         _local_ctrl *= -1;
 
         if ( _local_ctrl == 1 ) {
