@@ -43,7 +43,9 @@ struct CoMStabilizer : public CartesianTask // inherit from [Constraint/Task]Des
     double freq;
 
     double dT;
-
+    
+    bool invertFTSensors; //TODO take out
+    
     CoMStabilizer(const std::string& ft_sensor_l_sole_, const std::string& ft_sensor_r_sole_,
                   const std::string& l_sole_, const std::string& r_sole_,
                   const std::string& ankle_,
@@ -53,6 +55,7 @@ struct CoMStabilizer : public CartesianTask // inherit from [Constraint/Task]Des
                   const double Fzmin_,
                   const Eigen::Vector3d& MaxLims_,
                   const Eigen::Vector3d& MinLims_,
+                  const bool invertFTSensors_,
                   const double samples2ODE_, const double freq_, const double dT_);
 };
 
@@ -65,6 +68,7 @@ CoMStabilizer::CoMStabilizer(const std::string& ft_sensor_l_sole_, const std::st
                              const double Fzmin_,
                              const Eigen::Vector3d& MaxLims_,
                              const Eigen::Vector3d& MinLims_,
+                             const bool invertFTSensors_,
                              const double samples2ODE_, const double freq_, const double dT_):
     CartesianTask("com", "world", 3, "CoMStabilizer"),
     ft_sensor_l_sole(ft_sensor_l_sole_),
@@ -74,8 +78,8 @@ CoMStabilizer::CoMStabilizer(const std::string& ft_sensor_l_sole_, const std::st
     foot_size(foot_size_),
     K(K_), D(D_), Fzmin(Fzmin_),
     MaxLims(MaxLims_),MinLims(MinLims_),
-    samples2ODE(samples2ODE_), freq(freq_), dT(dT_)
-   
+    samples2ODE(samples2ODE_), freq(freq_), dT(dT_),
+    invertFTSensors(invertFTSensors_) //TODO take out
      
 {
 }
@@ -232,8 +236,17 @@ extern "C" TaskDescription * CoMStabilizerTaskDescriptionFactory(YAML::Node task
     else
         XBot::Logger::warning("MinLims not set, default values will be used.\n");
     XBot::Logger::info("MinLims: [ %f, %f, %f ] \n", MinLims[0], MinLims[1], MinLims[2]);
-
-
+    
+    // required for real robot since force sensors are inverted //TODO take out
+    bool invertFTSensors = false;
+    if(task_node["invertFTSensors"])
+    {
+        invertFTSensors = task_node["invertFTSensors"].as<bool>();
+    }
+    else
+        XBot::Logger::warning("invertFTSensors not set, default values will be used.\n");
+    XBot::Logger::info("invertFTSensors: %f \n", invertFTSensors);
+    
     CoMStabilizer * task_desc = new CoMStabilizer(ft_sensor_l_sole, ft_sensor_r_sole,
                                                   l_sole,  r_sole,
                                                   ankle,
@@ -241,6 +254,7 @@ extern "C" TaskDescription * CoMStabilizerTaskDescriptionFactory(YAML::Node task
                                                   K, D,
                                                   Fzmin,
                                                   MaxLims, MinLims,
+                                                  invertFTSensors,
                                                   samples2ODE,freq, dT);
     task_desc->lambda = lambda;
 
@@ -248,6 +262,8 @@ extern "C" TaskDescription * CoMStabilizerTaskDescriptionFactory(YAML::Node task
 
     return task_desc;
 
+    
+    
 }
 
 /* (3) Define the corresponding SoT::TaskInterface class. Its purpose is to:
@@ -305,6 +321,7 @@ public:
                                  _comstabilizer_desc->K, _comstabilizer_desc->D,
                                  _comstabilizer_desc->MaxLims,
                                  _comstabilizer_desc->MinLims,
+                                 _comstabilizer_desc->invertFTSensors,
                                  _comstabilizer_desc->samples2ODE,
                                  _comstabilizer_desc->freq);
                                 
