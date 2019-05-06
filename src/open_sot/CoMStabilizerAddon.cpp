@@ -245,7 +245,7 @@ extern "C" TaskDescription * CoMStabilizerTaskDescriptionFactory(YAML::Node task
     }
     else
         XBot::Logger::warning("invertFTSensors not set, default values will be used.\n");
-    XBot::Logger::info("invertFTSensors: %f \n", invertFTSensors);
+    XBot::Logger::info("invertFTSensors: %s \n",  invertFTSensors ? "true" : "false");
     
     CoMStabilizer * task_desc = new CoMStabilizer(ft_sensor_l_sole, ft_sensor_r_sole,
                                                   l_sole,  r_sole,
