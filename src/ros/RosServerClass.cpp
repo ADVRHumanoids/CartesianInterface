@@ -415,7 +415,7 @@ void XBot::Cartesian::RosServerClass::publish_posture_state(ros::Time time)
 void XBot::Cartesian::RosServerClass::publish_solution(ros::Time time)
 {
     sensor_msgs::JointState msg;
-    Eigen::VectorXd _sol_q, _sol_qdot;
+    Eigen::VectorXd _sol_q, _sol_qdot, _sol_tau;
 
     if(_solution_pub.getNumSubscribers() == 0)
     {
@@ -424,6 +424,7 @@ void XBot::Cartesian::RosServerClass::publish_solution(ros::Time time)
     
     _model->getJointPosition(_sol_q);
     _model->getJointVelocity(_sol_qdot);
+    _model->getJointEffort(_sol_tau);
     
     msg.header.stamp = time;
     msg.name.reserve(_model->getJointNum());
@@ -435,6 +436,7 @@ void XBot::Cartesian::RosServerClass::publish_solution(ros::Time time)
         msg.name.push_back(jname);
         msg.position.push_back(_sol_q[i]);
         msg.velocity.push_back(_sol_qdot[i]);
+        msg.effort.push_back(_sol_tau[i]);
         i++;
     }
     

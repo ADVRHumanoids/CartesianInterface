@@ -411,10 +411,13 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
     /* Integrate solution */
     _model->getJointPosition(_q);
     _model->getJointVelocity(_qdot);
+    _model->getJointAcceleration(_qddot);
     
-    _q += _period * _qdot;
+    _q += _period * _qdot + 0.5 * std::pow(_period, 2) * _qddot;
+    _qdot += _period * _qddot;
     
     _model->setJointPosition(_q);
+    _model->setJointVelocity(_qdot);
     _model->update();
     
     if(_robot)

@@ -114,7 +114,12 @@ set(CartesianInterface_SRC
 # OpenSot implementation
 set(CartesianInterfaceSOT_SRC
         src/open_sot/OpenSotImpl.cpp
-    )
+    )  
+    
+# OpenSot implementation
+set(CartesianInterfaceSOTacc_SRC
+        src/open_sot/OpenSotAccImpl.cpp
+    )      
 
 # Ros implementation
 set(CartesianInterfaceROS_SRC
@@ -193,6 +198,16 @@ install(TARGETS CartesioConvexHullAddon CartesioConvexHullAddon
 )
 
 
+# libCartesianOpenSotAcc
+add_library(CartesianOpenSotAcc SHARED ${CartesianInterfaceSOTacc_SRC})
+target_link_libraries(CartesianOpenSotAcc PUBLIC ${OpenSoT_LIBRARIES}
+                                                 CartesianInterface
+                      )
+install(TARGETS CartesianOpenSotAcc CartesianOpenSotAcc
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 # Cartesian Server executable
 add_executable(ros_server_node src/ros/RosServerNode.cpp)
