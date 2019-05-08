@@ -197,7 +197,7 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     /* Apply mask */
     _twist = _twist.cwiseProduct(_twist_mask.cast<double>());
 
-    /* Toggle base control (control w.r.t. base_link) */
+    /* Toggle base control (control w.r.t. task's base link) */
     _desired_twist.header.frame_id = ""; 
     
     if(joy->buttons[3] && joy->axes[5] > -0.99 && joy->axes[2] > -0.99)
@@ -343,6 +343,9 @@ void XBot::Cartesian::JoyStick::broadcastStatus()
     cartesian_interface::CartesioJoyStick msg;
     msg.max_angular_speed = _angular_speed_sf;
     msg.max_linear_speed = _linear_speed_sf;
+
+    for(unsigned int i = 0; i < _twist_mask.size(); ++i)
+        msg.twist_mask[i] = _twist_mask[i];
 
     _joystick_status_pub.publish(msg);
 }
