@@ -9,8 +9,8 @@
 #include <cartesian_interface/problem/AngularMomentum.h>
 #include <cartesian_interface/utils/LoadObject.hpp>
 #include <boost/make_shared.hpp>
-#include <OpenSoT/constraints/velocity/JointLimits.h>
-#include <OpenSoT/constraints/velocity/VelocityLimits.h>
+#include <OpenSoT/constraints/acceleration/JointLimits.h>
+#include <OpenSoT/constraints/acceleration/VelocityLimits.h>
 #include <OpenSoT/constraints/TaskToConstraint.h>
 
 using namespace XBot::Cartesian;
@@ -97,7 +97,17 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
 {
     
     OpenSotAccImpl::TaskPtr opensotacc_task;
+//     double control_dt; // = 0.01;
+//     get_control_dt(control_dt);
+    double control_dt = 0.01;
+    if(!get_control_dt(control_dt))
+    {
+        throw std::runtime_error("Unable to find control period in configuration file " 
+                                 "required by admittance task "  
+                                 "(add problem_description/solver_options/control_dt field)");
+    }
     
+    std::cout << "Control dt: " << control_dt << std::endl;
     
     
     if(task_desc->type == "Cartesian")
@@ -124,7 +134,10 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
 
         opensotacc_task = cartesian_task;
         
-        cartesian_task->setLambda(cartesian_desc->lambda);
+        
+//         cartesian_task->setLambda(cartesian_desc->lambda);  // velocity tasks
+        double lambda = (cartesian_desc->lambda * cartesian_desc->lambda)/(control_dt*control_dt);
+        cartesian_task->setLambda(lambda, 2*std::sqrt(lambda));
 //         cartesian_task->setOrientationErrorGain(cartesian_desc->orientation_gain);
 
 //         cartesian_task->setIsBodyJacobian(cartesian_desc->is_body_jacobian);
@@ -355,12 +368,23 @@ OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr OpenSotAc
     {
         Eigen::VectorXd qmin, qmax;
         _model->getJointLimits(qmin, qmax);
+        
+        double control_dt = 0.01;
+        if(!get_control_dt(control_dt))
+        {
+            Logger::warning("Unable to find control period \
+in configuration file (add problem_description/solver_options/control_dt field)\n");
+        }
 
-        auto joint_lims = boost::make_shared<OpenSoT::constraints::velocity::JointLimits>
-                                            (_q,
-                                                qmax,
-                                                qmin
-                                                );
+        auto joint_lims = boost::make_shared<OpenSoT::constraints::acceleration::JointLimits>
+                                            (*_model, 
+                                             _qddot,
+                                             qmax,
+                                             qmin,
+                                             Eigen::VectorXd::Ones(qmax.size()) * 100.0,
+                                             control_dt,
+                                             1.0
+                                             );
 
         return joint_lims;
 
@@ -378,8 +402,8 @@ OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr OpenSotAc
 in configuration file (add problem_description/solver_options/control_dt field)\n");
         }
         
-        auto vel_lims = boost::make_shared<OpenSoT::constraints::velocity::VelocityLimits>
-                                            (qdotmax, control_dt);
+        auto vel_lims = boost::make_shared<OpenSoT::constraints::acceleration::VelocityLimits>
+                                            (*_model, _qddot, qdotmax, control_dt);
 
         return vel_lims;
 
