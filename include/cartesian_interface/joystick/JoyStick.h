@@ -56,6 +56,7 @@ public:
     void setRobotBaseLinkCtrlFrame(const std::string& robot_base_link);
 
     bool updateStatus();
+    void broadcastStatus();
 
 private:
     /**
@@ -97,6 +98,8 @@ private:
     int _base_ctrl;
 
     std::string _robot_base_link;
+
+    ros::Publisher _joystick_status_pub;
 };
 }
 }

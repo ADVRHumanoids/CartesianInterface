@@ -5,6 +5,7 @@
 #include <geometry_msgs/Transform.h>
 #include <std_srvs/SetBool.h>
 #include <std_msgs/String.h>
+#include <cartesian_interface/CartesioJoyStick.h>
 
 
 #define MAX_SPEED_SF 1.0
@@ -61,6 +62,9 @@ JoyStick::JoyStick(const std::vector<std::string>& distal_links,
         ref_pose_pub = _nh.advertise<geometry_msgs::TwistStamped>(topic_name, 1);
         _ref_pose_pubs.push_back(ref_pose_pub);
     }
+
+
+    _joystick_status_pub = _nh.advertise<cartesian_interface::CartesioJoyStick>("joystick_status", 1);
 
     std::stringstream ss;
     ss<<"Selected Task \n               distal_link: "<<_distal_links[_selected_task].c_str()<<std::endl;
@@ -332,5 +336,14 @@ bool XBot::Cartesian::JoyStick::updateStatus()
     }
 
     return true;
+}
+
+void XBot::Cartesian::JoyStick::broadcastStatus()
+{
+    cartesian_interface::CartesioJoyStick msg;
+    msg.max_angular_speed = _angular_speed_sf;
+    msg.max_linear_speed = _linear_speed_sf;
+
+    _joystick_status_pub.publish(msg);
 }
 
