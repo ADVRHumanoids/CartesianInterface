@@ -9,6 +9,7 @@ find_package(XCM QUIET)
 find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
 find_package(alglib QUIET)
+find_package(Eigen3 QUIET)
 find_package(catkin REQUIRED COMPONENTS roscpp
                                         std_msgs
                                         geometry_msgs
