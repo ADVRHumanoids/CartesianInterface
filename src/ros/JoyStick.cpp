@@ -239,11 +239,11 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
         localCtrl();
     }
 
-
-    if(joy->buttons[1])
-    {
-        activateDeactivateTask();
-    }
+/* REMOVED TOO DANGEROUS */
+//    if(joy->buttons[1])
+//    {
+//        activateDeactivateTask();
+//    }
 }
 
 void JoyStick::sendVelRefs()
@@ -286,22 +286,22 @@ void XBot::Cartesian::JoyStick::twistInBase()
 }
 
 
-void JoyStick::activateDeactivateTask()
-{
-    cartesian_interface::GetTaskInfo srv;
-    _get_properties_service_clients[_selected_task].call(srv);
+//void JoyStick::activateDeactivateTask()
+//{
+//    cartesian_interface::GetTaskInfo srv;
+//    _get_properties_service_clients[_selected_task].call(srv);
 
-    std_srvs::SetBool srv2;
+//    std_srvs::SetBool srv2;
 
-    if(srv.response.control_mode.compare("Disabled") == 0){
-        srv2.request.data = true;
-        ROS_INFO("              \n    ENABLING task");}
-    else{
-        srv2.request.data = false;
-        ROS_INFO("              \n    DISABLING task");}
+//    if(srv.response.control_mode.compare("Disabled") == 0){
+//        srv2.request.data = true;
+//        ROS_INFO("              \n    ENABLING task");}
+//    else{
+//        srv2.request.data = false;
+//        ROS_INFO("              \n    DISABLING task");}
 
-    _task_active_service_client[_selected_task].call(srv2);
-}
+//    _task_active_service_client[_selected_task].call(srv2);
+//}
 
 std::string JoyStick::getRobotBaseLinkCtrlFrame()
 {
@@ -311,5 +311,26 @@ std::string JoyStick::getRobotBaseLinkCtrlFrame()
 void JoyStick::setRobotBaseLinkCtrlFrame(const std::string& robot_base_link)
 {
     _robot_base_link = robot_base_link;
+}
+
+bool XBot::Cartesian::JoyStick::updateStatus()
+{
+    cartesian_interface::GetTaskInfo srv;
+    _get_properties_service_clients[_selected_task].call(srv);
+
+    std::string link = srv.response.base_link;
+    if(link == "world")
+        link = "world_odom";
+
+
+    if(link != _base_links[_selected_task])
+    {
+        ROS_WARN("base_link of task %s changed outside joystick", _distal_links[_selected_task].c_str());
+        ROS_WARN("from %s to %s\n", _base_links[_selected_task].c_str(), link.c_str());
+        _base_links[_selected_task] = link;
+
+    }
+
+    return true;
 }
 
