@@ -5,6 +5,7 @@
 #include <boost/make_shared.hpp>
 #include <ros/subscriber.h>
 #include <ros/node_handle.h>
+#include <visualization_msgs/Marker.h>
 
 #include <geometry_msgs/PoseStamped.h>
 
@@ -328,6 +329,8 @@ public:
         _task->setLambda(_comstabilizer_desc->lambda);
         _zmp_sub = n_CoMStab.subscribe("cartesian/com_stabilizer/zmp/reference", 1, &CoMStabilizerOpenSot::zmp_callback, this); 
         _zmp_ref.setZero();
+
+        _vis_pub = _n.advertise<visualization_msgs::Marker>( "zmp", 0 );
     }
 
     SoT::TaskPtr getTaskPtr() const override
@@ -350,6 +353,42 @@ public:
         _task->setSoleRef(l_sole_ref, r_sole_ref);
         _task->setReference(com_ref);
         _task->setZMP(_zmp_ref);
+
+        /**
+          * This part should be done in a dedicated update_ros() in the future
+          */
+        visualization_msgs::Marker ZMP_marker;
+        std::string child_frame_id = "ci/world_odom";
+
+        Eigen::Vector2d ZMP = _task->getStabilizer().getCoP();
+
+        ZMP_marker.header.frame_id = child_frame_id;
+        ZMP_marker.header.stamp = ros::Time::now();
+        ZMP_marker.ns = "ZMP";
+        ZMP_marker.id = 0;
+        ZMP_marker.type = visualization_msgs::Marker::SPHERE;
+        ZMP_marker.action = visualization_msgs::Marker::ADD;
+
+        ZMP_marker.pose.orientation.x = 0.0;
+        ZMP_marker.pose.orientation.y = 0.0;
+        ZMP_marker.pose.orientation.z = 0.0;
+        ZMP_marker.pose.orientation.w = 1.0;
+        ZMP_marker.pose.position.x = ZMP[0];
+        ZMP_marker.pose.position.y = ZMP[1];
+        ZMP_marker.pose.position.z = ZMP[2];
+
+        ZMP_marker.color.a = 1.0;
+        ZMP_marker.color.r = 0.0;
+        ZMP_marker.color.g = 1.0;
+        ZMP_marker.color.b = 1.0;
+
+        ZMP_marker.scale.x = 0.015;
+        ZMP_marker.scale.y = 0.015;
+        ZMP_marker.scale.z = 0.015;
+
+        _vis_pub.publish(ZMP_marker);
+
+        /** **/
         
         return true; /*??*/
     }
@@ -373,7 +412,8 @@ private:
         
     ros::NodeHandle n_CoMStab;
     ros::Subscriber _zmp_sub;
-    
+    ros::Publisher _vis_pub;
+    ros::NodeHandle _n;
     Eigen::Vector2d _zmp_ref;
 
     std::shared_ptr<CoMStabilizer> _comstabilizer_desc;
@@ -382,6 +422,8 @@ private:
     {
         _zmp_ref << msg_rcv.pose.position.x, msg_rcv.pose.position.y;
     }
+
+    visualization_msgs::Marker ZMP_marker;
     
 };
 
