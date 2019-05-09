@@ -262,7 +262,6 @@ install(TARGETS world_connecter world_connecter
 add_subdirectory(examples)
 add_subdirectory(bindings/python/)
 
-
 option(COMPILE_XBOT_PLUGIN OFF)
 
 if(${XCM_FOUND} AND ${COMPILE_XBOT_PLUGIN})

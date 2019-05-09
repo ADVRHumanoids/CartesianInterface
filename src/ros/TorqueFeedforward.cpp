@@ -28,7 +28,7 @@ bool on_contact_frame_changed(cartesian_interface::SetContactFrameRequest& req,
     q.normalize();
     
     std::stringstream ss;
-    Eigen::IOFormat print_fmt(Eigen::StreamPrecision, 0, ", ", ";", "", "", "[", "]");
+    Eigen::IOFormat print_fmt(2, 0, ", ", ";", "", "", "[", "]");
     ss << q.toRotationMatrix().format(print_fmt) << std::endl;
     
     g_fopt->setContactRotationMatrix(req.link_name, q.toRotationMatrix());
@@ -58,6 +58,7 @@ int main(int argc, char ** argv)
     auto contact_links = nh_priv.param("contact_links", std::vector<std::string>());
     auto blacklist = nh_priv.param("blacklist", std::vector<std::string>());
     bool optimize_contact_torque = nh_priv.param("optimize_contact_torque", false);
+    double friction_coeff = nh_priv.param("friction_coeff", 0.5);
     
     /* Set joint blacklist */
     std::map<std::string, XBot::ControlMode> ctrl_map;
@@ -115,7 +116,9 @@ int main(int argc, char ** argv)
     /* Force distribution */
     auto f_opt = g_fopt = boost::make_shared<OpenSoT::utils::ForceOptimization>(model, 
                                                                        contact_links, 
-                                                                       optimize_contact_torque);
+                                                                       optimize_contact_torque,
+                                                                       friction_coeff
+                                                                               );
     
     std::vector<Eigen::Vector6d> forces;
     
