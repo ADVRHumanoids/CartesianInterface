@@ -4,6 +4,7 @@
 #include <std_msgs/Empty.h>
 #include <eigen3/Eigen/Dense>
 #include <XBotInterface/Utils.h>
+#include <cartesian_interface/SetJoystickActiveTask.h>
 
 namespace Eigen 
 {
@@ -100,6 +101,11 @@ private:
     std::string _robot_base_link;
 
     ros::Publisher _joystick_status_pub;
+
+    ros::ServiceServer _joystick_set_active_task_service;
+    bool setActiveTask(cartesian_interface::SetJoystickActiveTaskRequest& req,
+                       cartesian_interface::SetJoystickActiveTaskResponse& res);
+
 };
 }
 }
