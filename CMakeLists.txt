@@ -63,6 +63,7 @@ add_service_files(
   SetContactFrame.srv
   SetJoystickActiveTask.srv
   SetJoystickTaskMaxSpeed.srv
+  SetJoystickTaskBaseFrame.srv
 )
 
 # Generate actions in the 'action' folder

@@ -70,6 +70,8 @@ JoyStick::JoyStick(const std::vector<std::string>& distal_links,
 
     _joystick_set_task_max_speed_service = _nh.advertiseService("SetJoystickTaskMaxSpeed",
                                                                 &JoyStick::setMaxSpeed, this);
+    _joystick_set_task_base_frame_service = _nh.advertiseService("SetJoystickTaskBaseFrame",
+                                                                &JoyStick::setBaseFrame, this);
 
     std::stringstream ss;
     ss<<"Selected Task \n               distal_link: "<<_distal_links[_selected_task].c_str()<<std::endl;
@@ -336,6 +338,34 @@ bool XBot::Cartesian::JoyStick::setMaxSpeed(cartesian_interface::SetJoystickTask
 
     ROS_INFO("_linear_speed_sf: %f", _linear_speed_sf);
     ROS_INFO("_angular_speed_sf: %f", _angular_speed_sf);
+
+    return true;
+}
+
+bool XBot::Cartesian::JoyStick::setBaseFrame(cartesian_interface::SetJoystickTaskBaseFrameRequest &req,
+                                             cartesian_interface::SetJoystickTaskBaseFrameResponse &res)
+{
+    res.error_message = "";
+    res.success = true;
+    if(req.base_frame == "global")
+    {
+        _desired_twist.header.frame_id = "";
+        return true;
+    }
+    if(req.base_frame == "local")
+    {
+        _desired_twist.header.frame_id =  _distal_links[_selected_task];
+        return true;
+    }
+    if(req.base_frame == "base_link")
+    {
+        twistInBase();
+        return true;
+    }
+
+    res.error_message = req.base_frame + " not allowed. Please choose among 'global', 'local', 'base_link'";
+    res.success = false;
+    return false;
 }
 
 
