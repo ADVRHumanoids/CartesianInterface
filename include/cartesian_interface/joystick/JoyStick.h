@@ -44,7 +44,7 @@ public:
         "                                   LEFT/RIGHT -> ROLL Global Coordinates\n"
         "   A button:                       Set GLOBAL/LOCAL control\n"
         "   Y button:                       Desired end-effector velocities in robot base_link ON/OFF\n"
-        "   B button:                       Activate/Deactivate Task\n"
+/*        "   B button:                       Activate/Deactivate Task\n" */
         "   L2 + X/Y button:                Decrease/Increase linear speed\n"
         "   R2 + X/Y button:                Decrease/Increase angular speed\n"
         "   L1/R1:                          Previous/Next Task\n";
@@ -54,6 +54,9 @@ public:
 
     std::string getRobotBaseLinkCtrlFrame();
     void setRobotBaseLinkCtrlFrame(const std::string& robot_base_link);
+
+    bool updateStatus();
+    void broadcastStatus();
 
 private:
     /**
@@ -73,7 +76,7 @@ private:
     void setVelocityCtrl();
     void localCtrl();
     void twistInBase();
-    void activateDeactivateTask();
+//    void activateDeactivateTask();
 
     int _selected_task;
 
@@ -95,6 +98,8 @@ private:
     int _base_ctrl;
 
     std::string _robot_base_link;
+
+    ros::Publisher _joystick_status_pub;
 };
 }
 }

@@ -5,6 +5,7 @@
 #include <geometry_msgs/Transform.h>
 #include <std_srvs/SetBool.h>
 #include <std_msgs/String.h>
+#include <cartesian_interface/CartesioJoyStick.h>
 
 
 #define MAX_SPEED_SF 1.0
@@ -61,6 +62,9 @@ JoyStick::JoyStick(const std::vector<std::string>& distal_links,
         ref_pose_pub = _nh.advertise<geometry_msgs::TwistStamped>(topic_name, 1);
         _ref_pose_pubs.push_back(ref_pose_pub);
     }
+
+
+    _joystick_status_pub = _nh.advertise<cartesian_interface::CartesioJoyStick>("joystick_status", 1);
 
     std::stringstream ss;
     ss<<"Selected Task \n               distal_link: "<<_distal_links[_selected_task].c_str()<<std::endl;
@@ -193,7 +197,7 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     /* Apply mask */
     _twist = _twist.cwiseProduct(_twist_mask.cast<double>());
 
-    /* Toggle base control (control w.r.t. base_link) */
+    /* Toggle base control (control w.r.t. task's base link) */
     _desired_twist.header.frame_id = ""; 
     
     if(joy->buttons[3] && joy->axes[5] > -0.99 && joy->axes[2] > -0.99)
@@ -239,11 +243,11 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
         localCtrl();
     }
 
-
-    if(joy->buttons[1])
-    {
-        activateDeactivateTask();
-    }
+/* REMOVED TOO DANGEROUS */
+//    if(joy->buttons[1])
+//    {
+//        activateDeactivateTask();
+//    }
 }
 
 void JoyStick::sendVelRefs()
@@ -286,22 +290,22 @@ void XBot::Cartesian::JoyStick::twistInBase()
 }
 
 
-void JoyStick::activateDeactivateTask()
-{
-    cartesian_interface::GetTaskInfo srv;
-    _get_properties_service_clients[_selected_task].call(srv);
+//void JoyStick::activateDeactivateTask()
+//{
+//    cartesian_interface::GetTaskInfo srv;
+//    _get_properties_service_clients[_selected_task].call(srv);
 
-    std_srvs::SetBool srv2;
+//    std_srvs::SetBool srv2;
 
-    if(srv.response.control_mode.compare("Disabled") == 0){
-        srv2.request.data = true;
-        ROS_INFO("              \n    ENABLING task");}
-    else{
-        srv2.request.data = false;
-        ROS_INFO("              \n    DISABLING task");}
+//    if(srv.response.control_mode.compare("Disabled") == 0){
+//        srv2.request.data = true;
+//        ROS_INFO("              \n    ENABLING task");}
+//    else{
+//        srv2.request.data = false;
+//        ROS_INFO("              \n    DISABLING task");}
 
-    _task_active_service_client[_selected_task].call(srv2);
-}
+//    _task_active_service_client[_selected_task].call(srv2);
+//}
 
 std::string JoyStick::getRobotBaseLinkCtrlFrame()
 {
@@ -311,5 +315,38 @@ std::string JoyStick::getRobotBaseLinkCtrlFrame()
 void JoyStick::setRobotBaseLinkCtrlFrame(const std::string& robot_base_link)
 {
     _robot_base_link = robot_base_link;
+}
+
+bool XBot::Cartesian::JoyStick::updateStatus()
+{
+    cartesian_interface::GetTaskInfo srv;
+    _get_properties_service_clients[_selected_task].call(srv);
+
+    std::string link = srv.response.base_link;
+    if(link == "world")
+        link = "world_odom";
+
+
+    if(link != _base_links[_selected_task])
+    {
+        ROS_WARN("base_link of task %s changed outside joystick", _distal_links[_selected_task].c_str());
+        ROS_WARN("from %s to %s\n", _base_links[_selected_task].c_str(), link.c_str());
+        _base_links[_selected_task] = link;
+
+    }
+
+    return true;
+}
+
+void XBot::Cartesian::JoyStick::broadcastStatus()
+{
+    cartesian_interface::CartesioJoyStick msg;
+    msg.max_angular_speed = _angular_speed_sf;
+    msg.max_linear_speed = _linear_speed_sf;
+
+    for(unsigned int i = 0; i < _twist_mask.size(); ++i)
+        msg.twist_mask[i] = _twist_mask[i];
+
+    _joystick_status_pub.publish(msg);
 }
 

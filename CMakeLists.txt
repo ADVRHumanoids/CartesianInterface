@@ -9,6 +9,7 @@ find_package(XCM QUIET)
 find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
 find_package(alglib QUIET)
+find_package(Eigen3 QUIET)
 find_package(catkin REQUIRED COMPONENTS roscpp
                                         std_msgs
                                         geometry_msgs
@@ -46,6 +47,7 @@ add_message_files(
   FILES
   Impedance3.msg 
   Impedance6.msg
+  CartesioJoyStick.msg
 )
 
 # Generate services in the 'srv' folder
@@ -180,18 +182,31 @@ install(TARGETS CartesianOpenSot CartesianOpenSot
 )
 
 ## Addons for libCartesianOpenSot
+find_package(compliant_stabilizer QUIET)
+if(${compliant_stabilizer_FOUND})
+    add_library(CoMStabilizerAddon SHARED src/open_sot/CoMStabilizerAddon.cpp)
+    target_link_libraries(CoMStabilizerAddon PRIVATE ${OpenSoT_LIBRARIES}
+                                                          CartesianInterface
+                                                          ${compliant_stabilizer_LIBRARIES})
+    install(TARGETS CoMStabilizerAddon CoMStabilizerAddon
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+endif()
 
-find_package(PCL REQUIRED)
-include_directories(${PCL_INCLUDE_DIRS})
-add_library(CartesioConvexHullAddon SHARED src/open_sot/ConvexHullAddon.cpp)
-target_link_libraries(CartesioConvexHullAddon PRIVATE ${OpenSoT_LIBRARIES}
-                                                      CartesianInterface
-                                                      ${PCL_LIBRARIES})
-install(TARGETS CartesioConvexHullAddon CartesioConvexHullAddon
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+
+find_package(PCL QUIET)
+if(${PCL_FOUND})
+    include_directories(${PCL_INCLUDE_DIRS})
+    add_library(CartesioConvexHullAddon SHARED src/open_sot/ConvexHullAddon.cpp)
+    target_link_libraries(CartesioConvexHullAddon PRIVATE ${OpenSoT_LIBRARIES}
+                                                          CartesianInterface
+                                                          ${PCL_LIBRARIES})
+    install(TARGETS CartesioConvexHullAddon CartesioConvexHullAddon
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+endif()
 
 
 

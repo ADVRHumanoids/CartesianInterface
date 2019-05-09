@@ -137,7 +137,9 @@ int main(int argc, char **argv){
     while(ros::ok())
     {
         ros::spinOnce();
+        joystick->updateStatus();
         joystick->sendVelRefs();
+        joystick->broadcastStatus();
         loop_rate.sleep();
     }
     
