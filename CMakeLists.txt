@@ -61,6 +61,7 @@ add_service_files(
   GetImpedance.srv
   ToggleAxis.srv
   SetContactFrame.srv
+  SetJoystickActiveTask.srv
 )
 
 # Generate actions in the 'action' folder

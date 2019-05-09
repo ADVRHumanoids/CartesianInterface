@@ -6,6 +6,7 @@
 #include <std_srvs/SetBool.h>
 #include <std_msgs/String.h>
 #include <cartesian_interface/CartesioJoyStick.h>
+#include <algorithm>
 
 
 #define MAX_SPEED_SF 1.0
@@ -66,6 +67,9 @@ JoyStick::JoyStick(const std::vector<std::string>& distal_links,
 
     _joystick_status_pub = _nh.advertise<cartesian_interface::CartesioJoyStick>("joystick_status", 1);
 
+    _joystick_set_active_task_service = _nh.advertiseService("SetJoystickActiveTask",
+                                                             &JoyStick::setActiveTask, this);
+
     std::stringstream ss;
     ss<<"Selected Task \n               distal_link: "<<_distal_links[_selected_task].c_str()<<std::endl;
     ss<<"               base_link:   "<<_base_links[_selected_task].c_str()<<std::endl;
@@ -82,6 +86,8 @@ JoyStick::JoyStick(const std::vector<std::string>& distal_links,
         ss<<"               BASE ctrl OFF"<<std::endl;
     ROS_INFO("%s", ss.str().c_str());
 }
+
+
 
 void XBot::Cartesian::JoyStick::setTwistMask(const Eigen::Vector6i& mask)
 {
@@ -287,6 +293,36 @@ void JoyStick::localCtrl()
 void XBot::Cartesian::JoyStick::twistInBase()
 {
     _desired_twist.header.frame_id = "base_link";
+}
+
+bool XBot::Cartesian::JoyStick::setActiveTask(cartesian_interface::SetJoystickActiveTaskRequest &req,
+                                              cartesian_interface::SetJoystickActiveTaskResponse &res)
+{
+    std::string task = req.active_task;
+    if(!(std::find_if(_distal_links.begin(), _distal_links.end(),
+                    [&](const std::string& arg) { return arg == task; }) != _distal_links.end()))
+    {
+        ROS_ERROR("Requested task %s is not available!", task.c_str());
+        res.success = false;
+        res.error_message = "Requested task" + task + "is not available!";
+        return false;
+    }
+
+    std::vector<std::string>::iterator it = std::find(_distal_links.begin(), _distal_links.end(), task);
+    _selected_task = std::distance(_distal_links.begin(), it);
+
+    std::stringstream ss;
+    ss<<"Selected Task \n               distal_link: "<<_distal_links[_selected_task].c_str()<<std::endl;
+    ss<<"               base_link:   "<<_base_links[_selected_task].c_str()<<std::endl;
+    ROS_INFO("%s", ss.str().c_str());
+
+    std_msgs::String msg;
+    msg.data = _distal_links[_selected_task];
+    _joy_audio_pub.publish(msg);
+
+    res.success = true;
+    res.error_message = "";
+    return true;
 }
 
 
