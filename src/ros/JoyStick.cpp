@@ -64,7 +64,7 @@ JoyStick::JoyStick(const std::vector<std::string>& distal_links,
     }
 
 
-    _joystick_status_pub = _nh.advertise<cartesian_interface::JoystickStatus>("joystick/joystick_status", 1);
+    _joystick_status_pub = _nh.advertise<cartesian_interface::JoystickStatus>("joystick/joystick_status", 1, true);
     _joystick_set_active_task_service = _nh.advertiseService("joystick/set_active_task",
                                                              &JoyStick::setActiveTask, this);
 
@@ -88,6 +88,8 @@ JoyStick::JoyStick(const std::vector<std::string>& distal_links,
     else
         ss<<"               BASE ctrl OFF"<<std::endl;
     ROS_INFO("%s", ss.str().c_str());
+
+    broadcastStatus();
 }
 
 void XBot::Cartesian::JoyStick::setTwistMask(const Eigen::Vector6i& mask)
@@ -255,6 +257,8 @@ void JoyStick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 //    {
 //        activateDeactivateTask();
 //    }
+
+    broadcastStatus();
 }
 
 void JoyStick::sendVelRefs()
@@ -332,6 +336,8 @@ bool XBot::Cartesian::JoyStick::setActiveTask(cartesian_interface::SetJoystickAc
     msg.data = _distal_links[_selected_task];
     _joy_audio_pub.publish(msg);
 
+    broadcastStatus();
+
     res.success = true;
     res.error_message = "";
     return true;
@@ -349,6 +355,8 @@ bool XBot::Cartesian::JoyStick::setMaxSpeed(cartesian_interface::SetJoystickTask
 
     ROS_INFO("_linear_speed_sf: %f", _linear_speed_sf);
     ROS_INFO("_angular_speed_sf: %f", _angular_speed_sf);
+
+    broadcastStatus();
 
     return true;
 }
@@ -373,6 +381,8 @@ bool XBot::Cartesian::JoyStick::setBaseFrame(cartesian_interface::SetJoystickTas
         twistInBase();
         return true;
     }
+
+    broadcastStatus();
 
     res.error_message = req.base_frame + " not allowed. Please choose among 'global', 'local', 'base_link'";
     res.success = false;

@@ -16,6 +16,9 @@ namespace Eigen
 
 namespace XBot { namespace Cartesian {
     
+/**
+ * @brief The JoyStick class implements the logic behind the joystick control
+ */
 class JoyStick {
     
 public:
