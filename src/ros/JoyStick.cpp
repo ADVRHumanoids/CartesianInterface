@@ -279,11 +279,22 @@ void JoyStick::sendVelRefs()
 
 void JoyStick::setVelocityCtrl()
 {
+    cartesian_interface::GetTaskInfo sr;
+    _get_properties_service_clients[_selected_task].call(sr);
+
     cartesian_interface::SetTaskInfo srv;
-
-    srv.request.control_mode = "Velocity";
-    _set_properties_service_clients[_selected_task].call(srv);
-
+    if(sr.response.control_mode == "Velocity")
+    {
+        srv.request.control_mode = "Position";
+        _set_properties_service_clients[_selected_task].call(srv);
+        ROS_INFO("Set 'Position' control mode");
+    }
+    else if(sr.response.control_mode == "Position")
+    {
+        srv.request.control_mode = "Velocity";
+        _set_properties_service_clients[_selected_task].call(srv);
+        ROS_INFO("Set 'Velocity' control mode");
+    }
 }
 
 void JoyStick::localCtrl()
