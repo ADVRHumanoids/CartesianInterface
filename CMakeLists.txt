@@ -62,6 +62,7 @@ add_service_files(
   ToggleAxis.srv
   SetContactFrame.srv
   SetJoystickActiveTask.srv
+  SetJoystickTaskMaxSpeed.srv
 )
 
 # Generate actions in the 'action' folder

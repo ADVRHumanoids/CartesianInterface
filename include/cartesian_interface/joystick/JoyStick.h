@@ -5,6 +5,7 @@
 #include <eigen3/Eigen/Dense>
 #include <XBotInterface/Utils.h>
 #include <cartesian_interface/SetJoystickActiveTask.h>
+#include <cartesian_interface/SetJoystickTaskMaxSpeed.h>
 
 namespace Eigen 
 {
@@ -105,6 +106,10 @@ private:
     ros::ServiceServer _joystick_set_active_task_service;
     bool setActiveTask(cartesian_interface::SetJoystickActiveTaskRequest& req,
                        cartesian_interface::SetJoystickActiveTaskResponse& res);
+
+    ros::ServiceServer _joystick_set_task_max_speed_service;
+    bool setMaxSpeed(cartesian_interface::SetJoystickTaskMaxSpeedRequest& req,
+                     cartesian_interface::SetJoystickTaskMaxSpeedResponse& res);
 
 };
 }

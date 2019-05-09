@@ -68,6 +68,9 @@ JoyStick::JoyStick(const std::vector<std::string>& distal_links,
     _joystick_set_active_task_service = _nh.advertiseService("SetJoystickActiveTask",
                                                              &JoyStick::setActiveTask, this);
 
+    _joystick_set_task_max_speed_service = _nh.advertiseService("SetJoystickTaskMaxSpeed",
+                                                                &JoyStick::setMaxSpeed, this);
+
     std::stringstream ss;
     ss<<"Selected Task \n               distal_link: "<<_distal_links[_selected_task].c_str()<<std::endl;
     ss<<"               base_link:   "<<_base_links[_selected_task].c_str()<<std::endl;
@@ -319,6 +322,20 @@ bool XBot::Cartesian::JoyStick::setActiveTask(cartesian_interface::SetJoystickAc
     res.success = true;
     res.error_message = "";
     return true;
+}
+
+bool XBot::Cartesian::JoyStick::setMaxSpeed(cartesian_interface::SetJoystickTaskMaxSpeedRequest &req,
+                                            cartesian_interface::SetJoystickTaskMaxSpeedResponse &res)
+{
+    _linear_speed_sf = req.max_linear_speed;
+    _angular_speed_sf = req.max_angular_speed;
+
+    /* Clamp resulting value */
+    _linear_speed_sf  = std::max(MIN_SPEED_SF, std::min(_linear_speed_sf, MAX_SPEED_SF));
+    _angular_speed_sf = std::max(MIN_SPEED_SF, std::min(_angular_speed_sf, MAX_SPEED_SF));
+
+    ROS_INFO("_linear_speed_sf: %f", _linear_speed_sf);
+    ROS_INFO("_angular_speed_sf: %f", _angular_speed_sf);
 }
 
 
