@@ -5,9 +5,8 @@
 #include <geometry_msgs/Transform.h>
 #include <std_srvs/SetBool.h>
 #include <std_msgs/String.h>
-#include <cartesian_interface/CartesioJoyStick.h>
+#include <cartesian_interface/JoystickStatus.h>
 #include <algorithm>
-
 
 #define MAX_SPEED_SF 1.0
 #define MIN_SPEED_SF 0.0
@@ -65,8 +64,7 @@ JoyStick::JoyStick(const std::vector<std::string>& distal_links,
     }
 
 
-    _joystick_status_pub = _nh.advertise<cartesian_interface::CartesioJoyStick>("joystick_status", 1);
-
+    _joystick_status_pub = _nh.advertise<cartesian_interface::JoystickStatus>("joystick_status", 1);
     _joystick_set_active_task_service = _nh.advertiseService("SetJoystickActiveTask",
                                                              &JoyStick::setActiveTask, this);
 
@@ -86,8 +84,6 @@ JoyStick::JoyStick(const std::vector<std::string>& distal_links,
         ss<<"               BASE ctrl OFF"<<std::endl;
     ROS_INFO("%s", ss.str().c_str());
 }
-
-
 
 void XBot::Cartesian::JoyStick::setTwistMask(const Eigen::Vector6i& mask)
 {
@@ -376,12 +372,15 @@ bool XBot::Cartesian::JoyStick::updateStatus()
 
 void XBot::Cartesian::JoyStick::broadcastStatus()
 {
-    cartesian_interface::CartesioJoyStick msg;
+    cartesian_interface::JoystickStatus msg;
     msg.max_angular_speed = _angular_speed_sf;
     msg.max_linear_speed = _linear_speed_sf;
+    msg.active_task = _distal_links[_selected_task];
 
-    for(unsigned int i = 0; i < _twist_mask.size(); ++i)
+    for(int i = 0; i < _twist_mask.size(); ++i)
+    {
         msg.twist_mask[i] = _twist_mask[i];
+    }
 
     _joystick_status_pub.publish(msg);
 }

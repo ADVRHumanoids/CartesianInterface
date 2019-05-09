@@ -47,7 +47,7 @@ add_message_files(
   FILES
   Impedance3.msg 
   Impedance6.msg
-  CartesioJoyStick.msg
+  JoystickStatus.msg
 )
 
 # Generate services in the 'srv' folder
