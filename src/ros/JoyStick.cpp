@@ -64,13 +64,13 @@ JoyStick::JoyStick(const std::vector<std::string>& distal_links,
     }
 
 
-    _joystick_status_pub = _nh.advertise<cartesian_interface::JoystickStatus>("joystick_status", 1);
-    _joystick_set_active_task_service = _nh.advertiseService("SetJoystickActiveTask",
+    _joystick_status_pub = _nh.advertise<cartesian_interface::JoystickStatus>("joystick/joystick_status", 1);
+    _joystick_set_active_task_service = _nh.advertiseService("joystick/set_active_task",
                                                              &JoyStick::setActiveTask, this);
 
-    _joystick_set_task_max_speed_service = _nh.advertiseService("SetJoystickTaskMaxSpeed",
+    _joystick_set_task_max_speed_service = _nh.advertiseService("joystick/set_max_speed",
                                                                 &JoyStick::setMaxSpeed, this);
-    _joystick_set_task_base_frame_service = _nh.advertiseService("SetJoystickTaskBaseFrame",
+    _joystick_set_task_base_frame_service = _nh.advertiseService("joystick/set_base_frame",
                                                                 &JoyStick::setBaseFrame, this);
 
     std::stringstream ss;
