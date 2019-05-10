@@ -107,6 +107,9 @@ public:
 
     bool update(const CartesianInterface * ci, double time, double period) override
     {
+        /**
+          * This part should be done in a dedicated update_ros() in the future
+          */
         OpenSoT::constraints::velocity::ConvexHull::Ptr constr = boost::static_pointer_cast<
                 OpenSoT::constraints::velocity::ConvexHull>(_constr);
         ch.clear();
@@ -147,7 +150,7 @@ public:
             _vis_pub.publish(ch_marker);
         }
 
-
+        /** **/
 
         return true;
     }
