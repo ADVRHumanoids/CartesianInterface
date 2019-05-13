@@ -360,7 +360,9 @@ public:
         visualization_msgs::Marker ZMP_marker;
         std::string child_frame_id = "ci/world_odom";
 
-        Eigen::Vector2d ZMP = _task->getStabilizer().getCoP();
+        Eigen::Vector3d ZMP = _task->getStabilizer().getCoP();
+
+        std::cout<<"ZMP: ["<<ZMP.transpose()<<"]"<<std::endl;
 
         ZMP_marker.header.frame_id = child_frame_id;
         ZMP_marker.header.stamp = ros::Time::now();
@@ -382,9 +384,9 @@ public:
         ZMP_marker.color.g = 1.0;
         ZMP_marker.color.b = 1.0;
 
-        ZMP_marker.scale.x = 0.015;
-        ZMP_marker.scale.y = 0.015;
-        ZMP_marker.scale.z = 0.015;
+        ZMP_marker.scale.x = 0.02;
+        ZMP_marker.scale.y = 0.02;
+        ZMP_marker.scale.z = 0.02;
 
         _vis_pub.publish(ZMP_marker);
 
