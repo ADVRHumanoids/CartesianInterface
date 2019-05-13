@@ -308,6 +308,7 @@ void JoyStick::localCtrl()
 
 void XBot::Cartesian::JoyStick::twistInBase()
 {
+    _base_ctrl = 1;
     _desired_twist.header.frame_id = "base_link";
 }
 
@@ -364,15 +365,20 @@ bool XBot::Cartesian::JoyStick::setMaxSpeed(cartesian_interface::SetJoystickTask
 bool XBot::Cartesian::JoyStick::setBaseFrame(cartesian_interface::SetJoystickTaskBaseFrameRequest &req,
                                              cartesian_interface::SetJoystickTaskBaseFrameResponse &res)
 {
+    ROS_INFO("Requested base frame: '%s'", req.base_frame.c_str());
+    
     res.error_message = "";
     res.success = true;
     if(req.base_frame == "global")
     {
+        
+        _local_ctrl = -1;
         _desired_twist.header.frame_id = "";
         return true;
     }
     if(req.base_frame == "local")
     {
+        _local_ctrl = 1;
         _desired_twist.header.frame_id =  _distal_links[_selected_task];
         return true;
     }
