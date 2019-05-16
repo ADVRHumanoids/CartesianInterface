@@ -15,6 +15,9 @@ namespace XBot { namespace Cartesian {
          */
         std::string base_link, distal_link;
 
+        /**
+         * @brief Set Cartesian task in local (body) frame
+         */
         bool is_body_jacobian;
 
         /**
