@@ -184,19 +184,6 @@ install(TARGETS CartesianOpenSot CartesianOpenSot
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-## Addons for libCartesianOpenSot
-find_package(compliant_stabilizer QUIET)
-if(${compliant_stabilizer_FOUND})
-    add_library(CoMStabilizerAddon SHARED src/open_sot/CoMStabilizerAddon.cpp)
-    target_link_libraries(CoMStabilizerAddon PRIVATE ${OpenSoT_LIBRARIES}
-                                                          CartesianInterface
-                                                          ${compliant_stabilizer_LIBRARIES})
-    install(TARGETS CoMStabilizerAddon CoMStabilizerAddon
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-endif()
-
 
 find_package(PCL QUIET)
 if(${PCL_FOUND})
