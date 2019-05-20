@@ -4,6 +4,9 @@
 #include <std_msgs/Empty.h>
 #include <eigen3/Eigen/Dense>
 #include <XBotInterface/Utils.h>
+#include <cartesian_interface/SetJoystickActiveTask.h>
+#include <cartesian_interface/SetJoystickTaskMaxSpeed.h>
+#include <cartesian_interface/SetJoystickTaskBaseFrame.h>
 
 namespace Eigen 
 {
@@ -13,6 +16,9 @@ namespace Eigen
 
 namespace XBot { namespace Cartesian {
     
+/**
+ * @brief The JoyStick class implements the logic behind the joystick control
+ */
 class JoyStick {
     
 public:
@@ -44,7 +50,7 @@ public:
         "                                   LEFT/RIGHT -> ROLL Global Coordinates\n"
         "   A button:                       Set GLOBAL/LOCAL control\n"
         "   Y button:                       Desired end-effector velocities in robot base_link ON/OFF\n"
-        "   B button:                       Activate/Deactivate Task\n"
+/*        "   B button:                       Activate/Deactivate Task\n" */
         "   L2 + X/Y button:                Decrease/Increase linear speed\n"
         "   R2 + X/Y button:                Decrease/Increase angular speed\n"
         "   L1/R1:                          Previous/Next Task\n";
@@ -54,6 +60,9 @@ public:
 
     std::string getRobotBaseLinkCtrlFrame();
     void setRobotBaseLinkCtrlFrame(const std::string& robot_base_link);
+
+    bool updateStatus();
+    void broadcastStatus();
 
 private:
     /**
@@ -73,7 +82,7 @@ private:
     void setVelocityCtrl();
     void localCtrl();
     void twistInBase();
-    void activateDeactivateTask();
+//    void activateDeactivateTask();
 
     int _selected_task;
 
@@ -95,6 +104,21 @@ private:
     int _base_ctrl;
 
     std::string _robot_base_link;
+
+    ros::Publisher _joystick_status_pub;
+
+    ros::ServiceServer _joystick_set_active_task_service;
+    bool setActiveTask(cartesian_interface::SetJoystickActiveTaskRequest& req,
+                       cartesian_interface::SetJoystickActiveTaskResponse& res);
+
+    ros::ServiceServer _joystick_set_task_max_speed_service;
+    bool setMaxSpeed(cartesian_interface::SetJoystickTaskMaxSpeedRequest& req,
+                     cartesian_interface::SetJoystickTaskMaxSpeedResponse& res);
+
+    ros::ServiceServer _joystick_set_task_base_frame_service;
+    bool setBaseFrame(cartesian_interface::SetJoystickTaskBaseFrameRequest& req,
+                     cartesian_interface::SetJoystickTaskBaseFrameResponse& res);
+
 };
 }
 }

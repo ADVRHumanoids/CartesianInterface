@@ -1026,6 +1026,7 @@ bool XBot::Cartesian::CartesianInterfaceImpl::Task::set_vel_reference(const Eige
     vref_time_to_live = DEFAULT_TTL;
     
     new_data_available = true;
+    return true;
 }
 
 

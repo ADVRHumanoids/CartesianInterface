@@ -66,6 +66,7 @@ private:
     Eigen::VectorXd _q, _dq, _ddq;
     
     std::vector<SoT::TaskInterface::Ptr> _task_ifc;
+    std::vector<SoT::ConstraintInterface::Ptr> _constr_ifc;
     std::vector<CartesianTask::Ptr> _cartesian_tasks;
     std::vector<CartesianAdmittanceTask::Ptr> _admittance_tasks;
     std::vector<PosturalTask::Ptr> _postural_tasks;

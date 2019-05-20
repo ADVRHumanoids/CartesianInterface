@@ -64,7 +64,7 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node task_node,
         }
         else
         {
-            throw std::runtime_error("Unsupported task type '" + task_type + "'");
+            throw std::runtime_error("Unsupported task type '" + task_type + "', maybe you forgot to specify the 'lib_name' field");
         }
     }
     
@@ -96,6 +96,30 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node task_node,
             }
             
             task_desc->disabled_joints.push_back(jstr);
+        }
+    }
+    
+    if(task_node["enabled_joints"])
+    {
+        
+        if(task_node["disabled_joints"])
+        {
+            throw std::runtime_error("Cannot specify both 'enabled_joints' and 'disabled_joints'");
+        }
+        
+        task_desc->disabled_joints = model->getEnabledJointNames();
+        
+        for(auto jnode : task_node["enabled_joints"])
+        {
+            std::string jstr = jnode.as<std::string>();
+            
+            if(!model->hasJoint(jstr))
+            {
+                throw std::runtime_error("Undefined joint '" + jstr + "' listed among enabled joints");
+            }
+            
+            auto it = std::find(task_desc->disabled_joints.begin(), task_desc->disabled_joints.end(), jstr);
+            task_desc->disabled_joints.erase(it);
         }
     }
     

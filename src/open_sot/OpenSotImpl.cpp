@@ -97,7 +97,6 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
 {
     
     OpenSotImpl::TaskPtr opensot_task;
-    
     if(task_desc->type == "Cartesian")
     {
         auto cartesian_desc = GetAsCartesian(task_desc);
@@ -340,6 +339,8 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
 
 OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr OpenSotImpl::constraint_from_description(ConstraintDescription::Ptr constr_desc)
 {
+    OpenSotImpl::ConstraintPtr opensot_constraint;
+
     if(constr_desc->type == "JointLimits")
     {
         Eigen::VectorXd qmin, qmax;
@@ -405,7 +406,9 @@ in configuration file (add problem_description/solver_options/control_dt field)\
         
         if(constr_ifc)
         {
-            return constr_ifc->getConstraintPtr();
+            opensot_constraint = constr_ifc->getConstraintPtr();
+            _constr_ifc.emplace_back(std::move(constr_ifc));
+            return opensot_constraint;
         }
         else
         {
@@ -560,6 +563,12 @@ bool OpenSotImpl::update(double time, double period)
     for(auto t : _task_ifc)
     {
         t->update(this, time, period);
+    }
+
+    /* Update all plugin-based constraints */
+    for(auto c : _constr_ifc)
+    {
+        c->update(this, time, period);
     }
 
     /* Update reference for all cartesian tasks */
