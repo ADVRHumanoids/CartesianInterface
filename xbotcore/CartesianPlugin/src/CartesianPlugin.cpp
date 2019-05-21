@@ -158,7 +158,11 @@ void CartesianPlugin::control_loop(double time, double period)
     _sync->send(_ci, _model);
     
     /* Send command to robot */
+#if FULL_SYNC
+    _robot->setReferenceFrom(*_model, Sync::Effort, Sync::Position);
+#else
     _robot->setReferenceFrom(*_model, Sync::Position);
+#endif
     _robot->setStiffness(_k);
     _robot->setDamping(_d);
     _robot->move();
