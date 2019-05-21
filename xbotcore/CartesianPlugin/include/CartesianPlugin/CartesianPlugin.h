@@ -51,6 +51,9 @@ protected:
     virtual void control_loop(double time, double period);
 
 private:
+    
+    void on_stiffness_recv(const std::string& jname, int jid, double k);
+    void on_damping_recv(const std::string& jname, int jid, double d);
 
     XBot::RobotInterface::Ptr _robot;
     ModelInterface::Ptr _model;
@@ -60,12 +63,14 @@ private:
 
     double _start_time;
 
-    Eigen::VectorXd _q, _qdot;
+    Eigen::VectorXd _q, _qdot, _k, _d;
 
     XBot::MatLogger::Ptr _logger;
 
 };
 
 } }
+
+
 
 #endif // CartesianPlugin_PLUGIN_H_

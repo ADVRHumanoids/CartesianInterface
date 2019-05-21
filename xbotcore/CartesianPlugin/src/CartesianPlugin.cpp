@@ -47,6 +47,8 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
     
     _q.resize(_model->getJointNum());
     _qdot = _q;
+    _robot->getStiffness(_k);
+    _robot->getDamping(_d);
     
     /* Initialize a logger which saves to the specified file. Remember that
      * the current date/time is always appended to the provided filename,
@@ -73,6 +75,10 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
     /* Helper for RT <-> nRT communication */
     _sync = std::make_shared<Utils::SyncFromIO>(handle, _ci, _model);
     
+    /* Listen to impedance variations */
+    handle->setStiffnessReferenceReceivedCallback(&CartesianPlugin::on_stiffness_recv, this);
+    handle->setDampingReferenceReceivedCallback(&CartesianPlugin::on_damping_recv, this);
+    
     return true;
 
 
@@ -86,6 +92,9 @@ void CartesianPlugin::on_start(double time)
      * operations that are not rt-safe. */
 
     /* Save the robot starting config to a class member */
+    _robot->getStiffness(_k);
+    _robot->getDamping(_d);
+    
     _start_time = time;
     
     _sync->set_solver_active(true);
@@ -138,6 +147,8 @@ void CartesianPlugin::control_loop(double time, double period)
     
     /* Send command to robot */
     _robot->setReferenceFrom(*_model, Sync::Position);
+    _robot->setStiffness(_k);
+    _robot->setDamping(_d);
     _robot->move();
 
 }
@@ -153,9 +164,19 @@ bool CartesianPlugin::close()
     return true;
 }
 
+void CartesianPlugin::on_stiffness_recv(const std::string& jname, int jid, double k)
+{
+    _k[_robot->getDofIndex(jid)] = k;
+}
+
+void CartesianPlugin::on_damping_recv(const std::string& jname, int jid, double d)
+{
+    _d[_robot->getDofIndex(jid)] = d;
+}
+
 CartesianPlugin::~CartesianPlugin()
 {
-  
+    
 }
 
 } }
