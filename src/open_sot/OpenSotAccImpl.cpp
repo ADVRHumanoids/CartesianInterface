@@ -757,7 +757,8 @@ bool OpenSotAccImpl::update(double time, double period)
     _model->setJointAcceleration(_ddq);
     _model->setJointEffort(_tau);
 
-    _logger->add("q", _q);
+    _logger->add("ddq", _ddq);
+    _logger->add("tau", _tau);
 
 
     return success;

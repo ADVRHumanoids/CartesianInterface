@@ -25,6 +25,8 @@
 /* Specify that the class XBotPlugin::CartesianPlugin is a XBot RT plugin with name "CartesianPlugin" */
 REGISTER_XBOT_PLUGIN_(XBot::Cartesian::CartesianPlugin)
 
+#define FULL_SYNC true
+
 namespace XBot { namespace Cartesian {
     
 
@@ -125,8 +127,12 @@ void CartesianPlugin::control_loop(double time, double period)
     /* Callbacks from NRT */
     _sync->receive(_ci);
     
+#if FULL_SYNC
+    _model->syncFrom(*_robot, Sync::Sensors, Sync::Effort, Sync::Position, Sync::Velocity);
+#else
     /* Update model with sensor reading */
     _model->syncFrom(*_robot, Sync::Sensors, Sync::Effort);
+#endif
 
     /* Solve IK */
     if(!_ci->update(time, period))
@@ -135,11 +141,17 @@ void CartesianPlugin::control_loop(double time, double period)
         return;
     }
     
+
+#if FULL_SYNC
+    /* Do nothing */
+#else
     /* Integrate solution */
     _model->getJointPosition(_q);
     _model->getJointVelocity(_qdot);
     _q += period * _qdot;
     _model->setJointPosition(_q);
+#endif
+
     _model->update();
     
     /* Send state to nrt */
