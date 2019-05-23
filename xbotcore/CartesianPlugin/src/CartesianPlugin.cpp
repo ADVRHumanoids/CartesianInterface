@@ -62,7 +62,7 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
     YAML::Node config = YAML::LoadFile(handle->getPathToConfigFile());
     ProblemDescription ik_problem(config["CartesianInterface"]["problem_description"], _model);
     
-    std::string impl_name("OpenSot");
+    std::string impl_name("OpenSotAcc");
     std::string path_to_shared_lib = XBot::Utils::FindLib("libCartesian" + impl_name + ".so", "LD_LIBRARY_PATH");
     if (path_to_shared_lib == "") {
         throw std::runtime_error("libCartesian" + impl_name + ".so must be listed inside LD_LIBRARY_PATH");
@@ -128,7 +128,7 @@ void CartesianPlugin::control_loop(double time, double period)
     _sync->receive(_ci);
     
 #if FULL_SYNC
-    _model->syncFrom(*_robot, Sync::Sensors, Sync::Effort, Sync::Position, Sync::Velocity);
+    _model->syncFrom(*_robot, Sync::Sensors, Sync::Effort, Sync::Position, Sync::Velocity, Sync::Impedance);
 #else
     /* Update model with sensor reading */
     _model->syncFrom(*_robot, Sync::Sensors, Sync::Effort);
@@ -159,7 +159,7 @@ void CartesianPlugin::control_loop(double time, double period)
     
     /* Send command to robot */
 #if FULL_SYNC
-    _robot->setReferenceFrom(*_model, Sync::Effort, Sync::Position);
+    _robot->setReferenceFrom(*_model, Sync::Effort, Sync::Position, Sync::Velocity, Sync::MotorSide);
 #else
     _robot->setReferenceFrom(*_model, Sync::Position);
 #endif
