@@ -116,13 +116,6 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
         std::string distal_link = cartesian_desc->distal_link;
         std::string base_link = cartesian_desc->base_link;
         
-//         auto cartesian_task = boost::make_shared<OpenSoT::tasks::velocity::Cartesian>
-//                                             (base_link + "_TO_" + distal_link,
-//                                                 _q,
-//                                                 *_model,
-//                                                 distal_link,
-//                                                 base_link
-//                                                 );
         //ADDED
         auto cartesian_task = boost::make_shared<OpenSoT::tasks::acceleration::Cartesian>
                                             (base_link + "_TO_" + distal_link,
@@ -152,105 +145,6 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
                             );
 
     }
-//     else if(task_desc->type == "Interaction")
-//     {
-//         auto i_desc = GetAsInteraction(task_desc);
-//         std::string distal_link = i_desc->distal_link;
-//         std::string base_link = i_desc->base_link;
-//         
-//         
-//         XBot::ForceTorqueSensor::ConstPtr ft;
-//         
-//         
-//         try
-//         {
-//             ft = _model->getForceTorque().at(distal_link);
-//         }
-//         catch(...)
-//         {
-//             if(!_force_estimation)
-//             {
-//                 _force_estimation = std::make_shared<Utils::ForceEstimation>(_model);
-//             }
-//             
-//             ft = _force_estimation->add_link(distal_link, 
-//                                              {}, 
-//                                              i_desc->force_estimation_chains);
-//         }
-//         
-//         auto admittance_task = boost::make_shared<OpenSoT::tasks::velocity::CartesianAdmittance>
-//                                                ("adm_" + base_link + "_TO_" + distal_link,
-//                                                 _q,
-//                                                 *_model,
-//                                                 base_link,
-//                                                 ft
-//                                                 );
-//                                                
-//         opensotacc_task = admittance_task;
-// 
-//         admittance_task->setOrientationErrorGain(i_desc->orientation_gain);
-//         
-//         double control_dt = 0.01;
-//         if(!get_control_dt(control_dt))
-//         {
-//             throw std::runtime_error("Unable to find control period in configuration file " 
-//                                      "required by admittance task "  
-//                                      "(add problem_description/solver_options/control_dt field)");
-//         }
-//         
-//         if(i_desc->lambda > 0)
-//         {
-//         
-//             admittance_task->setImpedanceParams(i_desc->stiffness,
-//                                                 i_desc->damping, 
-//                                                 i_desc->lambda, 
-//                                                 control_dt
-//                                             );
-//             
-//         }
-//         else
-//         {
-//             if((i_desc->inertia.array() <= 0).any())
-//             {
-//                 throw std::invalid_argument("all inertias must be > 0 when lambda = 0");
-//             }
-//             
-//             admittance_task->setRawParams(i_desc->damping.cwiseInverse() * control_dt, 
-//                 i_desc->damping.cwiseProduct(i_desc->inertia.cwiseInverse()),
-//                 0.0, 
-//                 control_dt
-//             );
-//         }
-//         
-//         admittance_task->setDeadZone(i_desc->force_dead_zone);
-// 
-//         _cartesian_tasks.push_back(admittance_task);
-//         _admittance_tasks.push_back(admittance_task);
-// 
-//         XBot::Logger::info("OpenSot: Admittance found (%s -> %s), lambda = %f, dofs = %d\n", 
-//                             base_link.c_str(), 
-//                             distal_link.c_str(), 
-//                             i_desc->lambda,
-//                             i_desc->indices.size()
-//                             );
-// 
-//     }
-//     else if(task_desc->type == "Gaze")
-//     {
-//         
-//         auto gaze_desc = GetAsGaze(task_desc);
-//         std::string base_link = gaze_desc->base_link;
-// 
-//         opensotacc_task = _gaze_task = boost::make_shared<GazeTask>(base_link + "_TO_" + "gaze",_q, *_model, base_link);
-//         _gaze_task->setLambda(gaze_desc->lambda);
-// 
-//         
-//         XBot::Logger::info("OpenSot: Gaze found, base_link is %s, lambda is %f\n", 
-//             gaze_desc->base_link.c_str(),
-//             gaze_desc->lambda
-//         );
-// 
-//     }
 //     else if(task_desc->type == "Com")
 //     {
 //         auto com_desc = GetAsCom(task_desc);
@@ -260,22 +154,11 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
 //         
 //         XBot::Logger::info("OpenSot: Com found, lambda is %f\n", com_desc->lambda);
 //     }
-//     else if(task_desc->type == "AngularMomentum")
-//     {
-//         auto angular_mom_desc = GetAsAngularMomentum(task_desc);
-//         _minimize_rate_of_change = angular_mom_desc->min_rate;
-// 
-//         opensotacc_task = _angular_momentum_task = boost::make_shared<AngularMomentumTask>(_q, *_model);
-// 
-// 
-//         XBot::Logger::info("OpenSot: Angular Momentum found, rate of change minimization set to: %d\n", _minimize_rate_of_change);
-//     }
     else if(task_desc->type == "Postural")
     {
         auto postural_desc = GetAsPostural(task_desc);
         _use_inertia_matrix.push_back(postural_desc->use_inertia_matrix);
 
-//         auto postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
          auto postural_task = boost::make_shared<OpenSoT::tasks::acceleration::Postural>(*_model, _qddot);
         
         _postural_tasks.push_back(postural_task);
@@ -614,82 +497,15 @@ bool OpenSotAccImpl::update(double time, double period)
         {
             continue;
         }
-        
-        v_ref *= period;
+
+
         cart_task->setReference(T_ref, v_ref);
 
     }
     
-    /* Process admittance tasks */
-    for(auto i_task : _admittance_tasks)
-    {
-        Eigen::Vector6d f;
-        Eigen::Matrix6d k, d;
 
-        if(!getDesiredInteraction(i_task->getDistalLink(), f, k, d))
-        {
-            continue;
-        }
-        
-        if(i_task->getLambda() > 0)
-        {
-        
-            i_task->setImpedanceParams(k.diagonal(),
-                                       d.diagonal(), 
-                                       i_task->getLambda(), 
-                                       i_task->getFilterTimeStep()
-                                      );
-            
-            i_task->setWrenchReference(f);
-            
-        }
-        else
-        {
-            double dt = i_task->getFilterTimeStep();
-            Eigen::Vector6d inertia = i_task->getInertia().diagonal();
-            i_task->setRawParams(d.diagonal().cwiseInverse() * dt, 
-                d.diagonal().cwiseProduct(inertia.cwiseInverse()),
-                0.0, 
-                dt
-            );
-            
-            i_task->setWrenchReference(f);
-        }
 
-    }
 
-    /* Handle GAZE reference */
-    if(_gaze_task)
-    {
-        Eigen::Affine3d T_ref;
-        if(getPoseReference("gaze", T_ref))
-        {
-            _gaze_task->setGaze(T_ref);
-        }
-    }
-    
-    /* Handle COM reference */
-    if(_com_task)
-    {
-        Eigen::Vector3d x, v, a;
-        
-        if(getComPositionReference(x, &v, &a))
-        {
-            _com_task->setReference(x, v*period);
-            
-        }
-    }
-
-    /* Handle AngularMomentum */
-    if(_angular_momentum_task)
-    {
-        if(_minimize_rate_of_change)
-        {
-            Eigen::Vector6d MoM;
-            _model->getCentroidalMomentum(MoM);
-            _angular_momentum_task->setReference(MoM.tail(3)*period);
-        }
-    }
     
     /* Postural task */
     if(_postural_tasks.size() > 0 && getReferencePosture(_qref))
@@ -736,12 +552,6 @@ bool OpenSotAccImpl::update(double time, double period)
     _autostack->update(_q);
     _autostack->log(_logger);
 
-//     if(!_solver->solve(_dq))
-//     {
-//         _dq.setZero(_dq.size());
-//         XBot::Logger::error("OpenSot: unable to solve\n");
-//         success = false;
-//     }
     
     if(!_solver->solve(_x))
     {
@@ -750,8 +560,6 @@ bool OpenSotAccImpl::update(double time, double period)
         success = false;
     }
 
-//     _dq /= period;
-//     _model->setJointVelocity(_dq);
     _id->computedTorque(_x, _tau, _ddq);
     
     _model->setJointAcceleration(_ddq);
