@@ -130,7 +130,17 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
         
 //         cartesian_task->setLambda(cartesian_desc->lambda);  // velocity tasks
         double lambda = (cartesian_desc->lambda * cartesian_desc->lambda)/(control_dt*control_dt);
-        cartesian_task->setLambda(lambda, 2*std::sqrt(lambda));
+        double lambda2 = cartesian_desc->lambda2;
+        if (lambda2 >= 0)
+        {
+            cartesian_task->setLambda(lambda,lambda2);
+        }
+        else
+        {
+            lambda2 = 2*std::sqrt(lambda);
+            cartesian_desc->lambda2 = lambda2;
+            cartesian_task->setLambda(lambda, lambda2);
+        }
 //         cartesian_task->setOrientationErrorGain(cartesian_desc->orientation_gain);
 
 //         cartesian_task->setIsBodyJacobian(cartesian_desc->is_body_jacobian);

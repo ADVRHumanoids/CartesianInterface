@@ -78,6 +78,15 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node task_node,
         task_desc->lambda = task_node["lambda"].as<double>();
     }
     
+    if(task_node["lambda2"])
+    {
+        task_desc->lambda2 = task_node["lambda2"].as<double>();
+    }
+    else
+    {
+        task_desc->lambda2 = -1.;
+    }
+    
     if(task_node["indices"])
     {
         std::vector<int> indices = task_node["indices"].as<std::vector<int>>();

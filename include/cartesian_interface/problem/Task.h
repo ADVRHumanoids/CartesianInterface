@@ -55,6 +55,13 @@ namespace XBot { namespace Cartesian {
         double lambda;
         
         /**
+         * @brief Feedback gain on the task velocity error. Lower values
+         * make the cartesian controller less reactive. 
+         * NOTE: if negative this value has not been set and should not be used!
+         */ 
+        double lambda2;
+        
+        /**
          * @brief Vector of joint names that are disabled from 
          * contributing to the task.
          */
