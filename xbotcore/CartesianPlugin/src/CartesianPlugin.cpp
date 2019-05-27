@@ -62,7 +62,15 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
     YAML::Node config = YAML::LoadFile(handle->getPathToConfigFile());
     ProblemDescription ik_problem(config["CartesianInterface"]["problem_description"], _model);
     
-    std::string impl_name("OpenSotAcc");
+    if(!config["CartesianInterface"]["solver"])
+    {
+        XBot::Logger::error("solver option is missing! Quitting...");
+        return false;
+    }
+    std::string impl_name = (config["CartesianInterface"]["solver"]).as<std::string>();
+    XBot::Logger::info("Implementation name: %s \n", impl_name.c_str());
+
+
     std::string path_to_shared_lib = XBot::Utils::FindLib("libCartesian" + impl_name + ".so", "LD_LIBRARY_PATH");
     if (path_to_shared_lib == "") {
         throw std::runtime_error("libCartesian" + impl_name + ".so must be listed inside LD_LIBRARY_PATH");
