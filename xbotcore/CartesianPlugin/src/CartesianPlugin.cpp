@@ -136,7 +136,7 @@ void CartesianPlugin::control_loop(double time, double period)
     _sync->receive(_ci);
     
 #if FULL_SYNC
-    _model->syncFrom(*_robot, Sync::Sensors, Sync::Effort, Sync::Position, Sync::Velocity, Sync::Impedance);
+    _model->syncFrom(*_robot, Sync::Sensors, Sync::Effort, Sync::Position, Sync::Velocity, Sync::Impedance, Sync::MotorSide);
 #else
     /* Update model with sensor reading */
     _model->syncFrom(*_robot, Sync::Sensors, Sync::Effort);
@@ -167,7 +167,7 @@ void CartesianPlugin::control_loop(double time, double period)
     
     /* Send command to robot */
 #if FULL_SYNC
-    _robot->setReferenceFrom(*_model, Sync::Effort, Sync::Position, Sync::Velocity, Sync::MotorSide);
+    _robot->setReferenceFrom(*_model, Sync::Effort, Sync::Position, Sync::Velocity);
 #else
     _robot->setReferenceFrom(*_model, Sync::Position);
 #endif
