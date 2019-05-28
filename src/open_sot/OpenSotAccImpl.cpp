@@ -147,10 +147,11 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
 
         _cartesian_tasks.push_back(cartesian_task);
         
-        XBot::Logger::info("OpenSot: Cartesian found (%s -> %s), lambda = %f, dofs = %d\n", 
+        XBot::Logger::info("OpenSot: Cartesian found (%s -> %s), lambda = %f, lambda2 = %f, dofs = %d\n",
                             base_link.c_str(), 
                             distal_link.c_str(), 
                             cartesian_desc->lambda,
+                            cartesian_desc->lambda2,
                             cartesian_desc->indices.size()
                             );
 
@@ -172,13 +173,26 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
          auto postural_task = boost::make_shared<OpenSoT::tasks::acceleration::Postural>(*_model, _qddot);
         
         _postural_tasks.push_back(postural_task);
+
+        double lambda = (postural_desc->lambda * postural_desc->lambda)/(control_dt*control_dt);
+        double lambda2 = postural_desc->lambda2;
+        if (lambda2 >= 0)
+        {
+            postural_task->setLambda(lambda,lambda2);
+        }
+        else
+        {
+            lambda2 = 2*std::sqrt(lambda);
+            postural_desc->lambda2 = lambda2;
+            postural_task->setLambda(lambda, lambda2);
+        }
         
-        postural_task->setLambda(postural_desc->lambda);
         
         opensotacc_task = postural_task;
         
-        XBot::Logger::info("OpenSot: Postural found, lambda is %f, %d dofs, use inertia matrix: %d\n",
+        XBot::Logger::info("OpenSot: Postural found, lambda = %f, lambda2 = %f, dofs = %d, use inertia matrix: %d\n",
             postural_desc->lambda,
+            postural_desc->lambda2,
             postural_desc->indices.size(),
             postural_desc->use_inertia_matrix
         );
