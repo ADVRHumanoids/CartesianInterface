@@ -288,9 +288,8 @@ in configuration file (add problem_description/solver_options/control_dt field)\
                                              _qddot,
                                              qmax,
                                              qmin,
-                                             Eigen::VectorXd::Ones(qmax.size()) * 100.0,
-                                             control_dt,
-                                             1.0
+                                             Eigen::VectorXd::Ones(qmax.size()) * 40.0,
+                                             control_dt
                                              );
 
         return joint_lims;
