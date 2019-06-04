@@ -22,6 +22,7 @@
 #include <OpenSoT/utils/InverseDynamics.h>
 #include <OpenSoT/tasks/acceleration/Cartesian.h>
 #include <OpenSoT/tasks/acceleration/Postural.h>
+#include <OpenSoT/tasks/acceleration/Contact.h>
 
 
 namespace XBot { namespace Cartesian {
@@ -74,7 +75,7 @@ private:
     Eigen::VectorXd _q, _dq, _ddq, _x;
     
     std::vector<SoT::TaskInterface::Ptr> _task_ifc;
-    std::vector<CartesianAccTask::Ptr> _cartesian_tasks;
+    std::vector<CartesianAccTask::Ptr> _cartesian_tasks, _interaction_tasks;
     std::vector<CartesianAdmittanceTask::Ptr> _admittance_tasks;
     std::vector<PosturalAccTask::Ptr> _postural_tasks;
     std::vector<bool> _use_inertia_matrix;

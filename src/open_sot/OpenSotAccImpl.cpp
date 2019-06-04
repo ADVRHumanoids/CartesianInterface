@@ -107,9 +107,6 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
                                  "(add problem_description/solver_options/control_dt field)");
     }
     
-    std::cout << "Control dt: " << control_dt << std::endl;
-    
-    
     if(task_desc->type == "Cartesian")
     {
         auto cartesian_desc = GetAsCartesian(task_desc);
@@ -131,16 +128,24 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
 //         cartesian_task->setLambda(cartesian_desc->lambda);  // velocity tasks
         double lambda = (cartesian_desc->lambda * cartesian_desc->lambda)/(control_dt*control_dt);
         double lambda2 = cartesian_desc->lambda2;
-        if (lambda2 >= 0)
-        {
-            cartesian_task->setLambda(lambda,lambda2);
-        }
-        else
+//         if (lambda2 >= 0)
+//         {
+//             cartesian_task->setLambda(lambda,lambda2);
+//         }
+//         else
+//         {
+//             lambda2 = 2*std::sqrt(lambda);
+//             cartesian_desc->lambda2 = lambda2;
+//             cartesian_task->setLambda(lambda, lambda2);
+//         }
+        
+        if (lambda2 < 0)
         {
             lambda2 = 2*std::sqrt(lambda);
             cartesian_desc->lambda2 = lambda2;
-            cartesian_task->setLambda(lambda, lambda2);
         }
+        cartesian_task->setLambda(lambda, lambda2);
+        
 //         cartesian_task->setOrientationErrorGain(cartesian_desc->orientation_gain);
 
 //         cartesian_task->setIsBodyJacobian(cartesian_desc->is_body_jacobian);
@@ -155,6 +160,87 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
                             cartesian_desc->indices.size()
                             );
 
+    }
+    else if(task_desc->type == "Interaction")
+    {
+        auto i_desc = GetAsInteraction(task_desc);
+        std::string distal_link = i_desc->distal_link;
+        std::string base_link = i_desc->base_link;
+        
+        if (_links_in_contact.empty() || std::find(_links_in_contact.begin(), _links_in_contact.end(), distal_link) == _links_in_contact.end())
+        {
+          _links_in_contact.push_back(distal_link);
+          XBot::Logger::info("Link in contact found: %s\n", distal_link.c_str());
+        }
+        
+        auto i_task = boost::make_shared<OpenSoT::tasks::acceleration::Cartesian>
+                                            (base_link + "_TO_" + distal_link,
+                                                *_model,
+                                                distal_link,
+                                                base_link,
+                                                _qddot
+                                            );
+
+        opensotacc_task = i_task;
+        
+        double lambda, lambda2;
+  
+//         // set lambda using tmp std vector
+//         std::vector<double> stiffness, damping;
+//         Eigen::Map<Eigen::Vector6d> stiffness_map(stiffness.data(),6);
+//         Eigen::Map<Eigen::Vector6d> damping_map(damping.data(),6);
+//         stiffness_map = i_desc->stiffness;
+//         damping_map = i_desc->damping;
+//         
+//         // check if all the elements of i_desc->stiffness are equal
+//         if ( std::adjacent_find( stiffness.data.begin(), stiffness.data.end(), std::not_equal_to<>() ) == stiffness.data.end() )
+//         {
+//           lambda = i_desc->stiffness(0); // set lambda equal to the stiffness
+//         }
+//         else 
+//           throw std::runtime_error("Unsupported stiffness vector: elements should be all equal");
+//         
+//         // check if all the elements of i_desc->damping are equal
+//         if ( std::adjacent_find( damping.data.begin(), damping.data.end(), std::not_equal_to<>() ) == damping.data.end() )
+//         {
+//           lambda2 = i_desc->damping(0); // set lambda2 equal to the damping
+//         }
+//         else 
+//           throw std::runtime_error("Unsupported damping vector: elements should be all equal");
+        
+        // check if all the elements of i_desc->stiffness are equal
+        for (int i=1; i<i_desc->stiffness.size(); i++)
+        {
+          if (!(i_desc->stiffness(i-1) == i_desc->stiffness(i)))
+          {
+            throw std::runtime_error("Unsupported stiffness vector: elements should be all equal\n");
+          }
+        }
+        lambda = i_desc->stiffness(0); // set lambda equal to the stiffness
+        
+        // check if all the elements of i_desc->damping are equal
+        for (int i=1; i<i_desc->damping.size(); i++)
+        {
+          if (!(i_desc->damping(i-1) == i_desc->damping(i)))
+          {
+            throw std::runtime_error("Unsupported damping vector: elements should be all equal\n");
+          }
+        }
+        lambda2 = i_desc->damping(0); // set lambda2 equal to the damping
+        
+        i_task->setLambda(lambda, lambda2);
+        
+        _cartesian_tasks.push_back(i_task);
+        _interaction_tasks.push_back(i_task);
+         
+        XBot::Logger::info("OpenSot: Cartesian found (%s -> %s), lambda = %f, lambda2 = %f, dofs = %d\n",
+                            base_link.c_str(), 
+                            distal_link.c_str(), 
+                            i_desc->lambda,
+                            i_desc->lambda2,
+                            i_desc->indices.size()
+                            );      
+        
     }
 //     else if(task_desc->type == "Com")
 //     {
@@ -176,17 +262,22 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
 
         double lambda = (postural_desc->lambda * postural_desc->lambda)/(control_dt*control_dt);
         double lambda2 = postural_desc->lambda2;
-        if (lambda2 >= 0)
-        {
-            postural_task->setLambda(lambda,lambda2);
-        }
-        else
+//         if (lambda2 >= 0)
+//         {
+//             postural_task->setLambda(lambda,lambda2);
+//         }
+//         else
+//         {
+//             lambda2 = 2*std::sqrt(lambda);
+//             postural_desc->lambda2 = lambda2;
+//             postural_task->setLambda(lambda, lambda2);
+//         }
+        if (lambda2 < 0)
         {
             lambda2 = 2*std::sqrt(lambda);
             postural_desc->lambda2 = lambda2;
-            postural_task->setLambda(lambda, lambda2);
         }
-        
+        postural_task->setLambda(lambda, lambda2);
         
         opensotacc_task = postural_task;
         
@@ -365,8 +456,8 @@ in configuration file (add problem_description/solver_options/control_dt field)\
 
 
 OpenSotAccImpl::OpenSotAccImpl(XBot::ModelInterface::Ptr model,
-                               ProblemDescription ik_problem):
-    CartesianInterfaceImpl(model, ik_problem),
+                               ProblemDescription id_problem):
+    CartesianInterfaceImpl(model, id_problem),
     _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_opensot_log")),
     _update_lambda(false)
 {
@@ -378,7 +469,6 @@ OpenSotAccImpl::OpenSotAccImpl(XBot::ModelInterface::Ptr model,
     _B.setIdentity(_q.size(), _q.size());
     
     // ADDED
-    // for now it _links_in_contact is empty since there are no links in contact
     _id = boost::make_shared<OpenSoT::utils::InverseDynamics>(_links_in_contact, *_model);
     _qddot = _id->getJointsAccelerationAffine();
     _x.setZero(_qddot.getInputSize());
@@ -386,17 +476,17 @@ OpenSotAccImpl::OpenSotAccImpl(XBot::ModelInterface::Ptr model,
     // END ADDED
 
     /* Parse stack #0 and create autostack */
-    auto stack_0 = aggregated_from_stack(ik_problem.getTask(0));
+    auto stack_0 = aggregated_from_stack(id_problem.getTask(0));
     _autostack = boost::make_shared<OpenSoT::AutoStack>(stack_0);
 
     /* Parse remaining stacks  */
-    for(int i = 1; i < ik_problem.getNumTasks(); i++)
+    for(int i = 1; i < id_problem.getNumTasks(); i++)
     {
-        _autostack = _autostack / aggregated_from_stack(ik_problem.getTask(i));
+        _autostack = _autostack / aggregated_from_stack(id_problem.getTask(i));
     }
 
     /* Parse constraints */
-    for(auto constr : ik_problem.getBounds())
+    for(auto constr : id_problem.getBounds())
     {
         auto constr_ptr = constraint_from_description(constr);
 
@@ -525,9 +615,6 @@ bool OpenSotAccImpl::update(double time, double period)
         cart_task->setReference(T_ref, v_ref);
 
     }
-    
-
-
 
     
     /* Postural task */
@@ -572,6 +659,38 @@ bool OpenSotAccImpl::update(double time, double period)
         _force_estimation->log(_logger);
     }
     
+    /* Set desired interaction */
+//     for(auto t : _interaction_tasks)
+//     {
+//         Eigen::Vector6d f;
+//         Eigen::Matrix6d k, d;
+//         if(getDesiredInteraction(t->getDistalLink(), f, k, d))
+//         {
+//             double l1,l2;
+//             // check if all the elements of i_desc->stiffness are equal
+//             for (int i=1; k.diagonal().size(); i++)
+//             {
+//               if (!(k.diagonal()(i-1) == k.diagonal()(i)))
+//               {
+// //                 throw std::runtime_error("Update: Unsupported stiffness vector: elements should be all equal\n");
+//               }
+//             }
+//             l1 = k.diagonal()(0); // set lambda equal to the stiffness
+//             
+//             // check if all the elements of i_desc->damping are equal
+//             for (int i=1; d.diagonal().size(); i++)
+//             {
+//               if (!(d.diagonal()(i-1) == d.diagonal()(i)))
+//               {
+// //                 throw std::runtime_error("Update: Unsupported damping vector: elements should be all equal\n");
+//               }
+//             }
+//             l2 = d.diagonal()(0); // set lambda2 equal to the damping
+//             
+//             t->setLambda(l1, l2);
+//         }
+//     }
+    
     _autostack->update(_q);
     _autostack->log(_logger);
 
@@ -593,8 +712,6 @@ bool OpenSotAccImpl::update(double time, double period)
 
 
     return success;
-
-
 }
 
 bool OpenSotAccImpl::setControlMode(const std::string& ee_name, 
