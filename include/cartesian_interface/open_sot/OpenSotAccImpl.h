@@ -114,6 +114,8 @@ private:
     std::vector<std::string> _links_in_contact;
     
     Eigen::VectorXd _tau;
+    
+    double _l1, _l2, _l1_old, _l2_old;
 };
 
 

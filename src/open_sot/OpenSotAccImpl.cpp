@@ -465,6 +465,9 @@ OpenSotAccImpl::OpenSotAccImpl(XBot::ModelInterface::Ptr model,
     _dq.setZero(_q.size());
     _ddq = _dq;
     _tau = _dq;
+    
+    _l1 = 0.;
+    _l2 = 0.;
 
     _B.setIdentity(_q.size(), _q.size());
     
@@ -660,13 +663,17 @@ bool OpenSotAccImpl::update(double time, double period)
     }
     
     /* Set desired interaction */
-//     for(auto t : _interaction_tasks)
-//     {
-//         Eigen::Vector6d f;
-//         Eigen::Matrix6d k, d;
-//         if(getDesiredInteraction(t->getDistalLink(), f, k, d))
-//         {
-//             double l1,l2;
+//     double l1, l2;
+    for(auto t : _interaction_tasks)
+    {
+        Eigen::Vector6d f;
+        Eigen::Matrix6d k, d;    
+        if(getDesiredInteraction(t->getDistalLink(), f, k, d))
+        {
+//             Logger::info("Setting desired behavior: K = %f, D = %f\n", k, d);
+//             Logger::info("Diag(k) size = %i\n", k.diagonal().size());
+//             Logger::info("Diag(d) size = %i\n", d.diagonal().size());
+            
 //             // check if all the elements of i_desc->stiffness are equal
 //             for (int i=1; k.diagonal().size(); i++)
 //             {
@@ -675,7 +682,7 @@ bool OpenSotAccImpl::update(double time, double period)
 // //                 throw std::runtime_error("Update: Unsupported stiffness vector: elements should be all equal\n");
 //               }
 //             }
-//             l1 = k.diagonal()(0); // set lambda equal to the stiffness
+            _l1 = k.diagonal()(0); // set lambda equal to the stiffness
 //             
 //             // check if all the elements of i_desc->damping are equal
 //             for (int i=1; d.diagonal().size(); i++)
@@ -685,11 +692,17 @@ bool OpenSotAccImpl::update(double time, double period)
 // //                 throw std::runtime_error("Update: Unsupported damping vector: elements should be all equal\n");
 //               }
 //             }
-//             l2 = d.diagonal()(0); // set lambda2 equal to the damping
-//             
-//             t->setLambda(l1, l2);
-//         }
-//     }
+            _l2 = d.diagonal()(0); // set lambda2 equal to the damping
+            
+            t->setLambda(_l1, _l2);
+            if ((fabs(_l1 - _l1_old) > 0.1) || (fabs(_l2 - _l2_old) > 0.1))
+            {
+              Logger::info("Desired impedance at %s: K = %f, D = %f\n", t->getDistalLink().c_str(), _l1, _l2);
+              _l1_old = _l1;
+              _l2_old = _l2;
+            }
+        } 
+    }
     
     _autostack->update(_q);
     _autostack->log(_logger);
