@@ -368,31 +368,33 @@ bool XBot::Cartesian::JoyStick::setBaseFrame(cartesian_interface::SetJoystickTas
     ROS_INFO("Requested base frame: '%s'", req.base_frame.c_str());
     
     res.error_message = "";
-    res.success = true;
+    res.success = false;
     if(req.base_frame == "global")
     {
-        
         _local_ctrl = -1;
         _desired_twist.header.frame_id = "";
-        return true;
+        res.success = true;
     }
     if(req.base_frame == "local")
     {
         _local_ctrl = 1;
         _desired_twist.header.frame_id =  _distal_links[_selected_task];
-        return true;
+        res.success = true;
     }
     if(req.base_frame == "base_link")
     {
         twistInBase();
-        return true;
+        res.success = true;
     }
 
     broadcastStatus();
 
-    res.error_message = req.base_frame + " not allowed. Please choose among 'global', 'local', 'base_link'";
-    res.success = false;
-    return false;
+    if(!res.success)
+    {
+        res.error_message = req.base_frame + " not allowed. Please choose among 'global', 'local', 'base_link'";
+    }
+
+    return true;
 }
 
 
