@@ -48,7 +48,16 @@ int main(int argc, char ** argv)
     
     auto robot = XBot::RobotInterface::getRobot(XBot::ConfigOptionsFromParamServer());
     auto model = XBot::ModelInterface::getModel(XBot::ConfigOptionsFromParamServer());
-    auto imu = robot->getImu().begin()->second;
+    XBot::ImuSensor::ConstPtr imu;
+    
+    try 
+    {
+        auto imu = robot->getImu().begin()->second;
+    }
+    catch(std::exception& e)
+    {
+        Logger::warning("IMU not found: '%s'\n", e.what());
+    }
     
     robot->setControlMode(XBot::ControlMode::Effort());
     
@@ -114,26 +123,33 @@ int main(int argc, char ** argv)
     }
     
     /* Force distribution */
-    auto f_opt = g_fopt = boost::make_shared<OpenSoT::utils::ForceOptimization>(model, 
+    std::vector<Eigen::Vector6d> forces;
+        
+    /* Publish optimized forces */
+    std::vector<ros::Publisher> f_pubs;
+    
+    if(model->isFloatingBase())
+    {
+        auto f_opt = g_fopt = boost::make_shared<OpenSoT::utils::ForceOptimization>(model, 
                                                                        contact_links, 
                                                                        optimize_contact_torque,
                                                                        friction_coeff
                                                                                );
     
-    std::vector<Eigen::Vector6d> forces;
     
-    /* Publish optimized forces */
-    std::vector<ros::Publisher> f_pubs;
-    
-    for(auto c : contact_links)
-    {
-        auto pub = nh.advertise<geometry_msgs::WrenchStamped>("optimized_force/" + c, 1);
-        f_pubs.push_back(pub);
+        
+        
+        for(auto c : contact_links)
+        {
+            auto pub = nh.advertise<geometry_msgs::WrenchStamped>("optimized_force/" + c, 1);
+            f_pubs.push_back(pub);
+        }
+        
+        /* Service to change link orientation */
+        auto contact_rot_srv = nh.advertiseService("change_contact_frame", 
+                                                on_contact_frame_changed);
+        
     }
-    
-    /* Service to change link orientation */
-    auto contact_rot_srv = nh.advertiseService("change_contact_frame", 
-                                               on_contact_frame_changed);
     
     Eigen::VectorXd tau;
     ros::Rate loop_rate(rate);
@@ -145,31 +161,39 @@ int main(int argc, char ** argv)
         /* Sense robot state and update model */
         robot->sense(false);
         model->syncFrom(*robot, XBot::Sync::All, XBot::Sync::MotorSide);
-        model->setFloatingBaseState(imu);
-        model->update();
+        
+        if(model->isFloatingBase() && imu)
+        {
+            model->setFloatingBaseState(imu);
+            model->update();
+        }
         
         /* Compute gcomp */
         model->computeGravityCompensation(tau);
         tau -= tau_offset;
         
         /* Contact force distribution */
-        f_opt->compute(tau, forces, tau);
-        
-        for(int i = 0; i < forces.size(); i++)
+        if(g_fopt)
         {
-            geometry_msgs::WrenchStamped msg;
-            msg.header.frame_id = contact_links[i];
-            msg.header.stamp = ros::Time::now();
+            g_fopt->compute(tau, forces, tau);
             
-            Eigen::Matrix3d w_R_l;
-            model->getOrientation(contact_links[i], w_R_l);
-            
-            auto f = forces[i];
-            f.head<3>() = w_R_l.transpose() * f.head<3>();
-            f.tail<3>() = w_R_l.transpose() * f.tail<3>();
-            
-            tf::wrenchEigenToMsg(f, msg.wrench);
-            f_pubs[i].publish(msg);
+            for(int i = 0; i < forces.size(); i++)
+            {
+                geometry_msgs::WrenchStamped msg;
+                msg.header.frame_id = contact_links[i];
+                msg.header.stamp = ros::Time::now();
+                
+                Eigen::Matrix3d w_R_l;
+                model->getOrientation(contact_links[i], w_R_l);
+                
+                auto f = forces[i];
+                f.head<3>() = w_R_l.transpose() * f.head<3>();
+                f.tail<3>() = w_R_l.transpose() * f.tail<3>();
+                
+                tf::wrenchEigenToMsg(f, msg.wrench);
+                f_pubs[i].publish(msg);
+            }
+        
         }
         
         
