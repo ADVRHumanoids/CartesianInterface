@@ -3,7 +3,7 @@
 
 #include <cartesian_interface/problem/Task.h>
 #include <cartesian_interface/problem/Constraint.h>
-#include <cartesian_interface/CartesianInterface.h>
+#include <cartesian_interface/CartesianInterfaceImpl.h>
 
 #include <OpenSoT/tasks/Aggregated.h>
 #include <OpenSoT/constraints/Aggregated.h>
@@ -21,7 +21,8 @@ namespace XBot { namespace Cartesian { namespace SoT {
         typedef std::shared_ptr<TaskInterface> Ptr;
         
         TaskInterface(TaskDescription::Ptr task_desc, 
-                      ModelInterface::ConstPtr model
+                      ModelInterface::ConstPtr model,
+                      Options opt
                       ){}
         
         virtual TaskPtr getTaskPtr() const = 0;
@@ -48,7 +49,8 @@ namespace XBot { namespace Cartesian { namespace SoT {
         typedef std::shared_ptr<ConstraintInterface> Ptr;
         
         ConstraintInterface(ConstraintDescription::Ptr task_desc, 
-                      ModelInterface::ConstPtr model
+                      ModelInterface::ConstPtr model,
+                      Options opt
                       ){}
         
         virtual ConstraintPtr getConstraintPtr() const = 0;

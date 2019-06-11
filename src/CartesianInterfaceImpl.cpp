@@ -492,7 +492,11 @@ void XBot::Cartesian::CartesianInterfaceImpl::init_log_tasks()
 
 
 
-CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, ProblemDescription ik_problem):
+CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
+                                               ProblemDescription ik_problem,
+                                               Options opt
+                                              ):
+    _opt(opt),
     _model(model),
     _current_time(0.0),
     _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_logger_" + std::to_string(rand()))),
@@ -503,9 +507,7 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
     {
         for(auto task_desc : ik_problem.getTask(i))
         {
-            
             add_task(task_desc);
-            
         }
     }
     

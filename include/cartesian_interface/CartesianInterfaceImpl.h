@@ -29,6 +29,13 @@
 #include <ReflexxesTypeII/Wrappers/TrajectoryGenerator.h>
 
 namespace XBot { namespace Cartesian {
+    
+struct Options 
+{
+    double expected_dt;
+    
+    Options();
+};
 
 class CartesianInterfaceImpl : public CartesianInterface 
 {
@@ -40,21 +47,41 @@ public:
     typedef std::shared_ptr<const CartesianInterfaceImpl> ConstPtr;
     
     CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
-                           ProblemDescription ik_problem);
+                           ProblemDescription ik_problem,
+                           Options opt = Options()
+                          );
     
     void syncFrom(CartesianInterfaceImpl::ConstPtr other);
     
     ModelInterface::Ptr getModel() const;
     
     virtual const std::vector<std::string>& getTaskList() const;
+    
     virtual const std::string& getBaseLink(const std::string& ee_name) const;
+    
     virtual TaskInterface getTaskInterface(const std::string& end_effector) const;
+    
     virtual ControlType getControlMode(const std::string& ee_name) const;
-    virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type);
-    virtual void getVelocityLimits(const std::string& ee_name, double& max_vel_lin, double& max_vel_ang) const;
-    virtual void getAccelerationLimits(const std::string& ee_name, double& max_acc_lin, double& max_acc_ang) const;
-    virtual void setVelocityLimits(const std::string& ee_name, double max_vel_lin, double max_vel_ang);
-    virtual void setAccelerationLimits(const std::string& ee_name, double max_acc_lin, double max_acc_ang);
+    
+    virtual bool setControlMode(const std::string& ee_name, 
+                                ControlType ctrl_type);
+    
+    virtual void getVelocityLimits(const std::string& ee_name, 
+                                   double& max_vel_lin, 
+                                   double& max_vel_ang) const;
+                                   
+    virtual void getAccelerationLimits(const std::string& ee_name, 
+                                       double& max_acc_lin, 
+                                       double& max_acc_ang) const;
+                                       
+    virtual void setVelocityLimits(const std::string& ee_name,
+                                   double max_vel_lin,
+                                   double max_vel_ang);
+    
+    virtual void setAccelerationLimits(const std::string& ee_name,
+                                       double max_acc_lin,
+                                       double max_acc_ang);
+    
     virtual void enableOtg(double expected_dt);
     
     virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link);
@@ -81,7 +108,8 @@ public:
                                          Eigen::Vector3d* base_vel_ref = nullptr, 
                                          Eigen::Vector3d* base_acc_ref = nullptr) const;
                                          
-    virtual bool getReferencePosture(Eigen::VectorXd& qref) const;                                     
+    virtual bool getReferencePosture(Eigen::VectorXd& qref) const;  
+    
     virtual bool getReferencePosture(JointNameMap& qref) const;
 
     virtual bool getTargetComPosition(Eigen::Vector3d& w_com_ref) const;
@@ -137,6 +165,7 @@ public:
     virtual bool reset(double time);
     virtual bool resetWorld(const Eigen::Affine3d& w_T_new_world);
 
+    Options getOptions() const;
 
     
 protected:
@@ -267,6 +296,8 @@ private:
     void init_log_tasks();
     
    
+    Options _opt;
+    
     std::vector<std::string> _ee_list;
     std::vector<std::pair<std::string, std::string>> _tasks_vector;
     
