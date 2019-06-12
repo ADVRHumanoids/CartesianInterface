@@ -209,6 +209,10 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
         opensotacc_task = ic_task;
         
         double lambda, lambda2;
+        
+        // at the moment we set both lambdas equal to 1
+        lambda = 1.;
+        lambda2 = 1.;
   
 //         // set lambda using tmp std vector
 //         std::vector<double> stiffness, damping;
@@ -234,28 +238,37 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
 //           throw std::runtime_error("Unsupported damping vector: elements should be all equal");
         
         // check if all the elements of i_desc->stiffness are equal
-        for (int i=1; i<i_desc->stiffness.size(); i++)
-        {
-          if (!(i_desc->stiffness(i-1) == i_desc->stiffness(i)))
-          {
-            XBot::Logger::warning("Unsupported stiffness vector: elements should be all equal\n");
-//             throw std::runtime_error("Unsupported stiffness vector: elements should be all equal\n");
-          }
-        }
-        lambda = i_desc->stiffness(0); // set lambda equal to the 1st value of stiffness vector
+//         for (int i=1; i<i_desc->stiffness.size(); i++)
+//         {
+//           if (!(i_desc->stiffness(i-1) == i_desc->stiffness(i)))
+//           {
+//             XBot::Logger::warning("Unsupported stiffness vector: elements should be all equal\n");
+//           }
+//         }
         
         // check if all the elements of i_desc->damping are equal
-        for (int i=1; i<i_desc->damping.size(); i++)
+//         for (int i=1; i<i_desc->damping.size(); i++)
+//         {
+//           if (!(i_desc->damping(i-1) == i_desc->damping(i)))
+//           {
+//             XBot::Logger::warning("Unsupported damping vector: elements should be all equal\n");
+//           }
+//         }
+        for (int i = 0; i < i_desc->stiffness.size(); i++)
         {
-          if (!(i_desc->damping(i-1) == i_desc->damping(i)))
-          {
-            XBot::Logger::warning("Unsupported damping vector: elements should be all equal\n");
-//             throw std::runtime_error("Unsupported damping vector: elements should be all equal\n");
-          }
+          if(i_desc->stiffness(i) < 0.)
+            throw std::runtime_error("Negative stiffness value found. Stiffness values must be positive");  
         }
-        lambda2 = i_desc->damping(0); // set lambda2 equal to the 1st value of damping vector
+        
+        for (int i = 0; i < i_desc->damping.size(); i++)
+        {
+          if(i_desc->damping(i) < 0.)
+            throw std::runtime_error("Negative damping value found. Damping values must be positive");  
+        }
         
         ic_task->setLambda(lambda, lambda2);
+        ic_task->setKp(i_desc->stiffness.asDiagonal());
+        ic_task->setKd(i_desc->damping.asDiagonal()); 
         
         _cartesian_tasks.push_back(ic_task);
         _interaction_tasks.push_back(ic_task);
@@ -704,10 +717,6 @@ bool OpenSotAccImpl::update(double time, double period)
         Eigen::Matrix6d k, d;    
         if(getDesiredInteraction(t->getDistalLink(), f, k, d))
         {
-//             Logger::info("Setting desired behavior: K = %f, D = %f\n", k, d);
-//             Logger::info("Diag(k) size = %i\n", k.diagonal().size());
-//             Logger::info("Diag(d) size = %i\n", d.diagonal().size());
-            
 //             // check if all the elements of i_desc->stiffness are equal
 //             for (int i=1; k.diagonal().size(); i++)
 //             {
@@ -716,7 +725,7 @@ bool OpenSotAccImpl::update(double time, double period)
 // //                 throw std::runtime_error("Update: Unsupported stiffness vector: elements should be all equal\n");
 //               }
 //             }
-            _l1 = k.diagonal()(0); // set lambda equal to the stiffness
+//             _l1 = k.diagonal()(0); // set lambda equal to the stiffness
 //             
 //             // check if all the elements of i_desc->damping are equal
 //             for (int i=1; d.diagonal().size(); i++)
@@ -726,16 +735,19 @@ bool OpenSotAccImpl::update(double time, double period)
 // //                 throw std::runtime_error("Update: Unsupported damping vector: elements should be all equal\n");
 //               }
 //             }
-            _l2 = d.diagonal()(0); // set lambda2 equal to the damping
+//             _l2 = d.diagonal()(0); // set lambda2 equal to the damping
             
-            t->setLambda(_l1, _l2);
-            if ((fabs(_l1 - _l1_old) > 0.1) || (fabs(_l2 - _l2_old) > 0.1))
-            {
-              Logger::info("Desired impedance at %s: K = %f, D = %f\n", t->getDistalLink().c_str(), _l1, _l2);
-              _l1_old = _l1;
-              _l2_old = _l2;
-            }
-        } 
+//             t->setLambda(_l1, _l2);
+//             if ((fabs(_l1 - _l1_old) > 0.1) || (fabs(_l2 - _l2_old) > 0.1))
+//             {
+//               Logger::info("Desired impedance at %s: K = %f, D = %f\n", t->getDistalLink().c_str(), _l1, _l2);
+//               _l1_old = _l1;
+//               _l2_old = _l2;
+//             }
+          
+          t->setKp(k);
+          t->setKd(d);
+      } 
     }
     
     _autostack->update(_q);
