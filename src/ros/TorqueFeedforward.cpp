@@ -118,6 +118,7 @@ int main(int argc, char ** argv)
         
         sub_map[l] = sub;
         f_map[l] = Eigen::Vector6d::Zero();
+        timeout_map[l] = ros::Time::now();
         
         ROS_INFO("Subscribed to topic '%s'", sub.getTopic().c_str());
     }
@@ -216,8 +217,8 @@ int main(int argc, char ** argv)
             model->getOrientation(pair.first, R);
             
             Eigen::Vector6d f_world = pair.second;
-            f_world.head<3>() = R * f_world.head<3>();
-            f_world.tail<3>() = R * f_world.tail<3>();
+            f_world.head<3>() = f_world.head<3>();
+            f_world.tail<3>() = f_world.tail<3>();
             
             tau += J.transpose() * f_world;
             
