@@ -23,6 +23,7 @@
 #include <OpenSoT/tasks/acceleration/Cartesian.h>
 #include <OpenSoT/tasks/acceleration/Postural.h>
 #include <OpenSoT/tasks/acceleration/Contact.h>
+#include <OpenSoT/tasks/MinimizeVariable.h>
 
 
 namespace XBot { namespace Cartesian {
@@ -66,8 +67,9 @@ private:
     bool get_control_dt(double& dt);
     
     TaskPtr construct_task(TaskDescription::Ptr);
-    TaskPtr aggregated_from_stack(AggregatedTask stack);
+    TaskPtr aggregated_from_stack_level(AggregatedTask stack);
     ConstraintPtr constraint_from_description(ConstraintDescription::Ptr constr_desc);
+    void links_in_contact_from_description(AggregatedTask stack, std::vector<std::string>& links);
     
     void lambda_callback(const std_msgs::Float32ConstPtr& msg, const std::string& ee_name);
     
@@ -110,6 +112,7 @@ private:
      * @brief _qddot optimization variable helper
      */
     OpenSoT::AffineHelper _qddot;
+    std::vector<OpenSoT::AffineHelper> _contact_wrench;
     
     std::vector<std::string> _links_in_contact;
     

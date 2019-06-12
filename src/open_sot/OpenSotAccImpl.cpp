@@ -66,8 +66,29 @@ bool OpenSotAccImpl::setBaseLink(const std::string& ee_name, const std::string& 
     return success;
 }
 
+void OpenSotAccImpl::links_in_contact_from_description(AggregatedTask stack, std::vector<std::string>& links)
+{
+  
+  for(TaskDescription::Ptr task_desc : stack)
+  {
+    if(task_desc->type == "Interaction")
+    {
+      auto i_desc = GetAsInteraction(task_desc);
+      std::string distal_link = i_desc->distal_link;
+//       std::string base_link = i_desc->base_link;
+       
+      if (links.empty() || std::find(links.begin(), links.end(), distal_link) == links.end())
+      {
+        links.push_back(distal_link);
+        XBot::Logger::info("Link in contact parsed: %s\n", distal_link.c_str());
+      }
+    }
+  }
+  
+}
 
-OpenSoT::tasks::Aggregated::TaskPtr OpenSotAccImpl::aggregated_from_stack(AggregatedTask stack)
+
+OpenSoT::tasks::Aggregated::TaskPtr OpenSotAccImpl::aggregated_from_stack_level(AggregatedTask stack)
 {
     std::list<OpenSoT::tasks::Aggregated::TaskPtr> tasks_list;
 
@@ -167,21 +188,25 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
         std::string distal_link = i_desc->distal_link;
         std::string base_link = i_desc->base_link;
         
-        if (_links_in_contact.empty() || std::find(_links_in_contact.begin(), _links_in_contact.end(), distal_link) == _links_in_contact.end())
-        {
-          _links_in_contact.push_back(distal_link);
-          XBot::Logger::info("Link in contact found: %s\n", distal_link.c_str());
-        }
+//         if (_links_in_contact.empty() || std::find(_links_in_contact.begin(), _links_in_contact.end(), distal_link) == _links_in_contact.end())
+//         {
+//           _links_in_contact.push_back(distal_link);
+//           XBot::Logger::info("Link in contact found: %s\n", distal_link.c_str());
+//         }
         
-        auto i_task = boost::make_shared<OpenSoT::tasks::acceleration::Cartesian>
+        auto ic_task = boost::make_shared<OpenSoT::tasks::acceleration::Cartesian>
                                             (base_link + "_TO_" + distal_link,
                                                 *_model,
                                                 distal_link,
                                                 base_link,
                                                 _qddot
                                             );
+                                            
+/*        auto if_task = boost::make_shared<OpenSoT::tasks::MinimizeVariable>
+                                          (base_link + "_TO_" + distal_link,
+                                           _contact_wrench);     */                  
 
-        opensotacc_task = i_task;
+        opensotacc_task = ic_task;
         
         double lambda, lambda2;
   
@@ -213,25 +238,27 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
         {
           if (!(i_desc->stiffness(i-1) == i_desc->stiffness(i)))
           {
-            throw std::runtime_error("Unsupported stiffness vector: elements should be all equal\n");
+            XBot::Logger::warning("Unsupported stiffness vector: elements should be all equal\n");
+//             throw std::runtime_error("Unsupported stiffness vector: elements should be all equal\n");
           }
         }
-        lambda = i_desc->stiffness(0); // set lambda equal to the stiffness
+        lambda = i_desc->stiffness(0); // set lambda equal to the 1st value of stiffness vector
         
         // check if all the elements of i_desc->damping are equal
         for (int i=1; i<i_desc->damping.size(); i++)
         {
           if (!(i_desc->damping(i-1) == i_desc->damping(i)))
           {
-            throw std::runtime_error("Unsupported damping vector: elements should be all equal\n");
+            XBot::Logger::warning("Unsupported damping vector: elements should be all equal\n");
+//             throw std::runtime_error("Unsupported damping vector: elements should be all equal\n");
           }
         }
-        lambda2 = i_desc->damping(0); // set lambda2 equal to the damping
+        lambda2 = i_desc->damping(0); // set lambda2 equal to the 1st value of damping vector
         
-        i_task->setLambda(lambda, lambda2);
+        ic_task->setLambda(lambda, lambda2);
         
-        _cartesian_tasks.push_back(i_task);
-        _interaction_tasks.push_back(i_task);
+        _cartesian_tasks.push_back(ic_task);
+        _interaction_tasks.push_back(ic_task);
          
         XBot::Logger::info("OpenSot: Cartesian found (%s -> %s), lambda = %f, lambda2 = %f, dofs = %d\n",
                             base_link.c_str(), 
@@ -359,7 +386,6 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
 }
 
 
-
 OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr OpenSotAccImpl::constraint_from_description(ConstraintDescription::Ptr constr_desc)
 {
     if(constr_desc->type == "JointLimits")
@@ -466,26 +492,34 @@ OpenSotAccImpl::OpenSotAccImpl(XBot::ModelInterface::Ptr model,
     _ddq = _dq;
     _tau = _dq;
     
-    _l1 = 0.;
-    _l2 = 0.;
+    _l1_old = 0.;
+    _l2_old = 0.;
 
     _B.setIdentity(_q.size(), _q.size());
     
     // ADDED
+    /* Parse stack levels  */
+    for(int i = 0; i < id_problem.getNumTasks(); i++)
+    {
+        links_in_contact_from_description(id_problem.getTask(i), _links_in_contact);
+    }
+//     XBot::Logger::info("ID - Links in contact : %i\n", _links_in_contact.size());
     _id = boost::make_shared<OpenSoT::utils::InverseDynamics>(_links_in_contact, *_model);
     _qddot = _id->getJointsAccelerationAffine();
+    _contact_wrench = _id->getContactsWrenchAffine();
+//     XBot::Logger::info("ID - Contact wrench size : %i\n", _contact_wrench[0].getOutputSize());
     _x.setZero(_qddot.getInputSize());
     _tau.setZero(_q.size());
     // END ADDED
 
-    /* Parse stack #0 and create autostack */
-    auto stack_0 = aggregated_from_stack(id_problem.getTask(0));
+    /* Parse stack #0 (first level of the stack) and create autostack */
+    auto stack_0 = aggregated_from_stack_level(id_problem.getTask(0));
     _autostack = boost::make_shared<OpenSoT::AutoStack>(stack_0);
 
-    /* Parse remaining stacks  */
+    /* Parse remaining levels  */
     for(int i = 1; i < id_problem.getNumTasks(); i++)
     {
-        _autostack = _autostack / aggregated_from_stack(id_problem.getTask(i));
+        _autostack = _autostack / aggregated_from_stack_level(id_problem.getTask(i));
     }
 
     /* Parse constraints */
