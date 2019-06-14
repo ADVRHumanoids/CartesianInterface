@@ -16,7 +16,6 @@
     
         <node pkg="cartesian_interface" type="ros_server_node" 
                                         name="ros_server_node" 
-                                        required="true" 
                                         output="screen" 
                                         launch-prefix="$(arg prefix)"
                                         rosmon-stop-timeout="1000">
