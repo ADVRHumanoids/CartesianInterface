@@ -216,8 +216,8 @@ int main(int argc, char ** argv)
             model->getOrientation(pair.first, R);
             
             Eigen::Vector6d f_world = pair.second;
-            f_world.head<3>() = R * f_world.head<3>();
-            f_world.tail<3>() = R * f_world.tail<3>();
+            f_world.head<3>() = f_world.head<3>();
+            f_world.tail<3>() = f_world.tail<3>();
             
             tau += J.transpose() * f_world;
             
