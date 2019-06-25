@@ -775,8 +775,9 @@ bool OpenSotAccImpl::update(double time, double period)
       Eigen::Matrix6d k, d; 
       if(getDesiredInteraction(t->getDistalLink(), f, k, d))
       {
-        t->setReference(f);
-        Logger::info() << "Set new force: " << f.transpose() << Logger::endl();
+        // the solver expects forces from the environment to the robot, so to set the forces from the robot to the environment we change sign
+        t->setReference(-f); 
+//         Logger::info() << "Set new force: " << f.transpose() << Logger::endl();
       }
     }
     
@@ -791,7 +792,7 @@ bool OpenSotAccImpl::update(double time, double period)
         success = false;
     }
     
-    Logger::info() << "Solution: " << _x.transpose() << Logger::endl();
+//     Logger::info() << "Solution: " << _x.transpose() << Logger::endl();
 
     _id->computedTorque(_x, _tau, _ddq);
     
