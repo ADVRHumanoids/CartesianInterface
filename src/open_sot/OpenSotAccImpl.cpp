@@ -66,25 +66,47 @@ bool OpenSotAccImpl::setBaseLink(const std::string& ee_name, const std::string& 
     return success;
 }
 
-void OpenSotAccImpl::links_in_contact_from_description(AggregatedTask stack, std::vector<std::string>& links)
+void OpenSotAccImpl::links_in_contact_from_description(AggregatedTask stack,
+                                                       std::vector<std::string>& distal_links,
+                                                       std::vector<std::string>& base_links)
 {
-  
   for(TaskDescription::Ptr task_desc : stack)
   {
     if(task_desc->type == "Interaction")
     {
       auto i_desc = GetAsInteraction(task_desc);
       std::string distal_link = i_desc->distal_link;
-//       std::string base_link = i_desc->base_link;
+      std::string base_link = i_desc->base_link;
        
-      if (links.empty() || std::find(links.begin(), links.end(), distal_link) == links.end())
+      if (distal_links.empty() || std::find(distal_links.begin(), distal_links.end(), distal_link) == distal_links.end())
       {
-        links.push_back(distal_link);
+        distal_links.push_back(distal_link);
+        base_links.push_back(base_link);
         XBot::Logger::info("Link in contact parsed: %s\n", distal_link.c_str());
       }
     }
+  }  
+}
+
+void XBot::Cartesian::OpenSotAccImpl::aggregate_force_tasks(AggregatedTask stack, OpenSoT::tasks::force::Wrenches::Ptr aggregated_force_tasks)
+{
+  for(TaskDescription::Ptr task_desc : stack)
+  {
+    if(task_desc->type == "Interaction")
+    {
+      auto i_desc = GetAsInteraction(task_desc);
+      std::string distal_link = i_desc->distal_link;
+      std::string base_link = i_desc->base_link;
+       
+//       if (links.empty() || std::find(links.begin(), links.end(), distal_link) == links.end())
+//       {
+//         links.push_back(distal_link);
+//         XBot::Logger::info("Link in contact parsed: %s\n", distal_link.c_str());
+//       }
+      
+//       aggregated_force_tasks
+    }
   }
-  
 }
 
 
@@ -116,6 +138,8 @@ OpenSoT::tasks::Aggregated::TaskPtr OpenSotAccImpl::aggregated_from_stack_level(
 
 OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task_desc)
 {
+  
+    bool skip_indices = false;
     
     OpenSotAccImpl::TaskPtr opensotacc_task;
 //     double control_dt; // = 0.01;
@@ -194,7 +218,7 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
 //           XBot::Logger::info("Link in contact found: %s\n", distal_link.c_str());
 //         }
         
-        auto ic_task = boost::make_shared<OpenSoT::tasks::acceleration::Cartesian>
+        auto tmp_cartesian_task = boost::make_shared<CartesianAccTask>
                                             (base_link + "_TO_" + distal_link,
                                                 *_model,
                                                 distal_link,
@@ -202,18 +226,53 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
                                                 _qddot
                                             );
                                             
-/*        auto if_task = boost::make_shared<OpenSoT::tasks::MinimizeVariable>
-                                          (base_link + "_TO_" + distal_link,
-                                           _contact_wrench);     */                  
-
-        opensotacc_task = ic_task;
+        for (int i = 0; i < i_desc->stiffness.size(); i++)
+        {
+          if(i_desc->stiffness(i) < 0.)
+            throw std::runtime_error("Negative stiffness value found. Stiffness values must be positive");  
+        }
+        
+        for (int i = 0; i < i_desc->damping.size(); i++)
+        {
+          if(i_desc->damping(i) < 0.)
+            throw std::runtime_error("Negative damping value found. Damping values must be positive");  
+        }
+        
         
         double lambda, lambda2;
         
         // at the moment we set both lambdas equal to 1
         lambda = 1.;
         lambda2 = 1.;
-  
+        
+        tmp_cartesian_task->setLambda(lambda, lambda2);
+        tmp_cartesian_task->setKp(i_desc->stiffness.asDiagonal());
+        tmp_cartesian_task->setKd(i_desc->damping.asDiagonal()); 
+                                            
+        auto tmp_force_task = _wrenches_->getWrenchTask(distal_link);
+        
+        OpenSoT::tasks::Aggregated::TaskPtr ic_task;
+        
+        std::list<uint> indices(task_desc->indices.begin(), task_desc->indices.end());
+        if(tmp_force_task) // handle manually the indices now
+        {
+            if(indices.size() == 6)
+            {
+                ic_task = task_desc->weight*tmp_cartesian_task + task_desc->weight*tmp_force_task;
+            }
+            else
+            {
+                ic_task = task_desc->weight*(tmp_cartesian_task%indices) + task_desc->weight*(tmp_force_task%indices);
+            }
+            
+            skip_indices = true;
+            
+        }
+        else  // handle the indices later
+        {
+            ic_task = tmp_cartesian_task;
+        }
+
 //         // set lambda using tmp std vector
 //         std::vector<double> stiffness, damping;
 //         Eigen::Map<Eigen::Vector6d> stiffness_map(stiffness.data(),6);
@@ -254,32 +313,22 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
 //             XBot::Logger::warning("Unsupported damping vector: elements should be all equal\n");
 //           }
 //         }
-        for (int i = 0; i < i_desc->stiffness.size(); i++)
-        {
-          if(i_desc->stiffness(i) < 0.)
-            throw std::runtime_error("Negative stiffness value found. Stiffness values must be positive");  
-        }
         
-        for (int i = 0; i < i_desc->damping.size(); i++)
-        {
-          if(i_desc->damping(i) < 0.)
-            throw std::runtime_error("Negative damping value found. Damping values must be positive");  
-        }
+        opensotacc_task = ic_task;
         
-        ic_task->setLambda(lambda, lambda2);
-        ic_task->setKp(i_desc->stiffness.asDiagonal());
-        ic_task->setKd(i_desc->damping.asDiagonal()); 
-        
-        _cartesian_tasks.push_back(ic_task);
-        _interaction_tasks.push_back(ic_task);
+        _cartesian_tasks.push_back(tmp_cartesian_task);
+        _interaction_tasks.push_back(tmp_cartesian_task);
+        _force_tasks.push_back(tmp_force_task);
+        _aggregated_tasks.push_back(ic_task);
          
-        XBot::Logger::info("OpenSot: Cartesian found (%s -> %s), lambda = %f, lambda2 = %f, dofs = %d\n",
+        XBot::Logger::info("OpenSot: Interaction found (%s -> %s), lambda = %f, lambda2 = %f, dofs = %d\n",
                             base_link.c_str(), 
                             distal_link.c_str(), 
                             i_desc->lambda,
                             i_desc->lambda2,
                             i_desc->indices.size()
-                            );      
+                            );
+        
         
     }
 //     else if(task_desc->type == "Com")
@@ -302,16 +351,7 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
 
         double lambda = (postural_desc->lambda * postural_desc->lambda)/(control_dt*control_dt);
         double lambda2 = postural_desc->lambda2;
-//         if (lambda2 >= 0)
-//         {
-//             postural_task->setLambda(lambda,lambda2);
-//         }
-//         else
-//         {
-//             lambda2 = 2*std::sqrt(lambda);
-//             postural_desc->lambda2 = lambda2;
-//             postural_task->setLambda(lambda, lambda2);
-//         }
+
         if (lambda2 < 0)
         {
             lambda2 = 2*std::sqrt(lambda);
@@ -366,34 +406,38 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
         opensotacc_task->setActiveJointsMask(active_joints_mask);
     }
     
-    /* Apply weight and extract subtask */
-    std::list<uint> indices(task_desc->indices.begin(), task_desc->indices.end());
+    if(!skip_indices)
+    {
+      
+      /* Apply weight and extract subtask */
+      std::list<uint> indices(task_desc->indices.begin(), task_desc->indices.end());
 
-    // for postural tasks, active joint masks acts on indices as well    
-    if(task_desc->type == "Postural")
-    {
+      // for postural tasks, active joint masks acts on indices as well    
+      if(task_desc->type == "Postural")
+      {
 
-        auto is_disabled = [opensotacc_task](uint i)
-        {
-            return !opensotacc_task->getActiveJointsMask().at(i);
-        };
-        
-        indices.remove_if(is_disabled);
-        
-        std::vector<int> indices_vec(indices.begin(), indices.end());
-        task_desc = indices_vec % task_desc;
-        
-    }
+          auto is_disabled = [opensotacc_task](uint i)
+          {
+              return !opensotacc_task->getActiveJointsMask().at(i);
+          };
+          
+          indices.remove_if(is_disabled);
+          
+          std::vector<int> indices_vec(indices.begin(), indices.end());
+          task_desc = indices_vec % task_desc;
+          
+      }
+      
+      if(indices.size() == opensotacc_task->getTaskSize())
+      {
+          opensotacc_task = task_desc->weight*(opensotacc_task);
+      }
+      else
+      {
+          opensotacc_task = task_desc->weight*(opensotacc_task%indices);
+      }
     
-    if(indices.size() == opensotacc_task->getTaskSize())
-    {
-        opensotacc_task = task_desc->weight*(opensotacc_task);
     }
-    else
-    {
-        opensotacc_task = task_desc->weight*(opensotacc_task%indices);
-    }
-    
     /* Return task */
     return opensotacc_task;
 }
@@ -505,8 +549,8 @@ OpenSotAccImpl::OpenSotAccImpl(XBot::ModelInterface::Ptr model,
     _ddq = _dq;
     _tau = _dq;
     
-    _l1_old = 0.;
-    _l2_old = 0.;
+//     _l1_old = 0.;
+//     _l2_old = 0.;
 
     _B.setIdentity(_q.size(), _q.size());
     
@@ -514,15 +558,19 @@ OpenSotAccImpl::OpenSotAccImpl(XBot::ModelInterface::Ptr model,
     /* Parse stack levels  */
     for(int i = 0; i < id_problem.getNumTasks(); i++)
     {
-        links_in_contact_from_description(id_problem.getTask(i), _links_in_contact);
+        links_in_contact_from_description(id_problem.getTask(i), _links_in_contact, _base_links);
     }
 //     XBot::Logger::info("ID - Links in contact : %i\n", _links_in_contact.size());
     _id = boost::make_shared<OpenSoT::utils::InverseDynamics>(_links_in_contact, *_model);
     _qddot = _id->getJointsAccelerationAffine();
-    _contact_wrench = _id->getContactsWrenchAffine();
-//     XBot::Logger::info("ID - Contact wrench size : %i\n", _contact_wrench[0].getOutputSize());
+    _contact_wrenches = _id->getContactsWrenchAffine();
+//     XBot::Logger::info("ID - Contact wrench size : %i\n", _contact_wrenches[0].getOutputSize());
     _x.setZero(_qddot.getInputSize());
     _tau.setZero(_q.size());
+    
+    /* Parse force tasks */
+    _wrenches_ = boost::make_shared<OpenSoT::tasks::force::Wrenches>("wrenches", _links_in_contact, _base_links, _contact_wrenches);
+       
     // END ADDED
 
     /* Parse stack #0 (first level of the stack) and create autostack */
@@ -710,44 +758,26 @@ bool OpenSotAccImpl::update(double time, double period)
     }
     
     /* Set desired interaction */
-//     double l1, l2;
     for(auto t : _interaction_tasks)
     {
         Eigen::Vector6d f;
         Eigen::Matrix6d k, d;    
         if(getDesiredInteraction(t->getDistalLink(), f, k, d))
-        {
-//             // check if all the elements of i_desc->stiffness are equal
-//             for (int i=1; k.diagonal().size(); i++)
-//             {
-//               if (!(k.diagonal()(i-1) == k.diagonal()(i)))
-//               {
-// //                 throw std::runtime_error("Update: Unsupported stiffness vector: elements should be all equal\n");
-//               }
-//             }
-//             _l1 = k.diagonal()(0); // set lambda equal to the stiffness
-//             
-//             // check if all the elements of i_desc->damping are equal
-//             for (int i=1; d.diagonal().size(); i++)
-//             {
-//               if (!(d.diagonal()(i-1) == d.diagonal()(i)))
-//               {
-// //                 throw std::runtime_error("Update: Unsupported damping vector: elements should be all equal\n");
-//               }
-//             }
-//             _l2 = d.diagonal()(0); // set lambda2 equal to the damping
-            
-//             t->setLambda(_l1, _l2);
-//             if ((fabs(_l1 - _l1_old) > 0.1) || (fabs(_l2 - _l2_old) > 0.1))
-//             {
-//               Logger::info("Desired impedance at %s: K = %f, D = %f\n", t->getDistalLink().c_str(), _l1, _l2);
-//               _l1_old = _l1;
-//               _l2_old = _l2;
-//             }
-          
+        {         
           t->setKp(k);
           t->setKd(d);
       } 
+    }
+    
+    for(auto t: _force_tasks)
+    {
+      Eigen::Vector6d f;
+      Eigen::Matrix6d k, d; 
+      if(getDesiredInteraction(t->getDistalLink(), f, k, d))
+      {
+        t->setReference(f);
+        Logger::info() << "Set new force: " << f.transpose() << Logger::endl();
+      }
     }
     
     _autostack->update(_q);
@@ -760,6 +790,8 @@ bool OpenSotAccImpl::update(double time, double period)
         XBot::Logger::error("OpenSot: unable to solve\n");
         success = false;
     }
+    
+    Logger::info() << "Solution: " << _x.transpose() << Logger::endl();
 
     _id->computedTorque(_x, _tau, _ddq);
     
@@ -768,6 +800,7 @@ bool OpenSotAccImpl::update(double time, double period)
 
     _logger->add("ddq", _ddq);
     _logger->add("tau", _tau);
+    _logger->add("solution", _x);
 
 
     return success;

@@ -23,7 +23,8 @@
 #include <OpenSoT/tasks/acceleration/Cartesian.h>
 #include <OpenSoT/tasks/acceleration/Postural.h>
 #include <OpenSoT/tasks/acceleration/Contact.h>
-#include <OpenSoT/tasks/MinimizeVariable.h>
+// #include <OpenSoT/tasks/MinimizeVariable.h>
+#include <OpenSoT/tasks/force/Force.h>
 
 
 namespace XBot { namespace Cartesian {
@@ -62,6 +63,7 @@ private:
     
     typedef OpenSoT::tasks::acceleration::Cartesian CartesianAccTask;
     typedef OpenSoT::tasks::acceleration::Postural PosturalAccTask;
+    typedef OpenSoT::tasks::force::Wrench ForceTask;
     
     void set_adaptive_lambda(CartesianTask::Ptr cartesian_task);
     bool get_control_dt(double& dt);
@@ -69,7 +71,10 @@ private:
     TaskPtr construct_task(TaskDescription::Ptr);
     TaskPtr aggregated_from_stack_level(AggregatedTask stack);
     ConstraintPtr constraint_from_description(ConstraintDescription::Ptr constr_desc);
-    void links_in_contact_from_description(AggregatedTask stack, std::vector<std::string>& links);
+    void links_in_contact_from_description(AggregatedTask stack,
+                                           std::vector<std::string>& distal_links,
+                                           std::vector<std::string>& base_links);
+    void aggregate_force_tasks(AggregatedTask stack, OpenSoT::tasks::force::Wrenches::Ptr aggregated_force_tasks);
     
     void lambda_callback(const std_msgs::Float32ConstPtr& msg, const std::string& ee_name);
     
@@ -78,6 +83,8 @@ private:
     
     std::vector<SoT::TaskInterface::Ptr> _task_ifc;
     std::vector<CartesianAccTask::Ptr> _cartesian_tasks, _interaction_tasks;
+    std::vector<TaskPtr> _aggregated_tasks;
+    std::vector<ForceTask::Ptr> _force_tasks;
     std::vector<CartesianAdmittanceTask::Ptr> _admittance_tasks;
     std::vector<PosturalAccTask::Ptr> _postural_tasks;
     std::vector<bool> _use_inertia_matrix;
@@ -112,13 +119,13 @@ private:
      * @brief _qddot optimization variable helper
      */
     OpenSoT::AffineHelper _qddot;
-    std::vector<OpenSoT::AffineHelper> _contact_wrench;
     
-    std::vector<std::string> _links_in_contact;
+    std::vector<OpenSoT::AffineHelper> _contact_wrenches;
+    std::vector<std::string> _links_in_contact; //distal_links
+    std::vector<std::string> _base_links;
+    OpenSoT::tasks::force::Wrenches::Ptr _wrenches_; // TODO
     
     Eigen::VectorXd _tau;
-    
-    double _l1, _l2, _l1_old, _l2_old;
 };
 
 
