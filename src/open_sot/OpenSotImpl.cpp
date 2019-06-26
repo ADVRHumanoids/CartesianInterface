@@ -38,6 +38,10 @@ namespace
         {
             return OpenSoT::solvers::solver_back_ends::eiQuadProg;
         }
+        else if(back_end_string == "odys")
+        {
+            return OpenSoT::solvers::solver_back_ends::ODYS;
+        }
         else
         {
             throw std::runtime_error("Invalid back end '" + back_end_string + "'");
