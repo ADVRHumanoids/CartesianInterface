@@ -26,6 +26,8 @@
 // #include <OpenSoT/tasks/MinimizeVariable.h>
 #include <OpenSoT/tasks/force/Force.h>
 
+#include <XBotCore-interfaces/XBotRosUtils.h>
+
 
 namespace XBot { namespace Cartesian {
 
@@ -126,6 +128,11 @@ private:
     OpenSoT::tasks::force::Wrenches::Ptr _wrenches_; // TODO
     
     Eigen::VectorXd _tau;
+
+    //integral controller
+    Eigen::VectorXd _tau_meas, _tau_ref, _tau_i, _ki;
+
+
 };
 
 

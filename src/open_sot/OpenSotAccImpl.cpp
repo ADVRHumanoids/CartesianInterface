@@ -548,6 +548,10 @@ OpenSotAccImpl::OpenSotAccImpl(XBot::ModelInterface::Ptr model,
     _dq.setZero(_q.size());
     _ddq = _dq;
     _tau = _dq;
+
+    _tau_meas.setZero(_model->getActuatedJointNum());
+    _tau_i.setZero(_model->getActuatedJointNum());
+    _ki.setOnes(_model->getActuatedJointNum());
     
 //     _l1_old = 0.;
 //     _l2_old = 0.;
@@ -691,6 +695,7 @@ bool OpenSotAccImpl::update(double time, double period)
     CartesianInterfaceImpl::update(time, period);
 
     _model->getJointPosition(_q);
+
     
     /* Update all plugin-based tasks */
     for(auto t : _task_ifc)
@@ -797,7 +802,25 @@ bool OpenSotAccImpl::update(double time, double period)
     _id->computedTorque(_x, _tau, _ddq);
     
     _model->setJointAcceleration(_ddq);
-    _model->setJointEffort(_tau);
+
+
+    ///
+        _model->getJointEffort(_tau_meas);
+
+        double EXPECTED_DT = 0.001;
+        _tau_i += (_tau - _tau_meas) * EXPECTED_DT;
+
+        // anti windup
+        double TAU_I_MAX = 2.0;
+        for(int i = 0; i < _tau_i.size(); i++)
+            _tau_i[i] = std::max(std::min(_tau_i[i], TAU_I_MAX), -TAU_I_MAX);
+
+        // add desired torque
+        _tau_ref = _ki.cwiseProduct(_tau_i) + _tau;
+    ///
+
+
+    _model->setJointEffort(_tau_ref);
 
     _logger->add("ddq", _ddq);
     _logger->add("tau", _tau);
