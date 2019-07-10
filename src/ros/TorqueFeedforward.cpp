@@ -50,13 +50,13 @@ int main(int argc, char ** argv)
     auto model = XBot::ModelInterface::getModel(XBot::ConfigOptionsFromParamServer());
     XBot::ImuSensor::ConstPtr imu;
     
-    try 
+    if(robot->getImu().size() > 0)
     {
-        auto imu = robot->getImu().begin()->second;
+        imu = robot->getImu().begin()->second;
     }
-    catch(std::exception& e)
+    else
     {
-        Logger::warning("IMU not found: '%s'\n", e.what());
+        Logger::warning("IMU not found: map is empty\n");
     }
     
     robot->setControlMode(XBot::ControlMode::Effort());
@@ -118,6 +118,7 @@ int main(int argc, char ** argv)
         
         sub_map[l] = sub;
         f_map[l] = Eigen::Vector6d::Zero();
+        timeout_map[l] = ros::Time::now();
         
         ROS_INFO("Subscribed to topic '%s'", sub.getTopic().c_str());
     }
