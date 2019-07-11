@@ -473,12 +473,6 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     if(has_config() && get_config()["back_end"])
     {
         std::string back_end_string = get_config()["back_end"].as<std::string>();
-        
-        if(back_end_string != "osqp" && back_end_string != "qpoases")
-        {
-            Logger::warning("OpenSot: unrecognised solver %s, falling back to qpOASES (available options: qpoases, osqp)\n", back_end_string.c_str());
-        }
-        
         solver_backend = ::backend_from_string(back_end_string);
     }
     
@@ -488,7 +482,7 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
         eps_regularization *= 1e12;
     }
     
-    std::string back_end = solver_backend == BackEnd::qpOASES ? "qpOASES" : "OSQP";
+    std::string back_end = OpenSoT::solvers::whichBackEnd(solver_backend);
     
     Logger::info(Logger::Severity::HIGH, "OpenSot: using back-end %s\n", back_end.c_str());
     Logger::info(Logger::Severity::HIGH, "OpenSot: regularization value is %.1e\n", eps_regularization);

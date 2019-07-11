@@ -38,6 +38,10 @@ namespace
         {
             return OpenSoT::solvers::solver_back_ends::eiQuadProg;
         }
+        else if(back_end_string == "odys")
+        {
+            return OpenSoT::solvers::solver_back_ends::ODYS;
+        }
         else
         {
             throw std::runtime_error("Invalid back end '" + back_end_string + "'");
@@ -142,13 +146,10 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
     bool skip_indices = false;
     
     OpenSotAccImpl::TaskPtr opensotacc_task;
-//     double control_dt; // = 0.01;
-//     get_control_dt(control_dt);
     double control_dt = 0.01;
     if(!get_control_dt(control_dt))
     {
         throw std::runtime_error("Unable to find control period in configuration file " 
-                                 "required by admittance task "  
                                  "(add problem_description/solver_options/control_dt field)");
     }
     
@@ -602,12 +603,6 @@ OpenSotAccImpl::OpenSotAccImpl(XBot::ModelInterface::Ptr model,
     if(has_config() && get_config()["back_end"])
     {
         std::string back_end_string = get_config()["back_end"].as<std::string>();
-        
-        if(back_end_string != "osqp" && back_end_string != "qpoases")
-        {
-            Logger::warning("OpenSot: unrecognised solver %s, falling back to qpOASES (available options: qpoases, osqp)\n", back_end_string.c_str());
-        }
-        
         solver_backend = ::backend_from_string(back_end_string);
     }
     
@@ -617,8 +612,9 @@ OpenSotAccImpl::OpenSotAccImpl(XBot::ModelInterface::Ptr model,
         eps_regularization *= 1e12;
     }
     
-    std::string back_end = solver_backend == BackEnd::qpOASES ? "qpOASES" : "OSQP";
-    
+
+    std::string back_end = OpenSoT::solvers::whichBackEnd(solver_backend);
+
     Logger::info(Logger::Severity::HIGH, "OpenSot: using back-end %s\n", back_end.c_str());
     Logger::info(Logger::Severity::HIGH, "OpenSot: regularization value is %.1e\n", eps_regularization);
 
