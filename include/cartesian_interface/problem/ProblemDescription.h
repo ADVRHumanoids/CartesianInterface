@@ -82,6 +82,8 @@ namespace XBot { namespace Cartesian {
          * hierachy level
          */
         AggregatedTask getTask(int id) const;
+
+        AggregatedTask getRegularizationTask() const;
         
         /**
          * @brief Reference to the vector of global constraints
@@ -102,6 +104,7 @@ namespace XBot { namespace Cartesian {
         
         static TaskDescription::Ptr yaml_parse_task(YAML::Node node, 
                                                     ModelInterface::ConstPtr model);
+
         
         static ConstraintDescription::Ptr yaml_parse_joint_pos_lims(YAML::Node node, 
                                                          ModelInterface::ConstPtr model);
@@ -111,6 +114,7 @@ namespace XBot { namespace Cartesian {
         
         std::vector< std::vector<TaskDescription::Ptr> > _stack;
         std::vector< ConstraintDescription::Ptr > _bounds;
+        AggregatedTask _regularisation;
         YAML::Node _solver_options_node;
         
     };

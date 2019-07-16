@@ -115,6 +115,11 @@ void XBot::Cartesian::OpenSotAccImpl::aggregate_force_tasks(AggregatedTask stack
   }
 }
 
+OpenSoT::tasks::Aggregated::TaskPtr OpenSotAccImpl::aggregated_from_regularization(AggregatedTask stack)
+{
+    return aggregated_from_stack_level(stack);
+}
+
 
 OpenSoT::tasks::Aggregated::TaskPtr OpenSotAccImpl::aggregated_from_stack_level(AggregatedTask stack)
 {
@@ -610,6 +615,10 @@ OpenSotAccImpl::OpenSotAccImpl(XBot::ModelInterface::Ptr model,
             _autostack << constr_ptr;
         }
     }
+
+    if(id_problem.getRegularizationTask().size() > 0)
+        _autostack->setRegularisationTask(
+                    aggregated_from_regularization(id_problem.getRegularizationTask()));
     
     /* Parse solver configs (if any) */
     using BackEnd = OpenSoT::solvers::solver_back_ends;

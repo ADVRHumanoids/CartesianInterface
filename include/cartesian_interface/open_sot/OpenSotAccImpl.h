@@ -73,6 +73,7 @@ private:
     
     TaskPtr construct_task(TaskDescription::Ptr);
     TaskPtr aggregated_from_stack_level(AggregatedTask stack);
+    TaskPtr aggregated_from_regularization(AggregatedTask stack);
     ConstraintPtr constraint_from_description(ConstraintDescription::Ptr constr_desc);
     void links_in_contact_from_description(AggregatedTask stack,
                                            std::vector<std::string>& distal_links,
