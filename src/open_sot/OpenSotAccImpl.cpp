@@ -635,8 +635,7 @@ OpenSotAccImpl::OpenSotAccImpl(XBot::ModelInterface::Ptr model,
     Logger::info(Logger::Severity::HIGH, "OpenSot: regularization value is %.1e\n", eps_regularization);
 
     /* Create solver */
-    _solver = boost::make_shared<OpenSoT::solvers::iHQP>(_autostack->getStack(),
-                                                         _autostack->getBounds(),
+    _solver = boost::make_shared<OpenSoT::solvers::iHQP>(*_autostack,
                                                          eps_regularization,
                                                          solver_backend
                                                         );
