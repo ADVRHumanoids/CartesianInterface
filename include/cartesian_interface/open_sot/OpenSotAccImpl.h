@@ -26,6 +26,8 @@
 // #include <OpenSoT/tasks/MinimizeVariable.h>
 #include <OpenSoT/tasks/force/Force.h>
 
+#include <OpenSoT/tasks/acceleration/MinJointVel.h>
+
 
 namespace XBot { namespace Cartesian {
 
@@ -63,6 +65,7 @@ private:
     
     typedef OpenSoT::tasks::acceleration::Cartesian CartesianAccTask;
     typedef OpenSoT::tasks::acceleration::Postural PosturalAccTask;
+    typedef OpenSoT::tasks::acceleration::MinJointVel MinJointVelTask;
     typedef OpenSoT::tasks::force::Wrench ForceTask;
     
     void set_adaptive_lambda(CartesianTask::Ptr cartesian_task);
@@ -88,6 +91,7 @@ private:
     std::vector<CartesianAdmittanceTask::Ptr> _admittance_tasks;
     std::vector<PosturalAccTask::Ptr> _postural_tasks;
     std::vector<bool> _use_inertia_matrix;
+    std::vector<MinJointVelTask::Ptr> _min_joint_vel_tasks;
     CoMTask::Ptr _com_task;
     GazeTask::Ptr _gaze_task;
     AngularMomentumTask::Ptr _angular_momentum_task;

@@ -12,6 +12,8 @@
 #include <OpenSoT/constraints/acceleration/JointLimits.h>
 #include <OpenSoT/constraints/acceleration/VelocityLimits.h>
 #include <OpenSoT/constraints/TaskToConstraint.h>
+#include <cartesian_interface/problem/MinJointVel.h>
+
 
 using namespace XBot::Cartesian;
 
@@ -132,7 +134,7 @@ OpenSoT::tasks::Aggregated::TaskPtr OpenSotAccImpl::aggregated_from_stack_level(
     /* Return Aggregated */
     if(tasks_list.size() > 1)
     {
-        return boost::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _q.size());
+        return boost::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _qddot.getInputSize());
     }
     else
     {
@@ -205,6 +207,20 @@ OpenSotAccImpl::TaskPtr OpenSotAccImpl::construct_task(TaskDescription::Ptr task
                             cartesian_desc->lambda2,
                             cartesian_desc->indices.size()
                             );
+
+    }
+    else if(task_desc->type == "MinJointVel")
+    {
+        auto mjv_desc = GetAsMinJointVel(task_desc);
+
+        auto tmp_minjointvel_task = boost::make_shared<MinJointVelTask>
+                (*_model, control_dt, _qddot);
+
+        tmp_minjointvel_task->setEps(mjv_desc->eps);
+        _min_joint_vel_tasks.push_back(tmp_minjointvel_task);
+
+        opensotacc_task = tmp_minjointvel_task;
+        XBot::Logger::info("OpenSot: MinJointVel found, eps = %f\n", mjv_desc->eps);
 
     }
     else if(task_desc->type == "Interaction")

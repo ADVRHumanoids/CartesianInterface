@@ -8,6 +8,7 @@
 #include <cartesian_interface/problem/Gaze.h>
 #include <cartesian_interface/problem/Limits.h>
 #include <cartesian_interface/problem/AngularMomentum.h>
+#include <cartesian_interface/problem/MinJointVel.h>
 
 namespace XBot { namespace Cartesian { 
 
@@ -61,6 +62,10 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node task_node,
         else if(task_type == "AngularMomentum")
         {
             task_desc = AngularMomentumTask::yaml_parse_angular_momentum(task_node, model);
+        }
+        else if(task_type == "MinJointVel")
+        {
+            task_desc = MinJointVelTask::yaml_parse_minjointvel(task_node, model);
         }
         else
         {
