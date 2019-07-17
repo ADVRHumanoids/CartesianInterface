@@ -828,6 +828,8 @@ bool OpenSotAccImpl::update(double time, double period)
     _logger->add("ddq", _ddq);
     _logger->add("tau", _tau);
     _logger->add("solution", _x);
+    for(unsigned int i = 0; i < _contact_wrncs.size(); ++i)
+        _logger->add("contact_wrench_"+i, _contact_wrncs[i]);
 
 
     return success;
