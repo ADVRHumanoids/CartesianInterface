@@ -203,6 +203,12 @@ namespace XBot { namespace Cartesian {
                            _update_limits_srv, 
                            _reset_world_srv;
 
+
+
+        ros::Publisher _ctrl_changed_pub;
+
+
+
         
         
     };

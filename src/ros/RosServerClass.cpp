@@ -1,5 +1,6 @@
 #include <cartesian_interface/ros/RosServerClass.h>
 #include <cartesian_interface/GetTaskListResponse.h>
+#include <std_msgs/Empty.h>
 
 using namespace XBot::Cartesian;
 
@@ -403,6 +404,7 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     init_postural_task_topics_and_services();
     init_update_param_services();
     init_reset_world_service();
+    init_reset_service();
 
     _ros_enabled_ci = std::dynamic_pointer_cast<RosEnabled>(_cartesian_interface);
     if(!_ros_enabled_ci || !_ros_enabled_ci->initRos(_nh))
@@ -781,7 +783,40 @@ void RosServerClass::online_impedance_reference_cb(const cartesian_interface::Im
     }
 }
 
+void RosServerClass::init_reset_service()
+{
+    _reset_srv = _nh.advertiseService("reset", &RosServerClass::reset_cb, this);
+    _ctrl_changed_pub = _nh.advertise<std_msgs::Empty>("changed_controller_event", 1);
+}
 
+bool RosServerClass::reset_cb(std_srvs::SetBoolRequest& req,
+                              std_srvs::SetBoolResponse& res)
+{
+    bool success = _cartesian_interface->reset(0.0);
+
+    if(success)
+    {
+        res.message = "Cartesian Interface succesfully reset \n";
+
+        std_srvs::TriggerRequest req_;
+        std_srvs::TriggerResponse res_;
+        success = success && reset_posture_cb(req_, res_);
+        res.message = res.message + res_.message;
+
+        if(success)
+        {
+            std_msgs::Empty msg;
+            _ctrl_changed_pub.publish(msg);
+        }
+        res.success = success;
+        return success;
+    }
+
+    res.message = "Problem in Cartesian interface reset";
+    res.success = false;
+
+    return res.success;
+}
 
 
 ReachActionManager::ReachActionManager(ros::NodeHandle nh,
