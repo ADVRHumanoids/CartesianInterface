@@ -256,7 +256,10 @@ void LockfreeBufferImpl::getVelocityLimits(const std::string& ee_name, double& m
 
 bool LockfreeBufferImpl::reset(double time)
 {
-    NOT_IMPL;
+    CallbackType f = std::bind(&CartesianInterface::reset,
+                               std::placeholders::_1,
+                               time);
+    return _call_queue.push(f);
 }
 
 bool LockfreeBufferImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
