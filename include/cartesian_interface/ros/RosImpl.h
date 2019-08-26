@@ -41,6 +41,8 @@ namespace XBot { namespace Cartesian {
 
         virtual bool getPoseTarget(const std::string& end_effector, 
                                    Eigen::Affine3d& base_T_ref) const;
+
+        virtual int getCurrentSegmentId(const std::string& end_effector) const;
                                    
         virtual bool getCurrentPose(const std::string& end_effector, 
                                     Eigen::Affine3d& base_T_ee) const;

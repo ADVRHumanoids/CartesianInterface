@@ -234,6 +234,18 @@ bool CartesianInterfaceImpl::getPoseTarget(const std::string& end_effector, Eige
     
 }
 
+int CartesianInterfaceImpl::getCurrentSegmentId(const std::string& end_effector) const
+{
+    auto task = get_task(end_effector);
+
+    if(!task)
+    {
+        return -1;
+    }
+
+    return task->get_current_wp(_current_time);
+}
+
 
 bool CartesianInterfaceImpl::setPoseReference(const std::string& end_effector, 
                                               const Eigen::Affine3d& w_T_ref)
@@ -986,6 +998,11 @@ bool CartesianInterfaceImpl::Task::get_pose_target(Eigen::Affine3d& pose_target)
         XBot::Logger::warning("Task %s is NOT in REACHING mode \n", distal_frame.c_str());
         return false;
     }
+}
+
+int CartesianInterfaceImpl::Task::get_current_wp(double current_time) const
+{
+    return trajectory->getCurrentSegmentId(current_time);
 }
 
 bool CartesianInterfaceImpl::Task::set_pose_reference(const Eigen::Affine3d& pose)

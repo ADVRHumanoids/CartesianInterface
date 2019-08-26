@@ -352,12 +352,21 @@ void RosServerClass::manage_reach_actions()
             else
             {
                 cartesian_interface::ReachPoseFeedback feedback;
+
+                Eigen::Affine3d base_T_ref;
                 feedback.current_reference.header.stamp = ros::Time::now();
                 feedback.current_reference.header.frame_id = _cartesian_interface->getBaseLink(ee_name);
-                Eigen::Affine3d base_T_ref;
                 _cartesian_interface->getPoseReference(ee_name, base_T_ref);
-
                 tf::poseEigenToMsg(base_T_ref, feedback.current_reference.pose);
+
+                Eigen::Affine3d base_T_ee;
+                feedback.current_pose.header.stamp = ros::Time::now();
+                feedback.current_pose.header.frame_id = _cartesian_interface->getBaseLink(ee_name);
+                _cartesian_interface->getCurrentPose(ee_name, base_T_ee);
+                tf::poseEigenToMsg(base_T_ee, feedback.current_pose.pose);
+
+                feedback.current_segment_id = _cartesian_interface->getCurrentSegmentId(ee_name);
+
                 as->publishFeedback(feedback);
 
             }

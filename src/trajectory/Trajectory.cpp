@@ -66,7 +66,9 @@ void Trajectory::sort_frames()
 Eigen::Affine3d Trajectory::evaluate(double time, Eigen::Vector6d * const vel, Eigen::Vector6d * const acc)
 {
     /* Find relevant segment (first frame after time) */
-    auto it = std::find_if(_frames.begin(), _frames.end(), [&time](const WayPoint& wp){ return wp.time > time; });
+    auto it = std::find_if(_frames.begin(),
+                           _frames.end(),
+                           [&time](const WayPoint& wp){ return wp.time > time; });
     
     if(it == _frames.begin()) // trajectory yet to start
     {
@@ -104,6 +106,24 @@ Eigen::Affine3d Trajectory::evaluate(double time, Eigen::Vector6d * const vel, E
     return interpolated;
     
     
+}
+
+int Trajectory::getCurrentSegmentId(double time) const
+{
+    if(_frames.empty())
+    {
+        return -1;
+    }
+
+    /* Find relevant segment (first frame after time) */
+    auto it = std::find_if(_frames.begin(),
+                           _frames.end(),
+                           [&time](const WayPoint& wp){ return wp.time > time; });
+
+    int id = std::distance(_frames.begin(), it) - 1;
+
+    return id;
+
 }
 
 

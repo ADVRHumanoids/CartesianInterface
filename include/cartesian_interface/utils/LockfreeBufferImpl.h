@@ -90,6 +90,8 @@ namespace XBot { namespace Cartesian {
                                          
         virtual bool getPoseTarget(const std::string& end_effector, 
                                    Eigen::Affine3d& base_T_ref) const;
+
+        virtual int getCurrentSegmentId(const std::string& end_effector) const;
                                    
         virtual bool getReferencePosture(XBot::JointNameMap& qref) const;
         
@@ -145,6 +147,7 @@ namespace XBot { namespace Cartesian {
             
             ControlType control_type;
             State state;
+            int wp_id;
         };
         
         struct InteractionTaskState

@@ -59,6 +59,8 @@ namespace XBot { namespace Cartesian {
         virtual Eigen::Affine3d evaluate(double time, 
                                  Eigen::Vector6d * const vel = nullptr, 
                                  Eigen::Vector6d * const acc = nullptr);
+
+        int getCurrentSegmentId(double time) const;
         
         bool isTrajectoryEnded(double time);
         
