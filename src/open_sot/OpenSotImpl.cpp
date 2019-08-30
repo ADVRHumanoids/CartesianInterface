@@ -12,6 +12,10 @@
 #include <OpenSoT/constraints/velocity/JointLimits.h>
 #include <OpenSoT/constraints/velocity/VelocityLimits.h>
 #include <OpenSoT/constraints/TaskToConstraint.h>
+#include <OpenSoT/solvers/eHQP.h>
+#include <OpenSoT/solvers/iHQP.h>
+#include <OpenSoT/solvers/nHQP.h>
+
 
 using namespace XBot::Cartesian;
 
@@ -45,6 +49,30 @@ namespace
         else
         {
             throw std::runtime_error("Invalid back end '" + back_end_string + "'");
+        }
+    }
+
+    OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_string(std::string front_end_string,
+                                                                                      OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::Stack& stack_of_tasks,
+                                                                                      OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::ConstraintPtr bounds,
+                                                                                      const double eps_regularisation,
+                                                                                      const OpenSoT::solvers::solver_back_ends be_solver)
+    {
+        if(front_end_string == "ihqp")
+        {
+            return boost::make_shared<OpenSoT::solvers::iHQP>(stack_of_tasks, bounds, eps_regularisation, be_solver);
+        }
+        else if(front_end_string == "ehqp")
+        {
+            return boost::make_shared<OpenSoT::solvers::eHQP>(stack_of_tasks);
+        }
+        else if(front_end_string == "nhqp")
+        {
+            return boost::make_shared<OpenSoT::solvers::nHQP>(stack_of_tasks, bounds, eps_regularisation, be_solver);
+        }
+        else
+        {
+            throw std::runtime_error("Invalid front end '" + front_end_string + "'");
         }
     }
 }
@@ -469,11 +497,19 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     using BackEnd = OpenSoT::solvers::solver_back_ends;
     double eps_regularization = 1e6;
     BackEnd solver_backend = BackEnd::qpOASES;
+    std::string front_end_string = "ihqp";
+
+    if(has_config() && get_config()["front_end"])
+    {
+        front_end_string = get_config()["front_end"].as<std::string>();
+        Logger::info(Logger::Severity::HIGH, "OpenSot: using front-end '%s'\n", front_end_string.c_str());
+    }
     
     if(has_config() && get_config()["back_end"])
     {
         std::string back_end_string = get_config()["back_end"].as<std::string>();
         solver_backend = ::backend_from_string(back_end_string);
+        Logger::info(Logger::Severity::HIGH, "OpenSot: using back-end '%s'\n", back_end_string.c_str());
     }
     
     if(has_config() && get_config()["regularization"])
@@ -482,17 +518,15 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
         eps_regularization *= 1e12;
     }
     
-    std::string back_end = OpenSoT::solvers::whichBackEnd(solver_backend);
-    
-    Logger::info(Logger::Severity::HIGH, "OpenSot: using back-end %s\n", back_end.c_str());
     Logger::info(Logger::Severity::HIGH, "OpenSot: regularization value is %.1e\n", eps_regularization);
 
     /* Create solver */
-    _solver = boost::make_shared<OpenSoT::solvers::iHQP>(_autostack->getStack(),
-                                                         _autostack->getBounds(),
-                                                         eps_regularization,
-                                                         solver_backend
-                                                        );
+    _solver = ::frontend_from_string(front_end_string,
+                                   _autostack->getStack(),
+                                   _autostack->getBounds(),
+                                   eps_regularization,
+                                   solver_backend
+                                   );
     
     /* Fill lambda map */
     if(_com_task)
