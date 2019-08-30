@@ -586,6 +586,11 @@ OpenSotAccImpl::OpenSotAccImpl(XBot::ModelInterface::Ptr model,
     _id = boost::make_shared<OpenSoT::utils::InverseDynamics>(_links_in_contact, *_model);
     _qddot = _id->getJointsAccelerationAffine();
     _contact_wrenches = _id->getContactsWrenchAffine();
+    for(unsigned int i = 0; i < _contact_wrenches.size(); ++i)
+    {
+        _contact_wrncs.push_back(Eigen::Vector6d::Zero());
+    }
+
 //     XBot::Logger::info("ID - Contact wrench size : %i\n", _contact_wrenches[0].getOutputSize());
     _x.setZero(_qddot.getInputSize());
     _tau.setZero(_q.size());
@@ -786,20 +791,21 @@ bool OpenSotAccImpl::update(double time, double period)
         {         
           t->setKp(k);
           t->setKd(d);
+          t->setVirtualForce(f);
       } 
     }
     
-    for(auto t: _force_tasks)
-    {
-      Eigen::Vector6d f;
-      Eigen::Matrix6d k, d; 
-      if(getDesiredInteraction(t->getDistalLink(), f, k, d))
-      {
-        // the solver expects forces from the environment to the robot, so to set the forces from the robot to the environment we change sign
-        t->setReference(-f); 
-//         Logger::info() << "Set new force: " << f.transpose() << Logger::endl();
-      }
-    }
+//    for(auto t: _force_tasks)
+//    {
+//      Eigen::Vector6d f;
+//      Eigen::Matrix6d k, d;
+//      if(getDesiredInteraction(t->getDistalLink(), f, k, d))
+//      {
+//        // the solver expects forces from the environment to the robot, so to set the forces from the robot to the environment we change sign
+//        t->setReference(-f);
+////         Logger::info() << "Set new force: " << f.transpose() << Logger::endl();
+//      }
+//    }
     
     _autostack->update(_q);
     _autostack->log(_logger);
@@ -814,7 +820,7 @@ bool OpenSotAccImpl::update(double time, double period)
     
 //     Logger::info() << "Solution: " << _x.transpose() << Logger::endl();
 
-    _id->computedTorque(_x, _tau, _ddq);
+    _id->computedTorque(_x, _tau, _ddq, _contact_wrncs);
     
     _model->setJointAcceleration(_ddq);
     _model->setJointEffort(_tau);
@@ -822,6 +828,8 @@ bool OpenSotAccImpl::update(double time, double period)
     _logger->add("ddq", _ddq);
     _logger->add("tau", _tau);
     _logger->add("solution", _x);
+    for(unsigned int i = 0; i < _contact_wrncs.size(); ++i)
+        _logger->add("contact_wrench_"+i, _contact_wrncs[i]);
 
 
     return success;

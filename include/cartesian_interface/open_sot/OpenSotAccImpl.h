@@ -84,6 +84,7 @@ private:
     
     Eigen::VectorXd _qref;
     Eigen::VectorXd _q, _dq, _ddq, _x;
+    std::vector<Eigen::Vector6d> _contact_wrncs;
     
     std::vector<SoT::TaskInterface::Ptr> _task_ifc;
     std::vector<CartesianAccTask::Ptr> _cartesian_tasks, _interaction_tasks;
