@@ -56,11 +56,15 @@ namespace
                                                                                       OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::Stack& stack_of_tasks,
                                                                                       OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::ConstraintPtr bounds,
                                                                                       const double eps_regularisation,
-                                                                                      const OpenSoT::solvers::solver_back_ends be_solver)
+                                                                                      const OpenSoT::solvers::solver_back_ends be_solver,
+                                                                                      YAML::Node options)
     {
         if(front_end_string == "ihqp")
         {
-            return boost::make_shared<OpenSoT::solvers::iHQP>(stack_of_tasks, bounds, eps_regularisation, be_solver);
+            return boost::make_shared<OpenSoT::solvers::iHQP>(stack_of_tasks,
+                                                              bounds,
+                                                              eps_regularisation,
+                                                              be_solver);
         }
         else if(front_end_string == "ehqp")
         {
@@ -68,7 +72,24 @@ namespace
         }
         else if(front_end_string == "nhqp")
         {
-            return boost::make_shared<OpenSoT::solvers::nHQP>(stack_of_tasks, bounds, eps_regularisation, be_solver);
+            auto frontend = boost::make_shared<OpenSoT::solvers::nHQP>(stack_of_tasks,
+                                                                       bounds,
+                                                                       eps_regularisation,
+                                                                       be_solver);
+            if(options && options["nhqp_min_sv_ratio"])
+            {
+                if(options["nhqp_min_sv_ratio"].IsScalar())
+                {
+                    frontend->setMinSingularValueRatio(options["nhqp_min_sv_ratio"].as<double>());
+                }
+
+                if(options["nhqp_min_sv_ratio"].IsSequence())
+                {
+                    frontend->setMinSingularValueRatio(options["nhqp_min_sv_ratio"].as<std::vector<double>>());
+                }
+            }
+
+            return frontend;
         }
         else
         {
@@ -525,7 +546,8 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
                                    _autostack->getStack(),
                                    _autostack->getBounds(),
                                    eps_regularization,
-                                   solver_backend
+                                   solver_backend,
+                                   get_config()
                                    );
     
     /* Fill lambda map */
