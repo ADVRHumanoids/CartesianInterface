@@ -37,6 +37,36 @@
 
 namespace XBot { namespace Cartesian {
 
+    class ReachActionManager
+    {
+
+    public:
+
+        ReachActionManager(ros::NodeHandle nh,
+                           std::string ee_name,
+                           CartesianInterface::Ptr ci);
+
+        void run();
+
+    private:
+
+        typedef actionlib::SimpleActionServer<cartesian_interface::ReachPoseAction> ActionServer;
+        typedef std::shared_ptr<ActionServer> ActionServerPtr;
+
+        enum class ReachActionState { IDLE, ACCEPTED, RUNNING, COMPLETED };
+
+        void run_state_idle();
+        void run_state_accepted();
+        void run_state_running();
+        void run_state_completed();
+
+        ActionServerPtr _action_server;
+        CartesianInterface::Ptr _cartesian_interface;
+        ReachActionState _state;
+        std::string _ee_name;
+
+    };
+
     /**
      * @brief The RosServerClass exposes a complete ROS API to the world.
      * For instance, the internal state of the provided CartesianInterface is
@@ -106,7 +136,6 @@ namespace XBot { namespace Cartesian {
         void publish_solution(ros::Time time);
         void publish_ref_tf(ros::Time time);
         void publish_world_tf(ros::Time time);
-        static geometry_msgs::Pose get_normalized_pose(const geometry_msgs::Pose& pose);
 
         void online_position_reference_cb(const geometry_msgs::PoseStampedConstPtr& msg,
                                           const std::string& ee_name);
@@ -162,8 +191,7 @@ namespace XBot { namespace Cartesian {
         tf::TransformBroadcaster _tf_broadcaster;
         std::unique_ptr<RsPub> _rspub;
 
-        std::vector<ActionServerPtr> _action_servers;
-        std::vector<bool> _is_action_active;
+        std::vector<ReachActionManager> _action_managers;
         std::vector<ros::Subscriber> _pos_sub, _vel_sub, _imp_sub, _force_sub;
         std::vector<ros::Publisher> _state_pub;
         ros::Publisher _com_pub, _posture_pub, _solution_pub;
@@ -178,6 +206,8 @@ namespace XBot { namespace Cartesian {
         
         
     };
+
+
 
 } }
 
