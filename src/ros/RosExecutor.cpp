@@ -363,7 +363,11 @@ void RosExecutor::init_create_loop_timer()
     
     cartesian_interface::LoadControllerRequest load_ctrl_req;
     cartesian_interface::LoadControllerResponse load_ctrl_res;
-    _xbot_cfg.get_parameter("solver", load_ctrl_req.controller_name);
+
+    if(!_xbot_cfg.get_parameter("solver", load_ctrl_req.controller_name))
+    {
+        throw std::runtime_error("'solver' parameter missing");
+    }
     
     loader_callback(load_ctrl_req, load_ctrl_res);
     
