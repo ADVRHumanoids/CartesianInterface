@@ -48,6 +48,7 @@ add_message_files(
   Impedance3.msg 
   Impedance6.msg
   JoystickStatus.msg
+  ForceEstimationMsg.msg
 )
 
 # Generate services in the 'srv' folder
