@@ -43,8 +43,9 @@ int main(int argc, char ** argv)
     tau_offset.setZero(model->getJointNum());
     model->mapToEigen(tau_off_map_xbot, tau_offset);
     
-    
-    Utils::ForceEstimation f_est(model, svd_th);
+    bool momentum_based = nh_priv.param("use_momentum_based_observer", false);
+    double obs_bw = nh_priv.param("obs_bw", 4.0);
+    Utils::ForceEstimation f_est(model, svd_th, rate, true, obs_bw);
     
     std::map<XBot::ForceTorqueSensor::ConstPtr, ros::Publisher> ft_map;
     

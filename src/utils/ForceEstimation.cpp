@@ -4,11 +4,19 @@
 using namespace XBot::Cartesian::Utils;
 
 ForceEstimation::ForceEstimation(ModelInterface::ConstPtr model, 
-                                 double svd_threshold):
+                                 double svd_threshold,
+				 double rate,
+				 bool momentum_based,
+				 double obs_bw):
     _model(model),
-    _ndofs(0)
+    _ndofs(0),
+    _rate(rate),
+    _momentum_based(momentum_based),
+    _k_obs(2.0 * M_PI * obs_bw),
+    _logger(XBot::MatLogger::getLogger("/tmp/force_estimation_log"))
 {
     _svd.setThreshold(svd_threshold);
+    init_momentum_obs();
 }
 
 
@@ -96,15 +104,7 @@ void ForceEstimation::compute_A_b()
         }
     }
     
-    _model->getJointEffort(_tau);
-    _model->computeGravityCompensation(_g);
-    
-    /* Check for torque spikes */
-    const double MAX_ALLOWED_TORQUE = 300.0;
-    if((_tau.array().abs() < MAX_ALLOWED_TORQUE).all())
-    {
-        _y = _g - _tau;
-    }
+    compute_residuals();
     
     int idx = 0;
     for(int i : _meas_idx)
@@ -150,6 +150,8 @@ void ForceEstimation::update()
         t.sensor->setWrench(wrench, 0.0);
         
     }
+    
+    log(_logger);
 }
 
 void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger::Ptr logger) const
@@ -172,6 +174,10 @@ void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger::Ptr logger) const
     logger->add("fest_b", _b);
     logger->add("fest_tau", _tau);
     logger->add("fest_g", _g);
+    logger->add("fest_res", _y);
+    logger->add("fest_static_res", _y_static);
+}
+
 bool ForceEstimation::get_residuals(Eigen::VectorXd &res) const
 {
     res.resize(_meas_idx.size());
@@ -179,3 +185,78 @@ bool ForceEstimation::get_residuals(Eigen::VectorXd &res) const
     
     return true;
 }
+
+void ForceEstimation::compute_residuals()
+{
+    if(_momentum_based){
+	
+	_model->getJointVelocity(_qdot);
+	/* Estimate link-side vel to avoid using link-side faulty readings from FW. */
+// 	_model->getJointPosition(_q);	
+// 	_qdot = (_q - _q_old) * _rate;
+// 	_q_old = _q;
+	/* update the model to compute _M with not faulty velocity. _model can't be a ConstPtr if doing this  */
+// 	_model->setJointVelocity(_qdot);
+// 	_model->update();
+	
+	/* Observer */
+	_model->getInertiaMatrix(_M);
+	_p1 = _M * _qdot;
+	
+	_Mdot = (_M - _M_old) * _rate;
+	_M_old = _M;
+	_model->computeNonlinearTerm(_h);
+	_model->computeGravityCompensation(_g);
+	_coriolis = _h - _g;
+	_model->getJointEffort(_tau);
+	_p2 += (_tau + (_Mdot * _qdot - _coriolis) - _g + _y) / _rate;
+	
+	_y = _k_obs*(_p1 - _p2 - _p0);
+	
+// 	
+	_model->getJointEffort(_tau);
+	_model->computeGravityCompensation(_g);
+	
+	/* Check for torque spikes */
+	const double MAX_ALLOWED_TORQUE = 300.0;
+	if((_tau.array().abs() < MAX_ALLOWED_TORQUE).all())
+	{
+	    _y_static = _g - _tau;
+	}
+    }
+    else {
+	_model->getJointEffort(_tau);
+	_model->computeGravityCompensation(_g);
+	
+	/* Check for torque spikes */
+	const double MAX_ALLOWED_TORQUE = 300.0;
+	if((_tau.array().abs() < MAX_ALLOWED_TORQUE).all())
+	{
+	    _y = _g - _tau;
+	}
+    }
+}
+
+void ForceEstimation::init_momentum_obs()
+{
+    _p1.setZero(_model->getJointNum());
+    _p2.setZero(_model->getJointNum());
+    _y.setZero(_model->getJointNum());
+    _coriolis.setZero(_model->getJointNum());
+    _h.setZero(_model->getJointNum());
+    
+    _model->getInertiaMatrix(_M);
+    _model->getJointPosition(_q);
+    _model->getJointVelocity(_qdot);
+    _p0 = _M * _qdot;
+    
+    _M_old = _M;
+    _q_old = _q;
+}
+
+ForceEstimation::~ForceEstimation()
+{
+    _logger->flush();
+}
+
+
