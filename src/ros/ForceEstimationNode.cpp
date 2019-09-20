@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/WrenchStamped.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <cartesian_interface/ForceEstimationMsg.h>
 
 #include <XBotInterface/RobotInterface.h>
 #include <RobotInterfaceROS/ConfigFromParam.h>
@@ -56,7 +57,10 @@ int main(int argc, char ** argv)
         ft_map[f_est.add_link(l, dofs, chains)] = pub;
     }
     
+    auto res_pub = nh.advertise<cartesian_interface::ForceEstimationMsg>("residuals", 1);
+    
     Eigen::VectorXd tau;
+    Eigen::VectorXd res;
     ros::Rate loop_rate(rate);
     
     while(ros::ok())
@@ -70,7 +74,23 @@ int main(int argc, char ** argv)
         model->setJointEffort(tau);
         
         f_est.update();
+	
+	f_est.get_residuals(res);
+	
+	cartesian_interface::ForceEstimationMsg res_msg;
         
+	res_msg.residuals.header.stamp = ros::Time::now();
+	
+	res_msg.residuals.name.reserve(model->getJointNum());
+	res_msg.residuals.effort.reserve(model->getJointNum());
+	int i = 0;
+	for(const std::string& joint_name : model->getEnabledJointNames())
+	{
+	    res_msg.residuals.name.push_back(joint_name);
+	    res_msg.residuals.effort.push_back(res[i]);
+	    i++;
+	}
+	
         for(auto& ft_pub : ft_map)
         {
             geometry_msgs::WrenchStamped msg;
@@ -82,9 +102,13 @@ int main(int argc, char ** argv)
             
             msg.header.frame_id = ft_pub.first->getSensorName();
             msg.header.stamp = ros::Time::now();
+	    
+	    res_msg.wrenches.push_back(msg);
             
             ft_pub.second.publish(msg);
         }
+        
+        res_pub.publish(res_msg);
         
         loop_rate.sleep();
     }

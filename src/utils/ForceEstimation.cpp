@@ -172,4 +172,10 @@ void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger::Ptr logger) const
     logger->add("fest_b", _b);
     logger->add("fest_tau", _tau);
     logger->add("fest_g", _g);
+bool ForceEstimation::get_residuals(Eigen::VectorXd &res) const
+{
+    res.resize(_meas_idx.size());
+    res = _y;
+    
+    return true;
 }

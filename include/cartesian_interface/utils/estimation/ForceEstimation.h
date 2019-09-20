@@ -25,8 +25,9 @@ namespace XBot { namespace Cartesian { namespace Utils {
         void update();
         
         void log(MatLogger::Ptr logger) const;
-        
-        
+
+        bool get_residuals(Eigen::VectorXd &res) const;
+	
     private:
         
         void compute_A_b();
