@@ -17,8 +17,7 @@ int main(int argc, char ** argv)
     
     auto robot = XBot::RobotInterface::getRobot(XBot::ConfigOptionsFromParamServer());
     auto model = XBot::ModelInterface::getModel(XBot::ConfigOptionsFromParamServer());
-    auto imu = robot->getImu().begin()->second;
-    
+//     auto imu = robot->getImu().begin()->second;
     
     double rate = nh_priv.param("rate", 25.0);
     auto links = nh_priv.param("links", std::vector<std::string>());
@@ -64,7 +63,7 @@ int main(int argc, char ** argv)
     {
         robot->sense(false);
         model->syncFrom(*robot, XBot::Sync::All, XBot::Sync::MotorSide);
-        model->setFloatingBaseState(imu);
+//         model->setFloatingBaseState(imu);
         model->update();
         model->getJointEffort(tau);
         tau += tau_offset;
