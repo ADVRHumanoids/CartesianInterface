@@ -61,7 +61,7 @@ int main(int argc, char ** argv)
     auto res_pub = nh.advertise<cartesian_interface::ForceEstimationMsg>("residuals", 1);
     
     Eigen::VectorXd tau;
-    Eigen::VectorXd res;
+    Eigen::VectorXd res, static_res;
     ros::Rate loop_rate(rate);
     
     while(ros::ok())
@@ -77,9 +77,13 @@ int main(int argc, char ** argv)
         f_est.update();
 	
 	f_est.get_residuals(res);
+	f_est.get_static_residuals(static_res);
 	
 	cartesian_interface::ForceEstimationMsg res_msg;
         
+	res_msg.momentum_based = momentum_based;
+	
+	//publish raw residuals
 	res_msg.residuals.header.stamp = ros::Time::now();
 	
 	res_msg.residuals.name.reserve(model->getJointNum());
@@ -89,6 +93,19 @@ int main(int argc, char ** argv)
 	{
 	    res_msg.residuals.name.push_back(joint_name);
 	    res_msg.residuals.effort.push_back(res[i]);
+	    i++;
+	}
+	
+	//publish raw static residuals
+	res_msg.static_residuals.header.stamp = ros::Time::now();
+	
+	res_msg.static_residuals.name.reserve(model->getJointNum());
+	res_msg.static_residuals.effort.reserve(model->getJointNum());
+	i = 0;
+	for(const std::string& joint_name : model->getEnabledJointNames())
+	{
+	    res_msg.static_residuals.name.push_back(joint_name);
+	    res_msg.static_residuals.effort.push_back(static_res[i]);
 	    i++;
 	}
 	

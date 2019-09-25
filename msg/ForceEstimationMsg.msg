@@ -1,2 +1,4 @@
+bool momentum_based
 sensor_msgs/JointState residuals
+sensor_msgs/JointState static_residuals
 geometry_msgs/WrenchStamped[] wrenches

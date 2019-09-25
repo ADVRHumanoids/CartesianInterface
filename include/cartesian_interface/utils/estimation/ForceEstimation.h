@@ -32,6 +32,7 @@ namespace XBot { namespace Cartesian { namespace Utils {
         void log(MatLogger::Ptr logger) const;
 
         bool get_residuals(Eigen::VectorXd &res) const;
+	bool get_static_residuals(Eigen::VectorXd &static_res) const;
 	
 	~ForceEstimation();
         

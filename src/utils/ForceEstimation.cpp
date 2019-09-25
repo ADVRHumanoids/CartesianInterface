@@ -186,6 +186,14 @@ bool ForceEstimation::get_residuals(Eigen::VectorXd &res) const
     return true;
 }
 
+bool ForceEstimation::get_static_residuals(Eigen::VectorXd &static_res) const
+{
+    static_res.resize(_meas_idx.size());
+    static_res = _y_static;
+    
+    return true;
+}
+
 void ForceEstimation::compute_residuals()
 {
     if(_momentum_based){
@@ -242,6 +250,7 @@ void ForceEstimation::init_momentum_obs()
     _p1.setZero(_model->getJointNum());
     _p2.setZero(_model->getJointNum());
     _y.setZero(_model->getJointNum());
+    _y_static.setZero(_model->getJointNum());
     _coriolis.setZero(_model->getJointNum());
     _h.setZero(_model->getJointNum());
     
