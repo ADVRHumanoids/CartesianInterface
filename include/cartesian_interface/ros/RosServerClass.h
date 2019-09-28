@@ -24,14 +24,10 @@
 #include <geometry_msgs/WrenchStamped.h>
 #include <sensor_msgs/JointState.h>
 
-#ifndef XBOT_RSPUB
-    #include <robot_state_publisher/robot_state_publisher.h>
-#else
-    #include <robot_state_publisher_advr/robot_state_publisher_advr.h>
-#endif
 
 #include <tf/transform_broadcaster.h>
 #include <tf_conversions/tf_eigen.h>
+#include <cartesian_interface/utils/RobotStatePublisher.h>
 
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 
@@ -107,13 +103,9 @@ namespace XBot { namespace Cartesian {
     private:
 
         typedef actionlib::SimpleActionServer<cartesian_interface::ReachPoseAction> ActionServer;
-        typedef std::shared_ptr<ActionServer> ActionServerPtr;
-        
-#ifndef XBOT_RSPUB
-        typedef robot_state_publisher::RobotStatePublisher RsPub;
-#else
-        typedef robot_state_publisher_advr::RobotStatePublisher RsPub;
-#endif
+        typedef std::shared_ptr<ActionServer> ActionServerPtr;        
+        typedef Utils::RobotStatePublisher RsPub;
+
 
         void init_reach_pose_action_servers();
         void init_state_broadcasting();

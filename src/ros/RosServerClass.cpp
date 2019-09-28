@@ -53,10 +53,7 @@ void RosServerClass::init_state_broadcasting()
 
 void RosServerClass::init_rspub()
 {
-    KDL::Tree kdl_tree;
-    kdl_parser::treeFromUrdfModel(_model->getUrdf(), kdl_tree);
-
-    _rspub.reset(new RsPub(kdl_tree));
+    _rspub.reset(new RsPub(_model));
 
     ros::NodeHandle base_nh;
     if(!base_nh.hasParam("robot_description"))
@@ -74,22 +71,7 @@ void RosServerClass::init_rspub()
 void RosServerClass::publish_ref_tf(ros::Time time)
 {
     /* Publish TF */
-    XBot::JointNameMap _joint_name_map;
-    _model->getJointPosition(_joint_name_map);
-    std::map<std::string, double> _joint_name_std_map;
-    
-    auto predicate = [](const std::pair<std::string, double>& pair)
-    {
-        return pair.first.find("VIRTUALJOINT") == std::string::npos;
-    };
-    
-    std::copy_if(_joint_name_map.begin(), _joint_name_map.end(),
-                 std::inserter(_joint_name_std_map, _joint_name_std_map.end()),
-                 predicate);
-
-    _rspub->publishTransforms(_joint_name_std_map, time, _tf_prefix);
-    _rspub->publishFixedTransforms(_tf_prefix, true);
-    
+    _rspub->publishTransforms(time, _tf_prefix);
     
     /* Publish CoM position */
     Eigen::Vector3d com;
@@ -97,7 +79,7 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     
     geometry_msgs::PointStamped com_msg;
     tf::pointEigenToMsg(com, com_msg.point);
-    com_msg.header.frame_id = _tf_prefix_slash + "world_odom";
+    com_msg.header.frame_id = _tf_prefix_slash + "world";
     com_msg.header.stamp = time;
     _com_pub.publish(com_msg);
     
@@ -119,7 +101,7 @@ void RosServerClass::publish_ref_tf(ros::Time time)
 
     _tf_broadcaster.sendTransform(tf::StampedTransform(transform,
                                                        time,
-                                                       _tf_prefix_slash + "world_odom",
+                                                       _tf_prefix_slash + "world",
                                                        _tf_prefix_slash + "com"));
 
 }
