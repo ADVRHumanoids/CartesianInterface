@@ -272,15 +272,6 @@ install(TARGETS torque_feedforward_node torque_feedforward_node
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-# WorldConnecter executable
-add_executable(world_connecter src/ros/WorldConnecter.cpp)
-target_link_libraries(world_connecter ${catkin_LIBRARIES})
-install(TARGETS world_connecter world_connecter
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
 # Robot state publisher executable
 add_executable(robot_state_publisher src/utils/RobotStatePublisherNode.cpp)
 target_link_libraries(robot_state_publisher CartesianInterface)
