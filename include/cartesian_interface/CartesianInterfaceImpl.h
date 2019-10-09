@@ -45,6 +45,7 @@ public:
     void syncFrom(CartesianInterfaceImpl::ConstPtr other);
     
     ModelInterface::Ptr getModel() const;
+    const ProblemDescription& getIkProblem() const;
     
     virtual const std::vector<std::string>& getTaskList() const;
     virtual const std::string& getBaseLink(const std::string& ee_name) const;
@@ -149,7 +150,7 @@ protected:
     const YAML::Node& get_config() const;
     
     XBot::ModelInterface::Ptr _model;
-    
+    ProblemDescription _ik_problem;
     
 private:
     

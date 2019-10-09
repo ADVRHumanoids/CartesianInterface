@@ -508,7 +508,8 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
     _model(model),
     _current_time(0.0),
     _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_logger_" + std::to_string(rand()))),
-    _solver_options(ik_problem.getSolverOptions())
+    _solver_options(ik_problem.getSolverOptions()),
+    _ik_problem(ik_problem)
 {
     /* Parse tasks */
     for(int i = 0; i < ik_problem.getNumTasks(); i++)
@@ -866,8 +867,13 @@ XBot::ModelInterface::Ptr CartesianInterfaceImpl::getModel() const
     return _model;
 }
 
+const ProblemDescription &XBot::Cartesian::CartesianInterfaceImpl::getIkProblem() const
+{
+    return _ik_problem;
+}
+
 bool CartesianInterfaceImpl::getComPositionReference(Eigen::Vector3d& w_com_ref, 
-                                                     Eigen::Vector3d* base_vel_ref, 
+                                                     Eigen::Vector3d* base_vel_ref,
                                                      Eigen::Vector3d* base_acc_ref) const
 {
     if(!_com_task)
