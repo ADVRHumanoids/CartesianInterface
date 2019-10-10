@@ -419,19 +419,19 @@ void RosServerClass::publish_world_tf(ros::Time time)
                                                        _tf_prefix_slash + "world_odom"));
     
 
-    /* Publish ref-to-actual-robot fixed tf */
-    if(_tf_prefix != "")
-    {
-        Eigen::Affine3d T_eye;
-        T_eye.setIdentity();
-        tf::Transform transform_eye;
-        tf::transformEigenToTF(T_eye, transform_eye);
+//    /* Publish ref-to-actual-robot fixed tf */
+//    if(_tf_prefix != "")
+//    {
+//        Eigen::Affine3d T_eye;
+//        T_eye.setIdentity();
+//        tf::Transform transform_eye;
+//        tf::transformEigenToTF(T_eye, transform_eye);
 
-        _tf_broadcaster.sendTransform(tf::StampedTransform(transform_eye,
-                                                        time,
-                                                        _tf_prefix_slash + "world",
-                                                        "world"));
-    }
+//        _tf_broadcaster.sendTransform(tf::StampedTransform(transform_eye,
+//                                                        time,
+//                                                        _tf_prefix_slash + "world",
+//                                                        "world"));
+//    }
 }
 
 
