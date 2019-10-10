@@ -33,9 +33,15 @@ int main(int argc, char **argv){
     
     /* Init ROS node */
     ros::init(argc, argv, "xbot_cartesian_marker_spawner");
-    ros::NodeHandle nh("cartesian");
     ros::NodeHandle nh_priv("~");
-    
+
+    std::string ns;
+    if(!nh_priv.getParam("ns",ns))
+        ns = "cartesian";
+
+
+    ros::NodeHandle nh(ns);
+
     /* Reset service */
     auto srv_cbk = std::bind(reset_callback, std::placeholders::_1, std::placeholders::_2, nh);
     auto srv = nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>("markers/reset", srv_cbk);
@@ -129,6 +135,7 @@ void construct_markers(ros::NodeHandle nh, MarkerMap& markers)
                                                    ee_name,
                                                    robot_urdf,
                                                    control_type,
+                                                   nh,
                                                    g_tf_prefix_slash,
                                                    use_mesh
                                                   );

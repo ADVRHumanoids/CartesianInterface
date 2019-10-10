@@ -49,6 +49,13 @@ public:
                     const unsigned int control_type,
                     std::string tf_prefix = "",
                     const bool use_mesh = true);
+    CartesianMarker(const std::string& base_link,
+                    const std::string& distal_link,
+                    const urdf::Model& robot_urdf,
+                    const unsigned int control_type,
+                    ros::NodeHandle& nh,
+                    std::string tf_prefix = "",
+                    const bool use_mesh = true);
     
     ~CartesianMarker();
 
