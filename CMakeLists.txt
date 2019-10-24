@@ -204,6 +204,19 @@ if(${PCL_FOUND})
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 endif()
 
+find_package(fcl QUIET) # FIXME, why is it different from the find package in opensot?
+if(${fcl_FOUND})
+    include_directories(${fcl_INCLUDE_DIRS})
+    add_library(CartesioSelfCollisionAvoidanceAddon SHARED src/open_sot/SelfCollisionAvoidanceAddon.cpp)
+    target_link_libraries(CartesioSelfCollisionAvoidanceAddon PRIVATE ${OpenSoT_LIBRARIES}
+                                                          CartesianInterface
+                                                          ${fcl_LIBRARIES})
+    install(TARGETS CartesioSelfCollisionAvoidanceAddon CartesioSelfCollisionAvoidanceAddon
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+endif()
+
 
 # libCartesianOpenSotAcc
 add_library(CartesianOpenSotAcc SHARED ${CartesianInterfaceSOTacc_SRC})
