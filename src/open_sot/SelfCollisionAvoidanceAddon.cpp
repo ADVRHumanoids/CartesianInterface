@@ -13,20 +13,21 @@ using namespace XBot::Cartesian;
  */
 struct SelfCollisionAvoidance : public ConstraintDescription // inherit from [Constraint/Task]Description!
 {
-    std::list<std::string> contact_links;
     double safety_margin;
     std::string base_link;
     double detection_threshold;
     double link_pair_threshold;
     double bound_scaling;
 
-    SelfCollisionAvoidance(std::list<std::string> contact_links);
+    SelfCollisionAvoidance();
 };
 
-SelfCollisionAvoidance::SelfCollisionAvoidance(std::list<std::string> arg_contact_links):
+SelfCollisionAvoidance::SelfCollisionAvoidance():
     ConstraintDescription("SelfCollisionAvoidance"),  // task type (specified by user in YAML file)
-    contact_links(arg_contact_links),
-    safety_margin(.01)
+    base_link("base_link"),
+    detection_threshold(std::numeric_limits<double>::infinity()),
+    link_pair_threshold(std::numeric_limits<double>::min()),
+    bound_scaling(1.0)
 {
 }
 
@@ -39,26 +40,13 @@ SelfCollisionAvoidance::SelfCollisionAvoidance(std::list<std::string> arg_contac
 extern "C" ConstraintDescription * SelfCollisionAvoidanceConstraintDescriptionFactory(YAML::Node task_node,
                                                                           XBot::ModelInterface::ConstPtr model)
 {
-    std::list<std::string> contact_links;
     
-    if(task_node["contact_links"])
-    {
-        for(auto cl : task_node["contact_links"])
-        {
-            contact_links.push_back(cl.as<std::string>());
-        }
-    }
-    else
-    {
-        throw std::runtime_error("Missing mandatory node 'contact_links' in SelfCollisionAvoidance task");
-    }
-    
-    SelfCollisionAvoidance * task_desc = new SelfCollisionAvoidance(contact_links);
+    SelfCollisionAvoidance * task_desc = new SelfCollisionAvoidance();
     
     if(task_node["base_link"])
       task_desc->base_link = task_node["base_link"].as<std::string>();
     else
-      task_desc->base_link = "world";
+      task_desc->base_link = "base_link";
 
     if(task_node["detection_threshold"])
       task_desc->detection_threshold = task_node["detection_threshold"].as<double>();
@@ -68,7 +56,7 @@ extern "C" ConstraintDescription * SelfCollisionAvoidanceConstraintDescriptionFa
     if(task_node["link_pair_threshold"])
       task_desc->link_pair_threshold = task_node["link_pair_threshold"].as<double>();
     else
-      task_desc->link_pair_threshold = 0.0;
+      task_desc->link_pair_threshold = std::numeric_limits<double>::min();
 
     if(task_node["bound_scaling"])
       task_desc->bound_scaling = task_node["bound_scaling"].as<double>();
