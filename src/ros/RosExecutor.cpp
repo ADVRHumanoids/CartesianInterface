@@ -346,7 +346,9 @@ bool RosExecutor::loader_callback(cartesian_interface::LoadControllerRequest& re
 
 void RosExecutor::load_ros_api()
 {
+    std::string default_tf_prefix = "ci";
     RosServerClass::Options opt;
+    opt.tf_prefix = _nh_priv.param("tf_prefix", default_tf_prefix);
     opt.ros_namespace = _nh.getNamespace();
     _xbot_cfg.get_parameter("tf_prefix", opt.tf_prefix);
     _ros_api.reset();
