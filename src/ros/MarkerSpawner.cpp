@@ -107,11 +107,14 @@ void construct_markers(ros::NodeHandle nh, MarkerMap& markers)
         throw std::runtime_error("Unable to call get_task_list service");
     }
     
-    std::string robot_urdf_string;
-    nh.getParam("/robot_description", robot_urdf_string);
+    std::string robot_urdf_string, param;
+    if (nh.searchParam("robot_description", param)) // Search robot_description relatively to nh namespace
+      nh.getParam(param, robot_urdf_string);
+    else
+       throw std::runtime_error("Unable to get the robot_description from the ROS parameter server");
+
     urdf::Model robot_urdf;
     robot_urdf.initString(robot_urdf_string);
-
 
     for(int i = 0; i < res.distal_links.size(); i++)
     {
