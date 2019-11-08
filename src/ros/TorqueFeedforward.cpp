@@ -12,6 +12,7 @@ std::map<std::string, Eigen::Vector6d> * g_fmap_ptr;
 std::map<std::string, ros::Time> * g_timeoutmap_ptr;
 const double FORCE_TTL = 0.1;
 boost::shared_ptr<OpenSoT::utils::ForceOptimization> g_fopt;
+Eigen::Matrix3d imu_R_w0;
 
 void on_force_recv(const geometry_msgs::WrenchStampedConstPtr& msg, std::string l)
 {
@@ -53,6 +54,7 @@ int main(int argc, char ** argv)
     if(robot->getImu().size() > 0)
     {
         imu = robot->getImu().begin()->second;
+
     }
     else
     {
@@ -128,7 +130,8 @@ int main(int argc, char ** argv)
         
     /* Publish optimized forces */
     std::vector<ros::Publisher> f_pubs;
-    
+    ros::ServiceServer contact_rot_srv;
+
     if(model->isFloatingBase())
     {
         auto f_opt = g_fopt = boost::make_shared<OpenSoT::utils::ForceOptimization>(model, 
@@ -147,13 +150,20 @@ int main(int argc, char ** argv)
         }
         
         /* Service to change link orientation */
-        auto contact_rot_srv = nh.advertiseService("change_contact_frame", 
+        contact_rot_srv = nh.advertiseService("change_contact_frame",
                                                 on_contact_frame_changed);
         
     }
     
     Eigen::VectorXd tau;
     ros::Rate loop_rate(rate);
+    
+    robot->sense(false);
+    auto imu_0 = robot->getImu().begin()->second;
+    Eigen::Matrix3d tmp;
+    imu_0->getOrientation(tmp);
+    imu_R_w0 = tmp.transpose();    
+    std::cout<<"imu_R_w0: "<< imu_R_w0 <<std::endl;
     
     while(ros::ok())
     {
@@ -165,7 +175,7 @@ int main(int argc, char ** argv)
         
         if(model->isFloatingBase() && imu)
         {
-            model->setFloatingBaseState(imu);
+            model->setFloatingBaseState(imu,imu_R_w0);
             model->update();
         }
         
