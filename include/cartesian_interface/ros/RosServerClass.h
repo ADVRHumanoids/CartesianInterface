@@ -121,6 +121,7 @@ namespace XBot { namespace Cartesian {
         void init_postural_task_topics_and_services();
         void init_update_param_services();
         void init_reset_world_service();
+        void init_heartbeat_pub();
 
         void manage_reach_actions();
         void publish_posture_state(ros::Time time);
@@ -142,6 +143,8 @@ namespace XBot { namespace Cartesian {
 
         void online_velocity_reference_cb(const geometry_msgs::TwistStampedConstPtr& msg,
                                           const std::string& ee_name);
+
+        void heartbeat_cb(const ros::TimerEvent& ev);
 
         bool get_task_info_cb(cartesian_interface::GetTaskInfoRequest& req,
                             cartesian_interface::GetTaskInfoResponse& res,
@@ -194,6 +197,8 @@ namespace XBot { namespace Cartesian {
                            _reset_posture_srv, 
                            _update_limits_srv, 
                            _reset_world_srv;
+        ros::Timer _heartbeat_timer;
+        ros::Publisher _heartbeat_pub;
 
         
         
