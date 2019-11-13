@@ -248,6 +248,11 @@ void RosServerClass::online_velocity_reference_cb(const geometry_msgs::TwistStam
     
 }
 
+void RosServerClass::heartbeat_cb(const ros::TimerEvent & ev)
+{
+    _heartbeat_pub.publish(std_msgs::Empty());
+}
+
 void RosServerClass::init_online_pos_topics()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
@@ -405,6 +410,7 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     init_update_param_services();
     init_reset_world_service();
     init_reset_service();
+    init_heartbeat_pub();
 
     _ros_enabled_ci = std::dynamic_pointer_cast<RosEnabled>(_cartesian_interface);
     if(!_ros_enabled_ci || !_ros_enabled_ci->initRos(_nh))
@@ -694,6 +700,15 @@ bool XBot::Cartesian::RosServerClass::reset_posture_cb(std_srvs::TriggerRequest&
 void XBot::Cartesian::RosServerClass::init_reset_world_service()
 {
     _reset_world_srv = _nh.advertiseService("reset_world", &RosServerClass::reset_world_cb, this);
+}
+
+void RosServerClass::init_heartbeat_pub()
+{
+    const double timer_period = 0.1;
+    _heartbeat_pub = _nh.advertise<std_msgs::Empty>("heartbeat", 1);
+    _heartbeat_timer = _nh.createTimer(ros::Duration(timer_period),
+                                       &RosServerClass::heartbeat_cb,
+                                       this);
 }
 
 bool XBot::Cartesian::RosServerClass::reset_world_cb(cartesian_interface::ResetWorldRequest& req,
