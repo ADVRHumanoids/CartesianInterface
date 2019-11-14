@@ -107,7 +107,6 @@ set(CartesianInterface_SRC
         src/problem/Cartesian.cpp
         src/problem/Com.cpp
         src/problem/Gaze.cpp
-        src/problem/AngularMomentum.cpp
         src/problem/Postural.cpp
         src/problem/Interaction.cpp
         src/problem/TaskFactory.cpp
