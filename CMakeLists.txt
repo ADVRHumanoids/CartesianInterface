@@ -205,6 +205,16 @@ if(${PCL_FOUND})
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 endif()
 
+#AngularMomentumAddon (Velocity)
+add_library(CartesioAngularMomentumAddon SHARED src/open_sot/AngularMomentumAddon.cpp)
+target_link_libraries(CartesioAngularMomentumAddon PRIVATE ${OpenSoT_LIBRARIES}
+                                                          CartesianInterface
+                                                          ${PCL_LIBRARIES})
+install(TARGETS CartesioAngularMomentumAddon CartesioAngularMomentumAddon
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 
 # libCartesianOpenSotAcc
 add_library(CartesianOpenSotAcc SHARED ${CartesianInterfaceSOTacc_SRC})
