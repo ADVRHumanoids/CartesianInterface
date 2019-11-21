@@ -6,7 +6,6 @@
 #include <cartesian_interface/problem/Postural.h>
 #include <cartesian_interface/problem/Gaze.h>
 #include <cartesian_interface/problem/Limits.h>
-#include <cartesian_interface/problem/AngularMomentum.h>
 #include <cartesian_interface/utils/LoadObject.hpp>
 #include <boost/make_shared.hpp>
 #include <OpenSoT/constraints/velocity/JointLimits.h>
@@ -288,16 +287,6 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
         _com_task->setLambda(com_desc->lambda);
         
         XBot::Logger::info("OpenSot: Com found, lambda is %f\n", com_desc->lambda);
-    }
-    else if(task_desc->type == "AngularMomentum")
-    {
-        auto angular_mom_desc = GetAsAngularMomentum(task_desc);
-        _minimize_rate_of_change = angular_mom_desc->min_rate;
-
-        opensot_task = _angular_momentum_task = boost::make_shared<AngularMomentumTask>(_q, *_model);
-
-
-        XBot::Logger::info("OpenSot: Angular Momentum found, rate of change minimization set to: %d\n", _minimize_rate_of_change);
     }
     else if(task_desc->type == "Postural")
     {

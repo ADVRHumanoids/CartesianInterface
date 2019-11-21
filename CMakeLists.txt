@@ -107,7 +107,6 @@ set(CartesianInterface_SRC
         src/problem/Cartesian.cpp
         src/problem/Com.cpp
         src/problem/Gaze.cpp
-        src/problem/AngularMomentum.cpp
         src/problem/Postural.cpp
         src/problem/Interaction.cpp
         src/problem/TaskFactory.cpp
@@ -204,6 +203,16 @@ if(${PCL_FOUND})
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 endif()
+
+#AngularMomentumAddon (Velocity)
+add_library(CartesioAngularMomentumAddon SHARED src/open_sot/AngularMomentumAddon.cpp)
+target_link_libraries(CartesioAngularMomentumAddon PRIVATE ${OpenSoT_LIBRARIES}
+                                                          CartesianInterface
+                                                          ${PCL_LIBRARIES})
+install(TARGETS CartesioAngularMomentumAddon CartesioAngularMomentumAddon
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 
 # libCartesianOpenSotAcc
