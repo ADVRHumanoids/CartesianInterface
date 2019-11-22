@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp
                                         robot_state_publisher
                                         message_generation
                                         interactive_markers
-                                        tf tf_conversions)
+                                        tf tf_conversions rviz_visual_tools)
 
 include_directories(include
                     ${OpenSoT_INCLUDE_DIRS}
@@ -210,6 +210,16 @@ target_link_libraries(CartesioAngularMomentumAddon PRIVATE ${OpenSoT_LIBRARIES}
                                                           CartesianInterface
                                                           ${PCL_LIBRARIES})
 install(TARGETS CartesioAngularMomentumAddon CartesioAngularMomentumAddon
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+#CartesianPositionConstraintAddon (Velocity)
+add_library(CartesianPositionConstraintAddon SHARED src/open_sot/CartesianPositionConstraintAddon.cpp)
+target_link_libraries(CartesianPositionConstraintAddon PRIVATE ${OpenSoT_LIBRARIES}
+                                                          CartesianInterface
+                                                          ${PCL_LIBRARIES})
+install(TARGETS CartesianPositionConstraintAddon CartesianPositionConstraintAddon
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
