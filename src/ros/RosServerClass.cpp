@@ -116,15 +116,6 @@ void RosServerClass::online_position_reference_cb(const geometry_msgs::PoseStamp
 
     Eigen::Affine3d T;
     tf::poseMsgToEigen(msg->pose, T);
-
-    if(!msg->header.frame_id.empty() &&  // client specified a frame_id
-            msg->header.frame_id != _cartesian_interface->getBaseLink(ee_name)) // and is not consistent with CI..
-    {
-        Logger::error("Specifying a non-empty header.frame_id (%s) is not supported \n",
-                      msg->header.frame_id.c_str());
-
-        return;
-    }
     
     _cartesian_interface->setPoseReference(ee_name, T);
     
