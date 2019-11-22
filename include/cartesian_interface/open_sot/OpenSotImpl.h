@@ -12,7 +12,6 @@
 #include <OpenSoT/tasks/velocity/CoM.h>
 #include <OpenSoT/tasks/velocity/Postural.h>
 #include <OpenSoT/tasks/velocity/Gaze.h>
-#include <OpenSoT/tasks/velocity/AngularMomentum.h>
 #include <OpenSoT/Solver.h>
 #include <OpenSoT/utils/AutoStack.h>
 
@@ -49,7 +48,6 @@ private:
     typedef OpenSoT::tasks::velocity::Postural PosturalTask;
     typedef OpenSoT::tasks::velocity::CoM CoMTask;
     typedef OpenSoT::tasks::velocity::Gaze GazeTask;
-    typedef OpenSoT::tasks::velocity::AngularMomentum AngularMomentumTask;
     typedef OpenSoT::tasks::Aggregated::TaskPtr TaskPtr;
     typedef OpenSoT::constraints::Aggregated::ConstraintPtr ConstraintPtr;
     
@@ -73,9 +71,7 @@ private:
     std::vector<bool> _use_inertia_matrix;
     CoMTask::Ptr _com_task;
     GazeTask::Ptr _gaze_task;
-    AngularMomentumTask::Ptr _angular_momentum_task;
-    bool _minimize_rate_of_change;
-    
+
     Utils::ForceEstimation::Ptr _force_estimation;
     OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr _solver;
     OpenSoT::AutoStack::Ptr _autostack;

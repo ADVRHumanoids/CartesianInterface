@@ -6,7 +6,6 @@
 #include <cartesian_interface/problem/Postural.h>
 #include <cartesian_interface/problem/Gaze.h>
 #include <cartesian_interface/problem/Limits.h>
-#include <cartesian_interface/problem/AngularMomentum.h>
 #include <cartesian_interface/utils/TaskFactory.h>
 #include <cartesian_interface/problem/MinJointVel.h>
 #include <XBotInterface/Logger.hpp>
