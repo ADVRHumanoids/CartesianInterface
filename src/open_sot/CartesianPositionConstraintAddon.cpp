@@ -122,7 +122,15 @@ public:
         boost::make_shared<OpenSoT::constraints::GenericConstraint>("dummy", zero, zero, q.size());
 
         _rviz->enableFrameLocking(true);
+        _rviz->setAlpha(0.3);
         _rviz->enableBatchPublishing(true);
+        _rviz->loadMarkerPub(true, true);
+
+        for(unsigned int i = 0; i < _bC.size(); ++i)
+            publishABCDPlane(_AC(i,0), _AC(i,1), _AC(i,2), _bC[i], rviz_visual_tools::colors::RED);
+
+
+
 
         ROS_INFO("Cartesian Position Constraint found");
     }
@@ -144,13 +152,13 @@ public:
 
     bool update(const CartesianInterface * ci, double time, double period) override
     {
-        for(unsigned int i = 0; i < _bC.size(); ++i)
-            publishABCDPlane(_AC(i,0), _AC(i,1), _AC(i,2), _bC[i], rviz_visual_tools::colors::RED);
+
 
 
         _rviz->trigger();
 
-        ros::spinOnce();
+
+
         return true;
     }
 
