@@ -12,16 +12,16 @@ using namespace XBot::Cartesian;
 /* (1) Define struct that contains the description of the task/constraint,
  * to be parsed from the problem description YAML file
  */
-struct CartesianPositionConstraint : public ConstraintDescription // inherit from [Constraint/Task]Description!
+struct CartesianPosition : public ConstraintDescription // inherit from [Constraint/Task]Description!
 {
     Eigen::MatrixXd A_Cartesian;
     Eigen::MatrixXd b_Cartesian;
     std::string frame_;
 
-    CartesianPositionConstraint(const Eigen::MatrixXd& A, const Eigen::VectorXd& b, const std::string& frame);
+    CartesianPosition(const Eigen::MatrixXd& A, const Eigen::VectorXd& b, const std::string& frame);
 };
 
-CartesianPositionConstraint::CartesianPositionConstraint(const Eigen::MatrixXd& A, const Eigen::VectorXd& b,
+CartesianPosition::CartesianPosition(const Eigen::MatrixXd& A, const Eigen::VectorXd& b,
                                                          const std::string& frame):
     ConstraintDescription("CartesianPosition"),  // task type (specified by user in YAML file)
     A_Cartesian(A), b_Cartesian(b), frame_(frame)
@@ -44,6 +44,7 @@ extern "C" ConstraintDescription * CartesianPositionConstraintDescriptionFactory
     {
         throw std::runtime_error("Missing mandatory node 'frame' in CartesianPositionConstraint");
     }
+    std::cout<<"frame: "<<frame<<std::endl;
 
 
     Eigen::MatrixXd AC(0,3);
@@ -63,27 +64,29 @@ extern "C" ConstraintDescription * CartesianPositionConstraintDescriptionFactory
     {
         throw std::runtime_error("Missing mandatory node 'A' in CartesianPositionConstraint");
     }
+    std::cout<<"AC: \n"<<AC<<std::endl;
 
     Eigen::VectorXd bC(0);
     if(task_node["b"])
     {
-        for(auto plane : task_node["b"])
+        for(auto param : task_node["b"])
         {
-            std::vector<double> plane_params = plane.as<std::vector<double>>();
-            bC = Eigen::Map<Eigen::VectorXd>(plane_params.data(), plane_params.size());
+            bC.conservativeResize(bC.size()+1);
+            bC[bC.size()-1] = param.as<double>();
         }
     }
     else
     {
         throw std::runtime_error("Missing mandatory node 'b' in CartesianPositionConstraint");
     }
+    std::cout<<"bC: \n"<<bC.transpose()<<std::endl;
 
 
     if(AC.rows() != bC.size())
         throw std::runtime_error("A.rows() should be equal to b.size() in CartesianPositionConstraint");
 
 
-    CartesianPositionConstraint * constr_desc = new CartesianPositionConstraint(AC, bC, frame);
+    CartesianPosition * constr_desc = new CartesianPosition(AC, bC, frame);
 
     return constr_desc;
 
@@ -94,21 +97,21 @@ extern "C" ConstraintDescription * CartesianPositionConstraintDescriptionFactory
  *  - provide setBaseLink, setControlMode, and update functionalities (if any)
  * The constructor must take two arguments as in this example.
  */
-class CartesianPositionConstraintOpenSot : public SoT::ConstraintInterface
+class CartesianPositionOpenSot : public SoT::ConstraintInterface
 {
 
 public:
 
-    CartesianPositionConstraintOpenSot(ConstraintDescription::Ptr task_desc, XBot::ModelInterface::ConstPtr model):
+    CartesianPositionOpenSot(ConstraintDescription::Ptr task_desc, XBot::ModelInterface::ConstPtr model):
         SoT::ConstraintInterface(task_desc, model),
         _model(model)
     {
-        auto constr_desc = std::dynamic_pointer_cast<CartesianPositionConstraint>(task_desc); //not used in this case
+        auto constr_desc = std::dynamic_pointer_cast<CartesianPosition>(task_desc); //not used in this case
 
 
         _AC = constr_desc->A_Cartesian;
         _bC = constr_desc->b_Cartesian;
-        _frame = constr_desc->frame_;
+        _frame = "ci/" + constr_desc->frame_;
 
         _rviz = std::make_shared<rviz_visual_tools::RvizVisualTools>(_frame);
 
@@ -118,6 +121,8 @@ public:
         Eigen::VectorXd zero = q; zero.setZero();
         boost::make_shared<OpenSoT::constraints::GenericConstraint>("dummy", zero, zero, q.size());
 
+        _rviz->enableFrameLocking(true);
+        _rviz->enableBatchPublishing(true);
 
         ROS_INFO("Cartesian Position Constraint found");
     }
@@ -140,7 +145,10 @@ public:
     bool update(const CartesianInterface * ci, double time, double period) override
     {
         for(unsigned int i = 0; i < _bC.size(); ++i)
-            publishABCDPlane(_AC(i,0), _AC(i,1), _AC(i,2), _bC[i]);
+            publishABCDPlane(_AC(i,0), _AC(i,1), _AC(i,2), _bC[i], rviz_visual_tools::colors::RED);
+
+
+        _rviz->trigger();
 
         ros::spinOnce();
         return true;
@@ -202,9 +210,9 @@ private:
 };
 
 /* (4) Define the factory function for the SoT::[Task/Constraint]Interface as well. */
-extern "C" SoT::ConstraintInterface * CartesianPositionConstraintOpenSotFactory(ConstraintDescription::Ptr task_desc,
+extern "C" SoT::ConstraintInterface * CartesianPositionOpenSotConstraintFactory(ConstraintDescription::Ptr task_desc,
                                                          XBot::ModelInterface::ConstPtr model)
 {
-    return new CartesianPositionConstraintOpenSot(task_desc, model);
+    return new CartesianPositionOpenSot(task_desc, model);
 }
 
