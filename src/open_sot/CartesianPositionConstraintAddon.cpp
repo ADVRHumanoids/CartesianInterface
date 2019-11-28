@@ -9,6 +9,35 @@
 
 using namespace XBot::Cartesian;
 
+/**
+ * @brief The CartesianPosition Addon
+ *
+ * Implements a Cartesian position constraint in the form:
+ *
+ *      Ax <= b     (1)
+ *
+ *  where A = [a d c] and d defines a plane:
+ *
+ *      ax + dy + cz -b = 0
+ *
+ * The definition in the stack.yaml has the form:
+ *
+ *  CartesianPosition:
+        lib_name: "libCartesianPositionConstraintAddon.so"
+        type: "CartesianPosition"
+        distal_link: "LSoftHand"
+        base_link: "Waist"
+        A:
+        - [1, 0, 0]
+        - [-1, 0, 0]
+        - [0, 1, 0]
+        - [0, -1, 0]
+        b: [0.2, 0.1, 0.1, 0.2]
+        bound_scaling: 0.09 # early activation
+ *
+ * Notice that the A matrix and d has to choosen considering that the constraint is in the form (1)
+ */
+
 /* (1) Define struct that contains the description of the task/constraint,
  * to be parsed from the problem description YAML file
  */
@@ -16,15 +45,27 @@ struct CartesianPosition : public ConstraintDescription // inherit from [Constra
 {
     Eigen::MatrixXd A_Cartesian;
     Eigen::MatrixXd b_Cartesian;
-    std::string frame_;
+    std::string base_link_, distal_link_;
+    double bound_scaling_;
 
-    CartesianPosition(const Eigen::MatrixXd& A, const Eigen::VectorXd& b, const std::string& frame);
+    /**
+     * @brief CartesianPosition constraints the position of a distal link wrt a certain base link
+     * @param A [m x 3] matrix ,each row corresponds to a plane
+     * @param b [m] vector, each elemnt correspond to a plane
+     * @param base_link wrt the plane is specified
+     * @param distal_link constrained frame
+     * @param bound_scaling early activation of the task
+     */
+    CartesianPosition(const Eigen::MatrixXd& A, const Eigen::VectorXd& b,
+                      const std::string& base_link, const std::string& distal_link,
+                      const double bound_scaling);
 };
 
 CartesianPosition::CartesianPosition(const Eigen::MatrixXd& A, const Eigen::VectorXd& b,
-                                                         const std::string& frame):
+                                     const std::string& base_link, const std::string& distal_link,
+                                     const double bound_scaling):
     ConstraintDescription("CartesianPosition"),  // task type (specified by user in YAML file)
-    A_Cartesian(A), b_Cartesian(b), frame_(frame)
+    A_Cartesian(A), b_Cartesian(b), base_link_(base_link), distal_link_(distal_link), bound_scaling_(bound_scaling)
 {
 }
 
@@ -37,14 +78,24 @@ CartesianPosition::CartesianPosition(const Eigen::MatrixXd& A, const Eigen::Vect
 extern "C" ConstraintDescription * CartesianPositionConstraintDescriptionFactory(YAML::Node task_node,
                                                                XBot::ModelInterface::ConstPtr model)
 {
-    std::string frame;
-    if(task_node["frame"])
-        frame = task_node["frame"].as<std::string>();
+    std::string distal_link, base_link;
+    if(task_node["distal_link"])
+    {
+        distal_link = task_node["distal_link"].as<std::string>();
+
+        if(task_node["base_link"])
+            base_link = task_node["base_link"].as<std::string>();
+        else
+            base_link = "world";
+    }
     else
     {
-        throw std::runtime_error("Missing mandatory node 'frame' in CartesianPositionConstraint");
+        throw std::runtime_error("Missing mandatory node 'distal_link' in CartesianPositionConstraint");
     }
-    std::cout<<"frame: "<<frame<<std::endl;
+
+
+    std::cout<<"distal_link: "<<distal_link<<std::endl;
+    std::cout<<"base_link: "<<base_link<<std::endl;
 
 
     Eigen::MatrixXd AC(0,3);
@@ -85,8 +136,15 @@ extern "C" ConstraintDescription * CartesianPositionConstraintDescriptionFactory
     if(AC.rows() != bC.size())
         throw std::runtime_error("A.rows() should be equal to b.size() in CartesianPositionConstraint");
 
+    double bound_scaling;
+    if(task_node["bound_scaling"])
+        bound_scaling = task_node["bound_scaling"].as<double>();
+    else
+        bound_scaling = 0.1;
 
-    CartesianPosition * constr_desc = new CartesianPosition(AC, bC, frame);
+    std::cout<<"bound_scaling: "<<bound_scaling<<std::endl;
+
+    CartesianPosition * constr_desc = new CartesianPosition(AC, bC, base_link, distal_link, bound_scaling);
 
     return constr_desc;
 
@@ -106,20 +164,33 @@ public:
         SoT::ConstraintInterface(task_desc, model),
         _model(model)
     {
-        auto constr_desc = std::dynamic_pointer_cast<CartesianPosition>(task_desc); //not used in this case
+        auto constr_desc = std::dynamic_pointer_cast<CartesianPosition>(task_desc);
 
 
         _AC = constr_desc->A_Cartesian;
         _bC = constr_desc->b_Cartesian;
-        _frame = "ci/" + constr_desc->frame_;
-
-        _rviz = std::make_shared<rviz_visual_tools::RvizVisualTools>(_frame);
+        _base_link = constr_desc->base_link_;
+        _distal_link = constr_desc->distal_link_;
+        _bound_scaling = constr_desc->bound_scaling_;
 
         Eigen::VectorXd q;
         model->getJointPosition(q);
 
-        Eigen::VectorXd zero = q; zero.setZero();
-        boost::make_shared<OpenSoT::constraints::GenericConstraint>("dummy", zero, zero, q.size());
+
+        //Dummy Cartesian Task
+        _dummy_task = boost::make_shared<OpenSoT::tasks::velocity::Cartesian>(
+                    "dummy_task", q, const_cast<XBot::ModelInterface&>(*model), _distal_link, _base_link);
+
+        _constr = boost::make_shared<OpenSoT::constraints::velocity::CartesianPositionConstraint>
+                                (q, _dummy_task, _AC, _bC, _bound_scaling);
+
+
+        _base_link = "ci/" + _base_link;
+        _distal_link = "ci/" + _distal_link;
+
+
+        _rviz = std::make_shared<rviz_visual_tools::RvizVisualTools>(_base_link);
+
 
         _rviz->enableFrameLocking(true);
         _rviz->setAlpha(0.3);
@@ -127,10 +198,7 @@ public:
         _rviz->loadMarkerPub(true, true);
 
         for(unsigned int i = 0; i < _bC.size(); ++i)
-            publishABCDPlane(_AC(i,0), _AC(i,1), _AC(i,2), _bC[i], rviz_visual_tools::colors::RED);
-
-
-
+            publishABCDPlane(_AC(i,0), _AC(i,1), _AC(i,2), -_bC[i], rviz_visual_tools::colors::RED);
 
         ROS_INFO("Cartesian Position Constraint found");
     }
@@ -152,13 +220,7 @@ public:
 
     bool update(const CartesianInterface * ci, double time, double period) override
     {
-
-
-
         _rviz->trigger();
-
-
-
         return true;
     }
 
@@ -207,13 +269,17 @@ private:
     Eigen::MatrixXd _AC;
     Eigen::VectorXd _bC;
 
-    std::string _frame;
+    std::string _base_link, _distal_link;
 
     XBot::ModelInterface::ConstPtr _model;
 
     std::shared_ptr<rviz_visual_tools::RvizVisualTools> _rviz;
 
     SoT::ConstraintPtr _constr;
+
+    OpenSoT::tasks::velocity::Cartesian::Ptr _dummy_task;
+
+    double _bound_scaling;
 
 };
 
