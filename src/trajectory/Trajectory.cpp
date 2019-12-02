@@ -91,7 +91,14 @@ Eigen::Affine3d Trajectory::evaluate(double time, Eigen::Vector6d * const vel, E
 
     Eigen::Quaterniond q_start(start.linear());
     Eigen::Quaterniond q_end(end.linear());
+    Eigen::AngleAxisd delta(q_end * q_start.inverse());
     
+    if (std::fabs(delta.angle() - q_start.angularDistance(q_end)) > 0.01)
+    {
+        delta.angle() = q_start.angularDistance(q_end);
+        delta.axis() *= -1.0;
+    }
+
     double tau, dtau, ddtau;
     XBot::Utils::FifthOrderPlanning(0, 0, 0, 1, t_start, t_end, time, tau, dtau, ddtau);
     
@@ -99,9 +106,9 @@ Eigen::Affine3d Trajectory::evaluate(double time, Eigen::Vector6d * const vel, E
     interpolated.setIdentity();
     interpolated.linear() = q_start.slerp(tau, q_end).toRotationMatrix();
     interpolated.translation() = (1 - tau)*start.translation() + tau*end.translation();
-    
-    if(vel) vel->setZero();
-    if(acc) acc->setZero();
+
+    if(vel) *vel << dtau*(end.translation() - start.translation()), dtau * delta.angle() * delta.axis();
+    if(acc) *acc << ddtau*(end.translation() - start.translation()), 0.0, 0.0, 0.0;
     
     return interpolated;
     
