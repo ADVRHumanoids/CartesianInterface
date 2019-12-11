@@ -45,6 +45,7 @@ public:
     void syncFrom(CartesianInterfaceImpl::ConstPtr other);
     
     ModelInterface::Ptr getModel() const;
+    const ProblemDescription& getIkProblem() const;
     
     virtual const std::vector<std::string>& getTaskList() const;
     virtual const std::string& getBaseLink(const std::string& ee_name) const;
@@ -76,6 +77,8 @@ public:
 
     virtual bool getPoseTarget(const std::string& end_effector, 
                             Eigen::Affine3d& base_T_ref) const;
+
+    virtual int getCurrentSegmentId(const std::string& end_effector) const;
                             
     virtual bool getComPositionReference(Eigen::Vector3d& w_com_ref, 
                                          Eigen::Vector3d* base_vel_ref = nullptr, 
@@ -147,7 +150,7 @@ protected:
     const YAML::Node& get_config() const;
     
     XBot::ModelInterface::Ptr _model;
-    
+    ProblemDescription _ik_problem;
     
 private:
     
@@ -175,6 +178,7 @@ private:
         const Eigen::Vector6d& get_velocity() const;
         const Eigen::Vector6d& get_acceleration() const;
         bool get_pose_target(Eigen::Affine3d& pose_target) const;
+        int get_current_wp(double current_time) const;
         bool is_new_data_available() const;
         
         

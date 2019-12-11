@@ -1,7 +1,33 @@
 #include <cartesian_interface/ros/RosServerClass.h>
 #include <cartesian_interface/GetTaskListResponse.h>
+#include <std_msgs/Empty.h>
 
 using namespace XBot::Cartesian;
+
+namespace  {
+
+geometry_msgs::Pose get_normalized_pose(const geometry_msgs::Pose& pose)
+{
+    Eigen::Vector4d coeff(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
+
+    if(coeff.squaredNorm() == 0)
+    {
+        coeff[0] = 1.0;
+    }
+
+    coeff /= coeff.norm();
+
+    geometry_msgs::Pose norm_pose = pose;
+    norm_pose.orientation.w = coeff[0];
+    norm_pose.orientation.x = coeff[1];
+    norm_pose.orientation.y = coeff[2];
+    norm_pose.orientation.z = coeff[3];
+
+    return norm_pose;
+
+}
+
+}
 
 RosServerClass::Options::Options():
     tf_prefix("ci"),
@@ -28,10 +54,7 @@ void RosServerClass::init_state_broadcasting()
 
 void RosServerClass::init_rspub()
 {
-    KDL::Tree kdl_tree;
-    kdl_parser::treeFromUrdfModel(_model->getUrdf(), kdl_tree);
-
-    _rspub.reset(new RsPub(kdl_tree));
+    _rspub.reset(new RsPub(_model));
 
     ros::NodeHandle base_nh;
     if(!base_nh.hasParam("robot_description"))
@@ -49,22 +72,7 @@ void RosServerClass::init_rspub()
 void RosServerClass::publish_ref_tf(ros::Time time)
 {
     /* Publish TF */
-    XBot::JointNameMap _joint_name_map;
-    _model->getJointPosition(_joint_name_map);
-    std::map<std::string, double> _joint_name_std_map;
-    
-    auto predicate = [](const std::pair<std::string, double>& pair)
-    {
-        return pair.first.find("VIRTUALJOINT") == std::string::npos;
-    };
-    
-    std::copy_if(_joint_name_map.begin(), _joint_name_map.end(),
-                 std::inserter(_joint_name_std_map, _joint_name_std_map.end()),
-                 predicate);
-
-    _rspub->publishTransforms(_joint_name_std_map, time, _tf_prefix);
-    _rspub->publishFixedTransforms(_tf_prefix, true);
-    
+    _rspub->publishTransforms(time, _tf_prefix);
     
     /* Publish CoM position */
     Eigen::Vector3d com;
@@ -72,7 +80,7 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     
     geometry_msgs::PointStamped com_msg;
     tf::pointEigenToMsg(com, com_msg.point);
-    com_msg.header.frame_id = _tf_prefix_slash + "world_odom";
+    com_msg.header.frame_id = _tf_prefix_slash + "world";
     com_msg.header.stamp = time;
     _com_pub.publish(com_msg);
     
@@ -94,7 +102,7 @@ void RosServerClass::publish_ref_tf(ros::Time time)
 
     _tf_broadcaster.sendTransform(tf::StampedTransform(transform,
                                                        time,
-                                                       _tf_prefix_slash + "world_odom",
+                                                       _tf_prefix_slash + "world",
                                                        _tf_prefix_slash + "com"));
 
 }
@@ -222,6 +230,11 @@ void RosServerClass::online_velocity_reference_cb(const geometry_msgs::TwistStam
     
 }
 
+void RosServerClass::heartbeat_cb(const ros::TimerEvent & ev)
+{
+    _heartbeat_pub.publish(std_msgs::Empty());
+}
+
 void RosServerClass::init_online_pos_topics()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
@@ -241,127 +254,15 @@ void RosServerClass::init_reach_pose_action_servers()
 {
     for(std::string ee_name : _cartesian_interface->getTaskList())
     {
-        std::string action_name = "" + ee_name + "/reach";
-
-        _action_servers.emplace_back( new ActionServer(_nh, action_name, false) );
-
-        _action_servers.back()->start();
-
-        _is_action_active.push_back(false);
+        _action_managers.emplace_back(_nh, ee_name, _cartesian_interface);
     }
 }
 
 void RosServerClass::manage_reach_actions()
 {
-    /* Poll */
-    for(int i = 0; i < _action_servers.size(); i++)
+    for(auto& action_manager : _action_managers)
     {
-        ActionServerPtr as = _action_servers[i];
-
-        const std::string& ee_name = _cartesian_interface->getTaskList()[i];
-
-        State current_state = _cartesian_interface->getTaskState(ee_name);
-
-        if(as->isNewGoalAvailable() && current_state != State::Reaching)
-        {
-            if(!_is_action_active[i])
-            {
-                auto goal = as->acceptNewGoal();
-                
-                if(goal->frames.size() != goal->time.size())
-                {
-                    as->setAborted(cartesian_interface::ReachPoseResult(), "Time and frame size must match");
-                    continue;
-                }
-                
-                Eigen::Affine3d base_T_ee;
-                 _cartesian_interface->getCurrentPose(ee_name, base_T_ee);
-                 
-                Trajectory::WayPointVector waypoints;
-                
-                for(int k = 0; k < goal->frames.size(); k++)
-                {
-                    Eigen::Affine3d T_ref;
-                    tf::poseMsgToEigen(get_normalized_pose(goal->frames[k]), T_ref);
-                    
-                    if(goal->incremental)
-                    {
-                        T_ref.linear() = base_T_ee.linear() *  T_ref.linear();
-                        T_ref.translation() = base_T_ee.translation() +  T_ref.translation();
-                    }
-                    
-                    Trajectory::WayPoint wp;
-                    wp.frame = T_ref;
-                    wp.time = goal->time[k];
-                    waypoints.push_back(wp);
-                    
-
-                }
-                
-                Eigen::Affine3d T_first_ref = waypoints[0].frame;
-                
-                if(!_cartesian_interface->setWayPoints(ee_name, waypoints))
-                {
-                    as->setAborted(cartesian_interface::ReachPoseResult(), "Internal error");
-                    continue;
-                }
-
-                current_state = _cartesian_interface->getTaskState(ee_name);
-
-            }
-        }
-
-        if(as->isActive() && as->isPreemptRequested())
-        {
-            XBot::Logger::info(XBot::Logger::Severity::HIGH, "Goal for task %s canceled by user\n", ee_name.c_str());
-            _cartesian_interface->abort(ee_name);
-
-            cartesian_interface::ReachPoseResult result;
-            Eigen::Affine3d base_T_ee, base_T_ref, ref_T_ee;
-            _cartesian_interface->getCurrentPose(ee_name, base_T_ee);
-            _cartesian_interface->getPoseReference(ee_name, base_T_ref);
-            ref_T_ee = base_T_ref.inverse() * base_T_ee;
-
-            tf::poseEigenToMsg(base_T_ref, result.final_frame);
-            result.position_error_norm = ref_T_ee.translation().norm();
-            result.orientation_error_angle = Eigen::AngleAxisd(ref_T_ee.linear()).angle();
-
-            as->setPreempted(result);
-        }
-
-        if(as->isActive())
-        {
-            if(current_state == State::Online)
-            {
-                
-                cartesian_interface::ReachPoseResult result;
-                Eigen::Affine3d base_T_ee, base_T_ref, ref_T_ee;
-                _cartesian_interface->getCurrentPose(ee_name, base_T_ee);
-                _cartesian_interface->getPoseReference(ee_name, base_T_ref);
-                ref_T_ee = base_T_ref.inverse() * base_T_ee;
-
-                tf::poseEigenToMsg(base_T_ee, result.final_frame);
-                result.position_error_norm = ref_T_ee.translation().norm();
-                result.orientation_error_angle = Eigen::AngleAxisd(ref_T_ee.linear()).angle();
-                
-                XBot::Logger::success(XBot::Logger::Severity::HIGH, "Goal for task %s succeded\nFinal position error norm: %f m \nFinal orientation error: %f rad\n", 
-                    ee_name.c_str(), result.position_error_norm, result.orientation_error_angle);
-
-                as->setSucceeded(result);
-            }
-            else
-            {
-                cartesian_interface::ReachPoseFeedback feedback;
-                feedback.current_reference.header.stamp = ros::Time::now();
-                feedback.current_reference.header.frame_id = _cartesian_interface->getBaseLink(ee_name);
-                Eigen::Affine3d base_T_ref;
-                _cartesian_interface->getPoseReference(ee_name, base_T_ref);
-
-                tf::poseEigenToMsg(base_T_ref, feedback.current_reference.pose);
-                as->publishFeedback(feedback);
-
-            }
-        }
+        action_manager.run();
     }
 }
 
@@ -415,7 +316,7 @@ void XBot::Cartesian::RosServerClass::publish_posture_state(ros::Time time)
 void XBot::Cartesian::RosServerClass::publish_solution(ros::Time time)
 {
     sensor_msgs::JointState msg;
-    Eigen::VectorXd _sol_q, _sol_qdot;
+    Eigen::VectorXd _sol_q, _sol_qdot, _sol_tau;
 
     if(_solution_pub.getNumSubscribers() == 0)
     {
@@ -424,6 +325,7 @@ void XBot::Cartesian::RosServerClass::publish_solution(ros::Time time)
     
     _model->getJointPosition(_sol_q);
     _model->getJointVelocity(_sol_qdot);
+    _model->getJointEffort(_sol_tau);
     
     msg.header.stamp = time;
     msg.name.reserve(_model->getJointNum());
@@ -435,6 +337,7 @@ void XBot::Cartesian::RosServerClass::publish_solution(ros::Time time)
         msg.name.push_back(jname);
         msg.position.push_back(_sol_q[i]);
         msg.velocity.push_back(_sol_qdot[i]);
+        msg.effort.push_back(_sol_tau[i]);
         i++;
     }
     
@@ -488,6 +391,7 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     init_postural_task_topics_and_services();
     init_update_param_services();
     init_reset_world_service();
+    init_heartbeat_pub();
 
     _ros_enabled_ci = std::dynamic_pointer_cast<RosEnabled>(_cartesian_interface);
     if(!_ros_enabled_ci || !_ros_enabled_ci->initRos(_nh))
@@ -522,42 +426,21 @@ void RosServerClass::publish_world_tf(ros::Time time)
                                                        _tf_prefix_slash + "world_odom"));
     
 
-    /* Publish ref-to-actual-robot fixed tf */
-    if(_tf_prefix != "")
-    {
-        Eigen::Affine3d T_eye;
-        T_eye.setIdentity();
-        tf::Transform transform_eye;
-        tf::transformEigenToTF(T_eye, transform_eye);
+//    /* Publish ref-to-actual-robot fixed tf */
+//    if(_tf_prefix != "")
+//    {
+//        Eigen::Affine3d T_eye;
+//        T_eye.setIdentity();
+//        tf::Transform transform_eye;
+//        tf::transformEigenToTF(T_eye, transform_eye);
 
-        _tf_broadcaster.sendTransform(tf::StampedTransform(transform_eye,
-                                                        time,
-                                                        _tf_prefix_slash + "world",
-                                                        "world"));
-    }
+//        _tf_broadcaster.sendTransform(tf::StampedTransform(transform_eye,
+//                                                        time,
+//                                                        _tf_prefix_slash + "world",
+//                                                        "world"));
+//    }
 }
 
-
-geometry_msgs::Pose RosServerClass::get_normalized_pose(const geometry_msgs::Pose& pose)
-{
-    Eigen::Vector4d coeff(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
-
-    if(coeff.squaredNorm() == 0)
-    {
-        coeff[0] = 1.0;
-    }
-
-    coeff /= coeff.norm();
-
-    geometry_msgs::Pose norm_pose = pose;
-    norm_pose.orientation.w = coeff[0];
-    norm_pose.orientation.x = coeff[1];
-    norm_pose.orientation.y = coeff[2];
-    norm_pose.orientation.z = coeff[3];
-
-    return norm_pose;
-
-}
 
 void XBot::Cartesian::RosServerClass::init_task_list_service()
 {
@@ -800,6 +683,15 @@ void XBot::Cartesian::RosServerClass::init_reset_world_service()
     _reset_world_srv = _nh.advertiseService("reset_world", &RosServerClass::reset_world_cb, this);
 }
 
+void RosServerClass::init_heartbeat_pub()
+{
+    const double timer_period = 0.1;
+    _heartbeat_pub = _nh.advertise<std_msgs::Empty>("heartbeat", 1);
+    _heartbeat_timer = _nh.createTimer(ros::Duration(timer_period),
+                                       &RosServerClass::heartbeat_cb,
+                                       this);
+}
+
 bool XBot::Cartesian::RosServerClass::reset_world_cb(cartesian_interface::ResetWorldRequest& req,
                                                      cartesian_interface::ResetWorldResponse& res)
 {
@@ -889,3 +781,192 @@ void RosServerClass::online_impedance_reference_cb(const cartesian_interface::Im
 
 
 
+
+ReachActionManager::ReachActionManager(ros::NodeHandle nh,
+                                       std::string ee_name,
+                                       CartesianInterface::Ptr ci):
+    _action_server(new ActionServer(nh, ee_name + "/reach", false)),
+    _cartesian_interface(ci),
+    _state(ReachActionState::IDLE),
+    _ee_name(ee_name)
+{
+    _action_server->start();
+}
+
+void ReachActionManager::run()
+{
+    switch(_state)
+    {
+    case ReachActionState::IDLE:
+        run_state_idle();
+        break;
+    case ReachActionState::ACCEPTED:
+        run_state_accepted();
+        break;
+    case ReachActionState::RUNNING:
+        run_state_running();
+        break;
+    case ReachActionState::COMPLETED:
+        run_state_completed();
+        break;
+    }
+}
+
+void ReachActionManager::run_state_idle()
+{
+    // wait for new goal to be available,
+    // then transit to 'accepted'
+
+    if(_action_server->isNewGoalAvailable())
+    {
+        Logger::info(Logger::Severity::HIGH,
+                     "Accepted new goal for task '%s'\n", _ee_name.c_str());
+
+        // obtain new goal
+        auto goal = _action_server->acceptNewGoal();
+
+        // check consistency
+        if(goal->frames.size() != goal->time.size())
+        {
+            _action_server->setAborted(cartesian_interface::ReachPoseResult(),
+                                       "Time and frame size must match");
+            return; // next state is 'idle'
+        }
+
+        // get current state for task (note: should it be getPoseReference instead?)
+        Eigen::Affine3d base_T_ee;
+         _cartesian_interface->getCurrentPose(_ee_name, base_T_ee);
+
+        // fill waypoint vector
+        Trajectory::WayPointVector waypoints;
+
+        for(int k = 0; k < goal->frames.size(); k++)
+        {
+            Eigen::Affine3d T_ref;
+            tf::poseMsgToEigen(get_normalized_pose(goal->frames[k]), T_ref);
+
+            if(goal->incremental)
+            {
+                T_ref.linear() = base_T_ee.linear() *  T_ref.linear();
+                T_ref.translation() = base_T_ee.translation() +  T_ref.translation();
+            }
+
+            Trajectory::WayPoint wp;
+            wp.frame = T_ref;
+            wp.time = goal->time[k];
+            waypoints.push_back(wp);
+
+        }
+
+        // send waypoints to cartesian ifc
+        if(!_cartesian_interface->setWayPoints(_ee_name, waypoints))
+        {
+            _action_server->setAborted(cartesian_interface::ReachPoseResult(), "Internal error");
+            return; // next state is 'idle'
+        }
+
+        // transit to 'accepted'
+        _state = ReachActionState::ACCEPTED;
+        return;
+    }
+}
+
+void ReachActionManager::run_state_accepted()
+{
+    // wait till cartesian ifc switches state to 'reaching'
+    if(_cartesian_interface->getTaskState(_ee_name) == State::Reaching)
+    {
+        Logger::info(Logger::Severity::HIGH,
+                     "Reaching started for task '%s'\n", _ee_name.c_str());
+
+        _state = ReachActionState::RUNNING; // next state is 'running'
+        return;
+    }
+
+}
+
+void ReachActionManager::run_state_running()
+{
+    // manage preemption
+    if(_action_server->isPreemptRequested())
+    {
+        XBot::Logger::info(XBot::Logger::Severity::HIGH,
+                           "Goal for task '%s' canceled by user\n",
+                           _ee_name.c_str());
+
+        _cartesian_interface->abort(_ee_name);
+
+        cartesian_interface::ReachPoseResult result;
+        Eigen::Affine3d base_T_ee, base_T_ref, ref_T_ee;
+        _cartesian_interface->getCurrentPose(_ee_name, base_T_ee);
+        _cartesian_interface->getPoseReference(_ee_name, base_T_ref);
+        ref_T_ee = base_T_ref.inverse() * base_T_ee;
+
+        tf::poseEigenToMsg(base_T_ref, result.final_frame);
+        result.position_error_norm = ref_T_ee.translation().norm();
+        result.orientation_error_angle = Eigen::AngleAxisd(ref_T_ee.linear()).angle();
+
+        _action_server->setPreempted(result);
+        _state = ReachActionState::COMPLETED; // next state is 'completed'
+        return;
+    }
+
+    // trajectory ended
+    if(_cartesian_interface->getTaskState(_ee_name) == State::Online)
+    {
+
+        cartesian_interface::ReachPoseResult result;
+        Eigen::Affine3d base_T_ee, base_T_ref, ref_T_ee;
+        _cartesian_interface->getCurrentPose(_ee_name, base_T_ee);
+        _cartesian_interface->getPoseReference(_ee_name, base_T_ref);
+        ref_T_ee = base_T_ref.inverse() * base_T_ee;
+
+        tf::poseEigenToMsg(base_T_ee, result.final_frame);
+        result.position_error_norm = ref_T_ee.translation().norm();
+        result.orientation_error_angle = Eigen::AngleAxisd(ref_T_ee.linear()).angle();
+
+        XBot::Logger::success(XBot::Logger::Severity::HIGH,
+                              "Goal for task '%s' succeded \n"
+                              "Final position error norm: %f m \n"
+                              "Final orientation error: %f rad \n",
+                              _ee_name.c_str(),
+                              result.position_error_norm,
+                              result.orientation_error_angle);
+
+        _action_server->setSucceeded(result);
+        _state = ReachActionState::COMPLETED; // next state is 'completed'
+        return;
+    }
+    else // publish feedback
+    {
+        cartesian_interface::ReachPoseFeedback feedback;
+
+        Eigen::Affine3d base_T_ref;
+        feedback.current_reference.header.stamp = ros::Time::now();
+        feedback.current_reference.header.frame_id = _cartesian_interface->getBaseLink(_ee_name);
+        _cartesian_interface->getPoseReference(_ee_name, base_T_ref);
+        tf::poseEigenToMsg(base_T_ref, feedback.current_reference.pose);
+
+        Eigen::Affine3d base_T_ee;
+        feedback.current_pose.header.stamp = ros::Time::now();
+        feedback.current_pose.header.frame_id = _cartesian_interface->getBaseLink(_ee_name);
+        _cartesian_interface->getCurrentPose(_ee_name, base_T_ee);
+        tf::poseEigenToMsg(base_T_ee, feedback.current_pose.pose);
+
+        feedback.current_segment_id = _cartesian_interface->getCurrentSegmentId(_ee_name);
+
+        _action_server->publishFeedback(feedback);
+        return; // next state is 'running'
+
+    }
+}
+
+void ReachActionManager::run_state_completed()
+{
+    XBot::Logger::info(XBot::Logger::Severity::HIGH,
+                               "Goal for task '%s' completed\n",
+                               _ee_name.c_str());
+
+    _state = ReachActionState::IDLE;
+    return;
+}

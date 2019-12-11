@@ -54,6 +54,7 @@ void LockfreeBufferImpl::pushState(CartesianInterface const * ci, ModelInterface
         ci->getAccelerationLimits(pair.first, t.maxacc.first, t.maxacc.second);
         t.control_type = ci->getControlMode(pair.first);
         t.state = ci->getTaskState(pair.first);
+        t.wp_id = ci->getCurrentSegmentId(pair.first);
         
         pair.second.push(t);
     }
@@ -222,6 +223,11 @@ bool LockfreeBufferImpl::getPoseTarget(const std::string& end_effector,
     NOT_IMPL;
 }
 
+int LockfreeBufferImpl::getCurrentSegmentId(const std::string & end_effector) const
+{
+    return _taskstate_map.at(end_effector).wp_id;
+}
+
 bool LockfreeBufferImpl::getReferencePosture(XBot::JointNameMap& qref) const
 {
     NOT_IMPL;
@@ -256,7 +262,10 @@ void LockfreeBufferImpl::getVelocityLimits(const std::string& ee_name, double& m
 
 bool LockfreeBufferImpl::reset(double time)
 {
-    NOT_IMPL;
+    CallbackType f = std::bind(&CartesianInterface::reset,
+                               std::placeholders::_1,
+                               time);
+    return _call_queue.push(f);
 }
 
 bool LockfreeBufferImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)

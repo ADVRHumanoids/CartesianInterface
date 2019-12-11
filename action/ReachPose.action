@@ -10,3 +10,5 @@ float32 orientation_error_angle
 ---
 # Define a feedback message
 geometry_msgs/PoseStamped current_reference
+geometry_msgs/PoseStamped current_pose
+int32 current_segment_id

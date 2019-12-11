@@ -70,10 +70,6 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromConfig(std::st
         std::string solver = ci_node["solver"].as<std::string>();
         xbot_cfg.set_parameter("solver", solver);
     }
-    else
-    {
-        throw std::runtime_error("solver parameter missing");
-    }
     
     if(ci_node["joint_blacklist"])
     {
@@ -144,10 +140,6 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromParamServer(st
     if(nh_private.hasParam("solver") && nh_private.getParam("solver", solver))
     {
         xbot_cfg.set_parameter("solver", solver);
-    }
-    else
-    {
-        throw std::runtime_error("solver parameter missing");
     }
     
     

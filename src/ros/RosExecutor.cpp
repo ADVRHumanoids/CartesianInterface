@@ -363,7 +363,11 @@ void RosExecutor::init_create_loop_timer()
     
     cartesian_interface::LoadControllerRequest load_ctrl_req;
     cartesian_interface::LoadControllerResponse load_ctrl_res;
-    _xbot_cfg.get_parameter("solver", load_ctrl_req.controller_name);
+
+    if(!_xbot_cfg.get_parameter("solver", load_ctrl_req.controller_name))
+    {
+        throw std::runtime_error("'solver' parameter missing");
+    }
     
     loader_callback(load_ctrl_req, load_ctrl_res);
     
@@ -411,10 +415,13 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
     /* Integrate solution */
     _model->getJointPosition(_q);
     _model->getJointVelocity(_qdot);
+    _model->getJointAcceleration(_qddot);
     
-    _q += _period * _qdot;
+    _q += _period * _qdot + 0.5 * std::pow(_period, 2) * _qddot;
+    _qdot += _period * _qddot;
     
     _model->setJointPosition(_q);
+    _model->setJointVelocity(_qdot);
     _model->update();
     
     if(_robot)

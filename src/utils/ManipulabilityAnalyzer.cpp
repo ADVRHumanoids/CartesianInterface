@@ -52,6 +52,11 @@ bool XBot::Cartesian::ManipulabilityAnalyzer::compute_task_matrix(XBot::Cartesia
                                                                   Eigen::Affine3d& T)
 {
     CartesianTask::Ptr cart_ij = GetAsCartesian(task);
+
+    if(!cart_ij)
+    {
+        return false;
+    }
     
     if(cart_ij->type == "Cartesian")
     {

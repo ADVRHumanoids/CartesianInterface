@@ -24,18 +24,44 @@
 #include <geometry_msgs/WrenchStamped.h>
 #include <sensor_msgs/JointState.h>
 
-#ifndef XBOT_RSPUB
-    #include <robot_state_publisher/robot_state_publisher.h>
-#else
-    #include <robot_state_publisher_advr/robot_state_publisher_advr.h>
-#endif
 
 #include <tf/transform_broadcaster.h>
 #include <tf_conversions/tf_eigen.h>
+#include <cartesian_interface/utils/RobotStatePublisher.h>
 
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 
 namespace XBot { namespace Cartesian {
+
+    class ReachActionManager
+    {
+
+    public:
+
+        ReachActionManager(ros::NodeHandle nh,
+                           std::string ee_name,
+                           CartesianInterface::Ptr ci);
+
+        void run();
+
+    private:
+
+        typedef actionlib::SimpleActionServer<cartesian_interface::ReachPoseAction> ActionServer;
+        typedef std::shared_ptr<ActionServer> ActionServerPtr;
+
+        enum class ReachActionState { IDLE, ACCEPTED, RUNNING, COMPLETED };
+
+        void run_state_idle();
+        void run_state_accepted();
+        void run_state_running();
+        void run_state_completed();
+
+        ActionServerPtr _action_server;
+        CartesianInterface::Ptr _cartesian_interface;
+        ReachActionState _state;
+        std::string _ee_name;
+
+    };
 
     /**
      * @brief The RosServerClass exposes a complete ROS API to the world.
@@ -77,13 +103,9 @@ namespace XBot { namespace Cartesian {
     private:
 
         typedef actionlib::SimpleActionServer<cartesian_interface::ReachPoseAction> ActionServer;
-        typedef std::shared_ptr<ActionServer> ActionServerPtr;
-        
-#ifndef XBOT_RSPUB
-        typedef robot_state_publisher::RobotStatePublisher RsPub;
-#else
-        typedef robot_state_publisher_advr::RobotStatePublisher RsPub;
-#endif
+        typedef std::shared_ptr<ActionServer> ActionServerPtr;        
+        typedef Utils::RobotStatePublisher RsPub;
+
 
         void init_reach_pose_action_servers();
         void init_state_broadcasting();
@@ -99,6 +121,7 @@ namespace XBot { namespace Cartesian {
         void init_postural_task_topics_and_services();
         void init_update_param_services();
         void init_reset_world_service();
+        void init_heartbeat_pub();
 
         void manage_reach_actions();
         void publish_posture_state(ros::Time time);
@@ -106,7 +129,6 @@ namespace XBot { namespace Cartesian {
         void publish_solution(ros::Time time);
         void publish_ref_tf(ros::Time time);
         void publish_world_tf(ros::Time time);
-        static geometry_msgs::Pose get_normalized_pose(const geometry_msgs::Pose& pose);
 
         void online_position_reference_cb(const geometry_msgs::PoseStampedConstPtr& msg,
                                           const std::string& ee_name);
@@ -121,6 +143,8 @@ namespace XBot { namespace Cartesian {
 
         void online_velocity_reference_cb(const geometry_msgs::TwistStampedConstPtr& msg,
                                           const std::string& ee_name);
+
+        void heartbeat_cb(const ros::TimerEvent& ev);
 
         bool get_task_info_cb(cartesian_interface::GetTaskInfoRequest& req,
                             cartesian_interface::GetTaskInfoResponse& res,
@@ -162,8 +186,7 @@ namespace XBot { namespace Cartesian {
         tf::TransformBroadcaster _tf_broadcaster;
         std::unique_ptr<RsPub> _rspub;
 
-        std::vector<ActionServerPtr> _action_servers;
-        std::vector<bool> _is_action_active;
+        std::vector<ReachActionManager> _action_managers;
         std::vector<ros::Subscriber> _pos_sub, _vel_sub, _imp_sub, _force_sub;
         std::vector<ros::Publisher> _state_pub;
         ros::Publisher _com_pub, _posture_pub, _solution_pub;
@@ -174,10 +197,14 @@ namespace XBot { namespace Cartesian {
                            _reset_posture_srv, 
                            _update_limits_srv, 
                            _reset_world_srv;
+        ros::Timer _heartbeat_timer;
+        ros::Publisher _heartbeat_pub;
 
         
         
     };
+
+
 
 } }
 

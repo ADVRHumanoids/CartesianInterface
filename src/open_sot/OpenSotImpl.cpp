@@ -6,12 +6,15 @@
 #include <cartesian_interface/problem/Postural.h>
 #include <cartesian_interface/problem/Gaze.h>
 #include <cartesian_interface/problem/Limits.h>
-#include <cartesian_interface/problem/AngularMomentum.h>
 #include <cartesian_interface/utils/LoadObject.hpp>
 #include <boost/make_shared.hpp>
 #include <OpenSoT/constraints/velocity/JointLimits.h>
 #include <OpenSoT/constraints/velocity/VelocityLimits.h>
 #include <OpenSoT/constraints/TaskToConstraint.h>
+#include <OpenSoT/solvers/eHQP.h>
+#include <OpenSoT/solvers/iHQP.h>
+#include <OpenSoT/solvers/nHQP.h>
+
 
 using namespace XBot::Cartesian;
 
@@ -38,9 +41,58 @@ namespace
         {
             return OpenSoT::solvers::solver_back_ends::eiQuadProg;
         }
+        else if(back_end_string == "odys")
+        {
+            return OpenSoT::solvers::solver_back_ends::ODYS;
+        }
         else
         {
             throw std::runtime_error("Invalid back end '" + back_end_string + "'");
+        }
+    }
+
+    OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_string(std::string front_end_string,
+                                                                                      OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::Stack& stack_of_tasks,
+                                                                                      OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::ConstraintPtr bounds,
+                                                                                      const double eps_regularisation,
+                                                                                      const OpenSoT::solvers::solver_back_ends be_solver,
+                                                                                      YAML::Node options)
+    {
+        if(front_end_string == "ihqp")
+        {
+            return boost::make_shared<OpenSoT::solvers::iHQP>(stack_of_tasks,
+                                                              bounds,
+                                                              eps_regularisation,
+                                                              be_solver);
+        }
+        else if(front_end_string == "ehqp")
+        {
+            return boost::make_shared<OpenSoT::solvers::eHQP>(stack_of_tasks);
+        }
+        else if(front_end_string == "nhqp")
+        {
+            auto frontend = boost::make_shared<OpenSoT::solvers::nHQP>(stack_of_tasks,
+                                                                       bounds,
+                                                                       eps_regularisation,
+                                                                       be_solver);
+            if(options && options["nhqp_min_sv_ratio"])
+            {
+                if(options["nhqp_min_sv_ratio"].IsScalar())
+                {
+                    frontend->setMinSingularValueRatio(options["nhqp_min_sv_ratio"].as<double>());
+                }
+
+                if(options["nhqp_min_sv_ratio"].IsSequence())
+                {
+                    frontend->setMinSingularValueRatio(options["nhqp_min_sv_ratio"].as<std::vector<double>>());
+                }
+            }
+
+            return frontend;
+        }
+        else
+        {
+            throw std::runtime_error("Invalid front end '" + front_end_string + "'");
         }
     }
 }
@@ -236,16 +288,6 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
         
         XBot::Logger::info("OpenSot: Com found, lambda is %f\n", com_desc->lambda);
     }
-    else if(task_desc->type == "AngularMomentum")
-    {
-        auto angular_mom_desc = GetAsAngularMomentum(task_desc);
-        _minimize_rate_of_change = angular_mom_desc->min_rate;
-
-        opensot_task = _angular_momentum_task = boost::make_shared<AngularMomentumTask>(_q, *_model);
-
-
-        XBot::Logger::info("OpenSot: Angular Momentum found, rate of change minimization set to: %d\n", _minimize_rate_of_change);
-    }
     else if(task_desc->type == "Postural")
     {
         auto postural_desc = GetAsPostural(task_desc);
@@ -437,6 +479,8 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     _ddq = _dq;
 
     _B.setIdentity(_q.size(), _q.size());
+    
+    
 
     /* Parse stack #0 and create autostack */
     auto stack_0 = aggregated_from_stack(ik_problem.getTask(0));
@@ -463,17 +507,19 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     using BackEnd = OpenSoT::solvers::solver_back_ends;
     double eps_regularization = 1e6;
     BackEnd solver_backend = BackEnd::qpOASES;
+    std::string front_end_string = "ihqp";
+
+    if(has_config() && get_config()["front_end"])
+    {
+        front_end_string = get_config()["front_end"].as<std::string>();
+        Logger::info(Logger::Severity::HIGH, "OpenSot: using front-end '%s'\n", front_end_string.c_str());
+    }
     
     if(has_config() && get_config()["back_end"])
     {
         std::string back_end_string = get_config()["back_end"].as<std::string>();
-        
-        if(back_end_string != "osqp" && back_end_string != "qpoases")
-        {
-            Logger::warning("OpenSot: unrecognised solver %s, falling back to qpOASES (available options: qpoases, osqp)\n", back_end_string.c_str());
-        }
-        
         solver_backend = ::backend_from_string(back_end_string);
+        Logger::info(Logger::Severity::HIGH, "OpenSot: using back-end '%s'\n", back_end_string.c_str());
     }
     
     if(has_config() && get_config()["regularization"])
@@ -482,17 +528,16 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
         eps_regularization *= 1e12;
     }
     
-    std::string back_end = solver_backend == BackEnd::qpOASES ? "qpOASES" : "OSQP";
-    
-    Logger::info(Logger::Severity::HIGH, "OpenSot: using back-end %s\n", back_end.c_str());
     Logger::info(Logger::Severity::HIGH, "OpenSot: regularization value is %.1e\n", eps_regularization);
 
     /* Create solver */
-    _solver = boost::make_shared<OpenSoT::solvers::iHQP>(_autostack->getStack(),
-                                                         _autostack->getBounds(),
-                                                         eps_regularization,
-                                                         solver_backend
-                                                        );
+    _solver = ::frontend_from_string(front_end_string,
+                                   _autostack->getStack(),
+                                   _autostack->getBounds(),
+                                   eps_regularization,
+                                   solver_backend,
+                                   get_config()
+                                   );
     
     /* Fill lambda map */
     if(_com_task)
@@ -645,17 +690,7 @@ bool OpenSotImpl::update(double time, double period)
         }
     }
 
-    /* Handle AngularMomentum */
-    if(_angular_momentum_task)
-    {
-        if(_minimize_rate_of_change)
-        {
-            Eigen::Vector6d MoM;
-            _model->getCentroidalMomentum(MoM);
-            _angular_momentum_task->setReference(MoM.tail(3)*period);
-        }
-    }
-    
+
     /* Postural task */
     if(_postural_tasks.size() > 0 && getReferencePosture(_qref))
     {

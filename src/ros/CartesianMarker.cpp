@@ -61,6 +61,59 @@ CartesianMarker::CartesianMarker(const std::string &base_link,
 
 }
 
+CartesianMarker::CartesianMarker(const std::string& base_link,
+                const std::string& distal_link,
+                const urdf::Model& robot_urdf,
+                const unsigned int control_type,
+                ros::NodeHandle& nh,
+                std::string tf_prefix,
+                const bool use_mesh):
+    _base_link(base_link),
+    _distal_link(distal_link),
+    _urdf(robot_urdf),
+    _server(distal_link + "_Cartesian_marker_server"),
+    _tf_prefix(tf_prefix),
+    _menu_entry_counter(0),
+    _control_type(1),_is_continuous(1), _task_active(-1), _position_feedback_active(-1),
+    _waypoint_action_client(nh, distal_link + "/reach", true),
+    _nh(nh),
+    _use_mesh(use_mesh)
+{
+    _urdf.getLinks(_links);
+
+    _start_pose = getRobotActualPose();
+    _actual_pose = _start_pose;
+
+    MakeMarker(_distal_link, _base_link, false, control_type, true);
+
+    MakeMenu();
+
+    _server.applyChanges();
+
+    _clear_service = _nh.advertiseService(_int_marker.name + "/clear_marker", &CartesianMarker::clearMarker, this);
+    _spawn_service = _nh.advertiseService(_int_marker.name + "/spawn_marker", &CartesianMarker::spawnMarker, this);
+
+    _set_properties_service_client = _nh.serviceClient<cartesian_interface::SetTaskInfo>(_distal_link + "/set_task_properties");
+    _get_properties_service_client = _nh.serviceClient<cartesian_interface::GetTaskInfo>(_distal_link + "/get_task_properties");
+
+    _set_properties_service_client.waitForExistence();
+    _get_properties_service_client.waitForExistence();
+
+//    _global_service = _nh.advertiseService("setGlobal_"+_int_marker.name, &CartesianMarker::setGlobal, this);
+//    _local_service = _nh.advertiseService("setLocal_"+_int_marker.name, &CartesianMarker::setLocal, this);
+
+    std::string topic_name = distal_link + "/reference";
+    _ref_pose_pub = _nh.advertise<geometry_msgs::PoseStamped>(topic_name, 1);
+
+    topic_name = distal_link + "/wp";
+    _way_points_pub = _nh.advertise<geometry_msgs::PoseArray>(topic_name, 1, true);
+
+    _waypoint_action_client.waitForServer();
+
+}
+
+
+
 CartesianMarker::~CartesianMarker()
 {
 

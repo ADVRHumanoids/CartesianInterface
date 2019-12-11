@@ -71,7 +71,7 @@ namespace XBot { namespace Cartesian {
         RobotInterface::Ptr _robot;
         ModelInterface::Ptr _model;
         
-        Eigen::VectorXd _q, _qdot, _tau, _tau_offset;
+        Eigen::VectorXd _q, _qdot, _qddot, _tau, _tau_offset;
         
         std::map<std::string, CartesianInterfaceImpl::Ptr>  _impl_map;
         std::vector<CartesianInterfaceImpl::Ptr> _zombies;

@@ -25,6 +25,8 @@
 /* Specify that the class XBotPlugin::CartesianPlugin is a XBot RT plugin with name "CartesianPlugin" */
 REGISTER_XBOT_PLUGIN_(XBot::Cartesian::CartesianPlugin)
 
+#define FULL_SYNC true
+
 namespace XBot { namespace Cartesian {
     
 
@@ -47,6 +49,8 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
     
     _q.resize(_model->getJointNum());
     _qdot = _q;
+    _robot->getStiffness(_k);
+    _robot->getDamping(_d);
     
     /* Initialize a logger which saves to the specified file. Remember that
      * the current date/time is always appended to the provided filename,
@@ -58,7 +62,15 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
     YAML::Node config = YAML::LoadFile(handle->getPathToConfigFile());
     ProblemDescription ik_problem(config["CartesianInterface"]["problem_description"], _model);
     
-    std::string impl_name("OpenSot");
+    if(!config["CartesianInterface"]["solver"])
+    {
+        XBot::Logger::error("solver option is missing! Quitting...");
+        return false;
+    }
+    std::string impl_name = (config["CartesianInterface"]["solver"]).as<std::string>();
+    XBot::Logger::info("Implementation name: %s \n", impl_name.c_str());
+
+
     std::string path_to_shared_lib = XBot::Utils::FindLib("libCartesian" + impl_name + ".so", "LD_LIBRARY_PATH");
     if (path_to_shared_lib == "") {
         throw std::runtime_error("libCartesian" + impl_name + ".so must be listed inside LD_LIBRARY_PATH");
@@ -73,6 +85,10 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
     /* Helper for RT <-> nRT communication */
     _sync = std::make_shared<Utils::SyncFromIO>(handle, _ci, _model);
     
+    /* Listen to impedance variations */
+    handle->setStiffnessReferenceReceivedCallback(&CartesianPlugin::on_stiffness_recv, this);
+    handle->setDampingReferenceReceivedCallback(&CartesianPlugin::on_damping_recv, this);
+    
     return true;
 
 
@@ -86,6 +102,9 @@ void CartesianPlugin::on_start(double time)
      * operations that are not rt-safe. */
 
     /* Save the robot starting config to a class member */
+    _robot->getStiffness(_k);
+    _robot->getDamping(_d);
+    
     _start_time = time;
     
     _sync->set_solver_active(true);
@@ -116,8 +135,12 @@ void CartesianPlugin::control_loop(double time, double period)
     /* Callbacks from NRT */
     _sync->receive(_ci);
     
+#if FULL_SYNC
+    _model->syncFrom(*_robot, Sync::Sensors, Sync::Effort, Sync::Position, Sync::Velocity, Sync::Impedance, Sync::MotorSide);
+#else
     /* Update model with sensor reading */
     _model->syncFrom(*_robot, Sync::Sensors, Sync::Effort);
+#endif
 
     /* Solve IK */
     if(!_ci->update(time, period))
@@ -126,18 +149,30 @@ void CartesianPlugin::control_loop(double time, double period)
         return;
     }
     
+
+#if FULL_SYNC
+    /* Do nothing */
+#else
     /* Integrate solution */
     _model->getJointPosition(_q);
     _model->getJointVelocity(_qdot);
     _q += period * _qdot;
     _model->setJointPosition(_q);
+#endif
+
     _model->update();
     
     /* Send state to nrt */
     _sync->send(_ci, _model);
     
     /* Send command to robot */
+#if FULL_SYNC
+    _robot->setReferenceFrom(*_model, Sync::Effort, Sync::Position, Sync::Velocity);
+#else
     _robot->setReferenceFrom(*_model, Sync::Position);
+#endif
+    _robot->setStiffness(_k);
+    _robot->setDamping(_d);
     _robot->move();
 
 }
@@ -153,9 +188,19 @@ bool CartesianPlugin::close()
     return true;
 }
 
+void CartesianPlugin::on_stiffness_recv(const std::string& jname, int jid, double k)
+{
+    _k[_robot->getDofIndex(jid)] = k;
+}
+
+void CartesianPlugin::on_damping_recv(const std::string& jname, int jid, double d)
+{
+    _d[_robot->getDofIndex(jid)] = d;
+}
+
 CartesianPlugin::~CartesianPlugin()
 {
-  
+    
 }
 
 } }

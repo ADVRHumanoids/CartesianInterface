@@ -1,5 +1,5 @@
-#ifndef __XBOT_CARTESIAN_OPENSOT_IMPL_H__
-#define __XBOT_CARTESIAN_OPENSOT_IMPL_H__
+#ifndef __XBOT_CARTESIAN_OPENSOT_ACC_IMPL_H__
+#define __XBOT_CARTESIAN_OPENSOT_ACC_IMPL_H__
 
 
 #include <cartesian_interface/CartesianInterfaceImpl.h>
@@ -12,28 +12,39 @@
 #include <OpenSoT/tasks/velocity/CoM.h>
 #include <OpenSoT/tasks/velocity/Postural.h>
 #include <OpenSoT/tasks/velocity/Gaze.h>
+#include <OpenSoT/tasks/velocity/AngularMomentum.h>
 #include <OpenSoT/Solver.h>
 #include <OpenSoT/utils/AutoStack.h>
 
 #include <std_msgs/Float32.h>
 
+//ADDED
+#include <OpenSoT/utils/InverseDynamics.h>
+#include <OpenSoT/tasks/acceleration/Cartesian.h>
+#include <OpenSoT/tasks/acceleration/Postural.h>
+#include <OpenSoT/tasks/acceleration/Contact.h>
+// #include <OpenSoT/tasks/MinimizeVariable.h>
+#include <OpenSoT/tasks/force/Force.h>
+
+#include <OpenSoT/tasks/acceleration/MinJointVel.h>
+
 
 namespace XBot { namespace Cartesian {
 
-class OpenSotImpl : public CartesianInterfaceImpl, 
-                    public RosEnabled
+class OpenSotAccImpl : public CartesianInterfaceImpl, 
+                       public RosEnabled
 {
     
 public:
     
-    OpenSotImpl(ModelInterface::Ptr model, ProblemDescription ik_problem);
+    OpenSotAccImpl(ModelInterface::Ptr model, ProblemDescription ik_problem);
 
     virtual bool update(double time, double period);
     
     virtual bool initRos(ros::NodeHandle nh);
     virtual void updateRos();
 
-    virtual ~OpenSotImpl();
+    virtual ~OpenSotAccImpl();
     
     virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link);
     virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type);
@@ -48,30 +59,46 @@ private:
     typedef OpenSoT::tasks::velocity::Postural PosturalTask;
     typedef OpenSoT::tasks::velocity::CoM CoMTask;
     typedef OpenSoT::tasks::velocity::Gaze GazeTask;
+    typedef OpenSoT::tasks::velocity::AngularMomentum AngularMomentumTask;
     typedef OpenSoT::tasks::Aggregated::TaskPtr TaskPtr;
     typedef OpenSoT::constraints::Aggregated::ConstraintPtr ConstraintPtr;
+    
+    typedef OpenSoT::tasks::acceleration::Cartesian CartesianAccTask;
+    typedef OpenSoT::tasks::acceleration::Postural PosturalAccTask;
+    typedef OpenSoT::tasks::acceleration::MinJointVel MinJointVelTask;
+    typedef OpenSoT::tasks::force::Wrench ForceTask;
     
     void set_adaptive_lambda(CartesianTask::Ptr cartesian_task);
     bool get_control_dt(double& dt);
     
     TaskPtr construct_task(TaskDescription::Ptr);
-    TaskPtr aggregated_from_stack(AggregatedTask stack);
+    TaskPtr aggregated_from_stack_level(AggregatedTask stack);
+    TaskPtr aggregated_from_regularization(AggregatedTask stack);
     ConstraintPtr constraint_from_description(ConstraintDescription::Ptr constr_desc);
+    void links_in_contact_from_description(AggregatedTask stack,
+                                           std::vector<std::string>& distal_links,
+                                           std::vector<std::string>& base_links);
+    void aggregate_force_tasks(AggregatedTask stack, OpenSoT::tasks::force::Wrenches::Ptr aggregated_force_tasks);
     
     void lambda_callback(const std_msgs::Float32ConstPtr& msg, const std::string& ee_name);
     
     Eigen::VectorXd _qref;
-    Eigen::VectorXd _q, _dq, _ddq;
+    Eigen::VectorXd _q, _dq, _ddq, _x;
+    std::vector<Eigen::Vector6d> _contact_wrncs;
     
     std::vector<SoT::TaskInterface::Ptr> _task_ifc;
-    std::vector<SoT::ConstraintInterface::Ptr> _constr_ifc;
-    std::vector<CartesianTask::Ptr> _cartesian_tasks;
+    std::vector<CartesianAccTask::Ptr> _cartesian_tasks, _interaction_tasks;
+    std::vector<TaskPtr> _aggregated_tasks;
+    std::vector<ForceTask::Ptr> _force_tasks;
     std::vector<CartesianAdmittanceTask::Ptr> _admittance_tasks;
-    std::vector<PosturalTask::Ptr> _postural_tasks;
+    std::vector<PosturalAccTask::Ptr> _postural_tasks;
     std::vector<bool> _use_inertia_matrix;
+    std::vector<MinJointVelTask::Ptr> _min_joint_vel_tasks;
     CoMTask::Ptr _com_task;
     GazeTask::Ptr _gaze_task;
-
+    AngularMomentumTask::Ptr _angular_momentum_task;
+    bool _minimize_rate_of_change;
+    
     Utils::ForceEstimation::Ptr _force_estimation;
     OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr _solver;
     OpenSoT::AutoStack::Ptr _autostack;
@@ -87,6 +114,24 @@ private:
     std::map<std::string, ros::Subscriber> _lambda_sub_map;
     std::map<std::string, double> _lambda_map;
     bool _update_lambda;
+    
+    // ADDED
+    /**
+     * @brief _id inverse dynamics computation & variable helper
+     */
+    OpenSoT::utils::InverseDynamics::Ptr _id;
+    
+    /**
+     * @brief _qddot optimization variable helper
+     */
+    OpenSoT::AffineHelper _qddot;
+    
+    std::vector<OpenSoT::AffineHelper> _contact_wrenches;
+    std::vector<std::string> _links_in_contact; //distal_links
+    std::vector<std::string> _base_links;
+    OpenSoT::tasks::force::Wrenches::Ptr _wrenches_; // TODO
+    
+    Eigen::VectorXd _tau;
 };
 
 

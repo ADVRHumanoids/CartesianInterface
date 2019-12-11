@@ -169,6 +169,15 @@ public:
                           
     virtual bool getPoseTarget(const std::string& end_effector, 
                        Eigen::Affine3d& base_T_ref) const = 0;
+
+    /**
+     * @brief If the specified task (arg #1) is performing a reaching motion,
+     * returns the index of the waypoint that is currently being processed.
+     * Otherwise, a negative value is returned.
+     * @param Task name
+     * @return A value between 0 and N-1 (-1 if task is not in reaching phase)
+     */
+    virtual int getCurrentSegmentId(const std::string& end_effector) const = 0;
                        
     virtual bool getTargetComPosition(Eigen::Vector3d& w_com_ref) const = 0;
     

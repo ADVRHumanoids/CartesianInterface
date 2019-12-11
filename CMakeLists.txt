@@ -107,20 +107,25 @@ set(CartesianInterface_SRC
         src/problem/Cartesian.cpp
         src/problem/Com.cpp
         src/problem/Gaze.cpp
-        src/problem/AngularMomentum.cpp
         src/problem/Postural.cpp
         src/problem/Interaction.cpp
         src/problem/TaskFactory.cpp
         src/problem/TaskImpl.cpp
         src/problem/ConstraintImpl.cpp
         src/utils/ForceEstimation.cpp
-        
+        src/utils/RobotStatePublisher.cpp
+        src/problem/MinJointVel.cpp
     )
 
 # OpenSot implementation
 set(CartesianInterfaceSOT_SRC
         src/open_sot/OpenSotImpl.cpp
-    )
+    )  
+    
+# OpenSot implementation
+set(CartesianInterfaceSOTacc_SRC
+        src/open_sot/OpenSotAccImpl.cpp
+    )      
 
 # Ros implementation
 set(CartesianInterfaceROS_SRC
@@ -184,6 +189,7 @@ install(TARGETS CartesianOpenSot CartesianOpenSot
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+## Addons for libCartesianOpenSot
 
 find_package(PCL QUIET)
 if(${PCL_FOUND})
@@ -198,7 +204,27 @@ if(${PCL_FOUND})
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 endif()
 
+#AngularMomentumAddon (Velocity)
+add_library(CartesioAngularMomentumAddon SHARED src/open_sot/AngularMomentumAddon.cpp)
+target_link_libraries(CartesioAngularMomentumAddon PRIVATE ${OpenSoT_LIBRARIES}
+                                                          CartesianInterface
+                                                          ${PCL_LIBRARIES})
+install(TARGETS CartesioAngularMomentumAddon CartesioAngularMomentumAddon
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+
+# libCartesianOpenSotAcc
+add_library(CartesianOpenSotAcc SHARED ${CartesianInterfaceSOTacc_SRC})
+target_link_libraries(CartesianOpenSotAcc PUBLIC ${OpenSoT_LIBRARIES}
+                                                 CartesianInterface
+                      )
+install(TARGETS CartesianOpenSotAcc CartesianOpenSotAcc
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 # Cartesian Server executable
 add_executable(ros_server_node src/ros/RosServerNode.cpp)
@@ -255,10 +281,10 @@ install(TARGETS torque_feedforward_node torque_feedforward_node
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-# WorldConnecter executable
-add_executable(world_connecter src/ros/WorldConnecter.cpp)
-target_link_libraries(world_connecter ${catkin_LIBRARIES})
-install(TARGETS world_connecter world_connecter
+# Robot state publisher executable
+add_executable(robot_state_publisher src/utils/RobotStatePublisherNode.cpp)
+target_link_libraries(robot_state_publisher CartesianInterface)
+install(TARGETS robot_state_publisher robot_state_publisher
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -266,6 +292,7 @@ install(TARGETS world_connecter world_connecter
 
 add_subdirectory(examples)
 add_subdirectory(bindings/python/)
+
 
 option(COMPILE_XBOT_PLUGIN OFF)
 

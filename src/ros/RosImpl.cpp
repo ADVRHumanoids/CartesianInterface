@@ -411,6 +411,11 @@ bool RosImpl::getPoseTarget(const std::string& end_effector, Eigen::Affine3d& ba
     THROW_NOT_IMPL
 }
 
+int RosImpl::getCurrentSegmentId(const std::string & end_effector) const
+{
+    THROW_NOT_IMPL
+}
+
 State RosImpl::getTaskState(const std::string& end_effector) const
 {
     THROW_NOT_IMPL

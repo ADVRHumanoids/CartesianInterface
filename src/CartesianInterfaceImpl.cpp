@@ -234,6 +234,18 @@ bool CartesianInterfaceImpl::getPoseTarget(const std::string& end_effector, Eige
     
 }
 
+int CartesianInterfaceImpl::getCurrentSegmentId(const std::string& end_effector) const
+{
+    auto task = get_task(end_effector);
+
+    if(!task)
+    {
+        return -1;
+    }
+
+    return task->get_current_wp(_current_time);
+}
+
 
 bool CartesianInterfaceImpl::setPoseReference(const std::string& end_effector, 
                                               const Eigen::Affine3d& w_T_ref)
@@ -496,7 +508,8 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
     _model(model),
     _current_time(0.0),
     _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_logger_" + std::to_string(rand()))),
-    _solver_options(ik_problem.getSolverOptions())
+    _solver_options(ik_problem.getSolverOptions()),
+    _ik_problem(ik_problem)
 {
     /* Parse tasks */
     for(int i = 0; i < ik_problem.getNumTasks(); i++)
@@ -854,8 +867,13 @@ XBot::ModelInterface::Ptr CartesianInterfaceImpl::getModel() const
     return _model;
 }
 
+const ProblemDescription &XBot::Cartesian::CartesianInterfaceImpl::getIkProblem() const
+{
+    return _ik_problem;
+}
+
 bool CartesianInterfaceImpl::getComPositionReference(Eigen::Vector3d& w_com_ref, 
-                                                     Eigen::Vector3d* base_vel_ref, 
+                                                     Eigen::Vector3d* base_vel_ref,
                                                      Eigen::Vector3d* base_acc_ref) const
 {
     if(!_com_task)
@@ -986,6 +1004,11 @@ bool CartesianInterfaceImpl::Task::get_pose_target(Eigen::Affine3d& pose_target)
         XBot::Logger::warning("Task %s is NOT in REACHING mode \n", distal_frame.c_str());
         return false;
     }
+}
+
+int CartesianInterfaceImpl::Task::get_current_wp(double current_time) const
+{
+    return trajectory->getCurrentSegmentId(current_time);
 }
 
 bool CartesianInterfaceImpl::Task::set_pose_reference(const Eigen::Affine3d& pose)
