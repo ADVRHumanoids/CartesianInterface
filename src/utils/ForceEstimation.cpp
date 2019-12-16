@@ -172,6 +172,7 @@ void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger::Ptr logger) const
     
     logger->add("fest_A", _A);
     logger->add("fest_b", _b);
+    logger->add("fest_sol", _sol);
     logger->add("fest_tau", _tau);
     logger->add("fest_g", _g);
     logger->add("fest_res", _y);
@@ -196,6 +197,16 @@ bool ForceEstimation::get_static_residuals(Eigen::VectorXd &static_res) const
 
 void ForceEstimation::compute_residuals()
 {
+    _model->getJointEffort(_tau);
+    _model->computeGravityCompensation(_g);
+    
+    /* Check for torque spikes */
+    const double MAX_ALLOWED_TORQUE = 300.0;
+    if((_tau.array().abs() < MAX_ALLOWED_TORQUE).all())
+    {
+        _y_static = _g - _tau;
+    }
+    
     if(_momentum_based){
 	
 	_model->getJointVelocity(_qdot);
@@ -220,28 +231,9 @@ void ForceEstimation::compute_residuals()
 	_p2 += (_tau + (_Mdot * _qdot - _coriolis) - _g + _y) / _rate;
 	
 	_y = _k_obs*(_p1 - _p2 - _p0);
-	
-// 	
-	_model->getJointEffort(_tau);
-	_model->computeGravityCompensation(_g);
-	
-	/* Check for torque spikes */
-	const double MAX_ALLOWED_TORQUE = 300.0;
-	if((_tau.array().abs() < MAX_ALLOWED_TORQUE).all())
-	{
-	    _y_static = _g - _tau;
-	}
     }
     else {
-	_model->getJointEffort(_tau);
-	_model->computeGravityCompensation(_g);
-	
-	/* Check for torque spikes */
-	const double MAX_ALLOWED_TORQUE = 300.0;
-	if((_tau.array().abs() < MAX_ALLOWED_TORQUE).all())
-	{
-	    _y = _g - _tau;
-	}
+	_y = _y_static;
     }
 }
 

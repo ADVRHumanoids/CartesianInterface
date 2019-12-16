@@ -38,10 +38,14 @@ int main(int argc, char ** argv)
     double svd_th = nh_priv.param("svd_threshold", (double)Utils::ForceEstimation::DEFAULT_SVD_THRESHOLD);
     
     auto tau_off_map = nh_priv.param("torque_offset", std::map<std::string, double>());
+    for (auto const& pair: tau_off_map) {
+        std::cout << "{" << pair.first << ": " << pair.second << "}\n"<< std::endl;
+    }
     XBot::JointNameMap tau_off_map_xbot(tau_off_map.begin(), tau_off_map.end());
     Eigen::VectorXd tau_offset;
     tau_offset.setZero(model->getJointNum());
     model->mapToEigen(tau_off_map_xbot, tau_offset);
+    std::cout << "offset\n" << tau_offset.transpose() << std::endl;
     
     bool momentum_based = nh_priv.param("use_momentum_based_observer", false);
     double obs_bw = nh_priv.param("obs_bw", 4.0);
