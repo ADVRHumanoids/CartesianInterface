@@ -39,6 +39,7 @@ void RosImpl::construct_from_tasklist()
     getTaskList();
     
     _task_map.clear();
+    _inter_task_map.clear();
     for(auto t: _tasklist)
     {
         ROS_INFO("Task %s added to Cartesian interface", t.c_str());
@@ -98,17 +99,21 @@ RosImpl::RosImpl(std::string ns):
     
 }
 
-RosImpl::RosTask::RosTask(ros::NodeHandle nh, std::string arg_distal_link):
+RosImpl::RosTask::RosTask(ros::NodeHandle a_nh,
+                          std::string arg_distal_link):
     distal_link(arg_distal_link),
     valid_state(false),
-    reach_action(nh, arg_distal_link + "/reach"),
-    vref_async(arg_distal_link + "/velocity_reference", ros::Duration(VREF_ASYNC_PERIOD))
+    reach_action(a_nh, arg_distal_link + "/reach"),
+    vref_async(arg_distal_link + "/velocity_reference", ros::Duration(VREF_ASYNC_PERIOD)),
+    async_mode(false),
+    nh(a_nh)
 {
-    state_sub = nh.subscribe(distal_link + "/state", 1, &RosTask::state_callback, this);
-    ref_pub = nh.advertise<geometry_msgs::PoseStamped>(distal_link + "/reference", 1);
-    vref_pub = nh.advertise<geometry_msgs::TwistStamped>(distal_link + "/velocity_reference", 1);
-    get_prop_srv = nh.serviceClient<cartesian_interface::GetTaskInfo>(distal_link + "/get_task_properties");
-    set_prop_srv = nh.serviceClient<cartesian_interface::SetTaskInfo>(distal_link + "/set_task_properties");
+    state_sub = a_nh.subscribe(distal_link + "/state", 1, &RosTask::state_callback, this);
+    get_prop_sub = a_nh.subscribe(distal_link + "/task_properties", 1, &RosTask::task_properties_callback, this);
+    ref_pub = a_nh.advertise<geometry_msgs::PoseStamped>(distal_link + "/reference", 1);
+    vref_pub = a_nh.advertise<geometry_msgs::TwistStamped>(distal_link + "/velocity_reference", 1);
+    get_prop_srv = a_nh.serviceClient<cartesian_interface::GetTaskInfo>(distal_link + "/get_task_properties");
+    set_prop_srv = a_nh.serviceClient<cartesian_interface::SetTaskInfo>(distal_link + "/set_task_properties");
     
     get_prop_srv.waitForExistence(ros::Duration(1.0));
     set_prop_srv.waitForExistence(ros::Duration(1.0));
@@ -153,6 +158,11 @@ RosImpl::RosInteractionTask::Ptr RosImpl::get_interaction_task(const std::string
 }
 
 
+void RosImpl::RosTask::task_properties_callback(const cartesian_interface::TaskInfoConstPtr & msg)
+{
+    cached_task_prop = *msg;
+}
+
 void RosImpl::RosTask::state_callback(const geometry_msgs::PoseStampedConstPtr& msg)
 {
     tf::poseMsgToEigen(msg->pose, state);
@@ -162,6 +172,11 @@ void RosImpl::RosTask::state_callback(const geometry_msgs::PoseStampedConstPtr& 
 bool RosImpl::RosTask::is_valid() const
 {
     return valid_state;
+}
+
+void RosImpl::RosTask::set_async_mode(bool async)
+{
+    async_mode = async;
 }
 
 
@@ -202,7 +217,17 @@ void RosImpl::RosTask::get_properties(std::string& base_link,
                                      )
 {
     cartesian_interface::GetTaskInfo srv;
-    if(!get_prop_srv.call(srv))
+
+    if(async_mode)
+    {
+        dynamic_cast<ros::CallbackQueue *>(nh.getCallbackQueue())->callAvailable();
+        srv.response.base_link = cached_task_prop.base_link;
+        srv.response.task_state = cached_task_prop.task_state;
+        srv.response.control_mode = cached_task_prop.control_mode;
+        srv.response.task_interface = cached_task_prop.task_interface;
+        srv.response.distal_link = cached_task_prop.distal_link;
+    }
+    else if(!get_prop_srv.call(srv))
     {
         throw std::runtime_error("Unable to get properties for task " + distal_link);
     }
@@ -372,6 +397,14 @@ void RosImpl::loadController(const std::string& controller_name,
 RosImpl::~RosImpl()
 {
 
+}
+
+void RosImpl::set_async_mode(bool async)
+{
+    for(auto pair: _task_map)
+    {
+        pair.second->set_async_mode(async);
+    }
 }
 
 
