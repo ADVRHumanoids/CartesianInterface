@@ -690,17 +690,7 @@ bool OpenSotImpl::update(double time, double period)
         }
     }
 
-    /* Handle AngularMomentum */
-    if(_angular_momentum_task)
-    {
-        if(_minimize_rate_of_change)
-        {
-            Eigen::Vector6d MoM;
-            _model->getCentroidalMomentum(MoM);
-            _angular_momentum_task->setReference(MoM.tail(3)*period);
-        }
-    }
-    
+
     /* Postural task */
     if(_postural_tasks.size() > 0 && getReferencePosture(_qref))
     {
