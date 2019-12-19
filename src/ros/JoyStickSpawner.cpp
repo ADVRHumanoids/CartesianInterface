@@ -16,8 +16,10 @@
 using namespace XBot::Cartesian;
 
 JoyStick::Ptr joystick;
+std::string _base_link_frame = "base_link";
 
-void constructJoyStick(ros::NodeHandle nh, JoyStick::Ptr& joystick)
+
+void constructJoyStick(ros::NodeHandle nh, JoyStick::Ptr& joystick, const std::string& base_link_frame)
 {
     /* Get task list from cartesian server */
     ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskListRequest, cartesian_interface::GetTaskListResponse>("get_task_list");
@@ -51,6 +53,7 @@ void constructJoyStick(ros::NodeHandle nh, JoyStick::Ptr& joystick)
     }
 
     joystick = std::make_shared<XBot::Cartesian::JoyStick>(distal_links, base_links, tf_prefix);
+    joystick->setRobotBaseLinkCtrlFrame(base_link_frame);
 
     std::string robot_base_link;
     if(nh.getParam("robot_base_link", robot_base_link))
@@ -62,7 +65,7 @@ void constructJoyStick(ros::NodeHandle nh, JoyStick::Ptr& joystick)
 
 bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res, ros::NodeHandle nh)
 {
-    constructJoyStick(nh, joystick);
+    constructJoyStick(nh, joystick, _base_link_frame);
 
     res.message = "Successfully reset markers";
     res.success = true;
@@ -115,6 +118,11 @@ int main(int argc, char **argv){
     /* Init ROS node */
     ros::init(argc, argv, "joystick_spawner");
     ros::NodeHandle nh("cartesian");
+    ros::NodeHandle nhp("~");
+
+    /* Check Joystick param */
+    if(nhp.hasParam("base_link"))
+        nhp.getParam("base_link", _base_link_frame);
 
     /* Reset service */
     auto srv_cbk = std::bind(reset_callback, std::placeholders::_1, std::placeholders::_2, nh);
@@ -130,7 +138,7 @@ int main(int argc, char **argv){
     auto event_sub = nh.subscribe<std_msgs::Empty>("changed_controller_event", 1, event_sub_cbk);
 
 
-    constructJoyStick(nh, joystick);
+    constructJoyStick(nh, joystick, _base_link_frame);
 
     ros::Rate loop_rate(30.0);
     

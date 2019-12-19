@@ -309,7 +309,7 @@ void JoyStick::localCtrl()
 void XBot::Cartesian::JoyStick::twistInBase()
 {
     _base_ctrl = 1;
-    _desired_twist.header.frame_id = "base_link";
+    _desired_twist.header.frame_id = getRobotBaseLinkCtrlFrame();
 }
 
 bool XBot::Cartesian::JoyStick::setActiveTask(cartesian_interface::SetJoystickActiveTaskRequest &req,
