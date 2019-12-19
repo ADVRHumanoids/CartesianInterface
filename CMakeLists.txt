@@ -48,6 +48,7 @@ add_message_files(
   Impedance3.msg 
   Impedance6.msg
   JoystickStatus.msg
+  TaskInfo.msg
 )
 
 # Generate services in the 'srv' folder
@@ -168,7 +169,8 @@ target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
                                                 ${ReflexxesTypeII_LIBRARIES}
                                                 ${alglib_LIBRARIES}
                       )
-add_dependencies(CartesianInterface ${PROJECT_NAME}_generate_messages)
+
+add_dependencies(CartesianInterface ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 install(TARGETS CartesianInterface CartesianInterface
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

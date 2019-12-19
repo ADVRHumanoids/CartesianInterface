@@ -7,6 +7,7 @@
 #include <cartesian_interface/SetJoystickActiveTask.h>
 #include <cartesian_interface/SetJoystickTaskMaxSpeed.h>
 #include <cartesian_interface/SetJoystickTaskBaseFrame.h>
+#include <cartesian_interface/ros/RosImpl.h>
 
 namespace Eigen 
 {
@@ -25,8 +26,7 @@ public:
     
     typedef std::shared_ptr<JoyStick> Ptr;
 
-    JoyStick(const std::vector<std::string>& distal_links, 
-             const std::vector<std::string>& base_links, 
+    JoyStick(std::shared_ptr<RosImpl> ci_ros,
              std::string tf_prefix = "");
 
     ~JoyStick();
@@ -86,10 +86,7 @@ private:
 
     int _selected_task;
 
-    std::vector<ros::ServiceClient> _set_properties_service_clients;
-    std::vector<ros::ServiceClient> _get_properties_service_clients;
-    std::vector<ros::Publisher> _ref_pose_pubs;
-    std::vector<ros::ServiceClient> _task_active_service_client;
+    std::shared_ptr<RosImpl> _ci;
 
     double _linear_speed_sf;
     double _angular_speed_sf;

@@ -1,6 +1,7 @@
 #include <cartesian_interface/ros/RosServerClass.h>
 #include <cartesian_interface/GetTaskListResponse.h>
 #include <std_msgs/Empty.h>
+#include <cartesian_interface/TaskInfo.h>
 
 using namespace XBot::Cartesian;
 
@@ -115,6 +116,15 @@ void RosServerClass::online_position_reference_cb(const geometry_msgs::PoseStamp
 
     Eigen::Affine3d T;
     tf::poseMsgToEigen(msg->pose, T);
+
+    if(!msg->header.frame_id.empty() &&  // client specified a frame_id
+            msg->header.frame_id != _cartesian_interface->getBaseLink(ee_name)) // and is not consistent with CI..
+    {
+        Logger::error("Specifying a non-empty header.frame_id (%s) is not supported \n",
+                      msg->header.frame_id.c_str());
+
+        return;
+    }
     
     _cartesian_interface->setPoseReference(ee_name, T);
     
@@ -233,6 +243,8 @@ void RosServerClass::online_velocity_reference_cb(const geometry_msgs::TwistStam
 void RosServerClass::heartbeat_cb(const ros::TimerEvent & ev)
 {
     _heartbeat_pub.publish(std_msgs::Empty());
+
+    publish_task_info();
 }
 
 void RosServerClass::init_online_pos_topics()
@@ -263,6 +275,27 @@ void RosServerClass::manage_reach_actions()
     for(auto& action_manager : _action_managers)
     {
         action_manager.run();
+    }
+}
+
+void RosServerClass::publish_task_info()
+{
+    int i = 0;
+    for(std::string ee_name : _cartesian_interface->getTaskList())
+    {
+        cartesian_interface::GetTaskInfoRequest req;
+        cartesian_interface::GetTaskInfoResponse res;
+        get_task_info_cb(req, res, ee_name);
+
+        cartesian_interface::TaskInfo msg;
+        msg.base_link = res.base_link;
+        msg.task_state = res.task_state;
+        msg.distal_link = res.distal_link;
+        msg.control_mode = res.control_mode;
+        msg.task_interface = res.task_interface;
+
+        _info_pub[i].publish(msg);
+        i++;
     }
 }
 
@@ -582,6 +615,11 @@ void XBot::Cartesian::RosServerClass::init_task_info_setters()
                                                       cartesian_interface::SetTaskInfoResponse>(srv_name, cb);
 
         _set_task_info_srv.push_back(srv);
+
+        auto info_pub = _nh.advertise<cartesian_interface::TaskInfo>(ee_name + "/task_properties", 1);
+
+        _info_pub.push_back(info_pub);
+
     }
 }
 

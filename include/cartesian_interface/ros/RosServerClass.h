@@ -124,6 +124,7 @@ namespace XBot { namespace Cartesian {
         void init_heartbeat_pub();
 
         void manage_reach_actions();
+        void publish_task_info();
         void publish_posture_state(ros::Time time);
         void publish_state(ros::Time time);
         void publish_solution(ros::Time time);
@@ -190,6 +191,7 @@ namespace XBot { namespace Cartesian {
         std::vector<ros::Subscriber> _pos_sub, _vel_sub, _imp_sub, _force_sub;
         std::vector<ros::Publisher> _state_pub;
         ros::Publisher _com_pub, _posture_pub, _solution_pub;
+        std::vector<ros::Publisher> _info_pub;
         ros::Subscriber _posture_sub;
         std::vector<ros::ServiceServer> _get_task_info_srv, _set_task_info_srv, _impedance_srv;
         ros::ServiceServer _reset_srv, 
