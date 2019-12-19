@@ -17,8 +17,10 @@ using namespace XBot::Cartesian;
 
 std::shared_ptr<RosImpl> ci_ros;
 std::unique_ptr<JoyStick> joystick;
+std::string _base_link_frame = "base_link";
 
-void constructJoyStick(ros::NodeHandle nh, std::unique_ptr<JoyStick>& joystick)
+
+void constructJoyStick(ros::NodeHandle nh, std::unique_ptr<JoyStick>& joystick, const std::string& base_link_frame)
 {
     joystick.reset();
 
@@ -32,6 +34,7 @@ void constructJoyStick(ros::NodeHandle nh, std::unique_ptr<JoyStick>& joystick)
     }
 
     joystick.reset(new XBot::Cartesian::JoyStick(ci_ros, tf_prefix));
+    joystick->setRobotBaseLinkCtrlFrame(base_link_frame);
 
     std::string robot_base_link;
     if(nh.getParam("robot_base_link", robot_base_link))
@@ -43,7 +46,7 @@ void constructJoyStick(ros::NodeHandle nh, std::unique_ptr<JoyStick>& joystick)
 
 bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res, ros::NodeHandle nh)
 {
-    constructJoyStick(nh, joystick);
+    constructJoyStick(nh, joystick, _base_link_frame);
 
     res.message = "Successfully reset markers";
     res.success = true;
@@ -96,6 +99,11 @@ int main(int argc, char **argv){
     /* Init ROS node */
     ros::init(argc, argv, "joystick_spawner");
     ros::NodeHandle nh("cartesian");
+    ros::NodeHandle nhp("~");
+
+    /* Check Joystick param */
+    if(nhp.hasParam("base_link"))
+        nhp.getParam("base_link", _base_link_frame);
 
     /* Reset service */
     auto srv_cbk = std::bind(reset_callback, std::placeholders::_1, std::placeholders::_2, nh);
@@ -111,7 +119,7 @@ int main(int argc, char **argv){
     auto event_sub = nh.subscribe<std_msgs::Empty>("changed_controller_event", 1, event_sub_cbk);
 
 
-    constructJoyStick(nh, joystick);
+    constructJoyStick(nh, joystick, _base_link_frame);
 
     ros::Rate loop_rate(30.0);
     
@@ -120,7 +128,7 @@ int main(int argc, char **argv){
         ros::spinOnce();
         joystick->updateStatus();
         joystick->sendVelRefs();
-//        joystick->broadcastStatus();
+        //joystick->broadcastStatus();
         loop_rate.sleep();
     }
     
