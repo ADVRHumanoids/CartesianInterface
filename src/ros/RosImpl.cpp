@@ -281,9 +281,11 @@ void RosImpl::RosTask::send_ref(const Eigen::Affine3d& ref)
     ref_pub.publish(msg);
 }
 
-void RosImpl::RosTask::send_vref(const Eigen::Vector6d& vref)
+void RosImpl::RosTask::send_vref(const Eigen::Vector6d& vref,
+                                 const std::string& base_frame)
 {
     geometry_msgs::TwistStamped msg;
+    msg.header.frame_id = base_frame;
     msg.header.stamp = ros::Time::now();
     tf::twistEigenToMsg(vref, msg.twist);
     vref_pub.publish(msg);
@@ -521,12 +523,19 @@ bool RosImpl::stopVelocityReferenceAsync(const std::string& ee_name)
 
 
 bool RosImpl::setVelocityReference(const std::string& end_effector, 
-                                                    const Eigen::Vector6d& base_vel_ref)
+                                   const Eigen::Vector6d& base_vel_ref)
+{
+    return setVelocityReference(end_effector, base_vel_ref);
+}
+
+bool RosImpl::setVelocityReference(const std::string & end_effector,
+                                   const Eigen::Vector6d & base_vel_ref,
+                                   const std::string & base_frame)
 {
     auto task = get_task(end_effector, false);
-    
-    task->send_vref(base_vel_ref);
-    
+
+    task->send_vref(base_vel_ref, base_frame);
+
     return true;
 }
 

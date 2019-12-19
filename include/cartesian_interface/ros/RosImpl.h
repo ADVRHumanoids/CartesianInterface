@@ -79,6 +79,10 @@ namespace XBot { namespace Cartesian {
                             
         virtual bool setVelocityReference(const std::string& end_effector, 
                             const Eigen::Vector6d& base_vel_ref);
+
+        bool setVelocityReference(const std::string& end_effector,
+                                  const Eigen::Vector6d& base_vel_ref,
+                                  const std::string& base_frame);
                             
         virtual bool setPoseReferenceRaw(const std::string& end_effector, 
                                 const Eigen::Affine3d& base_T_ref);
@@ -205,7 +209,8 @@ namespace XBot { namespace Cartesian {
             void set_async_mode(bool async);
             Eigen::Affine3d get_state() const;
             void send_ref(const Eigen::Affine3d& ref);
-            void send_vref(const Eigen::Vector6d& vref);
+            void send_vref(const Eigen::Vector6d& vref,
+                           const std::string& base_frame = "");
             void send_vref_async(const Eigen::Vector6d& vref, double timeout_duration);
             void stop_vref_async();
             void send_waypoints(const Trajectory::WayPointVector& wp, bool incremental = false);
