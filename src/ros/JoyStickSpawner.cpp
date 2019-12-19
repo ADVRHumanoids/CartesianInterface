@@ -15,34 +15,15 @@
 
 using namespace XBot::Cartesian;
 
-JoyStick::Ptr joystick;
+std::shared_ptr<RosImpl> ci_ros;
+std::unique_ptr<JoyStick> joystick;
 
-void constructJoyStick(ros::NodeHandle nh, JoyStick::Ptr& joystick)
+void constructJoyStick(ros::NodeHandle nh, std::unique_ptr<JoyStick>& joystick)
 {
-    /* Get task list from cartesian server */
-    ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskListRequest, cartesian_interface::GetTaskListResponse>("get_task_list");
-    cartesian_interface::GetTaskListRequest req;
-    cartesian_interface::GetTaskListResponse res;
-    task_list_client.waitForExistence();
-    if(!task_list_client.call(req, res))
-        throw std::runtime_error("Unable to call get_task_list");
+    joystick.reset();
 
-    std::vector<std::string> base_links;
-    std::vector<std::string> distal_links;
+    ci_ros = std::make_shared<RosImpl>();
 
-    for(int i = 0; i < res.distal_links.size(); i++)
-    {
-        std::string ee_name = res.distal_links[i];
-        std::string base_link = res.base_links[i];
-
-
-        base_link = base_link == "world" ? "world_odom" : base_link;
-
-        base_links.push_back(base_link);
-        distal_links.push_back(ee_name);
-
-    }
-    
     ros::NodeHandle nh_priv("~");
     auto tf_prefix = nh_priv.param<std::string>("tf_prefix", "ci");
     if(tf_prefix == "null")
@@ -50,7 +31,7 @@ void constructJoyStick(ros::NodeHandle nh, JoyStick::Ptr& joystick)
         tf_prefix = "";
     }
 
-    joystick = std::make_shared<XBot::Cartesian::JoyStick>(distal_links, base_links, tf_prefix);
+    joystick.reset(new XBot::Cartesian::JoyStick(ci_ros, tf_prefix));
 
     std::string robot_base_link;
     if(nh.getParam("robot_base_link", robot_base_link))
@@ -139,7 +120,7 @@ int main(int argc, char **argv){
         ros::spinOnce();
         joystick->updateStatus();
         joystick->sendVelRefs();
-        //joystick->broadcastStatus();
+//        joystick->broadcastStatus();
         loop_rate.sleep();
     }
     
