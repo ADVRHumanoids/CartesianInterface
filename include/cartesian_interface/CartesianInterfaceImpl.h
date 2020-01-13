@@ -25,7 +25,8 @@
 #include <cartesian_interface/trajectory/Trajectory.h>
 #include <cartesian_interface/problem/ProblemDescription.h>
 #include <cartesian_interface/problem/Cartesian.h>
-#include <XBotInterface/SoLib.h>
+#include <cartesian_interface/problem/Com.h>
+#include <cartesian_interface/problem/Postural.h>
 #include <ReflexxesTypeII/Wrappers/TrajectoryGenerator.h>
 
 namespace XBot { namespace Cartesian {
@@ -131,7 +132,6 @@ public:
     
     virtual bool setReferencePosture(const JointNameMap& qref);
 
-    ~CartesianInterfaceImpl();
 
     virtual bool update(double time, double period);
 
@@ -140,6 +140,9 @@ public:
     virtual bool reset(double time);
     virtual bool resetWorld(const Eigen::Affine3d& w_T_new_world);
 
+    ~CartesianInterfaceImpl();
+
+    /* New API 2020 */
 
     
 protected:
@@ -154,133 +157,21 @@ protected:
     
 private:
     
-    class Task
-    {
-        
-    public:
-        
-        typedef std::shared_ptr<Task> Ptr;
-        typedef std::shared_ptr<const Task> ConstPtr;
-        typedef Reflexxes::Utils::TrajectoryGenerator OtgType;
-        
-        Task();
-        Task(const std::string& base, const std::string& distal);
-        
-        virtual void update(double time, double period);
-        
-        const std::string& get_name() const;
-        const std::string& get_base() const;
-        const std::string& get_distal() const;
-        State get_state() const;
-        ControlType get_ctrl() const;
-        const Eigen::Affine3d& get_pose() const;
-        const Eigen::Affine3d get_pose_otg() const;
-        const Eigen::Vector6d& get_velocity() const;
-        const Eigen::Vector6d& get_acceleration() const;
-        bool get_pose_target(Eigen::Affine3d& pose_target) const;
-        int get_current_wp(double current_time) const;
-        bool is_new_data_available() const;
-        
-        
-        
-        void set_ctrl(ControlType ctrl, ModelInterface::ConstPtr model);
-        bool set_pose_reference(const Eigen::Affine3d& pose);
-        bool set_vel_reference(const Eigen::Vector6d& vref);
-        bool set_waypoints(double current_time, 
-                           const Trajectory::WayPointVector& wp);
-        bool set_target_pose(double current_time, 
-                             double target_time,
-                             const Eigen::Affine3d& pose);
-        void reset(ModelInterface::ConstPtr model);
-        void sync_from(const Task& other);
-        void set_otg_dt(double expected_dt);
-        void get_otg_vel_limits(double& linear, double& angular) const;
-        void get_otg_acc_limits(double& linear, double& angular) const;
-        void set_otg_vel_limits(double linear, double angular);
-        void set_otg_acc_limits(double linear, double angular);
-        
-        void abort();
-        bool change_base_link(const std::string& new_base_link, 
-                              ModelInterface::ConstPtr model);
-        
-        void reset_otg();
-        
-    private:
-        
-        typedef Eigen::Matrix<double, 7, 1> EigenVector7d;
-        
-        bool check_reach() const;
-        
-        void apply_otg();
-        
-        std::string base_frame;
-        std::string distal_frame;
-        
-        Eigen::Affine3d T;
-        Eigen::Vector6d vel;
-        Eigen::Vector6d acc;
-        
-        EigenVector7d __otg_des, __otg_ref, __otg_vref;
-        EigenVector7d __otg_maxvel, __otg_maxacc;
-        
-        ControlType control_type;
-        State state;
-        double vref_time_to_live;
-        
-        bool new_data_available;
-        
-        Trajectory::Ptr trajectory;
-        Reflexxes::Utils::TrajectoryGenerator::Ptr otg;
-        
-    };
-    
-    class InteractionTask : public Task
-    {
-        
-    public:
-        
-        typedef std::shared_ptr<InteractionTask> Ptr;
-        typedef std::shared_ptr<const InteractionTask> ConstPtr;
-        
-        InteractionTask();
-        InteractionTask(const std::string& base, const std::string& distal);
-        
-        void update(double time, double period) override;
-        
-        const Eigen::Vector6d& get_force() const;
-        const Eigen::Matrix6d& get_stiffness() const;
-        const Eigen::Matrix6d& get_damping() const;
-        void set_force(const Eigen::Vector6d& force);
-        void set_stiffness(const Eigen::Matrix6d& stiffness);
-        void set_damping(const Eigen::Matrix6d& damping);
-        
-    private:
-        
-        Eigen::Vector6d force;
-        Eigen::Matrix6d k;
-        Eigen::Matrix6d d;
-        
-        double force_time_to_live;
-    };
-    
+
     void add_task(TaskDescription::Ptr task);
-    bool validate_cartesian(CartesianTask::Ptr cart);
-    void __construct_from_vectors();
     void log_tasks();
     void init_log_tasks();
     
    
-    std::vector<std::string> _ee_list;
-    std::vector<std::pair<std::string, std::string>> _tasks_vector;
+    std::vector<std::string> _task_list;
     
-    Task::Ptr get_task(const std::string& ee_name) const;
-    InteractionTask::Ptr get_interaction_task(const std::string& ee_name, bool verbose = true) const;
-    bool postural_task_defined() const;
+    TaskDescription::Ptr get_task(const std::string& name) const;
+    CartesianTask::Ptr get_cart_task(const std::string& name) const;
     
-    std::map<std::string, Task::Ptr> _task_map;
-    std::map<std::string, InteractionTask::Ptr> _interaction_task_map;
-    Task::Ptr _com_task;
-    Eigen::VectorXd _q_ref;
+    std::map<std::string, TaskDescription::Ptr> _task_map;
+    std::map<std::string, CartesianTask::Ptr> _cart_task_map;
+    std::map<std::string, ComTask::Ptr> _com_task_map;
+    std::map<std::string, PosturalTask::Ptr> _postural_task_map;
     
     double _current_time;
     

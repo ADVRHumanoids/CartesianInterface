@@ -47,7 +47,7 @@ PosturalTask::PosturalTask(YAML::Node task_node,
 
 }
 
-void PosturalTask::run(double time, double period)
+void PosturalTask::update(double time, double period)
 {
 
 }

@@ -196,6 +196,30 @@ TaskDescription::TaskDescription(YAML::Node task_node,
     }
 }
 
+bool TaskDescription::validate()
+{
+    bool ret = true;
+
+    if(lambda < 0)
+    {
+        Logger::error("Task '%s': invalid lambda = %f \n",
+                                 getName().c_str(), lambda);
+
+        ret = false;
+    }
+
+    if(!weight.isApprox(weight.transpose()) &&
+            weight.llt().info() == Eigen::NumericalIssue)
+    {
+        Logger::error("Task '%s': invalid weight \n",
+                                 getName().c_str());
+
+        ret = false;
+    }
+
+    return ret;
+}
+
 std::string TaskDescription::getType() const
 {
     return type;
@@ -219,6 +243,17 @@ bool TaskDescription::setActivationState(const ActivationState & value)
 void TaskDescription::registerObserver(std::weak_ptr<TaskObserver> obs)
 {
     _observers.push_back(obs);
+}
+
+void TaskDescription::log(MatLogger::Ptr logger, bool init_logger, int buf_size)
+{
+    if(init_logger)
+    {
+        logger->createScalarVariable(getName() + "_active", buf_size);
+        return;
+    }
+
+    logger->add(getName() + "_active", activ_state == ActivationState::Enabled);
 }
 
 const std::string& TaskDescription::getName() const

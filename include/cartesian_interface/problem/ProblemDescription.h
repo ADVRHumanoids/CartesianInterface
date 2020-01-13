@@ -56,6 +56,8 @@ namespace XBot { namespace Cartesian {
          */
         ProblemDescription(Stack stack);
 
+        bool validate();
+
         TaskDescription::Ptr getTask(const std::string& name);
         
         /**

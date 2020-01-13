@@ -30,6 +30,11 @@ ProblemDescription::ProblemDescription(Stack stack):
 
 }
 
+bool ProblemDescription::validate()
+{
+    return true;
+}
+
 
 ProblemDescription& ProblemDescription::operator<<(ConstraintDescription::Ptr constraint)
 {

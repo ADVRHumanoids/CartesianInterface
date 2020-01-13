@@ -57,7 +57,11 @@ public:
     TaskDescription(YAML::Node node, ModelInterface::ConstPtr model,
                     std::string name, int size);
 
+    virtual bool validate();
+
     const std::string& getName() const;
+
+    std::string getType() const;
 
     int getSize() const;
 
@@ -75,17 +79,19 @@ public:
     const std::vector<std::string>& getDisabledJoints() const;
     void setDisabledJoints(const std::vector<std::string>& value);
 
-    virtual void run(double time, double period) = 0;
+    virtual void update(double time, double period) = 0;
     virtual void reset() = 0;
-
-    std::string getType() const;
-
-    virtual ~TaskDescription() = default;
 
     ActivationState getActivationState() const;
     bool setActivationState(const ActivationState & value);
 
     void registerObserver(std::weak_ptr<TaskObserver> obs);
+
+    virtual void log(MatLogger::Ptr logger,
+                     bool init_logger = false,
+                     int buf_size = 1e5);
+
+    virtual ~TaskDescription() = default;
 
 protected:
 

@@ -44,6 +44,8 @@ public:
 
     CartesianTask(YAML::Node node, ModelInterface::ConstPtr model);
 
+    virtual bool validate() override;
+
     /* Parameters */
     bool isBodyJaxobian() const;
 
@@ -103,9 +105,13 @@ public:
 
     virtual void abort();
 
-    void run(double time, double period) override;
+    void update(double time, double period) override;
 
     void reset() override;
+
+    virtual void log(MatLogger::Ptr logger,
+                     bool init_logger = false,
+                     int buf_size = 1e5) override;
 
     void registerObserver(CartesianTaskObserver::WeakPtr observer);
 

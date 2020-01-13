@@ -94,7 +94,7 @@ catkin_package(
 
 # Interface implementation
 set(CartesianInterface_SRC
-#        src/CartesianInterfaceImpl.cpp
+        src/CartesianInterfaceImpl.cpp
 #        src/utils/LockfreeBufferImpl.cpp
 #        src/utils/ManipulabilityAnalyzer.cpp
         src/problem/ProblemDescription.cpp
