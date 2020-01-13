@@ -29,24 +29,9 @@ namespace XBot { namespace Cartesian {
          */
         PosturalTask(int ndof);
 
-        static TaskDescription::Ptr yaml_parse_postural(YAML::Node node, ModelInterface::ConstPtr model);
+        PosturalTask(YAML::Node node, ModelInterface::ConstPtr model);
         
     };
-    
-    /**
-    * @brief Construct a postural task and return a shared pointer
-    * 
-    * @param ndof The number of robot dofs (including 6 virtual joints)
-    */
-    PosturalTask::Ptr MakePostural(int ndof);
-    
-    /**
-     * @brief Dynamic cast a generic task to a PosturalTask
-     * 
-     * @return A null pointer if the cast is unsuccessful (i.e. task is not a PosturalTask)
-     */
-    PosturalTask::Ptr GetAsPostural(TaskDescription::Ptr task);
-  
     
 } }
 

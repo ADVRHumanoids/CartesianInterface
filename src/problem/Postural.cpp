@@ -3,28 +3,19 @@
 
 using namespace XBot::Cartesian;
 
-PosturalTask::Ptr XBot::Cartesian::GetAsPostural(TaskDescription::Ptr task)
-{
-    return std::dynamic_pointer_cast<PosturalTask>(task);
-}
-
 PosturalTask::PosturalTask(int ndof):
-    TaskDescription(TaskInterface::Postural, "Postural", ndof),
+    TaskDescription("Postural", "postural", ndof),
     use_inertia_matrix(false)
 {
 
 }
 
-PosturalTask::Ptr XBot::Cartesian::MakePostural(int ndof)
+PosturalTask::PosturalTask(YAML::Node task_node,
+                           ModelInterface::ConstPtr model):
+    TaskDescription(task_node, model, "postural", model->getJointNum())
 {
-    return std::make_shared<PosturalTask>(ndof);
-}
-
-TaskDescription::Ptr PosturalTask::yaml_parse_postural(YAML::Node task_node,
-                                                   ModelInterface::ConstPtr model)
-{
-    auto task_desc = MakePostural(model->getJointNum());
-    auto postural_desc = GetAsPostural(task_desc);
+    Eigen::MatrixXd weight;
+    weight.setIdentity(getSize(), getSize());
 
     if(task_node["weight"] && task_node["weight"].IsMap())
     {
@@ -37,22 +28,22 @@ TaskDescription::Ptr PosturalTask::yaml_parse_postural(YAML::Node task_node,
             }
 
             int idx = model->getDofIndex(pair.first.as<std::string>());
-            task_desc->weight(idx, idx) = pair.second.as<double>();
+            weight(idx, idx) = pair.second.as<double>();
 
         }
+
+        setWeight(weight);
     }
     
     if(task_node["indices"])
     {
         throw std::runtime_error("Specifying indices is not allowed for postural tasks. Use disabled_joints instead.");
     }
-    
 
     if(task_node["use_inertia"] && task_node["use_inertia"].as<bool>())
     {
-        postural_desc->use_inertia_matrix = true;
+        use_inertia_matrix = true;
     }
 
-    return task_desc;
 }
 

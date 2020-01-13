@@ -55,6 +55,8 @@ namespace XBot { namespace Cartesian {
          * @brief Construct from a stack (i.e. multiple priority level, multiple tasks)
          */
         ProblemDescription(Stack stack);
+
+        TaskDescription::Ptr getTask(const std::string& name);
         
         /**
          * @brief Construct from a YAML description of the IK problem. The required YAML
@@ -114,6 +116,7 @@ namespace XBot { namespace Cartesian {
         
         std::vector< std::vector<TaskDescription::Ptr> > _stack;
         std::vector< ConstraintDescription::Ptr > _bounds;
+        std::map<std::string, TaskDescription::Ptr> _task_map;
         AggregatedTask _regularisation;
         YAML::Node _solver_options_node;
         

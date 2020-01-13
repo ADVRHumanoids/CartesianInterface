@@ -24,26 +24,12 @@
 
 #include <cartesian_interface/trajectory/Trajectory.h>
 #include <cartesian_interface/problem/Task.h>
-
+#include <cartesian_interface/Enum.h>
 
 namespace XBot { namespace Cartesian {
-    
-    
-/**
-* @brief Enum describing a state for each task. Available states are:
-*  - State::Online: the task is following an online getPoseReference
-*  - State::Reacing: the task is performing a point-to-point motion
-*/
-enum class State { Reaching, Online };
 
-/**
-* @brief Enum describing a control mode for each task. Available values are:
-*  - ControlType::Position: the task is following position references
-*  - ControlType::Velocity: the task is following velocity references
-*  - ControlType::Disabled: the task is disabled
-*/
-enum class ControlType { Position, Velocity, Disabled };
-
+enum class TaskInterface { Deprecated };
+    
 /**
 * @brief The CartesianInterface class provides a generic way 
 * to perform cartesian control of floating base robots.
@@ -92,11 +78,17 @@ public:
     virtual bool resetWorld(const Eigen::Affine3d& w_T_new_world) = 0;
     
     virtual const std::vector<std::string>& getTaskList() const = 0;
+    
     virtual const std::string& getBaseLink(const std::string& ee_name) const = 0;
+    
     virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type) = 0;
+    
     virtual ControlType getControlMode(const std::string& ee_name) const = 0;
+    
     virtual State getTaskState(const std::string& end_effector) const = 0;
+    
     virtual TaskInterface getTaskInterface(const std::string& end_effector) const = 0;
+    
     virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link) = 0;
     
     /* Point-to-point control */

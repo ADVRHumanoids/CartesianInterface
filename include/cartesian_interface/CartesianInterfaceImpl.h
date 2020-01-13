@@ -232,7 +232,6 @@ private:
         Trajectory::Ptr trajectory;
         Reflexxes::Utils::TrajectoryGenerator::Ptr otg;
         
-        
     };
     
     class InteractionTask : public Task

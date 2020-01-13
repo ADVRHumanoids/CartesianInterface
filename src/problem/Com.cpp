@@ -2,24 +2,16 @@
 
 using namespace XBot::Cartesian;
 
-
 ComTask::ComTask():
-    CartesianTask("com", "world", 3, "Com")
+    CartesianTask("com", "com", "world")
 {
 
 }
 
-ComTask::Ptr XBot::Cartesian::MakeCom()
+XBot::Cartesian::ComTask::ComTask(YAML::Node node,
+                                  XBot::ModelInterface::ConstPtr model):
+    CartesianTask(node, model)
 {
-    return std::make_shared<ComTask>();
+
 }
 
-ComTask::Ptr XBot::Cartesian::GetAsCom(TaskDescription::Ptr task)
-{
-    return std::dynamic_pointer_cast<ComTask>(task);
-}
-
-TaskDescription::Ptr ComTask::yaml_parse_com(YAML::Node node, ModelInterface::ConstPtr model)
-{
-    return MakeCom();
-}
