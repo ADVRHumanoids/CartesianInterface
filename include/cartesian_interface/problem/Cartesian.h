@@ -37,11 +37,15 @@ public:
     /* Constructors */
     CartesianTask() = default;
 
-    CartesianTask(std::string name,
+    CartesianTask(ModelInterface::ConstPtr model,
+                  std::string name,
                   std::string distal_link,
                   std::string base_link = "world");
 
     CartesianTask(YAML::Node node, ModelInterface::ConstPtr model);
+
+    /* Parameters */
+    bool isBodyJaxobian() const;
 
     /* Safety limits */
     virtual void getVelocityLimits(double& max_vel_lin,

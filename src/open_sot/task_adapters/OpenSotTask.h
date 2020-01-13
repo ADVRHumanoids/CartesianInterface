@@ -22,28 +22,40 @@ class OpenSotTaskAdapter :
 
 public:
 
-    OpenSotTaskAdapter(TaskDescription::Ptr task,
-                       ModelInterface::ConstPtr model);
+    typedef std::shared_ptr<OpenSotTaskAdapter> Ptr;
 
-    virtual bool initialize();
+    virtual TaskPtr constructTask() = 0;
+
 
     virtual void update(double time, double period);
 
     TaskPtr getOpenSotTask();
 
-    bool onWeightChanged() override;
+    virtual bool onWeightChanged() override;
 
-    bool onActivationStateChanged() override;
+    virtual bool onActivationStateChanged() override;
 
     virtual ~OpenSotTaskAdapter() override = default;
 
+    static Ptr MakeInstance(TaskDescription::Ptr task,
+                            ModelInterface::ConstPtr model);
+
 protected:
 
-    TaskPtr _opensot_task;
+    OpenSotTaskAdapter(TaskDescription::Ptr task,
+                       ModelInterface::ConstPtr model);
+
+    virtual bool initialize();
+
+    ModelInterface::ConstPtr _model;
     TaskDescription::Ptr _ci_task;
     Context _ctx;
 
 private:
+
+
+    TaskPtr _opensot_task;
+    TaskPtr _sub_task;
 
 };
 

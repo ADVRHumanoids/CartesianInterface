@@ -2,7 +2,8 @@
 
 using namespace XBot::Cartesian;
 
-OpenSotCartesianAdapter::OpenSotCartesianAdapter(TaskDescription::Ptr task, XBot::ModelInterface::ConstPtr model):
+OpenSotCartesianAdapter::OpenSotCartesianAdapter(TaskDescription::Ptr task,
+                                                 XBot::ModelInterface::ConstPtr model):
     OpenSotTaskAdapter(task, model)
 {
     _ci_cart = std::dynamic_pointer_cast<CartesianTask>(task);
@@ -10,27 +11,36 @@ OpenSotCartesianAdapter::OpenSotCartesianAdapter(TaskDescription::Ptr task, XBot
     if(!_ci_cart) throw std::runtime_error("Provided task description "
                                            "does not have expected type 'CartesianTask'");
 
+}
+
+TaskPtr OpenSotCartesianAdapter::constructTask()
+{
     Eigen::VectorXd q;
-    model->getJointPosition(q);
+    _model->getJointPosition(q);
 
-    _opensot_task = _opensot_cart = boost::make_shared<CartesianSoT>(_ci_cart->getName(),
-                                                                     q,
-                                                                     const_cast<ModelInterface&>(*model),
-                                                                     _ci_cart->getDistalLink(),
-                                                                     _ci_cart->getBaseLink());
+    _opensot_cart = boost::make_shared<CartesianSoT>(_ci_cart->getName(),
+                                                     q,
+                                                     const_cast<ModelInterface&>(*_model),
+                                                     _ci_cart->getDistalLink(),
+                                                     _ci_cart->getBaseLink());
 
-    _old_lambda = _opensot_task->getLambda();
-
+    return _opensot_cart;
 }
 
 bool OpenSotCartesianAdapter::initialize()
 {
     bool ret = OpenSotTaskAdapter::initialize();
-
     if(!ret) return false;
 
-    auto this_shared_ptr = std::static_pointer_cast<OpenSotCartesianAdapter>(shared_from_this());
 
+    /* Cartesian task specific parameters */
+
+    _old_lambda = _opensot_cart->getLambda();
+    _opensot_cart->setIsBodyJacobian(_ci_cart->isBodyJaxobian());
+
+    /* Register observer */
+
+    auto this_shared_ptr = std::dynamic_pointer_cast<OpenSotCartesianAdapter>(shared_from_this());
     _ci_cart->registerObserver(this_shared_ptr);
 
     return true;

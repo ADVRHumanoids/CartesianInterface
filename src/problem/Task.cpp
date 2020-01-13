@@ -99,12 +99,13 @@ TaskDescription::Ptr XBot::Cartesian::operator%(std::vector<int> indices, TaskDe
     return task;
 }
 
-TaskDescription::TaskDescription(std::string __type, std::string __name, int __size):
+TaskDescription::TaskDescription(std::string __type, std::string __name, int __size, ModelInterface::ConstPtr model):
     weight(Eigen::MatrixXd::Identity(size,size)),
     lambda(1.0),
     name(__name),
     type(__type),
-    size(__size)
+    size(__size),
+    _model(model)
 {
     for(int i = 0; i < size; i++)
     {
@@ -117,7 +118,8 @@ TaskDescription::TaskDescription(YAML::Node task_node,
                                  std::string __name,
                                  int __size):
     name(__name),
-    size(__size)
+    size(__size),
+    _model(model)
 {
     if(task_node["weight"] && task_node["weight"].IsScalar())
     {

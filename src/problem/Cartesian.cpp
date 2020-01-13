@@ -9,10 +9,11 @@ namespace
 }
 
 
-CartesianTask::CartesianTask(std::string name,
+CartesianTask::CartesianTask(ModelInterface::ConstPtr model,
+                             std::string name,
                              std::string distal_link,
                              std::string base_link):
-    TaskDescription("Cartesian", name, 6),
+    TaskDescription("Cartesian", name, 6, model),
     distal_link(distal_link),
     base_link(base_link),
     orientation_gain(1.0),

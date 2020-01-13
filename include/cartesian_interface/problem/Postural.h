@@ -27,12 +27,23 @@ namespace XBot { namespace Cartesian {
          * 
          * @param ndof The number of robot dofs (including 6 virtual joints)
          */
-        PosturalTask(int ndof);
+        PosturalTask(ModelInterface::ConstPtr model, int ndof);
 
         PosturalTask(YAML::Node node, ModelInterface::ConstPtr model);
+
+        void getReferencePosture(Eigen::VectorXd& qref) const;
+
+        void getReferencePosture(JointNameMap& qref) const;
         
+        void run(double time, double period) override;
+
+        void reset() override;
+
+    private:
+
+        Eigen::VectorXd _qref;
     };
-    
+
 } }
 
 

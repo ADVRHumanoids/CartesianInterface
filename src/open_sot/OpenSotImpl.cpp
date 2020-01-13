@@ -15,6 +15,7 @@
 #include <OpenSoT/solvers/iHQP.h>
 #include <OpenSoT/solvers/nHQP.h>
 
+#include "task_adapters/OpenSotTask.h"
 
 using namespace XBot::Cartesian;
 
@@ -147,234 +148,22 @@ OpenSoT::tasks::Aggregated::TaskPtr OpenSotImpl::aggregated_from_stack(Aggregate
 
 OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
 {
-    
     OpenSotImpl::TaskPtr opensot_task;
-    if(task_desc->type == "Cartesian")
+
+    try
     {
-        auto cartesian_desc = GetAsCartesian(task_desc);
-        std::string distal_link = cartesian_desc->distal_link;
-        std::string base_link = cartesian_desc->base_link;
-        
-        auto cartesian_task = boost::make_shared<OpenSoT::tasks::velocity::Cartesian>
-                                            (base_link + "_TO_" + distal_link,
-                                                _q,
-                                                *_model,
-                                                distal_link,
-                                                base_link
-                                                );
+        auto adapter = OpenSotTaskAdapter::MakeInstance(task_desc, _model);
+        _task_adapters.push_back(adapter);
 
-        opensot_task = cartesian_task;
-        
-        cartesian_task->setLambda(cartesian_desc->lambda);
-        cartesian_task->setOrientationErrorGain(cartesian_desc->orientation_gain);
-
-        cartesian_task->setIsBodyJacobian(cartesian_desc->is_body_jacobian);
-
-        _cartesian_tasks.push_back(cartesian_task);
-        
-        XBot::Logger::info("OpenSot: Cartesian found (%s -> %s), lambda = %f, dofs = %d\n", 
-                            base_link.c_str(), 
-                            distal_link.c_str(), 
-                            cartesian_desc->lambda,
-                            cartesian_desc->indices.size()
-                            );
-
+        opensot_task = adapter->getOpenSotTask();
     }
-    else if(task_desc->type == "Interaction")
+    catch(std::exception& e)
     {
-        auto i_desc = GetAsInteraction(task_desc);
-        std::string distal_link = i_desc->distal_link;
-        std::string base_link = i_desc->base_link;
-        
-        
-        XBot::ForceTorqueSensor::ConstPtr ft;
-        
-        
-        try
-        {
-            ft = _model->getForceTorque().at(distal_link);
-        }
-        catch(...)
-        {
-            if(!_force_estimation)
-            {
-                _force_estimation = std::make_shared<Utils::ForceEstimation>(_model);
-            }
-            
-            ft = _force_estimation->add_link(distal_link, 
-                                             {}, 
-                                             i_desc->force_estimation_chains);
-        }
-        
-        auto admittance_task = boost::make_shared<OpenSoT::tasks::velocity::CartesianAdmittance>
-                                               ("adm_" + base_link + "_TO_" + distal_link,
-                                                _q,
-                                                *_model,
-                                                base_link,
-                                                ft
-                                                );
-                                               
-        opensot_task = admittance_task;
-
-        admittance_task->setOrientationErrorGain(i_desc->orientation_gain);
-        
-        double control_dt = 0.01;
-        if(!get_control_dt(control_dt))
-        {
-            throw std::runtime_error("Unable to find control period in configuration file " 
-                                     "required by admittance task "  
-                                     "(add problem_description/solver_options/control_dt field)");
-        }
-        
-        if(i_desc->lambda > 0)
-        {
-        
-            admittance_task->setImpedanceParams(i_desc->stiffness,
-                                                i_desc->damping, 
-                                                i_desc->lambda, 
-                                                control_dt
-                                            );
-            
-        }
-        else
-        {
-            if((i_desc->inertia.array() <= 0).any())
-            {
-                throw std::invalid_argument("all inertias must be > 0 when lambda = 0");
-            }
-            
-            admittance_task->setRawParams(i_desc->damping.cwiseInverse() * control_dt, 
-                i_desc->damping.cwiseProduct(i_desc->inertia.cwiseInverse()),
-                0.0, 
-                control_dt
-            );
-        }
-        
-        admittance_task->setDeadZone(i_desc->force_dead_zone);
-
-        _cartesian_tasks.push_back(admittance_task);
-        _admittance_tasks.push_back(admittance_task);
-
-        XBot::Logger::info("OpenSot: Admittance found (%s -> %s), lambda = %f, dofs = %d\n", 
-                            base_link.c_str(), 
-                            distal_link.c_str(), 
-                            i_desc->lambda,
-                            i_desc->indices.size()
-                            );
-
+        Logger::error("[open_sot] construct_task failed with error '%s' \n", e.what());
     }
-    else if(task_desc->type == "Gaze")
-    {
-        
-        auto gaze_desc = GetAsGaze(task_desc);
-        std::string base_link = gaze_desc->base_link;
 
-        opensot_task = _gaze_task = boost::make_shared<GazeTask>(base_link + "_TO_" + "gaze",_q, *_model, base_link);
-        _gaze_task->setLambda(gaze_desc->lambda);
-
-        
-        XBot::Logger::info("OpenSot: Gaze found, base_link is %s, lambda is %f\n", 
-            gaze_desc->base_link.c_str(),
-            gaze_desc->lambda
-        );
-
-    }
-    else if(task_desc->type == "Com")
-    {
-        auto com_desc = GetAsCom(task_desc);
-        opensot_task = _com_task = boost::make_shared<CoMTask>(_q, *_model);
-        
-        _com_task->setLambda(com_desc->lambda);
-        
-        XBot::Logger::info("OpenSot: Com found, lambda is %f\n", com_desc->lambda);
-    }
-    else if(task_desc->type == "Postural")
-    {
-        auto postural_desc = GetAsPostural(task_desc);
-        _use_inertia_matrix.push_back(postural_desc->use_inertia_matrix);
-
-        auto postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
-        
-        _postural_tasks.push_back(postural_task);
-        
-        postural_task->setLambda(postural_desc->lambda);
-        
-        opensot_task = postural_task;
-        
-        XBot::Logger::info("OpenSot: Postural found, lambda is %f, %d dofs, use inertia matrix: %d\n",
-            postural_desc->lambda,
-            postural_desc->indices.size(),
-            postural_desc->use_inertia_matrix
-        );
-    }
-    else if(!task_desc->lib_name.empty())
-    {
-        auto task_ifc = Utils::LoadObject<SoT::TaskInterface>(task_desc->lib_name, 
-                                          task_desc->type + "OpenSotTaskFactory",
-                                          task_desc, _model
-                                         );
-        
-        if(task_ifc)
-        {
-            opensot_task = task_ifc->getTaskPtr();
-            _task_ifc.emplace_back(std::move(task_ifc));
-        }
-        else
-        {
-            Logger::warning("OpenSot: unable to construct task type '%s'd\n", 
-                task_desc->type.c_str());
-        }
-    }
-    else
-    {
-        Logger::warning("OpenSot: task type '%s' not supported\n",
-            task_desc->type.c_str()
-        );
-    }
-    
-    /* Apply active joint mask */
-    if(task_desc->disabled_joints.size() > 0)
-    {
-        std::vector<bool> active_joints_mask(_model->getJointNum(), true);
-        
-        for(auto jstr : task_desc->disabled_joints)
-        {
-            active_joints_mask.at(_model->getDofIndex(jstr)) = false;
-        }
-        
-        opensot_task->setActiveJointsMask(active_joints_mask);
-    }
-    
-    /* Apply weight and extract subtask */
-    std::list<uint> indices(task_desc->indices.begin(), task_desc->indices.end());
-
-    // for postural tasks, active joint masks acts on indices as well    
-    if(task_desc->type == "Postural")
-    {
-
-        auto is_disabled = [opensot_task](uint i)
-        {
-            return !opensot_task->getActiveJointsMask().at(i);
-        };
-        
-        indices.remove_if(is_disabled);
-        
-        std::vector<int> indices_vec(indices.begin(), indices.end());
-        task_desc = indices_vec % task_desc;
-        
-    }
-    
-    if(indices.size() == opensot_task->getTaskSize())
-    {
-        opensot_task = task_desc->weight*(opensot_task);
-    }
-    else
-    {
-        opensot_task = task_desc->weight*(opensot_task%indices);
-    }
-    
-    /* Return task */
     return opensot_task;
+
 }
 
 
@@ -539,60 +328,7 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
                                    get_config()
                                    );
     
-    /* Fill lambda map */
-    if(_com_task)
-    {
-        _lambda_map["com"] = _com_task->getLambda();
-    }
-
-    if(_gaze_task)
-    {
-        _lambda_map["gaze"] = _gaze_task->getLambda();
-    }
-    
-    for(auto t : _cartesian_tasks)
-    {
-        _lambda_map[t->getDistalLink()] = t->getLambda();
-    }
-    
 }
-
-void OpenSotImpl::lambda_callback(const std_msgs::Float32ConstPtr& msg, const string& ee_name)
-{
-    _lambda_map.at(ee_name) = msg->data;
-    _update_lambda = true;
-}
-
-
-bool OpenSotImpl::initRos(ros::NodeHandle nh)
-{
-    
-    
-    
-//     for(auto t: _cartesian_tasks)
-//     {
-//         std::string ee_name = t->getDistalLink();
-//         auto sub = nh.subscribe<std_msgs::Float32>(ee_name + "/lambda", 
-//                                                     1, 
-//                                                     boost::bind(&OpenSotImpl::lambda_callback, 
-//                                                                 this,
-//                                                                 _1,
-//                                                                 ee_name
-//                                                                 )
-//                                                    );
-//         _lambda_sub_map[ee_name] = sub;
-//         
-//     }
-    
-    return true;
-}
-
-void OpenSotImpl::updateRos()
-{
-
-}
-
-
 
 bool OpenSotImpl::update(double time, double period)
 {

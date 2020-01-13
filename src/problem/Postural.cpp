@@ -3,8 +3,8 @@
 
 using namespace XBot::Cartesian;
 
-PosturalTask::PosturalTask(int ndof):
-    TaskDescription("Postural", "postural", ndof),
+PosturalTask::PosturalTask(ModelInterface::ConstPtr model, int ndof):
+    TaskDescription("Postural", "postural", ndof, model),
     use_inertia_matrix(false)
 {
 
@@ -45,5 +45,15 @@ PosturalTask::PosturalTask(YAML::Node task_node,
         use_inertia_matrix = true;
     }
 
+}
+
+void PosturalTask::run(double time, double period)
+{
+
+}
+
+void PosturalTask::reset()
+{
+    _model->getJointPosition(_qref);
 }
 

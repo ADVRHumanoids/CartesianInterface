@@ -53,7 +53,7 @@ public:
                                           TaskDescription::Ptr task);
 
     TaskDescription() = default;
-    TaskDescription(std::string type, std::string name, int size);
+    TaskDescription(std::string type, std::string name, int size, ModelInterface::ConstPtr model);
     TaskDescription(YAML::Node node, ModelInterface::ConstPtr model,
                     std::string name, int size);
 
@@ -86,6 +86,10 @@ public:
     bool setActivationState(const ActivationState & value);
 
     void registerObserver(std::weak_ptr<TaskObserver> obs);
+
+protected:
+
+    ModelInterface::ConstPtr _model;
 
 private:
 

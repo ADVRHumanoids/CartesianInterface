@@ -24,14 +24,9 @@ public:
     OpenSotCartesianAdapter(TaskDescription::Ptr task,
                             ModelInterface::ConstPtr model);
 
-    virtual bool initialize() override
-    {
-        OpenSotTaskAdapter::initialize();
+    virtual TaskPtr constructTask() override;
 
-        _ci_cart->registerObserver(std::static_pointer_cast<OpenSotCartesianAdapter>(shared_from_this()));
-
-        return true;
-    }
+    virtual bool initialize() override;
 
     virtual void update(double time, double period) override;
 

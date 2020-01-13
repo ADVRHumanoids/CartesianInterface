@@ -13,7 +13,7 @@ namespace XBot { namespace Cartesian {
         typedef std::shared_ptr<ComTask> Ptr;
         typedef std::shared_ptr<const ComTask> ConstPtr;
         
-        ComTask();
+        ComTask(ModelInterface::ConstPtr model);
         
         ComTask(YAML::Node node, ModelInterface::ConstPtr model);
     };

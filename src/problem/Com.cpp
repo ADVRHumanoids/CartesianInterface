@@ -2,8 +2,8 @@
 
 using namespace XBot::Cartesian;
 
-ComTask::ComTask():
-    CartesianTask("com", "com", "world")
+ComTask::ComTask(ModelInterface::ConstPtr model):
+    CartesianTask(model, "com", "com", "world")
 {
 
 }

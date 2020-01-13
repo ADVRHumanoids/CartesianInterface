@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.0)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 include(MacroInstallLib)
 
+add_subdirectory(external)
+
 find_package(XBotInterface REQUIRED)
 find_package(XCM QUIET)
 find_package(OpenSoT REQUIRED)
@@ -31,16 +33,7 @@ include_directories(include
 
 
 # C++ 11
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-std=c++11" COMPILER_SUPPORTS_CXX11)
-check_cxx_compiler_flag("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-if(COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(COMPILER_SUPPORTS_CXX0X)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
-    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-endif()
+add_compile_options(-std=c++14)
 
 # Generate messages in the 'msg' folder
 add_message_files(
@@ -110,7 +103,7 @@ set(CartesianInterface_SRC
 #        src/problem/Gaze.cpp
         src/problem/Postural.cpp
 #        src/problem/Interaction.cpp
-#        src/problem/TaskFactory.cpp
+        src/problem/TaskFactory.cpp
         src/problem/Task.cpp
 #        src/problem/Constraint.cpp
 #        src/utils/ForceEstimation.cpp
@@ -172,6 +165,7 @@ target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
                                                 yaml-cpp
                                                 ${ReflexxesTypeII_LIBRARIES}
                                                 ${alglib_LIBRARIES}
+                                        PRIVATE fmt::fmt-header-only
                       )
 
 add_dependencies(CartesianInterface ${${PROJECT_NAME}_EXPORTED_TARGETS})
@@ -188,6 +182,7 @@ install(TARGETS CartesianInterface CartesianInterface
 add_library(CartesianOpenSot SHARED ${CartesianInterfaceSOT_SRC})
 target_link_libraries(CartesianOpenSot PUBLIC ${OpenSoT_LIBRARIES}
                                               CartesianInterface
+                                              PRIVATE fmt::fmt-header-only
                       )
 #install(TARGETS CartesianOpenSot CartesianOpenSot
 #    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
