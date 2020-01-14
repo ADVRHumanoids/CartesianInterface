@@ -20,7 +20,7 @@ int main(int argc, char ** argv)
     auto model = XBot::ModelInterface::getModel(XBot::ConfigOptionsFromParamServer());
 //     auto imu = robot->getImu().begin()->second;
     
-    double rate = nh_priv.param("rate", 25.0);
+    double rate = nh_priv.param("rate", (double)Utils::ForceEstimation::DEFAULT_RATE);
     auto links = nh_priv.param("links", std::vector<std::string>());
     
     if(links.size() == 0)
@@ -48,8 +48,8 @@ int main(int argc, char ** argv)
     std::cout << "offset\n" << tau_offset.transpose() << std::endl;
     
     bool momentum_based = nh_priv.param("use_momentum_based_observer", false);
-    double obs_bw = nh_priv.param("obs_bw", 4.0);
-    Utils::ForceEstimation f_est(model, svd_th, rate, true, obs_bw);
+    double obs_bw = nh_priv.param("obs_bw", (double)Utils::ForceEstimation::DEFAULT_OBS_BW);
+    Utils::ForceEstimation f_est(model, svd_th, true, obs_bw);
     
     std::map<XBot::ForceTorqueSensor::ConstPtr, ros::Publisher> ft_map;
     
@@ -63,6 +63,8 @@ int main(int argc, char ** argv)
     }
     
     auto res_pub = nh.advertise<cartesian_interface::ForceEstimationMsg>("residuals", 1);
+    
+    auto ff_pub = nh.advertise<geometry_msgs::WrenchStamped>("L_1_A/force", 1);
     
     Eigen::VectorXd tau;
     Eigen::VectorXd res, static_res;
@@ -78,7 +80,7 @@ int main(int argc, char ** argv)
         tau += tau_offset;
         model->setJointEffort(tau);
         
-        f_est.update();
+        f_est.update(rate);
 	
 	f_est.get_residuals(res);
 	f_est.get_static_residuals(static_res);
@@ -131,6 +133,19 @@ int main(int argc, char ** argv)
         }
         
         res_pub.publish(res_msg);
+        
+        //force feed-forward
+        geometry_msgs::WrenchStamped msg;
+            
+        Eigen::Vector6d wrench;
+        f_est.getWorldWrench(wrench);
+        
+        tf::wrenchEigenToMsg(wrench, msg.wrench);
+        
+        msg.header.frame_id = "L_1_A";
+        msg.header.stamp = ros::Time::now();
+        
+        ff_pub.publish(msg);
         
         loop_rate.sleep();
     }

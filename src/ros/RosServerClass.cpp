@@ -60,14 +60,14 @@ void RosServerClass::init_rspub()
     _rspub.reset(new RsPub(kdl_tree));
 
     ros::NodeHandle base_nh;
-    if(!base_nh.hasParam("robot_description"))
-    {
+//     if(!base_nh.hasParam("robot_description"))
+//     {
         base_nh.setParam("robot_description", _model->getUrdfString());
-    }
-    if(!base_nh.hasParam("robot_description_semantic"))
-    {
+//     }
+//     if(!base_nh.hasParam("robot_description_semantic"))
+//     {
         base_nh.setParam("robot_description_semantic", _model->getSrdfString());
-    }
+//     }
     
     _com_pub = _nh.advertise<geometry_msgs::PointStamped>("com_position", 1);
 }
