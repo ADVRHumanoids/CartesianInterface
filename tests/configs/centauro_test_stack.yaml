@@ -2,8 +2,10 @@ stack:
     - ["Wheel_FR", "Wheel_HR", "Wheel_HL"]
     - ["LeftArm", "RightArm"]
     - ["Postural", "Com"]
-constraints: ["JointLimits", "VelocityLimits", "Wheel_FL"]
+constraints: ["JointLimits", "Wheel_FL"]
 
+JointLimits:
+    type: "JointLimits"
 
 Wheel_FL:
     type: "Cartesian"

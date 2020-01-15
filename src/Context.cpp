@@ -1,18 +1,22 @@
 #include <cartesian_interface/Context.h>
+#include <iostream>
 
 using namespace XBot::Cartesian;
 
-struct XBot::Cartesian::ContextImpl
+class XBot::Cartesian::ContextImpl
 {
-    double control_period;
 
-    ContextImpl();
+public:
+
+    double control_period;
 };
 
 std::weak_ptr<ContextImpl> Context::_weak_impl;
 
 Context::Context()
 {
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
+
     if(auto ptr = _weak_impl.lock())
     {
         _impl = ptr;
@@ -23,20 +27,10 @@ Context::Context()
     }
 }
 
-Context::Context(std::shared_ptr<ContextImpl> ctx)
+Context::Context(double control_period):
+    _control_period(control_period)
 {
-    if(!ctx)
-    {
-        throw ContextInvalid("provided impl is nullptr");
-    }
-
-    if(auto ptr = _weak_impl.lock())
-    {
-        throw ContextRedefinition();
-    }
-
-    _impl = ctx;
-    _weak_impl = ctx;
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
 }
 
 double Context::getControlPeriod() const
@@ -46,7 +40,22 @@ double Context::getControlPeriod() const
 
 Context::~Context()
 {
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
+}
 
+Context::Ptr Context::MakeContext(double control_period)
+{
+    if(auto ptr = _weak_impl.lock())
+    {
+        throw ContextRedefinition();
+    }
+
+    auto instance = std::make_shared<ContextImpl>();
+    instance->control_period = control_period;
+
+    _weak_impl = instance;
+
+    return std::make_shared<Context>();
 }
 
 ContextInvalid::ContextInvalid(std::string reason):
@@ -70,8 +79,3 @@ const char * ContextEmpty::what() const noexcept
     return "Context is undefined";
 }
 
-ContextImpl::ContextImpl():
-    control_period(0.01)
-{
-
-}

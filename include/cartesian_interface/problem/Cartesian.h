@@ -148,8 +148,6 @@ private:
     Eigen::Affine3d get_pose_ref_otg() const;
     virtual Eigen::Affine3d get_current_pose() const;
 
-    double current_time;
-
     Eigen::Affine3d T;
     Eigen::Vector6d vel;
     Eigen::Vector6d acc;
@@ -157,11 +155,8 @@ private:
     EigenVector7d __otg_des, __otg_ref, __otg_vref;
     EigenVector7d __otg_maxvel, __otg_maxacc;
 
-    ControlType control_type;
     State state;
     double vref_time_to_live;
-
-    ModelInterface::ConstPtr model;
 
     Trajectory::Ptr trajectory;
     Reflexxes::Utils::TrajectoryGenerator::Ptr otg;

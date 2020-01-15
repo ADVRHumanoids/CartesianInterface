@@ -105,7 +105,9 @@ TaskDescription::TaskDescription(std::string __type, std::string __name, int __s
     name(__name),
     type(__type),
     size(__size),
-    _model(model)
+    _model(model),
+    activ_state(ActivationState::Enabled),
+    _time(0.)
 {
     for(int i = 0; i < size; i++)
     {
@@ -119,7 +121,9 @@ TaskDescription::TaskDescription(YAML::Node task_node,
                                  int __size):
     name(__name),
     size(__size),
-    _model(model)
+    _model(model),
+    activ_state(ActivationState::Enabled),
+    _time(0.)
 {
     if(task_node["weight"] && task_node["weight"].IsScalar())
     {
@@ -266,6 +270,11 @@ void TaskDescription::setLibName(std::string __lib_name)
     lib_name = __lib_name;
 }
 
+double TaskDescription::getTime() const
+{
+    return _time;
+}
+
 const std::string& TaskDescription::getName() const
 {
     return name;
@@ -329,6 +338,11 @@ const std::vector<std::string>& TaskDescription::getDisabledJoints() const
 void TaskDescription::setDisabledJoints(const std::vector<std::string> & value)
 {
     disabled_joints = value;
+}
+
+void TaskDescription::update(double time, double period)
+{
+    _time = time;
 }
 
 

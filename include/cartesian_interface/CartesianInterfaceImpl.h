@@ -140,6 +140,8 @@ public:
     virtual bool reset(double time);
     virtual bool resetWorld(const Eigen::Affine3d& w_T_new_world);
 
+    virtual TaskDescription::Ptr getTask(const std::string& task_name);
+
     ~CartesianInterfaceImpl();
 
     /* New API 2020 */
@@ -167,6 +169,7 @@ private:
     
     TaskDescription::Ptr get_task(const std::string& name) const;
     CartesianTask::Ptr get_cart_task(const std::string& name) const;
+    ComTask::Ptr get_com_task() const;
     
     std::map<std::string, TaskDescription::Ptr> _task_map;
     std::map<std::string, CartesianTask::Ptr> _cart_task_map;

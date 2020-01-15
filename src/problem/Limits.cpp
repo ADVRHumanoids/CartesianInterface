@@ -73,3 +73,18 @@ JointLimits::JointLimits(YAML::Node yaml, XBot::ModelInterface::ConstPtr model):
      }
 
 }
+
+
+bool XBot::Cartesian::JointLimits::validate()
+{
+    return (_qmax - _qmin).minCoeff() >= 0;
+}
+
+void XBot::Cartesian::JointLimits::update(double time, double period)
+{
+    TaskDescription::update(time, period);
+}
+
+void XBot::Cartesian::JointLimits::reset()
+{
+}

@@ -99,11 +99,17 @@ public:
 
     ModelInterface::ConstPtr getModel() const;
 
+    template <typename TaskDerivedType>
+    static bool HasType(ConstPtr task);
+
+
 protected:
 
     ModelInterface::ConstPtr _model;
 
     void setLibName(std::string lib_name);
+
+    double getTime() const;
 
 private:
 
@@ -169,7 +175,15 @@ private:
 
     std::list<TaskObserver::WeakPtr> _observers;
 
+    double _time;
+
 };
+
+template<typename TaskDerivedType>
+bool TaskDescription::HasType(TaskDescription::ConstPtr task)
+{
+    return static_cast<bool>(std::dynamic_pointer_cast<const TaskDerivedType>(task));
+}
 
 
 /**

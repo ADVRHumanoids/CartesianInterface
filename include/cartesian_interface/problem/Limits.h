@@ -26,6 +26,13 @@ namespace XBot { namespace Cartesian {
 
         double _bound_scaling;
         Eigen::VectorXd _qmin, _qmax;
+
+        // TaskDescription interface
+    public:
+        bool validate() override;
+        void update(double time, double period) override;
+        void reset() override;
+
     };
     
 } }

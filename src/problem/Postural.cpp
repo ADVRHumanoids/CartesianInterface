@@ -4,7 +4,7 @@
 using namespace XBot::Cartesian;
 
 PosturalTask::PosturalTask(ModelInterface::ConstPtr model, int ndof):
-    TaskDescription("Postural", "postural", ndof, model),
+    TaskDescription("Postural", "Postural", ndof, model),
     use_inertia_matrix(false)
 {
 
@@ -12,7 +12,7 @@ PosturalTask::PosturalTask(ModelInterface::ConstPtr model, int ndof):
 
 PosturalTask::PosturalTask(YAML::Node task_node,
                            ModelInterface::ConstPtr model):
-    TaskDescription(task_node, model, "postural", model->getJointNum())
+    TaskDescription(task_node, model, "Postural", model->getJointNum())
 {
     Eigen::MatrixXd weight;
     weight.setIdentity(getSize(), getSize());
@@ -64,7 +64,7 @@ void PosturalTask::setReferencePosture(const XBot::JointNameMap & qref)
 
 void PosturalTask::update(double time, double period)
 {
-
+    TaskDescription::update(time, period);
 }
 
 void PosturalTask::reset()

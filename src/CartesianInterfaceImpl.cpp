@@ -2,6 +2,8 @@
 #include <cartesian_interface/problem/Interaction.h>
 #include <boost/algorithm/string.hpp>  
 
+#include <cartesian_interface/Context.h>
+
 using namespace XBot::Cartesian;
 
 namespace {
@@ -203,6 +205,11 @@ bool CartesianInterfaceImpl::setActivationState(const std::string & ee_name, Act
 
 CartesianTask::Ptr CartesianInterfaceImpl::get_cart_task(const std::string& ee_name) const
 {
+    if(ee_name == "com" || ee_name == "Com")
+    {
+        return get_com_task();
+    }
+
     auto it = _cart_task_map.find(ee_name);
     
     if(it == _cart_task_map.end())
@@ -212,6 +219,24 @@ CartesianTask::Ptr CartesianInterfaceImpl::get_cart_task(const std::string& ee_n
     }
     
     return it->second;
+}
+
+ComTask::Ptr CartesianInterfaceImpl::get_com_task() const
+{
+    if(_com_task_map.empty())
+    {
+        Logger::error("Undefined task com\n");
+        return ComTask::Ptr();
+    }
+
+    if(_com_task_map.size() > 1)
+    {
+        Logger::warning("Many com tasks defined, results might be inaccurate! \n");
+    }
+
+    auto com_task = _com_task_map.begin()->second;
+
+    return com_task;
 }
 
 TaskDescription::Ptr CartesianInterfaceImpl::get_task(const std::string& ee_name) const
@@ -789,6 +814,11 @@ bool CartesianInterfaceImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
     }
     
     return reset(get_current_time());
+}
+
+TaskDescription::Ptr CartesianInterfaceImpl::getTask(const std::string & task_name)
+{
+    return _task_map.at(task_name);
 }
 
 bool CartesianInterfaceImpl::setDesiredDamping(const std::string& end_effector,

@@ -17,9 +17,12 @@ CartesianTask::CartesianTask(ModelInterface::ConstPtr model,
     distal_link(distal_link),
     base_link(base_link),
     orientation_gain(1.0),
-    is_body_jacobian(false)
+    is_body_jacobian(false),
+    ctrl_mode(ControlType::Position)
 {
-    
+    __otg_maxvel.setConstant(1.0);
+    __otg_maxacc.setConstant(10.0);
+    trajectory = std::make_shared<Trajectory>();
 }
 
 namespace
@@ -53,7 +56,8 @@ int get_size(YAML::Node task_node)
 }
 
 CartesianTask::CartesianTask(YAML::Node task_node, ModelInterface::ConstPtr model):
-    TaskDescription(task_node, model, ::get_name(task_node), ::get_size(task_node))
+    TaskDescription(task_node, model, ::get_name(task_node), ::get_size(task_node)),
+    ctrl_mode(ControlType::Position)
 {
     bool is_com = task_node["type"].as<std::string>() == "Com";
     
@@ -74,6 +78,10 @@ CartesianTask::CartesianTask(YAML::Node task_node, ModelInterface::ConstPtr mode
     {
         is_body_jacobian = true;
     }
+
+    __otg_maxvel.setConstant(1.0);
+    __otg_maxacc.setConstant(10.0);
+    trajectory = std::make_shared<Trajectory>();
 }
 
 bool CartesianTask::validate()
@@ -214,14 +222,14 @@ bool CartesianTask::getPoseTarget(Eigen::Affine3d & base_T_ref) const
 
 int CartesianTask::getCurrentSegmentId() const
 {
-    return trajectory->getCurrentSegmentId(current_time);
+    return trajectory->getCurrentSegmentId(getTime());
 }
 
 bool CartesianTask::setBaseLink(const std::string & new_base_link)
 {
     /* Check that new base link exists */
     Eigen::Affine3d T;
-    if(!model->getPose(new_base_link, T))
+    if(!_model->getPose(new_base_link, T))
     {
         XBot::Logger::error("New base link '%s' in not defined\n",
                             new_base_link.c_str());
@@ -270,7 +278,7 @@ bool CartesianTask::setPoseReference(const Eigen::Affine3d & base_T_ref)
         return false;
     }
     
-    if(control_type == ControlType::Position)
+    if(ctrl_mode == ControlType::Position)
     {
         T = base_T_ref;
     }
@@ -278,7 +286,7 @@ bool CartesianTask::setPoseReference(const Eigen::Affine3d & base_T_ref)
     {
         Logger::warning(Logger::Severity::DEBUG,
                         "Task '%s': not setting position reference\n",
-                        distal_link.c_str());
+                        getName().c_str());
     }
     
     return true;
@@ -297,7 +305,7 @@ bool CartesianTask::setVelocityReference(const Eigen::Vector6d & base_vel_ref)
     if(getActivationState() == ActivationState::Disabled)
     {
         XBot::Logger::error("Unable to set pose reference. Task '%s' is in DISABLED mode \n",
-                            distal_link.c_str());
+                            getName().c_str());
         return false;
     }
     
@@ -312,21 +320,21 @@ bool CartesianTask::setPoseTarget(const Eigen::Affine3d & base_T_ref, double tim
     if(state == State::Reaching)
     {
         XBot::Logger::error("Unable to set target pose. Task '%s' is in already in REACHING mode \n",
-                            distal_link.c_str());
+                            getName().c_str());
         return false;
     }
     
-    if(control_type != ControlType::Position)
+    if(ctrl_mode != ControlType::Position)
     {
         XBot::Logger::error("Unable to set target pose. Task '%s' is in NOT in position mode \n",
-                            distal_link.c_str());
+                            getName().c_str());
         return false;
     }
     
     state = State::Reaching;
     trajectory->clear();
-    trajectory->addWayPoint(current_time, T);
-    trajectory->addWayPoint(current_time + time, base_T_ref);
+    trajectory->addWayPoint(getTime(), T);
+    trajectory->addWayPoint(getTime() + time, base_T_ref);
     trajectory->compute();
     
     return true;
@@ -337,24 +345,24 @@ bool CartesianTask::setWayPoints(const Trajectory::WayPointVector & way_points)
     if(state == State::Reaching)
     {
         XBot::Logger::error("Unable to set target pose. Task '%s' is in already in REACHING mode \n",
-                            distal_link.c_str());
+                            getName().c_str());
         return false;
     }
     
-    if(control_type != ControlType::Position)
+    if(ctrl_mode != ControlType::Position)
     {
         XBot::Logger::error("Unable to set target pose. Task '%s' is in NOT in position mode \n",
-                            distal_link.c_str());
+                            getName().c_str());
         return false;
     }
     
     state = State::Reaching;
     trajectory->clear();
-    trajectory->addWayPoint(current_time, T);
+    trajectory->addWayPoint(getTime(), T);
     
     for(const auto& wp : way_points)
     {
-        trajectory->addWayPoint(wp, current_time);
+        trajectory->addWayPoint(wp, getTime());
     }
     
     trajectory->compute();
@@ -378,14 +386,14 @@ void CartesianTask::abort()
 
 void CartesianTask::update(double time, double period)
 {
-    current_time = time;
-    
+    TaskDescription::update(time, period);
+
     vref_time_to_live -= period;
     
     if(state == State::Reaching)
     {
         T = trajectory->evaluate(time, &vel, &acc);
-        
+
         if(trajectory->isTrajectoryEnded(time) && check_reach())
         {
             state = State::Online;
@@ -457,6 +465,8 @@ bool CartesianTask::setControlMode(const ControlType & value)
 
 bool CartesianTask::check_reach() const
 {
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
+
     auto Totg = get_pose_ref_otg();
     auto Tref = trajectory->getWayPoints().back().frame;
     
@@ -484,7 +494,7 @@ void CartesianTask::apply_otg()
     if(__otg_ref.tail<4>().norm() < 0.01)
     {
         Logger::warning("Experimental orientation otg: norm < 0.01 for task '%s': contact the developers! \n",
-                        distal_link.c_str());
+                        getName().c_str());
         
     }
     
@@ -527,18 +537,20 @@ Eigen::Affine3d CartesianTask::get_current_pose() const
     if(distal_link == "com")
     {
         Eigen::Vector3d com;
-        model->getCOM(com);
+        _model->getCOM(com);
         ret.setIdentity();
         ret.translation() = com;
+
+        return ret;
     }
     
     if(base_link == "world")
     {
-        model->getPose(distal_link, ret);
+        _model->getPose(distal_link, ret);
     }
     else
     {
-        model->getPose(distal_link, base_link, ret);
+        _model->getPose(distal_link, base_link, ret);
     }
     
     return ret;

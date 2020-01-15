@@ -1,6 +1,7 @@
+#include <algorithm>
 #include <gtest/gtest.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
-#include <algorithm>
+#include <cartesian_interface/Context.h>
 
 using namespace XBot::Cartesian;
 
@@ -25,8 +26,11 @@ class TestApi: public ::testing::Test {
 
 protected:
 
-     TestApi(){
-         
+     TestApi()
+     {
+
+         std::cout << __PRETTY_FUNCTION__ << std::endl;
+
          XBot::Logger::SetVerbosityLevel(XBot::Logger::Severity::DEBUG);
          
 #ifndef CARTESIO_TEST_CONFIG_PATH
@@ -56,8 +60,14 @@ protected:
          opt.set_parameter<std::string>("model_type", "RBDL");
          
          auto model = XBot::ModelInterface::getModel(opt);
+
+         Eigen::VectorXd qhome;
+         model->getRobotState("home", qhome);
+         model->setJointPosition(qhome);
          
          YAML::Node ik_yaml = YAML::LoadFile(path_to_cfg + "centauro_test_stack.yaml");
+
+         auto ctx = Context::MakeContext(0.001);
          
          ProblemDescription ik_problem(ik_yaml, model);
          
@@ -65,7 +75,9 @@ protected:
          
      }
 
-     virtual ~TestApi() {
+     virtual ~TestApi()
+     {
+         std::cout << __PRETTY_FUNCTION__ << std::endl;
      }
 
      virtual void SetUp() {
@@ -82,6 +94,8 @@ protected:
 TEST_F(TestApi, checkParsing)
 {
     auto list = ci->getTaskList();
+
+    std::copy(list.begin(), list.end(), std::ostream_iterator<std::string>(std::cout, " "));
     
     ASSERT_FALSE(std::find(list.begin(), list.end(), "wheel_1") == list.end());
     
@@ -95,7 +109,9 @@ TEST_F(TestApi, checkParsing)
     
     ASSERT_FALSE(std::find(list.begin(), list.end(), "arm2_8") == list.end());
     
-    ASSERT_FALSE(std::find(list.begin(), list.end(), "com") == list.end());
+    ASSERT_FALSE(std::find(list.begin(), list.end(), "Com") == list.end());
+
+    ASSERT_FALSE(std::find(list.begin(), list.end(), "Postural") == list.end());
     
     ASSERT_TRUE( ci->getBaseLink("wheel_1") == "world" );
     
@@ -138,17 +154,24 @@ TEST_F(TestApi, checkTaskProperties)
     
     for(auto task : ci->getTaskList())
     {
-        ASSERT_EQ(ci->getControlMode(task), ControlType::Position);
+        ASSERT_EQ(ci->getActivationState(task), ActivationState::Enabled);
     }
     
     for(auto task : ci->getTaskList())
     {
-        ASSERT_TRUE(ci->setControlMode(task, ControlType::Velocity));
-        ASSERT_EQ(ci->getControlMode(task), ControlType::Velocity);
         ASSERT_TRUE(ci->setActivationState(task, ActivationState::Disabled));
         ASSERT_EQ(ci->getActivationState(task), ActivationState::Disabled);
-        ASSERT_TRUE(ci->setControlMode(task, ControlType::Position));
-        ASSERT_EQ(ci->getControlMode(task), ControlType::Position);
+        ASSERT_TRUE(ci->setActivationState(task, ActivationState::Enabled));
+        ASSERT_EQ(ci->getActivationState(task), ActivationState::Enabled);
+
+        if(TaskDescription::HasType<CartesianTask>(ci->getTask(task)))
+        {
+            ASSERT_TRUE(ci->setControlMode(task, ControlType::Velocity));
+            ASSERT_EQ(ci->getControlMode(task), ControlType::Velocity);
+            ASSERT_TRUE(ci->setControlMode(task, ControlType::Position));
+            ASSERT_EQ(ci->getControlMode(task), ControlType::Position);
+        }
+
     }
     
     
@@ -231,7 +254,7 @@ TEST_F(TestApi, checkTrajectories)
         {
             ASSERT_EQ(ci->getTaskState(ee), State::Reaching);
         }
-        else
+        else if(t > 2.1)
         {
             ASSERT_EQ(ci->getTaskState(ee), State::Online);
             Eigen::Affine3d T1;
@@ -355,7 +378,8 @@ TEST_F(TestApi, checkWaypoints)
 
 TEST_F(TestApi, checkLimits)
 {
-    const double dt = 0.001;
+    Context ctx;
+    const double dt = ctx.getControlPeriod();
     
     
     auto logger = XBot::MatLogger::getLogger("/tmp/checkLimits_logger");
@@ -394,9 +418,9 @@ TEST_F(TestApi, checkLimits)
         std::cout << v_lin.transpose() << std::endl;
         std::cout << v_lin.norm() << std::endl;
         const double EPS_V_LIN = 0.001;
-        EXPECT_TRUE( std::fabs(v_lin.x()) <= vmax_lin + EPS_V_LIN );
-        EXPECT_TRUE( std::fabs(v_lin.y()) <= vmax_lin + EPS_V_LIN );
-        EXPECT_TRUE( std::fabs(v_lin.z()) <= vmax_lin + EPS_V_LIN );
+        EXPECT_LE( std::fabs(v_lin.x()), vmax_lin + EPS_V_LIN );
+        EXPECT_LE( std::fabs(v_lin.y()), vmax_lin + EPS_V_LIN );
+        EXPECT_LE( std::fabs(v_lin.z()), vmax_lin + EPS_V_LIN );
         
         std::cout << "V_ANG ***********" << std::endl;
         
@@ -416,9 +440,9 @@ TEST_F(TestApi, checkLimits)
         std::cout << acc_lin.transpose() << std::endl;
         std::cout << acc_lin.norm() << std::endl;
         const double EPS_A_LIN = 0.001;
-        EXPECT_TRUE( std::fabs(acc_lin.x()) <= amax_lin + EPS_A_LIN );
-        EXPECT_TRUE( std::fabs(acc_lin.y()) <= amax_lin + EPS_A_LIN );
-        EXPECT_TRUE( std::fabs(acc_lin.z()) <= amax_lin + EPS_A_LIN );
+        EXPECT_LE( std::fabs(acc_lin.x()), amax_lin + EPS_A_LIN );
+        EXPECT_LE( std::fabs(acc_lin.y()), amax_lin + EPS_A_LIN );
+        EXPECT_LE( std::fabs(acc_lin.z()), amax_lin + EPS_A_LIN );
         
         
         std::cout << "A_ANG ***********" << std::endl;

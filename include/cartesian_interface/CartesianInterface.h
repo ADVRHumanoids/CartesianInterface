@@ -181,6 +181,8 @@ public:
     
     virtual bool getReferencePosture(Eigen::VectorXd& qref) const = 0;      
     virtual bool getReferencePosture(JointNameMap& qref) const = 0;
+
+    virtual TaskDescription::Ptr getTask(const std::string& task_name) = 0;
                           
     virtual ~CartesianInterface(){}
     

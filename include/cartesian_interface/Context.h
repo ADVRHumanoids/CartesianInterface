@@ -3,28 +3,36 @@
 
 #include <memory>
 #include <stdexcept>
+#include <cartesian_interface/Macro.h>
 
 namespace XBot { namespace Cartesian {
 
-struct ContextImpl;
+class ContextImpl;
+
 
 class Context
 {
 
 public:
 
+    CARTESIO_DECLARE_SMART_PTR(Context)
+
     Context();
-    explicit Context(std::shared_ptr<ContextImpl> ctx);
 
     double getControlPeriod() const;
 
     ~Context();
 
+    static Ptr MakeContext(double control_period);
+
 private:
 
-    static std::weak_ptr<ContextImpl> _weak_impl;
+    Context(double control_period);
 
+    static std::weak_ptr<ContextImpl> _weak_impl;
     std::shared_ptr<ContextImpl> _impl;
+
+    double _control_period;
 
 };
 
