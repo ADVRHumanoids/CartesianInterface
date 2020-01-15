@@ -35,6 +35,7 @@ include_directories(include
 
 # C++ 11
 add_compile_options(-std=c++14)
+add_compile_options(-Wl,--no-undefined)
 
 # Generate messages in the 'msg' folder
 add_message_files(
@@ -109,7 +110,7 @@ set(CartesianInterface_SRC
         src/problem/TaskFactory.cpp
         src/problem/Task.cpp
         src/problem/Constraint.cpp
-#        src/utils/ForceEstimation.cpp
+        src/utils/ForceEstimation.cpp
         src/utils/RobotStatePublisher.cpp
 #        src/problem/MinJointVel.cpp
     )
@@ -192,11 +193,11 @@ target_link_libraries(CartesianOpenSot PUBLIC ${OpenSoT_LIBRARIES}
                                               CartesianInterface
                                               PRIVATE fmt::fmt-header-only
                       )
-#install(TARGETS CartesianOpenSot CartesianOpenSot
-#    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#)
+install(TARGETS CartesianOpenSot CartesianOpenSot
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Addons for libCartesianOpenSot
 

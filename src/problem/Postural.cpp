@@ -12,7 +12,8 @@ PosturalTask::PosturalTask(ModelInterface::ConstPtr model, int ndof):
 
 PosturalTask::PosturalTask(YAML::Node task_node,
                            ModelInterface::ConstPtr model):
-    TaskDescription(task_node, model, "Postural", model->getJointNum())
+    TaskDescription(task_node, model, "Postural", model->getJointNum()),
+    use_inertia_matrix(false)
 {
     Eigen::MatrixXd weight;
     weight.setIdentity(getSize(), getSize());

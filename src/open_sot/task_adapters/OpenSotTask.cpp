@@ -7,6 +7,8 @@
 #include "OpenSotCartesian.h"
 #include "OpenSotJointLimits.h"
 #include "OpenSotConstraintFromTask.h"
+#include "OpenSotPostural.h"
+#include "OpenSotCom.h"
 
 #include "fmt/format.h"
 
@@ -22,7 +24,14 @@ OpenSotTaskAdapter::OpenSotTaskAdapter(TaskDescription::Ptr task,
 bool OpenSotTaskAdapter::initialize()
 {
     /* Let derived class construct the task */
-    _sub_task = _opensot_task = constructTask();
+    _opensot_task = constructTask();
+    _sub_task = _opensot_task;
+
+    if(!_opensot_task)
+    {
+        throw std::runtime_error(fmt::format("OpenSotTaskAdapter: constructTask() for task '{}' returned null pointer",
+                                             _ci_task->getName()));
+    }
 
 
     /* Set generic task parameters */
@@ -113,7 +122,11 @@ OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr ta
     }
     else if(task->getType() == "Postural")
     {
-
+        task_adapter = new OpenSotPosturalAdapter(task, model);
+    }
+    else if(task->getType() == "Com")
+    {
+        task_adapter = new OpenSotComAdapter(task, model);
     }
     else
     {
@@ -123,12 +136,14 @@ OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr ta
         throw std::runtime_error(str);
     }
 
-    if(!task_adapter->initialize())
+    Ptr task_shared_ptr(task_adapter);
+
+    if(!task_shared_ptr->initialize())
     {
         throw std::runtime_error(fmt::format("Unable to inizialize task '{}'", task->getName()));
     }
 
-    return Ptr(task_adapter);
+    return task_shared_ptr;
 }
 
 OpenSotConstraintAdapter::OpenSotConstraintAdapter(ConstraintDescription::Ptr constr,
@@ -140,6 +155,15 @@ OpenSotConstraintAdapter::OpenSotConstraintAdapter(ConstraintDescription::Ptr co
 
 bool OpenSotConstraintAdapter::initialize()
 {
+    _opensot_constr = constructConstraint();
+
+    if(!_opensot_constr)
+    {
+        throw std::runtime_error(fmt::format("OpenSotConstraintAdapter: "
+                                             "constructConstraint() for constraint '{}' returned null pointer",
+                                             _ci_constr->getName()));
+    }
+
     /* Register observer */
     _ci_constr->registerObserver(shared_from_this());
 
@@ -188,12 +212,14 @@ OpenSotConstraintAdapter::Ptr OpenSotConstraintAdapter::MakeInstance(ConstraintD
         throw std::runtime_error(str);
     }
 
-    if(!constr_adapter->initialize())
+    Ptr constr_shared_ptr(constr_adapter);
+
+    if(!constr_shared_ptr->initialize())
     {
         throw std::runtime_error(fmt::format("Unable to inizialize constraint '{}'", constr->getName()));
     }
 
-    return Ptr(constr_adapter);
+    return constr_shared_ptr;
 }
 
 

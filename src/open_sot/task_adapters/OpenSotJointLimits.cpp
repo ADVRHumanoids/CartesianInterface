@@ -24,15 +24,17 @@ ConstraintPtr OpenSotJointLimitsAdapter::constructConstraint()
     return boost::make_shared<JointLimitsSoT>(q,
                                               _ci_jlim->getQmax(),
                                               _ci_jlim->getQmin(),
-                                              _ci_jlim->setBoundScaling());
+                                              _ci_jlim->getBoundScaling());
 }
 
 bool OpenSotJointLimitsAdapter::initialize()
 {
+    OpenSotConstraintAdapter::initialize();
+
     return true;
 }
 
 void OpenSotJointLimitsAdapter::update(double time, double period)
 {
-    OpenSotJointLimitsAdapter::update(time, period);
+    OpenSotConstraintAdapter::update(time, period);
 }

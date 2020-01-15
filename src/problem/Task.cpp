@@ -102,6 +102,7 @@ TaskDescription::Ptr XBot::Cartesian::operator%(std::vector<int> indices, TaskDe
 TaskDescription::TaskDescription(std::string __type, std::string __name, int __size, ModelInterface::ConstPtr model):
     weight(Eigen::MatrixXd::Identity(size,size)),
     lambda(1.0),
+    lambda2(0.0),
     name(__name),
     type(__type),
     size(__size),
@@ -123,8 +124,12 @@ TaskDescription::TaskDescription(YAML::Node task_node,
     size(__size),
     _model(model),
     activ_state(ActivationState::Enabled),
-    _time(0.)
+    _time(0.),
+    lambda(1.0),
+    lambda2(0.0)
 {
+    type = task_node["type"].as<std::string>();
+
     if(task_node["weight"] && task_node["weight"].IsScalar())
     {
         weight = task_node["weight"].as<double>() * Eigen::MatrixXd::Identity(size, size);
@@ -346,3 +351,7 @@ void TaskDescription::update(double time, double period)
 }
 
 
+
+bool TaskObserver::onWeightChanged() { return true; }
+
+bool TaskObserver::onActivationStateChanged() { return true; }

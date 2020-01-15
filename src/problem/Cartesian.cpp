@@ -18,7 +18,8 @@ CartesianTask::CartesianTask(ModelInterface::ConstPtr model,
     base_link(base_link),
     orientation_gain(1.0),
     is_body_jacobian(false),
-    ctrl_mode(ControlType::Position)
+    ctrl_mode(ControlType::Position),
+    vref_time_to_live(-1.0)
 {
     __otg_maxvel.setConstant(1.0);
     __otg_maxacc.setConstant(10.0);
@@ -57,7 +58,8 @@ int get_size(YAML::Node task_node)
 
 CartesianTask::CartesianTask(YAML::Node task_node, ModelInterface::ConstPtr model):
     TaskDescription(task_node, model, ::get_name(task_node), ::get_size(task_node)),
-    ctrl_mode(ControlType::Position)
+    ctrl_mode(ControlType::Position),
+    vref_time_to_live(-1.0)
 {
     bool is_com = task_node["type"].as<std::string>() == "Com";
     
@@ -556,3 +558,22 @@ Eigen::Affine3d CartesianTask::get_current_pose() const
     return ret;
 }
 
+bool CartesianTask::isBodyJacobian() const
+{
+    return is_body_jacobian;
+}
+
+bool CartesianTaskObserver::onBaseLinkChanged()
+{
+    return true;
+}
+
+bool CartesianTaskObserver::onControlModeChanged()
+{
+    return true;
+}
+
+bool CartesianTaskObserver::onSafetyLimitsChanged()
+{
+    return true;
+}

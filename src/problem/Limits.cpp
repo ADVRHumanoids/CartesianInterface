@@ -74,6 +74,17 @@ JointLimits::JointLimits(YAML::Node yaml, XBot::ModelInterface::ConstPtr model):
 
 }
 
+bool JointLimits::setBoundScaling(double value)
+{
+    _bound_scaling = value;
+    return true;
+}
+
+double JointLimits::getBoundScaling() const
+{
+    return _bound_scaling;
+}
+
 
 bool XBot::Cartesian::JointLimits::validate()
 {

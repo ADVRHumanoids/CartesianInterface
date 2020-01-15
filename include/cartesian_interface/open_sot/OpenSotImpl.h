@@ -40,6 +40,7 @@ private:
     Eigen::VectorXd _q, _dq, _ddq;
     
     std::vector<OpenSotTaskAdapter::Ptr> _task_adapters;
+    std::vector<OpenSotConstraintAdapter::Ptr> _constr_adapters;
 
     Utils::ForceEstimation::Ptr _force_estimation;
     OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr _solver;

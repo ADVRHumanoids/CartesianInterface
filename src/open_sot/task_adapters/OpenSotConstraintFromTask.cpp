@@ -35,6 +35,8 @@ ConstraintPtr OpenSotConstraintFromTaskAdapter::constructConstraint()
 
 bool OpenSotConstraintFromTaskAdapter::initialize()
 {
+    OpenSotConstraintAdapter::initialize();
+
     return true;
 }
 

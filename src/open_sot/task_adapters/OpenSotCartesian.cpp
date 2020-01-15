@@ -36,7 +36,7 @@ bool OpenSotCartesianAdapter::initialize()
     /* Cartesian task specific parameters */
 
     _old_lambda = _opensot_cart->getLambda();
-    _opensot_cart->setIsBodyJacobian(_ci_cart->isBodyJaxobian());
+    _opensot_cart->setIsBodyJacobian(_ci_cart->isBodyJacobian());
 
     /* Register observer */
 

@@ -1,15 +1,8 @@
 #include <cartesian_interface/open_sot/OpenSotImpl.h>
 #include <cartesian_interface/problem/ProblemDescription.h>
 #include <cartesian_interface/problem/Task.h>
-#include <cartesian_interface/problem/Interaction.h>
-#include <cartesian_interface/problem/Com.h>
-#include <cartesian_interface/problem/Postural.h>
-#include <cartesian_interface/problem/Gaze.h>
-#include <cartesian_interface/problem/Limits.h>
 #include <cartesian_interface/utils/LoadObject.hpp>
 #include <boost/make_shared.hpp>
-#include <OpenSoT/constraints/velocity/JointLimits.h>
-#include <OpenSoT/constraints/velocity/VelocityLimits.h>
 #include <OpenSoT/constraints/TaskToConstraint.h>
 #include <OpenSoT/solvers/eHQP.h>
 #include <OpenSoT/solvers/iHQP.h>
@@ -136,7 +129,7 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
 
         opensot_task = adapter->getOpenSotTask();
     }
-    catch(std::exception& e)
+    catch(std::runtime_error& e)
     {
         Logger::error("[open_sot] construct_task failed with error '%s' \n", e.what());
     }
@@ -147,93 +140,25 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
 
 
 
-//OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr OpenSotImpl::constraint_from_description(ConstraintDescription::Ptr constr_desc)
-//{
-//    OpenSotImpl::ConstraintPtr opensot_constraint;
+OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr OpenSotImpl::constraint_from_description(ConstraintDescription::Ptr constr_desc)
+{
+    OpenSotImpl::ConstraintPtr opensot_constraint;
 
-//    if(constr_desc->type == "JointLimits")
-//    {
-//        Eigen::VectorXd qmin, qmax;
-//        _model->getJointLimits(qmin, qmax);
+    try
+    {
+        auto adapter = OpenSotConstraintAdapter::MakeInstance(constr_desc, _model);
+        _constr_adapters.push_back(adapter);
 
-//        auto joint_lims = boost::make_shared<OpenSoT::constraints::velocity::JointLimits>
-//                                            (_q,
-//                                                qmax,
-//                                                qmin
-//                                                );
+        opensot_constraint = adapter->getOpenSotConstraint();
+    }
+    catch(std::runtime_error& e)
+    {
+        Logger::error("[open_sot] constraint_from_description failed with error '%s' \n", e.what());
+    }
 
-//        return joint_lims;
+    return opensot_constraint;
 
-
-//    }
-//    else if(constr_desc->type == "VelocityLimits")
-//    {
-//        Eigen::VectorXd qdotmax;
-//        _model->getVelocityLimits(qdotmax);
-        
-//        double control_dt = 0.01;
-//        if(!get_control_dt(control_dt))
-//        {
-//            Logger::warning("Unable to find control period \
-//in configuration file (add problem_description/solver_options/control_dt field)\n");
-//        }
-        
-//        auto vel_lims = boost::make_shared<OpenSoT::constraints::velocity::VelocityLimits>
-//                                            (qdotmax, control_dt);
-
-//        return vel_lims;
-
-//    }
-//    else if(constr_desc->type == "ConstraintFromTask")
-//    {
-//        auto task = GetTaskFromConstraint(constr_desc);
-//        if(task)
-//        {
-//            auto opensot_task = construct_task(task);
-            
-//            if(opensot_task)
-//            {
-//                return boost::make_shared<OpenSoT::constraints::TaskToConstraint>(opensot_task);
-//            }
-//            else
-//            {
-//                XBot::Logger::warning("Unable to construct OpenSoT task (%s)\n", constr_desc->type.c_str());
-//                return nullptr;
-//            }
-//        }
-//        else
-//        {
-//            XBot::Logger::warning("Unable to construct task description (%s)\n", constr_desc->type.c_str());
-//            return nullptr;
-//        }
-//    }
-//    else if(!constr_desc->lib_name.empty())
-//    {
-//        auto constr_ifc = Utils::LoadObject<SoT::ConstraintInterface>(constr_desc->lib_name,
-//                                          constr_desc->type + "OpenSotConstraintFactory",
-//                                          constr_desc, _model
-//                                         );
-        
-//        if(constr_ifc)
-//        {
-//            opensot_constraint = constr_ifc->getConstraintPtr();
-//            _constr_ifc.emplace_back(std::move(constr_ifc));
-//            return opensot_constraint;
-//        }
-//        else
-//        {
-//            Logger::warning("OpenSot: unable to construct task type '%s'd\n",
-//                constr_desc->type.c_str());
-            
-//            return nullptr;
-//        }
-//    }
-//    else
-//    {
-//        XBot::Logger::warning("Unsupported constraint type (%s)\n", constr_desc->type.c_str());
-//        return nullptr;
-//    }
-//}
+}
 
 
 OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
@@ -312,19 +237,17 @@ bool OpenSotImpl::update(double time, double period)
 
     _model->getJointPosition(_q);
     
-    /* Update all plugin-based tasks */
+    /* Update all plugin-based tasks and constraints */
     for(auto t : _task_adapters)
     {
         t->update(time, period);
     }
 
-    /* Update all plugin-based constraints */
-//    for(auto c : _constr_ifc)
-//    {
-//        c->update(this, time, period);
-//    }
+    for(auto c : _constr_adapters)
+    {
+        c->update(time, period);
+    }
 
-    
     /* Force estimation */
     if(_force_estimation)
     {

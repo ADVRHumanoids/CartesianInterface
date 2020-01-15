@@ -47,7 +47,7 @@ public:
     virtual bool validate() override;
 
     /* Parameters */
-    bool isBodyJaxobian() const;
+    bool isBodyJacobian() const;
 
     /* Safety limits */
     virtual void getVelocityLimits(double& max_vel_lin,

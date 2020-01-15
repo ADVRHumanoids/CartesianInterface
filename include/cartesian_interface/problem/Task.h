@@ -19,8 +19,8 @@ public:
 
     typedef std::weak_ptr<TaskObserver> WeakPtr;
 
-    virtual bool onWeightChanged() { return true; }
-    virtual bool onActivationStateChanged() { return true; }
+    virtual bool onWeightChanged();
+    virtual bool onActivationStateChanged();
 
     virtual ~TaskObserver() = default;
 

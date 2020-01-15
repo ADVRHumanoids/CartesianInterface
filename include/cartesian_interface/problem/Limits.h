@@ -16,7 +16,7 @@ namespace XBot { namespace Cartesian {
         JointLimits(ModelInterface::ConstPtr model);
         JointLimits(YAML::Node yaml, ModelInterface::ConstPtr model);
 
-        bool setBoundScaling();
+        bool setBoundScaling(double value);
         double getBoundScaling() const;
 
         Eigen::VectorXd getQmin() const;

@@ -5,7 +5,8 @@ using namespace XBot::Cartesian;
 
 OpenSotPosturalAdapter::OpenSotPosturalAdapter(TaskDescription::Ptr task,
                                                XBot::ModelInterface::ConstPtr model):
-    OpenSotTaskAdapter(task, model)
+    OpenSotTaskAdapter(task, model),
+    _use_inertia_matrix(false)
 {
     _ci_postural = std::dynamic_pointer_cast<PosturalTask>(task);
 
@@ -18,11 +19,14 @@ TaskPtr OpenSotPosturalAdapter::constructTask()
     Eigen::VectorXd q;
     _model->getJointPosition(q);
 
-    return _opensot_postural = boost::make_shared<PosturalSoT>(q);
+    _opensot_postural = boost::make_shared<PosturalSoT>(q);
+
+    return _opensot_postural;
 }
 
 bool OpenSotPosturalAdapter::initialize()
 {
+    OpenSotTaskAdapter::initialize();
 
     _use_inertia_matrix = _ci_postural->use_inertia_matrix;
 
