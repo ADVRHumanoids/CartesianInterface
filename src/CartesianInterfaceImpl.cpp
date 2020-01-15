@@ -34,9 +34,11 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
     /* Check if there are constraints which are actually tasks */
     for(int i = 0; i < ik_problem.getBounds().size(); i++)
     {
-        if(ik_problem.getBounds().at(i)->type == "ConstraintFromTask")
+        auto& constr = ik_problem.getBounds().at(i);
+
+        if(auto constr_from_task = std::dynamic_pointer_cast<ConstraintFromTask>(constr))
         {
-            auto task = GetTaskFromConstraint(ik_problem.getBounds().at(i));
+            auto task = GetTaskFromConstraint(constr_from_task);
             if(task)
             {
                 add_task(task);
@@ -561,7 +563,7 @@ bool CartesianInterfaceImpl::getComPositionReference(Eigen::Vector3d& w_com_ref,
 
     if(_com_task_map.size() > 1)
     {
-        Logger::warning("More com task defined, results might be inaccurate! \n");
+        Logger::warning("Many com tasks defined, results might be inaccurate! \n");
     }
 
     auto com_task = _com_task_map.begin()->second;
@@ -578,165 +580,191 @@ bool CartesianInterfaceImpl::getComPositionReference(Eigen::Vector3d& w_com_ref,
     return true;
 }
 
-//bool CartesianInterfaceImpl::getTargetComPosition(Eigen::Vector3d& w_com_ref) const
-//{
-//    Eigen::Affine3d Tgoal;
+bool CartesianInterfaceImpl::getTargetComPosition(Eigen::Vector3d& w_com_ref) const
+{
+    if(_com_task_map.empty())
+    {
+        return false;
+    }
+
+    if(_com_task_map.size() > 1)
+    {
+        Logger::warning("Many com tasks defined, results might be inaccurate! \n");
+    }
     
-//    if(!_com_task || !_com_task->get_pose_target(Tgoal))
-//    {
-//        return false;
-//    }
-    
-//    w_com_ref = Tgoal.translation();
-//    return true;
-//}
+    Eigen::Affine3d Tgoal;
 
-//const YAML::Node& XBot::Cartesian::CartesianInterfaceImpl::get_config() const
-//{
-//    return _solver_options;
-//}
+    _com_task_map.begin()->second->getPoseTarget(Tgoal);
 
+    w_com_ref = Tgoal.translation();
 
-//bool XBot::Cartesian::CartesianInterfaceImpl::has_config() const
-//{
-//    return _solver_options;
-//}
+    return true;
+}
 
-//bool XBot::Cartesian::CartesianInterfaceImpl::postural_task_defined() const
-//{
-//    return _q_ref.size() != 0;
-//}
+const YAML::Node& XBot::Cartesian::CartesianInterfaceImpl::get_config() const
+{
+    return _solver_options;
+}
 
 
-//bool XBot::Cartesian::CartesianInterfaceImpl::getReferencePosture(Eigen::VectorXd& qref) const
-//{
-//    if(!postural_task_defined())
-//    {
-//        return false;
-//    }
-    
-//    qref = _q_ref;
-    
-//    return true;
-//}
+bool XBot::Cartesian::CartesianInterfaceImpl::has_config() const
+{
+    return _solver_options;
+}
 
-//bool XBot::Cartesian::CartesianInterfaceImpl::getReferencePosture(XBot::JointNameMap& qref) const
-//{
-//    if(!postural_task_defined())
-//    {
-//        return false;
-//    }
-    
-//    return _model->eigenToMap(_q_ref, qref);;
-//}
-
-//bool XBot::Cartesian::CartesianInterfaceImpl::setReferencePosture(const XBot::JointNameMap& qref)
-//{
-//    if(!postural_task_defined())
-//    {
-//        return false;
-//    }
-    
-//    _model->mapToEigen(qref, _q_ref);
-//    return true;
-//}
-
-//void XBot::Cartesian::CartesianInterfaceImpl::enableOtg(double expected_dt)
-//{
-//    XBot::Logger::info(Logger::Severity::LOW, "Online trajectory generator enabled\n");
-    
-//    for(auto tpair : _task_map)
-//    {
-//        tpair.second->set_otg_dt(expected_dt);
-//    }
-//}
+bool XBot::Cartesian::CartesianInterfaceImpl::postural_task_defined() const
+{
+    return !_postural_task_map.empty();
+}
 
 
-//void XBot::Cartesian::CartesianInterfaceImpl::setAccelerationLimits(const std::string& ee_name,
-//                                                                    double max_acc_lin,
-//                                                                    double max_acc_ang)
-//{
-//    auto task = get_task(ee_name);
+bool XBot::Cartesian::CartesianInterfaceImpl::getReferencePosture(Eigen::VectorXd& qref) const
+{
+    if(!postural_task_defined())
+    {
+        return false;
+    }
+
+    if(_postural_task_map.size() > 1)
+    {
+        Logger::warning("Many postural tasks defined, results might be inaccurate! \n");
+    }
     
-//    if(!task)
-//    {
-//        return;
-//    }
+    _postural_task_map.begin()->second->getReferencePosture(qref);
     
-//    XBot::Logger::info(Logger::Severity::LOW, "Setting acceleration limits for task %s (lin: %f, ang: %f)\n",
-//                       ee_name.c_str(),
-//                       max_acc_lin,
-//                       max_acc_ang
-//                       );
+    return true;
+}
+
+bool XBot::Cartesian::CartesianInterfaceImpl::getReferencePosture(XBot::JointNameMap& qref) const
+{
+    if(!postural_task_defined())
+    {
+        return false;
+    }
+
+    if(_postural_task_map.size() > 1)
+    {
+        Logger::warning("Many postural tasks defined, results might be inaccurate! \n");
+    }
+
+    _postural_task_map.begin()->second->getReferencePosture(qref);
+
+    return true;
+}
+
+bool XBot::Cartesian::CartesianInterfaceImpl::setReferencePosture(const XBot::JointNameMap& qref)
+{
+    if(!postural_task_defined())
+    {
+        return false;
+    }
+
+    if(_postural_task_map.size() > 1)
+    {
+        Logger::warning("Many postural tasks defined, results might be inaccurate! \n");
+    }
+
+    _postural_task_map.begin()->second->setReferencePosture(qref);
+
+    return true;
+}
+
+void XBot::Cartesian::CartesianInterfaceImpl::enableOtg(double expected_dt)
+{
+    XBot::Logger::info(Logger::Severity::LOW, "Online trajectory generator enabled \n");
     
-//    task->set_otg_acc_limits(max_acc_lin, max_acc_ang);
-//}
+    for(auto tpair : _cart_task_map)
+    {
+        tpair.second->enableOtg();
+    }
+}
 
 
-//void XBot::Cartesian::CartesianInterfaceImpl::setVelocityLimits(const std::string& ee_name,
-//                                                                double max_vel_lin,
-//                                                                double max_vel_ang)
-//{
-//    auto task = get_task(ee_name);
+void XBot::Cartesian::CartesianInterfaceImpl::setAccelerationLimits(const std::string& ee_name,
+                                                                    double max_acc_lin,
+                                                                    double max_acc_ang)
+{
+    auto task = get_cart_task(ee_name);
     
-//    if(!task)
-//    {
-//        return;
-//    }
+    if(!task)
+    {
+        return;
+    }
     
-//    XBot::Logger::info(Logger::Severity::LOW, "Setting velocity limits for task %s (lin: %f, ang: %f)\n",
-//                       ee_name.c_str(),
-//                       max_vel_lin,
-//                       max_vel_ang
-//                       );
+    XBot::Logger::info(Logger::Severity::LOW, "Setting acceleration limits for task '%s' (lin: %f, ang: %f) \n",
+                       ee_name.c_str(),
+                       max_acc_lin,
+                       max_acc_ang
+                       );
     
-//    task->set_otg_vel_limits(max_vel_lin, max_vel_ang);
-//}
+    task->setAccelerationLimits(max_acc_lin, max_acc_ang);
+}
 
 
-//void XBot::Cartesian::CartesianInterfaceImpl::getAccelerationLimits(const std::string& ee_name,
-//                                                                    double& max_acc_lin,
-//                                                                    double& max_acc_ang) const
-//{
-//    auto task = get_task(ee_name);
-    
-//    if(!task)
-//    {
-//        return;
-//    }
-    
-//    task->get_otg_acc_limits(max_acc_lin, max_acc_ang);
-//}
+void XBot::Cartesian::CartesianInterfaceImpl::setVelocityLimits(const std::string& ee_name,
+                                                                double max_vel_lin,
+                                                                double max_vel_ang)
+{
+    auto task = get_cart_task(ee_name);
 
-//void CartesianInterfaceImpl::getVelocityLimits(const std::string& ee_name,
-//                                               double& max_vel_lin,
-//                                               double& max_vel_ang) const
-//{
-//    auto task = get_task(ee_name);
-    
-//    if(!task)
-//    {
-//        return;
-//    }
-    
-//    task->get_otg_vel_limits(max_vel_lin, max_vel_ang);
-//}
+    if(!task)
+    {
+        return;
+    }
 
-//bool CartesianInterfaceImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
-//{
-//    Eigen::Affine3d w_T_fb;
-//    if(!_model->getFloatingBasePose(w_T_fb))
-//    {
-//        return false;
-//    }
+    XBot::Logger::info(Logger::Severity::LOW, "Setting acceleration limits for task '%s' (lin: %f, ang: %f) \n",
+                       ee_name.c_str(),
+                       max_vel_lin,
+                       max_vel_ang
+                       );
+
+    task->setVelocityLimits(max_vel_lin, max_vel_ang);
+}
+
+
+void XBot::Cartesian::CartesianInterfaceImpl::getAccelerationLimits(const std::string& ee_name,
+                                                                    double& max_acc_lin,
+                                                                    double& max_acc_ang) const
+{
+    auto task = get_cart_task(ee_name);
+
+    if(!task)
+    {
+        return;
+    }
+
+    task->getAccelerationLimits(max_acc_lin, max_acc_ang);
+}
+
+void CartesianInterfaceImpl::getVelocityLimits(const std::string& ee_name,
+                                               double& max_vel_lin,
+                                               double& max_vel_ang) const
+{
+    auto task = get_cart_task(ee_name);
+
+    if(!task)
+    {
+        return;
+    }
+
+    task->getVelocityLimits(max_vel_lin, max_vel_ang);
+}
+
+bool CartesianInterfaceImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
+{
+    Eigen::Affine3d w_T_fb;
+    if(!_model->getFloatingBasePose(w_T_fb))
+    {
+        return false;
+    }
     
-//    if(!_model->setFloatingBaseState(w_T_new_world.inverse() * w_T_fb, Eigen::Vector6d::Zero()))
-//    {
-//        return false;
-//    }
+    if(!_model->setFloatingBaseState(w_T_new_world.inverse() * w_T_fb, Eigen::Vector6d::Zero()))
+    {
+        return false;
+    }
     
-//    return reset(get_current_time());
-//}
+    return reset(get_current_time());
+}
 
 //bool CartesianInterfaceImpl::setDesiredDamping(const std::string& end_effector,
 //                                               const Eigen::Matrix6d& d)

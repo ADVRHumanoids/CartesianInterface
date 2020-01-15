@@ -126,7 +126,6 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
         
         for(auto task : stack_level)
         {
-            
             std::string task_name = task.as<std::string>();
             
             if(!yaml_node[task_name])
@@ -146,8 +145,8 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
                 lib_name = yaml_node[task_name]["lib_name"].as<std::string>();
             }
             
-            auto task_desc = MakeTaskDescription(yaml_node[task_name], 
-                                                 model, 
+            auto task_desc = MakeTaskDescription(yaml_node[task_name],
+                                                 model,
                                                  lib_name);
             
             aggr_task.push_back(task_desc);
@@ -163,79 +162,40 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
     {
         for(auto constr : constraints)
         {
-            std::string constr_type = constr.as<std::string>();
+            std::string constr_name = constr.as<std::string>();
             
-            if(constr_type == "JointLimits")
+            if(!yaml_node[constr_name])
             {
-                _bounds.push_back(MakeJointLimits());
+                throw std::runtime_error("problem description parsing failed: node '" + constr_name + "' undefined");
             }
-            else if(constr_type == "VelocityLimits")
+
+            if(!yaml_node[constr_name]["type"])
             {
-                _bounds.push_back(MakeVelocityLimits());
+                throw std::runtime_error("problem description parsing failed: missing type for '" + constr_name + "'");
             }
-            else if(yaml_node[constr_type])
-            {
-                
-                std::string lib_name = "";
+
+            std::string lib_name = "";
             
-                if(yaml_node[constr_type]["lib_name"])
-                {
-                    lib_name = yaml_node[constr_type]["lib_name"].as<std::string>();
-                }
-                
-                /* Maybe it's a task? */
-                try 
-                {
-                    auto task = MakeTaskDescription(yaml_node[constr_type], 
-                                                    model, 
-                                                    lib_name);
-                    
-                    _bounds.push_back(MakeConstraintFromTask(task));
-                }
-                catch(std::exception& e)
-                {
-                    Logger::warning("Interpreting constraint '%s' as task failed: %s\n", 
-                                    constr_type.c_str(),
-                                    e.what()
-                                    );
-                    
-                    /* It's not a task, maybe it's a custom constraint? */
-                    if(lib_name.empty())
-                    {
-                        throw std::runtime_error("Constraint '" + constr_type + "' not a task, and no 'lib_name' was provided");
-                    }
-                    
-                    auto constr = MakeConstraintDescription(yaml_node[constr_type], 
-                                                            model, 
-                                                            lib_name);
-                    
-                    _bounds.push_back(constr);
-                    
-                }
+            if(yaml_node[constr_name]["lib_name"])
+            {
+                lib_name = yaml_node[constr_name]["lib_name"].as<std::string>();
+            }
+
+            auto task = MakeTaskDescription(yaml_node[constr_name],
+                                            model,
+                                            lib_name);
+
+            if(auto constr = ConstraintDescription::AsConstraint(task))
+            {
+                _bounds.push_back(constr);
             }
             else
             {
-                XBot::Logger::error("Unsupported constraint type '%s'\n", constr_type.c_str());
-                throw std::runtime_error("Bad problem description");
+                _bounds.push_back(MakeConstraintFromTask(task));
             }
-            
+
         }
     }
     
     
 }
-
-
-ConstraintDescription::Ptr ProblemDescription::yaml_parse_joint_pos_lims(YAML::Node node, 
-                                                   ModelInterface::ConstPtr model)
-{
-    return MakeJointLimits();
-}
-
-ConstraintDescription::Ptr ProblemDescription::yaml_parse_joint_vel_lims(YAML::Node node, 
-                                                   ModelInterface::ConstPtr model)
-{
-    return MakeVelocityLimits();
-}
-
-

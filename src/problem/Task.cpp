@@ -256,6 +256,16 @@ void TaskDescription::log(MatLogger::Ptr logger, bool init_logger, int buf_size)
     logger->add(getName() + "_active", activ_state == ActivationState::Enabled);
 }
 
+XBot::ModelInterface::ConstPtr TaskDescription::getModel() const
+{
+    return _model;
+}
+
+void TaskDescription::setLibName(std::string __lib_name)
+{
+    lib_name = __lib_name;
+}
+
 const std::string& TaskDescription::getName() const
 {
     return name;

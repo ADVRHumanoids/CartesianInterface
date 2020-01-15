@@ -48,6 +48,8 @@ bool OpenSotCartesianAdapter::initialize()
 
 void OpenSotCartesianAdapter::update(double time, double period)
 {
+    OpenSotTaskAdapter::update(time, period);
+
     /* Update reference */
     Eigen::Affine3d Tref;
     Eigen::Vector6d vref;

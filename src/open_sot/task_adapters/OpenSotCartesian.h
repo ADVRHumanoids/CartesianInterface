@@ -8,8 +8,6 @@
 
 #include <OpenSoT/tasks/velocity/Cartesian.h>
 
-
-
 using CartesianSoT = OpenSoT::tasks::velocity::Cartesian;
 
 namespace XBot { namespace Cartesian {

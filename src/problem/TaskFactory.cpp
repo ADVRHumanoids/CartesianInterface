@@ -71,23 +71,4 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node task_node,
     return task_desc;
 }
 
-std::shared_ptr<ConstraintDescription> MakeConstraintDescription(YAML::Node constr_node, 
-                                                                 ModelInterface::ConstPtr model,
-                                                                 std::string lib_name
-                                                                 )
-{
-    /* Obtain factory name from task type */
-    std::string constr_type = constr_node["type"].as<std::string>();
-    std::string factory_name = constr_type + "ConstraintDescriptionFactory";
-    
-    auto constr_desc =  Utils::LoadObject<ConstraintDescription>(lib_name, 
-                                                                 factory_name, 
-                                                                 constr_node, 
-                                                                 model);
-    constr_desc->lib_name = lib_name;
-    
-    return constr_desc;
-}                 
-
-
 } } 

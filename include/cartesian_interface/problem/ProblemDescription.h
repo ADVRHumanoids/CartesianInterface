@@ -104,18 +104,6 @@ namespace XBot { namespace Cartesian {
         
     private:
 
-
-        
-        static TaskDescription::Ptr yaml_parse_task(YAML::Node node, 
-                                                    ModelInterface::ConstPtr model);
-
-        
-        static ConstraintDescription::Ptr yaml_parse_joint_pos_lims(YAML::Node node, 
-                                                         ModelInterface::ConstPtr model);
-        
-        static ConstraintDescription::Ptr yaml_parse_joint_vel_lims(YAML::Node node, 
-                                                         ModelInterface::ConstPtr model);
-        
         std::vector< std::vector<TaskDescription::Ptr> > _stack;
         std::vector< ConstraintDescription::Ptr > _bounds;
         std::map<std::string, TaskDescription::Ptr> _task_map;

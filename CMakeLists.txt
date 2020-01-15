@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp
                                         tf tf_conversions)
 
 include_directories(include
+                    src
                     ${OpenSoT_INCLUDE_DIRS}
                     ${XBotInterface_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIRS}
@@ -100,12 +101,13 @@ set(CartesianInterface_SRC
         src/problem/ProblemDescription.cpp
         src/problem/Cartesian.cpp
         src/problem/Com.cpp
+        src/problem/Limits.cpp
 #        src/problem/Gaze.cpp
         src/problem/Postural.cpp
 #        src/problem/Interaction.cpp
         src/problem/TaskFactory.cpp
         src/problem/Task.cpp
-#        src/problem/Constraint.cpp
+        src/problem/Constraint.cpp
 #        src/utils/ForceEstimation.cpp
         src/utils/RobotStatePublisher.cpp
 #        src/problem/MinJointVel.cpp
@@ -115,7 +117,11 @@ set(CartesianInterface_SRC
 set(CartesianInterfaceSOT_SRC
     src/open_sot/task_adapters/OpenSotTask.cpp
     src/open_sot/task_adapters/OpenSotCartesian.cpp
-#        src/open_sot/OpenSotImpl.cpp
+    src/open_sot/task_adapters/OpenSotCom.cpp
+    src/open_sot/task_adapters/OpenSotPostural.cpp
+    src/open_sot/task_adapters/OpenSotJointLimits.cpp
+    src/open_sot/task_adapters/OpenSotConstraintFromTask.cpp
+    src/open_sot/OpenSotImpl.cpp
     )  
     
 # OpenSot implementation

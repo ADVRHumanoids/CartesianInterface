@@ -52,10 +52,14 @@ public:
     friend TaskDescription::Ptr operator%(std::vector<int> indices,
                                           TaskDescription::Ptr task);
 
-    TaskDescription() = default;
-    TaskDescription(std::string type, std::string name, int size, ModelInterface::ConstPtr model);
+    TaskDescription(std::string type,
+                    std::string name,
+                    int size,
+                    ModelInterface::ConstPtr model);
+
     TaskDescription(YAML::Node node, ModelInterface::ConstPtr model,
                     std::string name, int size);
+
 
     virtual bool validate();
 
@@ -83,19 +87,25 @@ public:
     virtual void reset() = 0;
 
     ActivationState getActivationState() const;
-    bool setActivationState(const ActivationState & value);
+    bool setActivationState(const ActivationState& value);
 
-    void registerObserver(std::weak_ptr<TaskObserver> obs);
+    void registerObserver(TaskObserver::WeakPtr obs);
 
     virtual void log(MatLogger::Ptr logger,
                      bool init_logger = false,
                      int buf_size = 1e5);
 
+
+
     virtual ~TaskDescription() = default;
+
+    ModelInterface::ConstPtr getModel() const;
 
 protected:
 
     ModelInterface::ConstPtr _model;
+
+    void setLibName(std::string lib_name);
 
 private:
 

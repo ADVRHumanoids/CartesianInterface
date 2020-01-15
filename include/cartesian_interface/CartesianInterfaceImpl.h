@@ -179,6 +179,7 @@ private:
     
     YAML::Node _solver_options;
     
+    bool postural_task_defined() const;
 };
 
 

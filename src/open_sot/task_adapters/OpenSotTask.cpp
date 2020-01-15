@@ -5,6 +5,8 @@
 #include "../../utils/DynamicLoading.h"
 
 #include "OpenSotCartesian.h"
+#include "OpenSotJointLimits.h"
+#include "OpenSotConstraintFromTask.h"
 
 #include "fmt/format.h"
 
@@ -128,3 +130,70 @@ OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr ta
 
     return Ptr(task_adapter);
 }
+
+OpenSotConstraintAdapter::OpenSotConstraintAdapter(ConstraintDescription::Ptr constr,
+                                                   XBot::ModelInterface::ConstPtr model):
+    _ci_constr(constr), _model(model)
+{
+
+}
+
+bool OpenSotConstraintAdapter::initialize()
+{
+    /* Register observer */
+    _ci_constr->registerObserver(shared_from_this());
+
+    return true;
+}
+
+void OpenSotConstraintAdapter::update(double time, double period)
+{
+
+}
+
+ConstraintPtr OpenSotConstraintAdapter::getOpenSotConstraint()
+{
+    return _opensot_constr;
+}
+
+OpenSotConstraintAdapter::Ptr OpenSotConstraintAdapter::MakeInstance(ConstraintDescription::Ptr constr,
+                                                                     XBot::ModelInterface::ConstPtr model)
+{
+    OpenSotConstraintAdapter * constr_adapter = nullptr;
+
+    /* If lib name specified, load factory from plugin */
+    if(constr->getLibName() != "")
+    {
+        constr_adapter = CallFunction<OpenSotConstraintAdapter*>(constr->getLibName(),
+                                                                 "create_opensot_constr_adapter",
+                                                                 constr, model);
+    }
+    else if(constr->getType() == "ConstraintFromTask")
+    {
+        constr_adapter = new OpenSotConstraintFromTaskAdapter(constr, model);
+    }
+    else if(constr->getType() == "JointLimits") /* Otherwise, construct supported tasks */
+    {
+        constr_adapter = new OpenSotJointLimitsAdapter(constr, model);
+    }
+    else if(constr->getType() == "VelocityLimits")
+    {
+
+    }
+    else
+    {
+        auto str = fmt::format("Unable to construct OpenSotConstraintAdapter instance for task '{}': "
+                               "empty lib name for unrecoginized constraint type '{}'",
+                               constr->getName(), constr->getType());
+        throw std::runtime_error(str);
+    }
+
+    if(!constr_adapter->initialize())
+    {
+        throw std::runtime_error(fmt::format("Unable to inizialize constraint '{}'", constr->getName()));
+    }
+
+    return Ptr(constr_adapter);
+}
+
+
