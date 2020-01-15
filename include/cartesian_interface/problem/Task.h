@@ -12,8 +12,6 @@
 
 namespace XBot { namespace Cartesian {
 
-enum class ActivationState { Enabled, Disabled };
-
 class TaskObserver
 {
 

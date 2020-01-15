@@ -95,6 +95,7 @@ catkin_package(
 
 # Interface implementation
 set(CartesianInterface_SRC
+    src/Context.cpp
         src/CartesianInterfaceImpl.cpp
 #        src/utils/LockfreeBufferImpl.cpp
 #        src/utils/ManipulabilityAnalyzer.cpp
@@ -131,6 +132,7 @@ set(CartesianInterfaceSOTacc_SRC
 
 # Ros implementation
 set(CartesianInterfaceROS_SRC
+    src/ros/RosContext.cpp
     src/ros/api/TaskRos.cpp
     src/ros/api/CartesianRos.cpp
 #        src/ros/RosImpl.cpp

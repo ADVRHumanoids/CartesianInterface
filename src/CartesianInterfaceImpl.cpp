@@ -175,6 +175,31 @@ bool XBot::Cartesian::CartesianInterfaceImpl::setBaseLink(const std::string& ee_
     return true;
 }
 
+ActivationState CartesianInterfaceImpl::getActivationState(const std::string & ee_name) const
+{
+    auto task = get_task(ee_name);
+
+    if(!task)
+    {
+        return ActivationState::Disabled;
+    }
+
+    return task->getActivationState();
+
+}
+
+bool CartesianInterfaceImpl::setActivationState(const std::string & ee_name, ActivationState activ_state)
+{
+    auto task = get_task(ee_name);
+
+    if(!task)
+    {
+        return false;
+    }
+
+    return task->setActivationState(activ_state);
+}
+
 
 CartesianTask::Ptr CartesianInterfaceImpl::get_cart_task(const std::string& ee_name) const
 {
@@ -766,69 +791,31 @@ bool CartesianInterfaceImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
     return reset(get_current_time());
 }
 
-//bool CartesianInterfaceImpl::setDesiredDamping(const std::string& end_effector,
-//                                               const Eigen::Matrix6d& d)
-//{
-//    auto itask = get_interaction_task(end_effector);
-    
-//    if(!itask)
-//    {
-//        return false;
-//    }
-    
-//    itask->set_damping(d);
-    
-//    return true;
-//}
+bool CartesianInterfaceImpl::setDesiredDamping(const std::string& end_effector,
+                                               const Eigen::Matrix6d& d)
+{
+    return false;
+}
 
-//bool CartesianInterfaceImpl::setDesiredStiffness(const std::string& end_effector,
-//                                                 const Eigen::Matrix6d& k)
-//{
-//    auto itask = get_interaction_task(end_effector);
-    
-//    if(!itask)
-//    {
-//        return false;
-//    }
-    
-//    itask->set_stiffness(k);
-    
-//    return true;
-//}
+bool CartesianInterfaceImpl::setDesiredStiffness(const std::string& end_effector,
+                                                 const Eigen::Matrix6d& k)
+{
+    return false;
+}
 
-//bool CartesianInterfaceImpl::setForceReference(const std::string& end_effector,
-//                                               const Eigen::Vector6d& force)
-//{
-//    auto itask = get_interaction_task(end_effector);
-    
-//    if(!itask)
-//    {
-//        return false;
-//    }
-    
-//    itask->set_force(force);
-    
-//    return true;
-//}
+bool CartesianInterfaceImpl::setForceReference(const std::string& end_effector,
+                                               const Eigen::Vector6d& force)
+{
+    return false;
+}
 
-//bool XBot::Cartesian::CartesianInterfaceImpl::getDesiredInteraction(const std::string& end_effector,
-//                                                                    Eigen::Vector6d& force,
-//                                                                    Eigen::Matrix6d& stiffness,
-//                                                                    Eigen::Matrix6d& damping) const
-//{
-//    auto itask = get_interaction_task(end_effector);
-    
-//    if(!itask)
-//    {
-//        return false;
-//    }
-    
-//    force = itask->get_force();
-//    stiffness = itask->get_stiffness();
-//    damping = itask->get_damping();
-    
-//    return true;
-//}
+bool XBot::Cartesian::CartesianInterfaceImpl::getDesiredInteraction(const std::string& end_effector,
+                                                                    Eigen::Vector6d& force,
+                                                                    Eigen::Matrix6d& stiffness,
+                                                                    Eigen::Matrix6d& damping) const
+{
+    return false;
+}
 
 CartesianInterfaceImpl::~CartesianInterfaceImpl()
 {

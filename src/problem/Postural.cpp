@@ -47,6 +47,21 @@ PosturalTask::PosturalTask(YAML::Node task_node,
 
 }
 
+void PosturalTask::getReferencePosture(Eigen::VectorXd & qref) const
+{
+    qref = _qref;
+}
+
+void PosturalTask::getReferencePosture(XBot::JointNameMap & qref) const
+{
+    _model->eigenToMap(_qref, qref);
+}
+
+void PosturalTask::setReferencePosture(const XBot::JointNameMap & qref)
+{
+    _model->mapToEigen(qref, _qref);
+}
+
 void PosturalTask::update(double time, double period)
 {
 

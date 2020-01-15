@@ -55,6 +55,24 @@ void XBot::Cartesian::ConstraintFromTask::log(MatLogger::Ptr logger, bool init_l
     task->log(logger, init_logger, buf_size);
 }
 
+ConstraintDescription::ConstraintDescription(std::string type,
+                                             std::string name,
+                                             int size,
+                                             XBot::ModelInterface::ConstPtr model):
+    TaskDescription (type, name, size, model)
+{
+
+}
+
+ConstraintDescription::ConstraintDescription(YAML::Node node,
+                                             XBot::ModelInterface::ConstPtr model,
+                                             std::string name,
+                                             int size):
+    TaskDescription (node, model, name, size)
+{
+
+}
+
 bool ConstraintDescription::IsConstraint(TaskDescription::ConstPtr task)
 {
     return static_cast<bool>(AsConstraint(task));

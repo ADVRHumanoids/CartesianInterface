@@ -50,7 +50,6 @@ public:
     
     virtual const std::vector<std::string>& getTaskList() const;
     virtual const std::string& getBaseLink(const std::string& ee_name) const;
-    virtual TaskInterface getTaskInterface(const std::string& end_effector) const;
     virtual ControlType getControlMode(const std::string& ee_name) const;
     virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type);
     virtual void getVelocityLimits(const std::string& ee_name, double& max_vel_lin, double& max_vel_ang) const;
@@ -60,6 +59,11 @@ public:
     virtual void enableOtg(double expected_dt);
     
     virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link);
+
+    virtual ActivationState getActivationState(const std::string& ee_name) const;
+
+    virtual bool setActivationState(const std::string& ee_name, ActivationState activ_state);
+
     
     virtual bool getPoseReference(const std::string& end_effector, 
                           Eigen::Affine3d& base_T_ref, 
@@ -126,10 +130,6 @@ public:
                               const Trajectory::WayPointVector& way_points
                             );
 
-    virtual bool setTargetPosition(const std::string& end_effector, 
-                                   const Eigen::Vector3d& base_pos_ref, 
-                                   double time = 0);
-    
     virtual bool setReferencePosture(const JointNameMap& qref);
 
 

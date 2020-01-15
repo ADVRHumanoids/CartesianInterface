@@ -4,6 +4,11 @@
 namespace XBot { namespace Cartesian {
 
 /**
+ * @brief The ActivationState enum
+ */
+enum class ActivationState { Enabled, Disabled };
+
+/**
 * @brief Enum describing a state for each task. Available states are:
 *  - State::Online: the task is following an online getPoseReference
 *  - State::Reacing: the task is performing a point-to-point motion

@@ -80,14 +80,16 @@ public:
     virtual const std::vector<std::string>& getTaskList() const = 0;
     
     virtual const std::string& getBaseLink(const std::string& ee_name) const = 0;
-    
+
+    virtual ActivationState getActivationState(const std::string& ee_name) const = 0;
+
+    virtual bool setActivationState(const std::string& ee_name, ActivationState activ_state) = 0;
+
     virtual bool setControlMode(const std::string& ee_name, ControlType ctrl_type) = 0;
     
     virtual ControlType getControlMode(const std::string& ee_name) const = 0;
     
     virtual State getTaskState(const std::string& end_effector) const = 0;
-    
-    virtual TaskInterface getTaskInterface(const std::string& end_effector) const = 0;
     
     virtual bool setBaseLink(const std::string& ee_name, const std::string& new_base_link) = 0;
     
