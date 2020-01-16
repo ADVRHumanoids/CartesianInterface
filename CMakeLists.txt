@@ -49,7 +49,6 @@ add_message_files(
 # Generate services in the 'srv' folder
 add_service_files(
   FILES
-  SetTaskInfo.srv
   GetTaskInfo.srv
   LoadController.srv
   GetTaskList.srv
@@ -66,6 +65,7 @@ add_service_files(
   SetBaseLink.srv
   SetControlMode.srv
 )
+
 
 # Generate actions in the 'action' folder
 add_action_files(

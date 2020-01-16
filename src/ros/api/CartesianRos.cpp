@@ -4,6 +4,8 @@
 
 #include <cartesian_interface/CartesianInterface.h>
 
+#include "fmt/format.h"
+
 using namespace XBot::Cartesian;
 
 namespace  {
@@ -54,6 +56,9 @@ CartesianRos::CartesianRos(TaskDescription::Ptr task):
     _vel_ref_sub = _ctx.nh().subscribe(task->getName() + "/velocity_reference", 1,
                                         &CartesianRos::online_velocity_reference_cb,
                                         this);
+
+    _set_base_link_srv = _ctx.nh().advertiseService(task->getName() + "/set_base_link",
+                                                    &CartesianRos::set_base_link_cb, this);
 }
 
 void CartesianRos::run(ros::Time time)
@@ -100,6 +105,26 @@ void CartesianRos::online_position_reference_cb(geometry_msgs::PoseStampedConstP
 void CartesianRos::online_velocity_reference_cb(geometry_msgs::TwistStampedConstPtr msg)
 {
 
+}
+
+bool CartesianRos::set_base_link_cb(cartesian_interface::SetBaseLinkRequest & req,
+                                    cartesian_interface::SetBaseLinkResponse & res)
+{
+    auto old_base_link = _cart->getBaseLink();
+    res.success = _cart->setBaseLink(req.base_link);
+
+    if(res.success)
+    {
+        res.message = fmt::format("Successfully changed base link from '{}' to '{}' for task '{}'",
+                                  old_base_link, _cart->getBaseLink(), _cart->getName());
+    }
+    else
+    {
+        res.message = fmt::format("Unable to change base link from '{}' to '{}' for task '{}'",
+                                  old_base_link, req.base_link, _cart->getName());
+    }
+
+    return true;
 }
 
 //bool CartesianRos::get_task_info_cb(cartesian_interface::GetTaskInfoRequest & req,

@@ -63,16 +63,23 @@ private:
     void publish_ref(ros::Time time);
 
     void online_position_reference_cb(geometry_msgs::PoseStampedConstPtr  msg);
+
     void online_velocity_reference_cb(geometry_msgs::TwistStampedConstPtr msg);
-//    bool get_task_info_cb(cartesian_interface::GetTaskInfoRequest& req,
-//                        cartesian_interface::GetTaskInfoResponse& res);
-//    bool set_task_info_cb(cartesian_interface::SetTaskInfoRequest& req,
-//                        cartesian_interface::SetTaskInfoResponse& res);
+
+    bool get_task_info_cb(cartesian_interface::GetCartesianTaskInfoRequest& req,
+                        cartesian_interface::GetCartesianTaskInfoResponse& res);
+
+    bool set_base_link_cb(cartesian_interface::SetBaseLinkRequest& req,
+                          cartesian_interface::SetBaseLinkResponse& res);
+
+    bool set_control_mode_cb(cartesian_interface::SetControlModeRequest& req,
+                             cartesian_interface::SetControlModeResponse& res);
+
 
 
     ros::Publisher _pose_ref_pub, _vel_ref_pub;
     ros::Subscriber _pose_ref_sub, _vel_ref_sub;
-    ros::ServiceServer _get_info_srv, _set_info_srv;
+    ros::ServiceServer _get_info_srv, _set_base_link_srv, _set_ctrl_srv;
 
     CartesianTask::Ptr _cart;
 
