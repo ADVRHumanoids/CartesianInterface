@@ -81,8 +81,8 @@ public:
     const std::vector<std::string>& getDisabledJoints() const;
     void setDisabledJoints(const std::vector<std::string>& value);
 
-    virtual void update(double time, double period) = 0;
-    virtual void reset() = 0;
+    virtual void update(double time, double period);
+    virtual void reset();
 
     ActivationState getActivationState() const;
     bool setActivationState(const ActivationState& value);
@@ -113,30 +113,32 @@ protected:
 
 private:
 
+    TaskDescription();
+
     /**
      * @brief ctrl_mode
      */
-    ActivationState activ_state;
+    ActivationState _activ_state;
 
     /**
      * @brief Task type
      */
-    std::string type;
+    std::string _type;
 
     /**
      * @brief Task name
      */
-    std::string name;
+    std::string _name;
 
     /**
      * @brief Task size
      */
-    int size;
+    int _size;
 
     /**
      * @brief Library where task factories can be found
      */
-    std::string lib_name;
+    std::string _lib_name;
 
     /**
      * @brief Task weight. Inside an aggregated task, each component
@@ -144,7 +146,7 @@ private:
      * to model soft priorities. It MUST be a positive-definite symmetric
      * matrix of size equal to the task size.
      */
-    Eigen::MatrixXd weight;
+    Eigen::MatrixXd _weight;
 
     /**
      * @brief Vector of indices representing a subtask of the original task.
@@ -152,26 +154,26 @@ private:
      * this variable manually, the weight matrix must be changed as well to
      * reflect the size change. Otherwise, use operator%.
      */
-    std::vector<int> indices;
+    std::vector<int> _indices;
 
     /**
      * @brief Feedback gain on the task error. Lower values
      * make the cartesian controller less reactive.
      */
-    double lambda;
+    double _lambda;
 
     /**
      * @brief Feedback gain on the task velocity error. Lower values
      * make the cartesian controller less reactive.
      * NOTE: if negative this value has not been set and should not be used!
      */
-    double lambda2;
+    double _lambda2;
 
     /**
      * @brief Vector of joint names that are disabled from
      * contributing to the task.
      */
-    std::vector<std::string> disabled_joints;
+    std::vector<std::string> _disabled_joints;
 
     std::list<TaskObserver::WeakPtr> _observers;
 

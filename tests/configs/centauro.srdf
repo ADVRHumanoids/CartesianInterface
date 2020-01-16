@@ -100,7 +100,7 @@
         <joint name="j_arm2_6" value="0.8"/>
         <joint name="j_arm2_7" value="0.0"/>
         
-<!--        <joint name="hip_yaw_1" value="1.5"/>
+        <joint name="hip_yaw_1" value="1.5"/>
         <joint name="hip_pitch_1" value="0.8"/>
         <joint name="knee_pitch_1" value="0.8"/>
         <joint name="ankle_yaw_1" value="1.5"/>
@@ -118,9 +118,9 @@
         <joint name="hip_yaw_4" value="1.5"/>
         <joint name="hip_pitch_4" value="0.8"/>
         <joint name="knee_pitch_4" value="0.8"/>
-        <joint name="ankle_yaw_4" value="1.5"/>-->
+        <joint name="ankle_yaw_4" value="1.5"/>
 
-        <joint name="hip_yaw_1" value="0.0"/>
+<!--        <joint name="hip_yaw_1" value="0.0"/>
         <joint name="hip_pitch_1" value="-1.0"/>
         <joint name="knee_pitch_1" value="-1.0"/>
         <joint name="ankle_yaw_1" value="-0.78"/>
@@ -138,7 +138,7 @@
         <joint name="hip_yaw_4" value="0.0"/>
         <joint name="hip_pitch_4" value="-1.0"/>
         <joint name="knee_pitch_4" value="-1.0"/>
-        <joint name="ankle_yaw_4" value="0.78"/>
+        <joint name="ankle_yaw_4" value="0.78"/>-->
 
     </group_state>
 

@@ -62,6 +62,7 @@ protected:
         Eigen::VectorXd qhome;
         model->getRobotState("home", qhome);
         model->setJointPosition(qhome);
+        model->update();
 
         YAML::Node ik_yaml = YAML::LoadFile(path_to_cfg + "centauro_test_stack.yaml");
 
@@ -96,6 +97,61 @@ protected:
 
 };
 
+TEST_F(TestOpensot, checkInitialReference)
+{
+    for(auto tname : ci->getTaskList())
+    {
+        auto t = ci->getTask(tname);
+
+        if(auto tcart = std::dynamic_pointer_cast<CartesianTask>(t))
+        {
+            if(tcart->getDistalLink() == "com") continue;
+
+            Eigen::Affine3d Tmodel, T, Tref;
+            Eigen::Vector6d v, a;
+            tcart->getCurrentPose(T);
+            tcart->getPoseReference(Tref, &v, &a);
+            ASSERT_TRUE(ci->getModel()->getPose(tcart->getDistalLink(),
+                                    tcart->getBaseLink(),
+                                    Tmodel));
+            ASSERT_EQ(v.norm(), 0.0);
+            ASSERT_EQ(a.norm(), 0.0);
+            ASSERT_NEAR((T.matrix()-Tref.matrix()).norm(), 0, 0.0);
+            ASSERT_NEAR((T.matrix()-Tmodel.matrix()).norm(), 0, 0.00);
+
+        }
+
+        if(auto tcom = std::dynamic_pointer_cast<ComTask>(t))
+        {
+            Eigen::Affine3d Tmodel, T, Tref;
+            Eigen::Vector3d com_model;
+            Eigen::Vector6d v, a;
+            Tmodel.setIdentity();
+            tcom->getCurrentPose(T);
+            tcom->getPoseReference(Tref, &v, &a);
+            ci->getModel()->getCOM(com_model);
+            Tmodel.translation() = com_model;
+            ASSERT_EQ(v.norm(), 0.0);
+            ASSERT_EQ(a.norm(), 0.0);
+            ASSERT_NEAR((T.matrix()-Tref.matrix()).norm(), 0, 0.00);
+            ASSERT_NEAR((T.matrix()-Tmodel.matrix()).norm(), 0, 0.0);
+        }
+
+        if(auto tpostur = std::dynamic_pointer_cast<PosturalTask>(t))
+        {
+            Eigen::VectorXd qp;
+            tpostur->getReferencePosture(qp);
+
+            Eigen::VectorXd q0;
+            ci->getModel()->getJointPosition(q0);
+
+            ASSERT_EQ(qp, q0);
+        }
+
+    }
+
+}
+
 TEST_F(TestOpensot, checkNoInitialMotion)
 {
     Eigen::VectorXd q0;
@@ -104,10 +160,9 @@ TEST_F(TestOpensot, checkNoInitialMotion)
     double time = 0;
     double dt = Context().getControlPeriod();
 
-    Eigen::VectorXd q, dq;
     while(time < 1.0)
     {
-        ci->update(time, dt);
+        ASSERT_TRUE(ci->update(time, dt));
 
         time += dt;
 
@@ -142,7 +197,7 @@ TEST_F(TestOpensot, checkMotion)
     Eigen::VectorXd q, dq;
     while(ci->getTaskState("arm1_8") == State::Reaching)
     {
-        ci->update(time, dt);
+        ASSERT_TRUE(ci->update(time, dt));
 
         time += dt;
 
@@ -156,14 +211,12 @@ TEST_F(TestOpensot, checkMotion)
         Eigen::Affine3d T;
         ci->getCurrentPose("arm1_8", T);
 
-        std::cout << T.matrix() << std::endl;
-
     }
 
     Eigen::Affine3d T;
     ci->getCurrentPose("arm1_8", T);
 
-    EXPECT_TRUE(T.isApprox(Tref));
+    EXPECT_TRUE(T.isApprox(Tref, 0.01));
 };
 
 

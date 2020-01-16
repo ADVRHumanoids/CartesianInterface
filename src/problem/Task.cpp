@@ -50,17 +50,17 @@ Stack XBot::Cartesian::operator/(TaskDescription::Ptr task_1, AggregatedTask tas
 TaskDescription::Ptr XBot::Cartesian::operator*(Eigen::Ref<const Eigen::MatrixXd> weight, 
                                                 TaskDescription::Ptr task)
 {
-    if(weight.rows() != task->weight.rows())
+    if(weight.rows() != task->_weight.rows())
     {
         throw std::invalid_argument("weight matrix size mismatch");
     }
     
-    if(weight.cols() != task->weight.cols())
+    if(weight.cols() != task->_weight.cols())
     {
         throw std::invalid_argument("weight matrix size mismatch");
     }
     
-    task->weight = weight*task->weight;
+    task->_weight = weight*task->_weight;
     return task;
 }
 
@@ -70,28 +70,28 @@ TaskDescription::Ptr XBot::Cartesian::operator%(std::vector<int> indices, TaskDe
     std::vector<int> new_indices;
     for(int idx : indices)
     {
-        new_indices.push_back(task->indices[idx]);
+        new_indices.push_back(task->_indices[idx]);
     }
     
-    task->indices = new_indices;
-    Eigen::MatrixXd new_weight(new_indices.size(), task->weight.cols());
+    task->_indices = new_indices;
+    Eigen::MatrixXd new_weight(new_indices.size(), task->_weight.cols());
     
     {
         int i = 0;
         for(uint idx : indices)
         {
-            new_weight.row(i) = task->weight.row(idx);
+            new_weight.row(i) = task->_weight.row(idx);
             i++;
         }
     }
     
-    task->weight.resize(indices.size(), indices.size());
+    task->_weight.resize(indices.size(), indices.size());
     
     {
         int i = 0;
         for(uint idx : indices)
         {
-            task->weight.col(i) = new_weight.col(idx);
+            task->_weight.col(i) = new_weight.col(idx);
             i++;
         }
     }
@@ -99,64 +99,67 @@ TaskDescription::Ptr XBot::Cartesian::operator%(std::vector<int> indices, TaskDe
     return task;
 }
 
-TaskDescription::TaskDescription(std::string __type, std::string __name, int __size, ModelInterface::ConstPtr model):
-    weight(Eigen::MatrixXd::Identity(size,size)),
-    lambda(1.0),
-    lambda2(0.0),
-    name(__name),
-    type(__type),
-    size(__size),
-    _model(model),
-    activ_state(ActivationState::Enabled),
-    _time(0.)
+TaskDescription::TaskDescription(std::string type,
+                                 std::string name,
+                                 int size,
+                                 ModelInterface::ConstPtr model):
+    TaskDescription()
 {
-    for(int i = 0; i < size; i++)
+    _type = type;
+    _name = name;
+    _size = size;
+    _model = model;
+
+    _weight.setIdentity(_size, _size);
+
+    for(int i = 0; i < _size; i++)
     {
-        indices.push_back(i);
+        _indices.push_back(i);
     }
 }
 
 TaskDescription::TaskDescription(YAML::Node task_node,
                                  XBot::ModelInterface::ConstPtr model,
-                                 std::string __name,
-                                 int __size):
-    name(__name),
-    size(__size),
-    _model(model),
-    activ_state(ActivationState::Enabled),
-    _time(0.),
-    lambda(1.0),
-    lambda2(0.0)
+                                 std::string name,
+                                 int size):
+    TaskDescription(task_node["type"].as<std::string>(),
+                    name,
+                    size,
+                    model)
 {
-    type = task_node["type"].as<std::string>();
 
     if(task_node["weight"] && task_node["weight"].IsScalar())
     {
-        weight = task_node["weight"].as<double>() * Eigen::MatrixXd::Identity(size, size);
+        _weight = task_node["weight"].as<double>() * Eigen::MatrixXd::Identity(_size, _size);
     }
 
     if(task_node["weight"] && task_node["weight"].IsSequence())
     {
         auto w_vec = task_node["weight"].as<std::vector<double>>();
-        if(w_vec.size() != size)
+        if(w_vec.size() != _size)
         {
             throw std::invalid_argument("weight size does not match task size");
         }
-        weight = Eigen::VectorXd::Map(w_vec.data(), w_vec.size()).asDiagonal();
+        _weight = Eigen::VectorXd::Map(w_vec.data(), w_vec.size()).asDiagonal();
+    }
+
+    if(task_node["lib_name"])
+    {
+        _lib_name = task_node["lib_name"].as<std::string>();
     }
 
     if(task_node["lambda"])
     {
-        lambda = task_node["lambda"].as<double>();
+        _lambda = task_node["lambda"].as<double>();
     }
 
     if(task_node["lambda2"])
     {
-        lambda2 = task_node["lambda2"].as<double>();
+        _lambda2 = task_node["lambda2"].as<double>();
     }
     else
     {
-        lambda2 = -1.;
+        _lambda2 = 0.;
     }
 
     if(task_node["indices"])
@@ -176,7 +179,7 @@ TaskDescription::TaskDescription(YAML::Node task_node,
                 throw std::runtime_error("Undefined joint '" + jstr + "' listed among disabled joints");
             }
 
-            disabled_joints.push_back(jstr);
+            _disabled_joints.push_back(jstr);
         }
     }
 
@@ -188,7 +191,7 @@ TaskDescription::TaskDescription(YAML::Node task_node,
             throw std::runtime_error("Cannot specify both 'enabled_joints' and 'disabled_joints'");
         }
 
-        disabled_joints = model->getEnabledJointNames();
+        _disabled_joints = model->getEnabledJointNames();
 
         for(auto jnode : task_node["enabled_joints"])
         {
@@ -199,8 +202,8 @@ TaskDescription::TaskDescription(YAML::Node task_node,
                 throw std::runtime_error("Undefined joint '" + jstr + "' listed among enabled joints");
             }
 
-            auto it = std::find(disabled_joints.begin(), disabled_joints.end(), jstr);
-            disabled_joints.erase(it);
+            auto it = std::find(_disabled_joints.begin(), _disabled_joints.end(), jstr);
+            _disabled_joints.erase(it);
         }
     }
 }
@@ -209,16 +212,16 @@ bool TaskDescription::validate()
 {
     bool ret = true;
 
-    if(lambda < 0)
+    if(_lambda < 0)
     {
         Logger::error("Task '%s': invalid lambda = %f \n",
-                                 getName().c_str(), lambda);
+                                 getName().c_str(), _lambda);
 
         ret = false;
     }
 
-    if(!weight.isApprox(weight.transpose()) &&
-            weight.llt().info() == Eigen::NumericalIssue)
+    if(!_weight.isApprox(_weight.transpose()) &&
+            _weight.llt().info() == Eigen::NumericalIssue)
     {
         Logger::error("Task '%s': invalid weight \n",
                                  getName().c_str());
@@ -231,17 +234,17 @@ bool TaskDescription::validate()
 
 std::string TaskDescription::getType() const
 {
-    return type;
+    return _type;
 }
 
 ActivationState TaskDescription::getActivationState() const
 {
-    return activ_state;
+    return _activ_state;
 }
 
 bool TaskDescription::setActivationState(const ActivationState & value)
 {
-    activ_state = value;
+    _activ_state = value;
     reset();
 
     NOTIFY_OBSERVERS(ActivationState);
@@ -262,7 +265,7 @@ void TaskDescription::log(MatLogger::Ptr logger, bool init_logger, int buf_size)
         return;
     }
 
-    logger->add(getName() + "_active", activ_state == ActivationState::Enabled);
+    logger->add(getName() + "_active", _activ_state == ActivationState::Enabled);
 }
 
 XBot::ModelInterface::ConstPtr TaskDescription::getModel() const
@@ -272,7 +275,7 @@ XBot::ModelInterface::ConstPtr TaskDescription::getModel() const
 
 void TaskDescription::setLibName(std::string __lib_name)
 {
-    lib_name = __lib_name;
+    _lib_name = __lib_name;
 }
 
 double TaskDescription::getTime() const
@@ -280,29 +283,39 @@ double TaskDescription::getTime() const
     return _time;
 }
 
+TaskDescription::TaskDescription():
+    _activ_state(ActivationState::Enabled),
+    _size(-1),
+    _lambda(1.0),
+    _lambda2(0.0),
+    _time(0.)
+{
+
+}
+
 const std::string& TaskDescription::getName() const
 {
-    return name;
+    return _name;
 }
 
 int TaskDescription::getSize() const
 {
-    return size;
+    return _size;
 }
 
 const std::string& TaskDescription::getLibName() const
 {
-    return lib_name;
+    return _lib_name;
 }
 
 const Eigen::MatrixXd& TaskDescription::getWeight() const
 {
-    return weight;
+    return _weight;
 }
 
 bool TaskDescription::setWeight(const Eigen::MatrixXd & value)
 {
-    weight = value;
+    _weight = value;
 
     NOTIFY_OBSERVERS(Weight)
 
@@ -311,43 +324,48 @@ bool TaskDescription::setWeight(const Eigen::MatrixXd & value)
 
 const std::vector<int>& TaskDescription::getIndices() const
 {
-    return indices;
+    return _indices;
 }
 
 void TaskDescription::setIndices(const std::vector<int> & value)
 {
-    auto invalid_idx_predicate = [this](int idx){ return idx >= size || idx < 0; };
+    auto invalid_idx_predicate = [this](int idx){ return idx >= _size || idx < 0; };
     if(std::any_of(value.begin(), value.end(), invalid_idx_predicate))
     {
         throw std::out_of_range("indices out of range");
     }
 
-    indices = value;
+    _indices = value;
 }
 
 double TaskDescription::getLambda() const
 {
-    return lambda;
+    return _lambda;
 }
 
 void TaskDescription::setLambda(double value)
 {
-    lambda = value;
+    _lambda = value;
 }
 
 const std::vector<std::string>& TaskDescription::getDisabledJoints() const
 {
-    return disabled_joints;
+    return _disabled_joints;
 }
 
 void TaskDescription::setDisabledJoints(const std::vector<std::string> & value)
 {
-    disabled_joints = value;
+    _disabled_joints = value;
 }
 
 void TaskDescription::update(double time, double period)
 {
     _time = time;
+}
+
+void TaskDescription::reset()
+{
+
 }
 
 

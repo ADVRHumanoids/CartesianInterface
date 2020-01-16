@@ -4,7 +4,8 @@ using namespace XBot::Cartesian;
 
 OpenSotCartesianAdapter::OpenSotCartesianAdapter(TaskDescription::Ptr task,
                                                  XBot::ModelInterface::ConstPtr model):
-    OpenSotTaskAdapter(task, model)
+    OpenSotTaskAdapter(task, model),
+    _old_lambda(0.0)
 {
     _ci_cart = std::dynamic_pointer_cast<CartesianTask>(task);
 
@@ -59,6 +60,7 @@ void OpenSotCartesianAdapter::update(double time, double period)
 
 bool OpenSotCartesianAdapter::onBaseLinkChanged()
 {
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
     return _opensot_cart->setBaseLink(_ci_cart->getBaseLink());
 }
 

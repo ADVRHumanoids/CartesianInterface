@@ -23,6 +23,16 @@ set(TestLibs CartesianInterface ${GTEST_BOTH_LIBRARIES})
 include_directories(${GTEST_INCLUDE_DIRS})
 link_directories(${GTEST_LIB_DIRS})
 
+add_executable(TestTask TestTask.cpp)
+target_link_libraries(TestTask ${TestLibs})
+add_dependencies(TestTask GTest-ext CartesianInterface)
+add_test(NAME TestTask COMMAND TestTask)
+
+add_executable(TestCartesian TestCartesian.cpp)
+target_link_libraries(TestCartesian ${TestLibs})
+add_dependencies(TestCartesian GTest-ext CartesianInterface)
+add_test(NAME TestCartesian COMMAND TestCartesian)
+
 add_executable(TestApi TestApi.cpp)
 target_link_libraries(TestApi ${TestLibs})
 add_dependencies(TestApi GTest-ext CartesianInterface)

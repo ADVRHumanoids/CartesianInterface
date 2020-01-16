@@ -1,11 +1,18 @@
+solver_options:
+    regularization: 1e-3
+    back_end: "osqp"
+
 stack:
-    - ["Wheel_FR", "Wheel_HR", "Wheel_HL"]
+    - ["Wheel_FR", "Wheel_HR", "Wheel_HL", "Wheel_FL"]
     - ["LeftArm", "RightArm"]
     - ["Postural", "Com"]
-constraints: ["JointLimits", "Wheel_FL"]
+constraints: ["JointLimits", "VelocityLimits"]
 
 JointLimits:
     type: "JointLimits"
+
+VelocityLimits:
+    type: "VelocityLimits"
 
 Wheel_FL:
     type: "Cartesian"

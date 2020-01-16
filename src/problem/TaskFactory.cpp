@@ -58,6 +58,10 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node task_node,
         {
             task_desc = std::make_shared<JointLimits>(task_node,  model);
         }
+        else if(task_type == "VelocityLimits")
+        {
+            task_desc = std::make_shared<VelocityLimits>(task_node,  model);
+        }
 //        else if(task_type == "Gaze")
 //        {
 //            task_desc = GazeTask::yaml_parse_gaze(task_node, model);

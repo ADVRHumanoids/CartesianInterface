@@ -6,6 +6,7 @@
 
 #include "OpenSotCartesian.h"
 #include "OpenSotJointLimits.h"
+#include "OpenSotVelocityLimits.h"
 #include "OpenSotConstraintFromTask.h"
 #include "OpenSotPostural.h"
 #include "OpenSotCom.h"
@@ -202,7 +203,7 @@ OpenSotConstraintAdapter::Ptr OpenSotConstraintAdapter::MakeInstance(ConstraintD
     }
     else if(constr->getType() == "VelocityLimits")
     {
-
+        constr_adapter = new OpenSotVelocityLimitsAdapter(constr, model);
     }
     else
     {

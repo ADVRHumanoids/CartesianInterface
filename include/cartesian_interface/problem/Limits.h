@@ -34,6 +34,31 @@ namespace XBot { namespace Cartesian {
         void reset() override;
 
     };
+
+    class VelocityLimits : public ConstraintDescription
+    {
+
+    public:
+
+        CARTESIO_DECLARE_SMART_PTR(VelocityLimits)
+
+        VelocityLimits(ModelInterface::ConstPtr model);
+        VelocityLimits(YAML::Node yaml, ModelInterface::ConstPtr model);
+
+        Eigen::VectorXd getQdotMax() const;
+
+    private:
+
+        double _bound_scaling;
+        Eigen::VectorXd _qdot_max;
+
+        // TaskDescription interface
+    public:
+        bool validate() override;
+        void update(double time, double period) override;
+        void reset() override;
+
+    };
     
 } }
 

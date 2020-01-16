@@ -122,6 +122,7 @@ set(CartesianInterfaceSOT_SRC
     src/open_sot/task_adapters/OpenSotCom.cpp
     src/open_sot/task_adapters/OpenSotPostural.cpp
     src/open_sot/task_adapters/OpenSotJointLimits.cpp
+    src/open_sot/task_adapters/OpenSotVelocityLimits.cpp
     src/open_sot/task_adapters/OpenSotConstraintFromTask.cpp
     src/open_sot/OpenSotImpl.cpp
     )  

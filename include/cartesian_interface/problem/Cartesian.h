@@ -117,26 +117,26 @@ public:
 
 private:
 
-    ControlType ctrl_mode;
+    ControlType _ctrl_mode;
 
     std::list<CartesianTaskObserver::WeakPtr> _observers;
 
     /**
          * @brief The task controls the relative motion of distal_link w.r.t base_link
          */
-    std::string base_link, distal_link;
+    std::string _base_link, _distal_link;
 
     /**
          * @brief Set Cartesian task in local (body) frame
          */
-    bool is_body_jacobian;
+    bool _is_body_jacobian;
 
     /**
          * @brief Parameter that weights orientation errors w.r.t. position errors.
          * For example, setting it to orientation_gain = 2.0 means that an error of
          * 2 rad is recovered in the same time as an error of 1 meter.
          */
-    double orientation_gain;
+    double _orientation_gain;
 
     /* Task implementation variables (TBD: pimpl) */
 
@@ -148,20 +148,20 @@ private:
     Eigen::Affine3d get_pose_ref_otg() const;
     virtual Eigen::Affine3d get_current_pose() const;
 
-    Eigen::Affine3d T;
-    Eigen::Vector6d vel;
-    Eigen::Vector6d acc;
+    Eigen::Affine3d _T;
+    Eigen::Vector6d _vel;
+    Eigen::Vector6d _acc;
 
-    EigenVector7d __otg_des, __otg_ref, __otg_vref;
-    EigenVector7d __otg_maxvel, __otg_maxacc;
+    EigenVector7d _otg_des, _otg_ref, _otg_vref;
+    EigenVector7d _otg_maxvel, _otg_maxacc;
 
-    State state;
-    double vref_time_to_live;
+    State _state;
+    double _vref_time_to_live;
 
-    Trajectory::Ptr trajectory;
-    Reflexxes::Utils::TrajectoryGenerator::Ptr otg;
+    Trajectory::Ptr _trajectory;
+    Reflexxes::Utils::TrajectoryGenerator::Ptr _otg;
 
-    Context ctx;
+    Context _ctx;
 };
 
 } }

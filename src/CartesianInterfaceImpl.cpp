@@ -10,7 +10,8 @@ namespace {
 const double DEFAULT_TTL = 0.1;
 }
 
-CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, ProblemDescription ik_problem):
+CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model,
+                                               ProblemDescription ik_problem):
     _model(model),
     _current_time(0.0),
     _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_logger_" + std::to_string(rand()))),
