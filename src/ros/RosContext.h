@@ -13,12 +13,16 @@ class RosContext
 
 public:
 
+    CARTESIO_DECLARE_SMART_PTR(RosContext)
+
     RosContext();
-    explicit RosContext(std::shared_ptr<RosContextImpl> ctx);
 
     ros::NodeHandle& nh();
     const std::string& tf_prefix() const;
     const std::string& tf_prefix_slash() const;
+
+    static Ptr MakeContext(ros::NodeHandle nh,
+                           std::string tf_prefix);
 
 private:
 

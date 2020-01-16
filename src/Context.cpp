@@ -15,8 +15,6 @@ std::weak_ptr<ContextImpl> Context::_weak_impl;
 
 Context::Context()
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
-
     if(auto ptr = _weak_impl.lock())
     {
         _impl = ptr;
@@ -27,12 +25,6 @@ Context::Context()
     }
 }
 
-Context::Context(double control_period):
-    _control_period(control_period)
-{
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
-}
-
 double Context::getControlPeriod() const
 {
     return _impl->control_period;
@@ -40,7 +32,6 @@ double Context::getControlPeriod() const
 
 Context::~Context()
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
 }
 
 Context::Ptr Context::MakeContext(double control_period)

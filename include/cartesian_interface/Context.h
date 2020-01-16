@@ -27,12 +27,8 @@ public:
 
 private:
 
-    Context(double control_period);
-
     static std::weak_ptr<ContextImpl> _weak_impl;
     std::shared_ptr<ContextImpl> _impl;
-
-    double _control_period;
 
 };
 

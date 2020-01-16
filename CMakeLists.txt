@@ -138,11 +138,11 @@ set(CartesianInterfaceROS_SRC
     src/ros/api/TaskRos.cpp
     src/ros/api/CartesianRos.cpp
 #        src/ros/RosImpl.cpp
-#        src/ros/RosServerClass.cpp
+        src/ros/RosServerClass.cpp
 #        src/ros/CartesianMarker.cpp
 #        src/ros/JoyStick.cpp
 #        src/ros/CartesianAnalyzer.cpp
-#        src/ros/RosExecutor.cpp
+    src/ros/RosExecutor.cpp
     )
 
 # Trajectory

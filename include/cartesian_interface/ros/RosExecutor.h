@@ -62,7 +62,8 @@ namespace XBot { namespace Cartesian {
         
         void timer_callback(const ros::TimerEvent& timer_ev);
         
-        
+        Context::Ptr _ctx;
+
         ros::NodeHandle _nh, _nh_priv;
         
         XBot::ConfigOptions _xbot_cfg, _xbot_cfg_robot;

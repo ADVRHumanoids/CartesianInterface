@@ -4,31 +4,24 @@
 #include <cartesian_interface/problem/Task.h>
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
+#include <ros/RosContext.h>
 
 namespace XBot { namespace Cartesian {
-
-class RosContext
-{
-
-public:
-
-    ros::NodeHandle& nh();
-    const std::string& tf_prefix() const;
-    const std::string& tf_prefix_slash() const;
-
-};
 
 class TaskRos
 {
 
 public:
 
-    TaskRos(RosContext ctx,
-            TaskDescription::Ptr task);
+    CARTESIO_DECLARE_SMART_PTR(TaskRos)
+
+    explicit TaskRos(TaskDescription::Ptr task);
 
     virtual void run(ros::Time time);
 
     virtual ~TaskRos() = default;
+
+    static Ptr MakeInstance(TaskDescription::Ptr task);
 
 protected:
 
@@ -39,6 +32,8 @@ protected:
 
 private:
 
+    static std::string RosApiPluginName(TaskDescription::Ptr task);
+
     void publish_lambda();
 
     void on_lambda_recv(std_msgs::Float32ConstPtr msg);
@@ -48,6 +43,15 @@ private:
 
 
 
+};
+
+struct RosApiNotFound : public std::exception
+{
+    RosApiNotFound(std::string message);
+
+    const char * what() const noexcept;
+
+    std::string _msg;
 };
 
 } }

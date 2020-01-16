@@ -31,8 +31,8 @@ geometry_msgs::Pose get_normalized_pose(const geometry_msgs::Pose& pose)
 
 }
 
-CartesianRos::CartesianRos(RosContext ctx, TaskDescription::Ptr task):
-    TaskRos(ctx, task)
+CartesianRos::CartesianRos(TaskDescription::Ptr task):
+    TaskRos(task)
 {
     _cart = std::dynamic_pointer_cast<CartesianTask>(task);
 
@@ -41,7 +41,19 @@ CartesianRos::CartesianRos(RosContext ctx, TaskDescription::Ptr task):
         throw std::runtime_error("Provided task does not have expected type 'CartesianTask'");
     }
 
-    _reach_action_manager.reset(new ReachActionManager(ctx.nh(), task_name, _cart));
+    _reach_action_manager.reset(new ReachActionManager(_ctx.nh(), task_name, _cart));
+
+    _pose_ref_pub = _ctx.nh().advertise<geometry_msgs::PoseStamped>(task->getName() + "/current_reference", 1);
+
+    _vel_ref_pub = _ctx.nh().advertise<geometry_msgs::TwistStamped>(task->getName() + "/current_velocity_reference", 1);
+
+    _pose_ref_sub = _ctx.nh().subscribe(task->getName() + "/reference", 1,
+                                        &CartesianRos::online_position_reference_cb,
+                                        this);
+
+    _vel_ref_sub = _ctx.nh().subscribe(task->getName() + "/velocity_reference", 1,
+                                        &CartesianRos::online_velocity_reference_cb,
+                                        this);
 }
 
 void CartesianRos::run(ros::Time time)

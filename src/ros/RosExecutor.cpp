@@ -66,8 +66,12 @@ void RosExecutor::init_load_config()
     {
         _xbot_cfg = _xbot_cfg_robot;
     }
-}
 
+    _period = 1.0 / _nh_priv.param("rate", 100.0);
+
+    _ctx = Context::MakeContext(_period);
+
+}
 
 void RosExecutor::init_load_robot()
 {
@@ -355,7 +359,6 @@ void RosExecutor::load_ros_api()
 
 void RosExecutor::init_create_loop_timer()
 {
-    _period = 1.0 / _nh_priv.param("rate", 100.0);
     _loop_timer = _nh.createTimer(ros::Duration(_period), 
                                   &RosExecutor::timer_callback, 
                                   this, false, false);

@@ -4,8 +4,11 @@
 
 using namespace XBot::Cartesian;
 
-struct XBot::Cartesian::RosContextImpl
+class XBot::Cartesian::RosContextImpl
 {
+
+public:
+
     ros::NodeHandle nh;
     std::string tf_prefix;
     std::string tf_prefix_slash;
@@ -14,6 +17,7 @@ struct XBot::Cartesian::RosContextImpl
 };
 
 std::weak_ptr<RosContextImpl> RosContext::_weak_impl;
+
 
 RosContext::RosContext()
 {
@@ -27,21 +31,24 @@ RosContext::RosContext()
     }
 }
 
-RosContext::RosContext(std::shared_ptr<RosContextImpl> ctx)
+RosContext::Ptr RosContext::MakeContext(ros::NodeHandle nh,
+                                        std::string tf_prefix)
 {
-    if(!ctx)
-    {
-        throw ContextInvalid("provided impl is nullptr");
-    }
-
     if(auto ptr = _weak_impl.lock())
     {
         throw ContextRedefinition();
     }
 
-    _impl = ctx;
-    _weak_impl = ctx;
+    auto instance = std::make_shared<RosContextImpl>();
+    instance->nh = nh;
+    instance->tf_prefix = tf_prefix;
+    instance->tf_prefix_slash = tf_prefix == "" ? "" : (tf_prefix + "/");
+
+    _weak_impl = instance;
+
+    return std::make_shared<RosContext>();
 }
+
 
 ros::NodeHandle & RosContext::nh()
 {
