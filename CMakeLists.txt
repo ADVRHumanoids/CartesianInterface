@@ -60,6 +60,11 @@ add_service_files(
   SetJoystickActiveTask.srv
   SetJoystickTaskMaxSpeed.srv
   SetJoystickTaskBaseFrame.srv
+  GetCartesianTaskInfo.srv
+  SetWeight.srv
+  SetLambda.srv
+  SetBaseLink.srv
+  SetControlMode.srv
 )
 
 # Generate actions in the 'action' folder

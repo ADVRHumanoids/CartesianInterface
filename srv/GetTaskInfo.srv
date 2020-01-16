@@ -1,7 +1,9 @@
 ---
 string name
 string type
-string distal_link
-string base_link
-string control_mode # pos/vel/disabled
-string task_state   # reaching/online
+float32 lambda
+string activation_state
+float32[] weight
+uint32[] indices
+uint32 size
+string[] disabled_joints

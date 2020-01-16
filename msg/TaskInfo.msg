@@ -1,5 +1,8 @@
-string distal_link
-string base_link
-string control_mode # pos/vel/disabled
-string task_state   # reaching/online
-string task_interface   # cartesian/interaction
+string name
+string type
+uint32 size
+uint32[] indices
+float32[] weight
+float32 lambda
+string activation_state
+string[] disabled_joints

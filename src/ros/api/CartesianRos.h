@@ -10,8 +10,9 @@
 #include <geometry_msgs/TwistStamped.h>
 
 #include <cartesian_interface/ReachPoseAction.h>
-#include <cartesian_interface/GetTaskInfo.h>
-#include <cartesian_interface/SetTaskInfo.h>
+#include <cartesian_interface/GetCartesianTaskInfo.h>
+#include <cartesian_interface/SetBaseLink.h>
+#include <cartesian_interface/SetControlMode.h>
 
 
 namespace XBot { namespace Cartesian {
@@ -63,10 +64,10 @@ private:
 
     void online_position_reference_cb(geometry_msgs::PoseStampedConstPtr  msg);
     void online_velocity_reference_cb(geometry_msgs::TwistStampedConstPtr msg);
-    bool get_task_info_cb(cartesian_interface::GetTaskInfoRequest& req,
-                        cartesian_interface::GetTaskInfoResponse& res);
-    bool set_task_info_cb(cartesian_interface::SetTaskInfoRequest& req,
-                        cartesian_interface::SetTaskInfoResponse& res);
+//    bool get_task_info_cb(cartesian_interface::GetTaskInfoRequest& req,
+//                        cartesian_interface::GetTaskInfoResponse& res);
+//    bool set_task_info_cb(cartesian_interface::SetTaskInfoRequest& req,
+//                        cartesian_interface::SetTaskInfoResponse& res);
 
 
     ros::Publisher _pose_ref_pub, _vel_ref_pub;

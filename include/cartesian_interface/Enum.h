@@ -1,6 +1,8 @@
 #ifndef __CARTESIAN_INTERFACE_ENUM_H__
 #define __CARTESIAN_INTERFACE_ENUM_H__
 
+#include <string>
+
 namespace XBot { namespace Cartesian {
 
 /**
@@ -22,6 +24,9 @@ enum class State { Reaching, Online };
 *  - ControlType::Disabled: the task is disabled
 */
 enum class ControlType { Position, Velocity };
+
+template <typename T>
+inline std::string EnumToString(T value);
 
 } }
 

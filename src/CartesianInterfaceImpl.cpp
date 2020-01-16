@@ -3,6 +3,7 @@
 #include <boost/algorithm/string.hpp>  
 
 #include <cartesian_interface/Context.h>
+#include <cartesian_interface/Enum.h>
 
 using namespace XBot::Cartesian;
 
@@ -853,4 +854,16 @@ CartesianInterfaceImpl::~CartesianInterfaceImpl()
     _logger->flush();
     Logger::success(Logger::Severity::HIGH, "Cleanly exiting from CartesI/O\n");
 }
+
+namespace XBot { namespace Cartesian {
+
+template <>
+std::string EnumToString<ActivationState>(ActivationState value)
+{
+    if(value == ActivationState::Enabled) return "Enabled";
+    if(value == ActivationState::Disabled) return "Disabled";
+    return "";
+}
+
+} }
 

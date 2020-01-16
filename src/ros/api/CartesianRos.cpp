@@ -102,53 +102,53 @@ void CartesianRos::online_velocity_reference_cb(geometry_msgs::TwistStampedConst
 
 }
 
-bool CartesianRos::get_task_info_cb(cartesian_interface::GetTaskInfoRequest & req,
-                                    cartesian_interface::GetTaskInfoResponse & res)
-{
-    res.base_link = _cart->getBaseLink();
-    res.control_mode  =  CartesianInterface::ControlTypeAsString(_cart->getControlMode());
-    res.task_state  =  CartesianInterface::StateAsString(_cart->getTaskState());
-    res.distal_link = _cart->getDistalLink();
-    res.type = _cart->getType();
-    res.name = _cart->getName();
-    return true;
-}
+//bool CartesianRos::get_task_info_cb(cartesian_interface::GetTaskInfoRequest & req,
+//                                    cartesian_interface::GetTaskInfoResponse & res)
+//{
+//    res.base_link = _cart->getBaseLink();
+//    res.control_mode  =  CartesianInterface::ControlTypeAsString(_cart->getControlMode());
+//    res.task_state  =  CartesianInterface::StateAsString(_cart->getTaskState());
+//    res.distal_link = _cart->getDistalLink();
+//    res.type = _cart->getType();
+//    res.name = _cart->getName();
+//    return true;
+//}
 
-bool CartesianRos::set_task_info_cb(cartesian_interface::SetTaskInfoRequest & req,
-                                    cartesian_interface::SetTaskInfoResponse & res)
-{
-    std::string new_base_link = req.base_link;
-    if(new_base_link == "world_odom")
-    {
-        new_base_link = "world";
-    }
+//bool CartesianRos::set_task_info_cb(cartesian_interface::SetTaskInfoRequest & req,
+//                                    cartesian_interface::SetTaskInfoResponse & res)
+//{
+//    std::string new_base_link = req.base_link;
+//    if(new_base_link == "world_odom")
+//    {
+//        new_base_link = "world";
+//    }
 
-    if(new_base_link != "" && _cart->setBaseLink(new_base_link))
-    {
-        res.message = "Successfully set base link of task " + task_name + " to " + new_base_link;
-        res.success = true;
-    }
-    else if(new_base_link != "")
-    {
-        res.message = "Unable to set base link of task " + task_name + " to " + new_base_link;
-        res.success = false;
-    }
-
-
-    if(req.control_mode != "" && _cart->setControlMode(CartesianInterface::ControlTypeFromString(req.control_mode)))
-    {
-        res.message = "Successfully set control mode of task " + task_name + " to " + req.control_mode;
-        res.success = true;
-    }
-    else if(req.control_mode != "")
-    {
-        res.message = "Unable to set control mode of task " + task_name + " to " + req.control_mode;
-        res.success = false;
-    }
+//    if(new_base_link != "" && _cart->setBaseLink(new_base_link))
+//    {
+//        res.message = "Successfully set base link of task " + task_name + " to " + new_base_link;
+//        res.success = true;
+//    }
+//    else if(new_base_link != "")
+//    {
+//        res.message = "Unable to set base link of task " + task_name + " to " + new_base_link;
+//        res.success = false;
+//    }
 
 
-    return true;
-}
+//    if(req.control_mode != "" && _cart->setControlMode(CartesianInterface::ControlTypeFromString(req.control_mode)))
+//    {
+//        res.message = "Successfully set control mode of task " + task_name + " to " + req.control_mode;
+//        res.success = true;
+//    }
+//    else if(req.control_mode != "")
+//    {
+//        res.message = "Unable to set control mode of task " + task_name + " to " + req.control_mode;
+//        res.success = false;
+//    }
+
+
+//    return true;
+//}
 
 
 ReachActionManager::ReachActionManager(ros::NodeHandle nh,

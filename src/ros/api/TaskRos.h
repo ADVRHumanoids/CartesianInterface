@@ -4,6 +4,9 @@
 #include <cartesian_interface/problem/Task.h>
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
+#include <cartesian_interface/GetTaskInfo.h>
+#include <cartesian_interface/SetWeight.h>
+#include <cartesian_interface/SetLambda.h>
 #include <ros/RosContext.h>
 
 namespace XBot { namespace Cartesian {
@@ -34,12 +37,19 @@ private:
 
     static std::string RosApiPluginName(TaskDescription::Ptr task);
 
-    void publish_lambda();
 
-    void on_lambda_recv(std_msgs::Float32ConstPtr msg);
+    bool get_task_info_cb(cartesian_interface::GetTaskInfoRequest& req,
+                          cartesian_interface::GetTaskInfoResponse& res);
 
-    ros::Publisher _lambda_pub;
-    ros::Subscriber _lambda_sub;
+    bool set_lambda_cb(cartesian_interface::SetLambdaRequest& req,
+                       cartesian_interface::SetLambdaResponse& res);
+
+    bool set_weight_cb(cartesian_interface::SetWeightRequest& req,
+                       cartesian_interface::SetWeightResponse& res);
+
+
+
+    ros::ServiceServer _get_task_info_srv, _set_lambda_srv, _set_weight_srv;
 
 
 

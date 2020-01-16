@@ -1,0 +1,4 @@
+float32[] weight
+---
+bool success
+string message
