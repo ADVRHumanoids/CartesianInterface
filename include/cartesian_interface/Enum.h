@@ -26,7 +26,28 @@ enum class State { Reaching, Online };
 enum class ControlType { Position, Velocity };
 
 template <typename T>
-inline std::string EnumToString(T value);
+std::string EnumToString(T value);
+
+template <typename T>
+T StringToEnum(const std::string& value);
+
+template <>
+std::string EnumToString<ActivationState>(ActivationState value);
+
+template <>
+std::string EnumToString<ControlType>(ControlType value);
+
+template <>
+std::string EnumToString<State>(State value);
+
+template <>
+ActivationState StringToEnum<ActivationState>(const std::string& value);
+
+template <>
+ControlType StringToEnum<ControlType>(const std::string& value);
+
+template <>
+State StringToEnum<State>(const std::string& value);
 
 } }
 

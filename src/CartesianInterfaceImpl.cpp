@@ -865,5 +865,59 @@ std::string EnumToString<ActivationState>(ActivationState value)
     return "";
 }
 
+template <>
+std::string EnumToString<ControlType>(ControlType value)
+{
+    if(value == ControlType::Position) return "Position";
+    if(value == ControlType::Velocity) return "Velocity";
+    return "";
+}
+
+
+template <>
+std::string EnumToString<State>(State value)
+{
+    if(value == State::Reaching) return "Reaching";
+    if(value == State::Online)   return "Online";
+    return "";
+}
+
+
+template <>
+ControlType StringToEnum<ControlType>(const std::string& value)
+{
+    std::string ctrl_lower = value;
+    boost::algorithm::to_lower(ctrl_lower);
+
+    if(ctrl_lower == "position") return ControlType::Position;
+    if(ctrl_lower == "velocity") return ControlType::Velocity;
+
+    throw std::invalid_argument("Invalid control type '" + value + "'");
+}
+
+template <>
+State StringToEnum<State>(const std::string& value)
+{
+    std::string ctrl_lower = value;
+    boost::algorithm::to_lower(ctrl_lower);
+
+    if(ctrl_lower == "reaching") return State::Reaching;
+    if(ctrl_lower == "online") return State::Online;
+
+    throw std::invalid_argument("Invalid control type '" + value + "'");
+}
+
+template <>
+ActivationState StringToEnum<ActivationState>(const std::string& value)
+{
+    std::string ctrl_lower = value;
+    boost::algorithm::to_lower(ctrl_lower);
+
+    if(ctrl_lower == "enabled")  return ActivationState::Enabled;
+    if(ctrl_lower == "disabled") return ActivationState::Disabled;
+
+    throw std::invalid_argument("Invalid control type '" + value + "'");
+}
+
 } }
 
