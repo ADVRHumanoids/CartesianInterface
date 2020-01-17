@@ -54,11 +54,17 @@ CartesianRos::CartesianRos(TaskDescription::Ptr task):
                                         this);
 
     _vel_ref_sub = _ctx.nh().subscribe(task->getName() + "/velocity_reference", 1,
-                                        &CartesianRos::online_velocity_reference_cb,
-                                        this);
+                                       &CartesianRos::online_velocity_reference_cb,
+                                       this);
 
     _set_base_link_srv = _ctx.nh().advertiseService(task->getName() + "/set_base_link",
                                                     &CartesianRos::set_base_link_cb, this);
+
+    _set_ctrl_srv = _ctx.nh().advertiseService(task->getName() + "/set_control_mode",
+                                               &CartesianRos::set_control_mode_cb, this);
+
+    _get_info_srv = _ctx.nh().advertiseService(task->getName() + "/get_cartesian_task_properties",
+                                               &CartesianRos::get_task_info_cb, this);
 }
 
 void CartesianRos::run(ros::Time time)
@@ -104,7 +110,47 @@ void CartesianRos::online_position_reference_cb(geometry_msgs::PoseStampedConstP
 
 void CartesianRos::online_velocity_reference_cb(geometry_msgs::TwistStampedConstPtr msg)
 {
+    Eigen::Vector6d vel;
+    tf::twistMsgToEigen(msg->twist, vel);
 
+    Eigen::Matrix3d b_R_f;
+    b_R_f.setIdentity();
+
+    if(msg->header.frame_id == "world")
+    {
+        _model->getOrientation(_cart->getBaseLink(), b_R_f);
+        b_R_f.transposeInPlace();
+    }
+    else if(msg->header.frame_id != "")
+    {
+
+        if(!_model->getOrientation(msg->header.frame_id, _cart->getBaseLink(), b_R_f))
+        {
+            XBot::Logger::error("Unable to set velocity reference for task '%s' (frame_id '%s' undefined)\n",
+                                _task->getName().c_str(),
+                                msg->header.frame_id.c_str()
+                                );
+
+            return;
+        }
+
+    }
+
+    vel.head<3>() = b_R_f * vel.head<3>();
+    vel.tail<3>() = b_R_f * vel.tail<3>();
+    _cart->setVelocityReference(vel);
+}
+
+bool CartesianRos::get_task_info_cb(cartesian_interface::GetCartesianTaskInfoRequest&,
+                                    cartesian_interface::GetCartesianTaskInfoResponse& res)
+{
+    res.state = EnumToString(_cart->getTaskState());
+    res.base_link = _cart->getBaseLink();
+    res.distal_link = _cart->getDistalLink();
+    res.control_mode = EnumToString(_cart->getControlMode());
+    res.use_body_jacobian = _cart->isBodyJacobian();
+
+    return true;
 }
 
 bool CartesianRos::set_base_link_cb(cartesian_interface::SetBaseLinkRequest & req,
@@ -127,54 +173,26 @@ bool CartesianRos::set_base_link_cb(cartesian_interface::SetBaseLinkRequest & re
     return true;
 }
 
-//bool CartesianRos::get_task_info_cb(cartesian_interface::GetTaskInfoRequest & req,
-//                                    cartesian_interface::GetTaskInfoResponse & res)
-//{
-//    res.base_link = _cart->getBaseLink();
-//    res.control_mode  =  CartesianInterface::ControlTypeAsString(_cart->getControlMode());
-//    res.task_state  =  CartesianInterface::StateAsString(_cart->getTaskState());
-//    res.distal_link = _cart->getDistalLink();
-//    res.type = _cart->getType();
-//    res.name = _cart->getName();
-//    return true;
-//}
+bool CartesianRos::set_control_mode_cb(cartesian_interface::SetControlModeRequest & req,
+                                       cartesian_interface::SetControlModeResponse & res)
+{
+    res.success = _cart->setControlMode(StringToEnum<ControlType>(req.ctrl_mode));
 
-//bool CartesianRos::set_task_info_cb(cartesian_interface::SetTaskInfoRequest & req,
-//                                    cartesian_interface::SetTaskInfoResponse & res)
-//{
-//    std::string new_base_link = req.base_link;
-//    if(new_base_link == "world_odom")
-//    {
-//        new_base_link = "world";
-//    }
+    if(res.success)
+    {
+        res.message = fmt::format("Successfully changed control mode to '{}' for task '{}'",
+                                  EnumToString(_cart->getControlMode()),
+                                  _cart->getName());
+    }
+    else
+    {
+        res.message = fmt::format("Unable to change control mode to '{}' for task '{}'",
+                                  req.ctrl_mode,
+                                  _cart->getName());
+    }
 
-//    if(new_base_link != "" && _cart->setBaseLink(new_base_link))
-//    {
-//        res.message = "Successfully set base link of task " + task_name + " to " + new_base_link;
-//        res.success = true;
-//    }
-//    else if(new_base_link != "")
-//    {
-//        res.message = "Unable to set base link of task " + task_name + " to " + new_base_link;
-//        res.success = false;
-//    }
-
-
-//    if(req.control_mode != "" && _cart->setControlMode(CartesianInterface::ControlTypeFromString(req.control_mode)))
-//    {
-//        res.message = "Successfully set control mode of task " + task_name + " to " + req.control_mode;
-//        res.success = true;
-//    }
-//    else if(req.control_mode != "")
-//    {
-//        res.message = "Unable to set control mode of task " + task_name + " to " + req.control_mode;
-//        res.success = false;
-//    }
-
-
-//    return true;
-//}
-
+    return true;
+}
 
 ReachActionManager::ReachActionManager(ros::NodeHandle nh,
                                        std::string task_name,
@@ -229,7 +247,7 @@ void ReachActionManager::run_state_idle()
 
         // get current state for task (note: should it be getPoseReference instead?)
         Eigen::Affine3d base_T_ee;
-         _task->getCurrentPose(base_T_ee);
+        _task->getCurrentPose(base_T_ee);
 
         // fill waypoint vector
         Trajectory::WayPointVector waypoints;
@@ -358,8 +376,8 @@ void ReachActionManager::run_state_running()
 void ReachActionManager::run_state_completed()
 {
     XBot::Logger::info(XBot::Logger::Severity::HIGH,
-                               "Goal for task '%s' completed\n",
-                               _name.c_str());
+                       "Goal for task '%s' completed\n",
+                       _name.c_str());
 
     _state = ReachActionState::IDLE;
     return;

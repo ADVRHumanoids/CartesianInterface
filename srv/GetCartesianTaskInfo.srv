@@ -1,4 +1,7 @@
+---
 string base_link
 string distal_link
 string control_mode
 string state
+bool use_body_jacobian
+

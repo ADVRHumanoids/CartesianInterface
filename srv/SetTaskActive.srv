@@ -1,0 +1,4 @@
+bool activation_state
+---
+bool success
+string message

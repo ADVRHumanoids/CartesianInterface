@@ -50,6 +50,7 @@ add_message_files(
 add_service_files(
   FILES
   GetTaskInfo.srv
+  SetTaskActive.srv
   LoadController.srv
   GetTaskList.srv
   ResetWorld.srv

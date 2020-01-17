@@ -8,7 +8,8 @@ using namespace XBot::Cartesian;
 
 TaskRos::TaskRos(TaskDescription::Ptr task):
     _task(task),
-    task_name(task->getName())
+    task_name(task->getName()),
+    _model(task->getModel())
 {
     _get_task_info_srv = _ctx.nh().advertiseService(task_name + "/get_task_properties",
                                                     &TaskRos::get_task_info_cb, this);
@@ -18,6 +19,9 @@ TaskRos::TaskRos(TaskDescription::Ptr task):
 
     _set_weight_srv = _ctx.nh().advertiseService(task_name + "/set_weight",
                                                  &TaskRos::set_weight_cb, this);
+
+    _set_active_srv = _ctx.nh().advertiseService(task_name + "/set_active",
+                                                 &TaskRos::set_active_cb, this);
 }
 
 void XBot::Cartesian::TaskRos::run(ros::Time time)
@@ -109,6 +113,36 @@ bool TaskRos::set_weight_cb(cartesian_interface::SetWeightRequest & req,
 
     return true;
 
+}
+
+bool TaskRos::set_active_cb(cartesian_interface::SetTaskActiveRequest & req,
+                            cartesian_interface::SetTaskActiveResponse & res)
+{
+    ActivationState req_state;
+
+    if(req.activation_state)
+    {
+        req_state = ActivationState::Enabled;
+    }
+    else
+    {
+        req_state = ActivationState::Disabled;
+    }
+
+    res.success = _task->setActivationState(req_state);
+
+    if(res.success)
+    {
+        res.message = fmt::format("Succesfully set activation state to '{}' for task '{}'",
+                                  EnumToString(req_state), _task->getName());
+    }
+    else
+    {
+        res.message = fmt::format("Unable to set activation state to '{}' for task '{}'",
+                                  EnumToString(req_state), _task->getName());
+    }
+
+    return true;
 }
 
 RosApiNotFound::RosApiNotFound(std::string message): _msg(message)

@@ -7,6 +7,7 @@
 #include <cartesian_interface/GetTaskInfo.h>
 #include <cartesian_interface/SetWeight.h>
 #include <cartesian_interface/SetLambda.h>
+#include <cartesian_interface/SetTaskActive.h>
 #include <ros/RosContext.h>
 
 namespace XBot { namespace Cartesian {
@@ -32,6 +33,7 @@ protected:
 
     RosContext _ctx;
     TaskDescription::Ptr _task;
+    XBot::ModelInterface::ConstPtr _model;
 
 private:
 
@@ -47,9 +49,13 @@ private:
     bool set_weight_cb(cartesian_interface::SetWeightRequest& req,
                        cartesian_interface::SetWeightResponse& res);
 
+    bool set_active_cb(cartesian_interface::SetTaskActiveRequest& req,
+                       cartesian_interface::SetTaskActiveResponse& res);
+
 
 
     ros::ServiceServer _get_task_info_srv, _set_lambda_srv, _set_weight_srv;
+    ros::ServiceServer _set_active_srv;
 
 
 
