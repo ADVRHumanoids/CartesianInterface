@@ -1,4 +1,4 @@
-#include <cartesian_interface/ros/RosImpl.h>
+#include <cartesian_interface/ros/RosClient.h>
 
 #include <cartesian_interface/GetTaskList.h>
 #include <cartesian_interface/GetTaskInfo.h>
@@ -15,7 +15,7 @@
 
 using namespace XBot::Cartesian;
 
-std::ostream& XBot::Cartesian::operator<<(std::ostream& os, const RosImpl& r)
+std::ostream& XBot::Cartesian::operator<<(std::ostream& os, const RosClient& r)
 {
     os << "CartesianInterfaceRos running inside ROS node " << ros::this_node::getName() << "\n";
     auto tasklist = r.getTaskList();
@@ -34,7 +34,7 @@ std::ostream& XBot::Cartesian::operator<<(std::ostream& os, const RosImpl& r)
 }
 
 
-void RosImpl::construct_from_tasklist()
+void RosClient::construct_from_tasklist()
 {
     getTaskList();
     
@@ -83,7 +83,7 @@ void RosImpl::construct_from_tasklist()
 }
 
 
-RosImpl::RosImpl(std::string ns):
+RosClient::RosClient(std::string ns):
     _ros_init_helper(""),
     _nh(ns)
 {
@@ -99,7 +99,7 @@ RosImpl::RosImpl(std::string ns):
     
 }
 
-RosImpl::RosTask::RosTask(ros::NodeHandle a_nh,
+RosClient::RosTask::RosTask(ros::NodeHandle a_nh,
                           std::string arg_distal_link):
     distal_link(arg_distal_link),
     valid_state(false),
@@ -120,7 +120,7 @@ RosImpl::RosTask::RosTask(ros::NodeHandle a_nh,
 }
 
 
-RosImpl::RosTask::Ptr RosImpl::get_task(const std::string& task_name, bool no_throw) const
+RosClient::RosTask::Ptr RosClient::get_task(const std::string& task_name, bool no_throw) const
 {
     auto it = _task_map.find(task_name);
     
@@ -138,7 +138,7 @@ RosImpl::RosTask::Ptr RosImpl::get_task(const std::string& task_name, bool no_th
     }
 }
 
-RosImpl::RosInteractionTask::Ptr RosImpl::get_interaction_task(const std::string& task_name, 
+RosClient::RosInteractionTask::Ptr RosClient::get_interaction_task(const std::string& task_name,
                                                                        bool no_throw) const
 {
     auto it = _inter_task_map.find(task_name);
@@ -158,29 +158,29 @@ RosImpl::RosInteractionTask::Ptr RosImpl::get_interaction_task(const std::string
 }
 
 
-void RosImpl::RosTask::task_properties_callback(const cartesian_interface::TaskInfoConstPtr & msg)
+void RosClient::RosTask::task_properties_callback(const cartesian_interface::TaskInfoConstPtr & msg)
 {
     cached_task_prop = *msg;
 }
 
-void RosImpl::RosTask::state_callback(const geometry_msgs::PoseStampedConstPtr& msg)
+void RosClient::RosTask::state_callback(const geometry_msgs::PoseStampedConstPtr& msg)
 {
     tf::poseMsgToEigen(msg->pose, state);
     valid_state = true;
 }
 
-bool RosImpl::RosTask::is_valid() const
+bool RosClient::RosTask::is_valid() const
 {
     return valid_state;
 }
 
-void RosImpl::RosTask::set_async_mode(bool async)
+void RosClient::RosTask::set_async_mode(bool async)
 {
     async_mode = async;
 }
 
 
-const std::vector< std::string >& RosImpl::getTaskList() const
+const std::vector< std::string >& RosClient::getTaskList() const
 {
     if(!_tasklist_srv.waitForExistence(ros::Duration(1.0)))
     {
@@ -200,18 +200,18 @@ const std::vector< std::string >& RosImpl::getTaskList() const
     return _tasklist;
 }
 
-bool RosImpl::update(double time, double period)
+bool RosClient::update(double time, double period)
 {
     _queue.callAvailable();
     return true;
 }
 
-Eigen::Affine3d RosImpl::RosTask::get_state() const
+Eigen::Affine3d RosClient::RosTask::get_state() const
 {
     return state;
 }
 
-void RosImpl::RosTask::get_properties(std::string& base_link, 
+void RosClient::RosTask::get_properties(std::string& base_link,
                                       ControlType& ctrl_type,
                                       TaskInterface& ifc_type
                                      )
@@ -238,7 +238,7 @@ void RosImpl::RosTask::get_properties(std::string& base_link,
     
 }
 
-void RosImpl::RosTask::set_base_link(const std::string& base_link)
+void RosClient::RosTask::set_base_link(const std::string& base_link)
 {
     cartesian_interface::SetTaskInfo srv;
     srv.request.base_link = base_link;
@@ -255,7 +255,7 @@ void RosImpl::RosTask::set_base_link(const std::string& base_link)
     ROS_INFO("%s", srv.response.message.c_str());
 }
 
-void RosImpl::RosTask::set_ctrl_mode(ControlType ctrl_type)
+void RosClient::RosTask::set_ctrl_mode(ControlType ctrl_type)
 {
     cartesian_interface::SetTaskInfo srv;
     srv.request.control_mode = ControlTypeAsString(ctrl_type);
@@ -273,7 +273,7 @@ void RosImpl::RosTask::set_ctrl_mode(ControlType ctrl_type)
 }
 
 
-void RosImpl::RosTask::send_ref(const Eigen::Affine3d& ref)
+void RosClient::RosTask::send_ref(const Eigen::Affine3d& ref)
 {
     geometry_msgs::PoseStamped msg;
     msg.header.stamp = ros::Time::now();
@@ -281,7 +281,7 @@ void RosImpl::RosTask::send_ref(const Eigen::Affine3d& ref)
     ref_pub.publish(msg);
 }
 
-void RosImpl::RosTask::send_vref(const Eigen::Vector6d& vref,
+void RosClient::RosTask::send_vref(const Eigen::Vector6d& vref,
                                  const std::string& base_frame)
 {
     geometry_msgs::TwistStamped msg;
@@ -291,7 +291,7 @@ void RosImpl::RosTask::send_vref(const Eigen::Vector6d& vref,
     vref_pub.publish(msg);
 }
 
-void RosImpl::RosTask::send_waypoints(const Trajectory::WayPointVector& wp, bool incr)
+void RosClient::RosTask::send_waypoints(const Trajectory::WayPointVector& wp, bool incr)
 {
     cartesian_interface::ReachPoseGoal goal;
     goal.incremental = incr;
@@ -314,18 +314,18 @@ void RosImpl::RosTask::send_waypoints(const Trajectory::WayPointVector& wp, bool
     
 }
 
-void XBot::Cartesian::RosImpl::RosTask::abort()
+void XBot::Cartesian::RosClient::RosTask::abort()
 {
     reach_action.cancelAllGoals();
 }
 
 
-bool RosImpl::RosTask::wait_for_result(ros::Duration timeout)
+bool RosClient::RosTask::wait_for_result(ros::Duration timeout)
 {
     return reach_action.waitForResult(timeout);
 }
 
-bool RosImpl::waitReachCompleted(const std::string& ee_name, double timeout_sec)
+bool RosClient::waitReachCompleted(const std::string& ee_name, double timeout_sec)
 {
     auto task = get_task(ee_name, false);
     
@@ -333,7 +333,7 @@ bool RosImpl::waitReachCompleted(const std::string& ee_name, double timeout_sec)
 }
 
 
-bool RosImpl::getPoseReference(const std::string& end_effector, 
+bool RosClient::getPoseReference(const std::string& end_effector,
                                                 Eigen::Affine3d& base_T_ref, 
                                                 Eigen::Vector6d* base_vel_ref, 
                                                 Eigen::Vector6d* base_acc_ref) const
@@ -353,7 +353,7 @@ bool RosImpl::getPoseReference(const std::string& end_effector,
     return true;
 }
 
-bool RosImpl::getPoseReferenceRaw(const std::string& end_effector, 
+bool RosClient::getPoseReferenceRaw(const std::string& end_effector,
                                                    Eigen::Affine3d& base_T_ref, 
                                                    Eigen::Vector6d* base_vel_ref, 
                                                    Eigen::Vector6d* base_acc_ref) const
@@ -361,13 +361,13 @@ bool RosImpl::getPoseReferenceRaw(const std::string& end_effector,
     THROW_NOT_IMPL
 }
 
-bool RosImpl::setPoseReferenceRaw(const std::string& end_effector, 
+bool RosClient::setPoseReferenceRaw(const std::string& end_effector,
                                                    const Eigen::Affine3d& base_T_ref)
 {
     THROW_NOT_IMPL
 }
 
-void RosImpl::loadController(const std::string& controller_name, 
+void RosClient::loadController(const std::string& controller_name,
                              const std::string& problem_description_name,
                              const std::string& problem_description_string,
                              const bool force_reload)
@@ -396,12 +396,12 @@ void RosImpl::loadController(const std::string& controller_name,
 }
 
 
-RosImpl::~RosImpl()
+RosClient::~RosClient()
 {
 
 }
 
-void RosImpl::set_async_mode(bool async)
+void RosClient::set_async_mode(bool async)
 {
     for(auto pair: _task_map)
     {
@@ -411,7 +411,7 @@ void RosImpl::set_async_mode(bool async)
 
 
 
-const std::string& RosImpl::getBaseLink(const std::string& ee_name) const
+const std::string& RosClient::getBaseLink(const std::string& ee_name) const
 {
     auto task = get_task(ee_name, false);
     
@@ -424,7 +424,7 @@ const std::string& RosImpl::getBaseLink(const std::string& ee_name) const
         
 }
 
-ControlType RosImpl::getControlMode(const std::string& ee_name) const
+ControlType RosClient::getControlMode(const std::string& ee_name) const
 {
     auto task = get_task(ee_name, false);
     
@@ -436,27 +436,27 @@ ControlType RosImpl::getControlMode(const std::string& ee_name) const
     return ctrl_tmp;
 }
 
-bool RosImpl::getCurrentPose(const std::string& end_effector, Eigen::Affine3d& base_T_ee) const
+bool RosClient::getCurrentPose(const std::string& end_effector, Eigen::Affine3d& base_T_ee) const
 {
     THROW_NOT_IMPL
 }
 
-bool RosImpl::getPoseTarget(const std::string& end_effector, Eigen::Affine3d& base_T_ref) const
+bool RosClient::getPoseTarget(const std::string& end_effector, Eigen::Affine3d& base_T_ref) const
 {
     THROW_NOT_IMPL
 }
 
-int RosImpl::getCurrentSegmentId(const std::string & end_effector) const
+int RosClient::getCurrentSegmentId(const std::string & end_effector) const
 {
     THROW_NOT_IMPL
 }
 
-State RosImpl::getTaskState(const std::string& end_effector) const
+State RosClient::getTaskState(const std::string& end_effector) const
 {
     THROW_NOT_IMPL
 }
 
-bool RosImpl::reset()
+bool RosClient::reset()
 {
     auto client = _nh.serviceClient<std_srvs::Trigger>("reset");
     
@@ -471,18 +471,18 @@ bool RosImpl::reset()
     return true;
 }
 
-bool RosImpl::setComPositionReference(const Eigen::Vector3d& base_com_ref)
+bool RosClient::setComPositionReference(const Eigen::Vector3d& base_com_ref)
 {
     THROW_NOT_IMPL
 }
 
-bool RosImpl::setComVelocityReference(const Eigen::Vector3d& base_vel_ref)
+bool RosClient::setComVelocityReference(const Eigen::Vector3d& base_vel_ref)
 {
     THROW_NOT_IMPL
 }
 
 
-bool RosImpl::setControlMode(const std::string& ee_name, ControlType ctrl_type)
+bool RosClient::setControlMode(const std::string& ee_name, ControlType ctrl_type)
 {
     auto task = get_task(ee_name, false);
     
@@ -491,7 +491,7 @@ bool RosImpl::setControlMode(const std::string& ee_name, ControlType ctrl_type)
     return true;
 }
 
-bool RosImpl::setPoseReference(const std::string& end_effector, 
+bool RosClient::setPoseReference(const std::string& end_effector,
                                const Eigen::Affine3d& base_T_ref)
 {
     auto task = get_task(end_effector, false);
@@ -501,7 +501,7 @@ bool RosImpl::setPoseReference(const std::string& end_effector,
     return true;
 }
 
-bool RosImpl::setVelocityReferenceAsync(const std::string& ee_name, 
+bool RosClient::setVelocityReferenceAsync(const std::string& ee_name,
                                         const Eigen::Vector6d& vref,
                                         double timeout_sec)
 {
@@ -512,7 +512,7 @@ bool RosImpl::setVelocityReferenceAsync(const std::string& ee_name,
     return true;
 }
 
-bool RosImpl::stopVelocityReferenceAsync(const std::string& ee_name)
+bool RosClient::stopVelocityReferenceAsync(const std::string& ee_name)
 {
     auto task = get_task(ee_name, false);
     
@@ -522,13 +522,13 @@ bool RosImpl::stopVelocityReferenceAsync(const std::string& ee_name)
 }
 
 
-bool RosImpl::setVelocityReference(const std::string& end_effector, 
+bool RosClient::setVelocityReference(const std::string& end_effector,
                                    const Eigen::Vector6d& base_vel_ref)
 {
     return setVelocityReference(end_effector, base_vel_ref);
 }
 
-bool RosImpl::setVelocityReference(const std::string & end_effector,
+bool RosClient::setVelocityReference(const std::string & end_effector,
                                    const Eigen::Vector6d & base_vel_ref,
                                    const std::string & base_frame)
 {
@@ -539,17 +539,17 @@ bool RosImpl::setVelocityReference(const std::string & end_effector,
     return true;
 }
 
-bool RosImpl::setTargetComPosition(const Eigen::Vector3d& base_com_ref, double time)
+bool RosClient::setTargetComPosition(const Eigen::Vector3d& base_com_ref, double time)
 {
     THROW_NOT_IMPL
 }
 
-bool RosImpl::setTargetPose(const std::string& end_effector, const Eigen::Affine3d& base_T_ref, double time)
+bool RosClient::setTargetPose(const std::string& end_effector, const Eigen::Affine3d& base_T_ref, double time)
 {
     return setTargetPose(end_effector, base_T_ref, time, false);
 }
 
-bool RosImpl::setTargetPose(const std::string& end_effector, 
+bool RosClient::setTargetPose(const std::string& end_effector,
                             const Eigen::Affine3d& base_T_ref, 
                             double time, 
                             bool incremental)
@@ -559,7 +559,7 @@ bool RosImpl::setTargetPose(const std::string& end_effector,
     return setWayPoints(end_effector, wpv, incremental);
 }
 
-bool RosImpl::setWayPoints(const std::string& end_effector, 
+bool RosClient::setWayPoints(const std::string& end_effector,
                            const Trajectory::WayPointVector& way_points, 
                            bool incremental)
 {
@@ -570,7 +570,7 @@ bool RosImpl::setWayPoints(const std::string& end_effector,
     return true;
 }
 
-bool RosImpl::abort(const std::string& end_effector)
+bool RosClient::abort(const std::string& end_effector)
 {
     auto task = get_task(end_effector, false);
     
@@ -579,7 +579,7 @@ bool RosImpl::abort(const std::string& end_effector)
     return true;
 }
 
-void RosImpl::getAccelerationLimits(const std::string& ee_name, double& max_acc_lin, double& max_acc_ang) const
+void RosClient::getAccelerationLimits(const std::string& ee_name, double& max_acc_lin, double& max_acc_ang) const
 {
     get_task(ee_name, false);
     
@@ -590,22 +590,22 @@ void RosImpl::getAccelerationLimits(const std::string& ee_name, double& max_acc_
     }
 }
 
-bool RosImpl::getComPositionReference(Eigen::Vector3d& w_com_ref, Eigen::Vector3d* base_vel_ref, Eigen::Vector3d* base_acc_ref) const
+bool RosClient::getComPositionReference(Eigen::Vector3d& w_com_ref, Eigen::Vector3d* base_vel_ref, Eigen::Vector3d* base_acc_ref) const
 {
     THROW_NOT_IMPL
 }
 
-bool RosImpl::getReferencePosture(Eigen::VectorXd& qref) const
+bool RosClient::getReferencePosture(Eigen::VectorXd& qref) const
 {
     THROW_NOT_IMPL
 }
 
-bool RosImpl::getReferencePosture(XBot::JointNameMap& qref) const
+bool RosClient::getReferencePosture(XBot::JointNameMap& qref) const
 {
     THROW_NOT_IMPL
 }
 
-void RosImpl::getVelocityLimits(const std::string& ee_name, double& max_vel_lin, double& max_vel_ang) const
+void RosClient::getVelocityLimits(const std::string& ee_name, double& max_vel_lin, double& max_vel_ang) const
 {
     get_task(ee_name, false);
     
@@ -648,18 +648,18 @@ namespace
     }
 }
 
-bool RosImpl::resetWorld(const Eigen::Affine3d& w_T_new_world)
+bool RosClient::resetWorld(const Eigen::Affine3d& w_T_new_world)
 {
     return ::call_reset_world_service(_nh, w_T_new_world, "");
 }
 
-bool XBot::Cartesian::RosImpl::resetWorld(const std::string& ee_name)
+bool XBot::Cartesian::RosClient::resetWorld(const std::string& ee_name)
 {
     return ::call_reset_world_service(_nh, Eigen::Affine3d::Identity(), ee_name);
 }
 
 
-void RosImpl::setAccelerationLimits(const std::string& ee_name, double max_acc_lin, double max_acc_ang)
+void RosClient::setAccelerationLimits(const std::string& ee_name, double max_acc_lin, double max_acc_ang)
 {
     double dummy;
     getAccelerationLimits(ee_name, dummy, dummy);
@@ -682,7 +682,7 @@ void RosImpl::setAccelerationLimits(const std::string& ee_name, double max_acc_l
     ROS_INFO("%s", srv.response.message.c_str());
 }
 
-void RosImpl::setVelocityLimits(const std::string& ee_name, double max_vel_lin, double max_vel_ang)
+void RosClient::setVelocityLimits(const std::string& ee_name, double max_vel_lin, double max_vel_ang)
 {
     double dummy;
     getVelocityLimits(ee_name, dummy, dummy);
@@ -705,22 +705,22 @@ void RosImpl::setVelocityLimits(const std::string& ee_name, double max_vel_lin, 
     ROS_INFO("%s", srv.response.message.c_str());
 }
 
-bool RosImpl::reset(double time)
+bool RosClient::reset(double time)
 {
     THROW_NOT_IMPL
 }
 
-bool RosImpl::getTargetComPosition(Eigen::Vector3d& w_com_ref) const
+bool RosClient::getTargetComPosition(Eigen::Vector3d& w_com_ref) const
 {
     THROW_NOT_IMPL
 }
 
-bool RosImpl::setWayPoints(const std::string& end_effector, const Trajectory::WayPointVector& way_points)
+bool RosClient::setWayPoints(const std::string& end_effector, const Trajectory::WayPointVector& way_points)
 {
     return setWayPoints(end_effector, way_points, false);
 }
 
-bool RosImpl::setReferencePosture(const XBot::JointNameMap& qref)
+bool RosClient::setReferencePosture(const XBot::JointNameMap& qref)
 {
     sensor_msgs::JointState msg;
     msg.header.stamp = ros::Time::now();
@@ -736,7 +736,7 @@ bool RosImpl::setReferencePosture(const XBot::JointNameMap& qref)
     return true;
 }
 
-bool RosImpl::setBaseLink(const std::string& ee_name, const std::string& new_base_link)
+bool RosClient::setBaseLink(const std::string& ee_name, const std::string& new_base_link)
 {
     auto task = get_task(ee_name, false);
     
@@ -748,7 +748,7 @@ bool RosImpl::setBaseLink(const std::string& ee_name, const std::string& new_bas
 
 
 
-RosImpl::RosInitHelper::RosInitHelper(std::string node_namespace)
+RosClient::RosInitHelper::RosInitHelper(std::string node_namespace)
 {
     if(!ros::ok())
     {
@@ -768,7 +768,7 @@ RosImpl::RosInitHelper::RosInitHelper(std::string node_namespace)
 }
 
 
-RosImpl::VelocityPublisherAsync::VelocityPublisherAsync(std::string topic_name, 
+RosClient::VelocityPublisherAsync::VelocityPublisherAsync(std::string topic_name,
                                                         ros::Duration period):
     _spinner(1, &_queue),
     _timeout(0)
@@ -784,14 +784,14 @@ RosImpl::VelocityPublisherAsync::VelocityPublisherAsync(std::string topic_name,
         
 }
 
-void RosImpl::VelocityPublisherAsync::set_vref(const Eigen::Vector6d& vref)
+void RosClient::VelocityPublisherAsync::set_vref(const Eigen::Vector6d& vref)
 {
     std::lock_guard<std::recursive_mutex> lock(_mutex);
     
     tf::twistEigenToMsg(vref, _twist.twist);
 }
 
-void RosImpl::VelocityPublisherAsync::start(ros::Duration timeout)
+void RosClient::VelocityPublisherAsync::start(ros::Duration timeout)
 {
     std::lock_guard<std::recursive_mutex> lock(_mutex);
     
@@ -808,7 +808,7 @@ void RosImpl::VelocityPublisherAsync::start(ros::Duration timeout)
     _timer.start();
 }
 
-void RosImpl::VelocityPublisherAsync::stop()
+void RosClient::VelocityPublisherAsync::stop()
 {
     std::lock_guard<std::recursive_mutex> lock(_mutex);
     
@@ -818,7 +818,7 @@ void RosImpl::VelocityPublisherAsync::stop()
     tf::twistEigenToMsg(Eigen::Vector6d::Zero(), _twist.twist);
 }
 
-void RosImpl::VelocityPublisherAsync::timer_callback(const ros::TimerEvent& ev)
+void RosClient::VelocityPublisherAsync::timer_callback(const ros::TimerEvent& ev)
 {
    std::lock_guard<std::recursive_mutex> lock(_mutex);
     
@@ -835,18 +835,18 @@ void RosImpl::VelocityPublisherAsync::timer_callback(const ros::TimerEvent& ev)
     _vref_pub.publish(_twist);
 }
 
-void RosImpl::RosTask::send_vref_async(const Eigen::Vector6d& vref, double timeout_duration)
+void RosClient::RosTask::send_vref_async(const Eigen::Vector6d& vref, double timeout_duration)
 {
     vref_async.set_vref(vref);
     vref_async.start(ros::Duration(timeout_duration));
 }
 
-void RosImpl::RosTask::stop_vref_async()
+void RosClient::RosTask::stop_vref_async()
 {
     vref_async.stop();
 }
 
-TaskInterface RosImpl::getTaskInterface(const std::string& end_effector) const
+TaskInterface RosClient::getTaskInterface(const std::string& end_effector) const
 {
     auto task = get_task(end_effector, false);
     
@@ -858,7 +858,7 @@ TaskInterface RosImpl::getTaskInterface(const std::string& end_effector) const
     return ifc_tmp;
 }
 
-bool RosImpl::getDesiredInteraction(const std::string& end_effector, 
+bool RosClient::getDesiredInteraction(const std::string& end_effector,
                                                      Eigen::Vector6d& force, 
                                                      Eigen::Matrix6d& stiffness,
                                                      Eigen::Matrix6d& damping) const
@@ -871,7 +871,7 @@ bool RosImpl::getDesiredInteraction(const std::string& end_effector,
     return true;
 }
 
-bool RosImpl::setDesiredDamping(const std::string& end_effector, 
+bool RosClient::setDesiredDamping(const std::string& end_effector,
                                                  const Eigen::Matrix6d& d)
 {
     auto itask = get_interaction_task(end_effector, false);
@@ -882,7 +882,7 @@ bool RosImpl::setDesiredDamping(const std::string& end_effector,
     return true;
 }
 
-bool RosImpl::setDesiredStiffness(const std::string& end_effector,
+bool RosClient::setDesiredStiffness(const std::string& end_effector,
                                                    const Eigen::Matrix6d& k)
 {
     auto itask = get_interaction_task(end_effector, false);
@@ -893,7 +893,7 @@ bool RosImpl::setDesiredStiffness(const std::string& end_effector,
     return true;
 }
 
-bool RosImpl::setForceReference(const std::string& end_effector, 
+bool RosClient::setForceReference(const std::string& end_effector,
                                                  const Eigen::Vector6d& force)
 {
     auto itask = get_interaction_task(end_effector, false);
@@ -903,7 +903,7 @@ bool RosImpl::setForceReference(const std::string& end_effector,
     return true;
 }
 
-RosImpl::RosInteractionTask::RosInteractionTask(ros::NodeHandle nh, 
+RosClient::RosInteractionTask::RosInteractionTask(ros::NodeHandle nh,
                                                 std::string distal_link):
     
     RosTask(nh, distal_link)
@@ -918,7 +918,7 @@ RosImpl::RosInteractionTask::RosInteractionTask(ros::NodeHandle nh,
     get_imp_srv.waitForExistence(ros::Duration(1.0));
 }
 
-void XBot::Cartesian::RosImpl::RosInteractionTask::get_impedance(Eigen::Matrix6d& k, 
+void XBot::Cartesian::RosClient::RosInteractionTask::get_impedance(Eigen::Matrix6d& k,
                                                                  Eigen::Matrix6d& d) const
 {
     cartesian_interface::GetImpedanceRequest req;
@@ -944,7 +944,7 @@ void XBot::Cartesian::RosImpl::RosInteractionTask::get_impedance(Eigen::Matrix6d
     }
 }
 
-void XBot::Cartesian::RosImpl::RosInteractionTask::send_force(const Eigen::Vector6d& f)
+void XBot::Cartesian::RosClient::RosInteractionTask::send_force(const Eigen::Vector6d& f)
 {
     geometry_msgs::WrenchStamped msg;
     msg.header.stamp = ros::Time::now();
@@ -955,7 +955,7 @@ void XBot::Cartesian::RosImpl::RosInteractionTask::send_force(const Eigen::Vecto
     
 }
 
-void XBot::Cartesian::RosImpl::RosInteractionTask::send_impedance(const Eigen::Matrix6d& k, 
+void XBot::Cartesian::RosClient::RosInteractionTask::send_impedance(const Eigen::Matrix6d& k,
                                                                   const Eigen::Matrix6d& d)
 {
     cartesian_interface::Impedance6 msg;
@@ -976,12 +976,12 @@ void XBot::Cartesian::RosImpl::RosInteractionTask::send_impedance(const Eigen::M
     impedance_pub.publish(msg);
 }
 
-const std::string & XBot::Cartesian::RosImpl::RosTask::get_distal_link() const
+const std::string & XBot::Cartesian::RosClient::RosTask::get_distal_link() const
 {
     return distal_link;
 }
 
-bool XBot::Cartesian::RosImpl::getPoseFromTf(const std::string& source_frame, 
+bool XBot::Cartesian::RosClient::getPoseFromTf(const std::string& source_frame,
                                              const std::string& target_frame, 
                                              Eigen::Affine3d& t_T_s)
 {

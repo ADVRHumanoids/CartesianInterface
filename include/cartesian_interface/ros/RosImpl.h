@@ -1,5 +1,5 @@
-#ifndef __XBOT_CARTESIAN_INTERFACE_ROSIMPL_H__
-#define __XBOT_CARTESIAN_INTERFACE_ROSIMPL_H__
+#ifndef __XBOT_CARTESIAN_INTERFACE_RosClient_H__
+#define __XBOT_CARTESIAN_INTERFACE_RosClient_H__
 
 #include <string>
 #include <vector>
@@ -22,15 +22,15 @@
 
 namespace XBot { namespace Cartesian {
     
-    class RosImpl : public CartesianInterface 
+    class RosClient : public CartesianInterface
     {
         
     public:
         
-        friend std::ostream& operator<<(std::ostream& os, const RosImpl& r);
+        friend std::ostream& operator<<(std::ostream& os, const RosClient& r);
         
-        RosImpl(std::string ns = "cartesian");
-        virtual ~RosImpl();
+        RosClient(std::string ns = "cartesian");
+        virtual ~RosClient();
 
         void set_async_mode(bool async);
         
@@ -277,7 +277,7 @@ namespace XBot { namespace Cartesian {
         mutable std::vector<std::string> _tasklist;
     };
 
-    std::ostream& operator<<(std::ostream& os, const RosImpl& r);
+    std::ostream& operator<<(std::ostream& os, const RosClient& r);
 
 } }
 

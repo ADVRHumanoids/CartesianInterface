@@ -50,6 +50,8 @@ public:
     friend TaskDescription::Ptr operator%(std::vector<int> indices,
                                           TaskDescription::Ptr task);
 
+    TaskDescription();
+
     TaskDescription(std::string type,
                     std::string name,
                     int size,
@@ -69,23 +71,23 @@ public:
 
     const std::string& getLibName() const;
 
-    const Eigen::MatrixXd& getWeight() const;
-    bool setWeight(const Eigen::MatrixXd& value);
+    virtual const Eigen::MatrixXd& getWeight() const;
+    virtual bool setWeight(const Eigen::MatrixXd& value);
 
-    const std::vector<int>& getIndices() const;
-    void setIndices(const std::vector<int>& value);
+    virtual const std::vector<int>& getIndices() const;
+    virtual void setIndices(const std::vector<int>& value);
 
-    double getLambda() const;
-    void setLambda(double value);
+    virtual double getLambda() const;
+    virtual void setLambda(double value);
 
-    const std::vector<std::string>& getDisabledJoints() const;
-    void setDisabledJoints(const std::vector<std::string>& value);
+    virtual const std::vector<std::string>& getDisabledJoints() const;
+    virtual void setDisabledJoints(const std::vector<std::string>& value);
 
     virtual void update(double time, double period);
     virtual void reset();
 
-    ActivationState getActivationState() const;
-    bool setActivationState(const ActivationState& value);
+    virtual ActivationState getActivationState() const;
+    virtual bool setActivationState(const ActivationState& value);
 
     void registerObserver(TaskObserver::WeakPtr obs);
 
@@ -112,8 +114,6 @@ protected:
     double getTime() const;
 
 private:
-
-    TaskDescription();
 
     /**
      * @brief ctrl_mode

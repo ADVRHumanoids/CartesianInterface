@@ -43,6 +43,11 @@ target_link_libraries(TestOpensot ${TestLibs} dl)
 add_dependencies(TestOpensot GTest-ext CartesianInterface)
 add_test(NAME TestOpensot COMMAND TestOpensot)
 
+add_executable(TestRosClient TestRosClient.cpp)
+target_link_libraries(TestRosClient ${TestLibs})
+add_dependencies(TestRosClient GTest-ext CartesianInterface)
+add_test(NAME TestRosClient COMMAND TestRosClient)
+
 #add_executable(TestRos TestRos.cpp)
 #target_link_libraries(TestRos ${TestLibs})
 #add_dependencies(TestRos GTest-ext CartesianInterface)

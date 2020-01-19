@@ -21,7 +21,7 @@
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 
 #include "ros/RosContext.h"
-#include "ros/api/TaskRos.h"
+#include "ros/server_api/TaskRos.h"
 
 namespace XBot { namespace Cartesian {
 

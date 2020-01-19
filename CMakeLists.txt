@@ -11,7 +11,7 @@ find_package(XCM QUIET)
 find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
 find_package(alglib QUIET)
-find_package(Eigen3 QUIET)
+find_package(Eigen3 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp
                                         std_msgs
                                         geometry_msgs
@@ -141,8 +141,10 @@ set(CartesianInterfaceSOTacc_SRC
 # Ros implementation
 set(CartesianInterfaceROS_SRC
     src/ros/RosContext.cpp
-    src/ros/api/TaskRos.cpp
-    src/ros/api/CartesianRos.cpp
+    src/ros/server_api/TaskRos.cpp
+    src/ros/server_api/CartesianRos.cpp
+    src/ros/client_api/TaskRos.cpp
+    src/ros/client_api/CartesianRos.cpp
 #        src/ros/RosImpl.cpp
         src/ros/RosServerClass.cpp
 #        src/ros/CartesianMarker.cpp
