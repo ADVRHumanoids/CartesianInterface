@@ -3,6 +3,7 @@
 
 #include <XBotInterface/ModelInterface.h>
 #include <cartesian_interface/Enum.h>
+#include <cartesian_interface/Macro.h>
 
 #define NOTIFY_OBSERVERS(FieldName) \
     for(auto obs_weak: _observers) \
@@ -38,10 +39,7 @@ class TaskDescription {
 
 public:
 
-    typedef std::shared_ptr<TaskDescription> Ptr;
-    typedef std::shared_ptr<const TaskDescription> ConstPtr;
-
-    typedef std::function<bool(void)> Callback;
+    CARTESIO_DECLARE_SMART_PTR(TaskDescription)
 
     friend TaskDescription::Ptr operator*(Eigen::Ref<const Eigen::MatrixXd> weight,
                                           TaskDescription::Ptr task);
@@ -50,134 +48,47 @@ public:
     friend TaskDescription::Ptr operator%(std::vector<int> indices,
                                           TaskDescription::Ptr task);
 
-    TaskDescription();
+    virtual bool validate() = 0;
 
-    TaskDescription(std::string type,
-                    std::string name,
-                    int size,
-                    ModelInterface::ConstPtr model);
+    virtual const std::string& getName() const = 0;
 
-    TaskDescription(YAML::Node node, ModelInterface::ConstPtr model,
-                    std::string name, int size);
+    virtual const std::string& getType() const = 0;
 
+    virtual int getSize() const = 0;
 
-    virtual bool validate();
+    virtual const std::string& getLibName() const = 0;
 
-    const std::string& getName() const;
+    virtual const Eigen::MatrixXd& getWeight() const = 0;
+    virtual bool setWeight(const Eigen::MatrixXd& value) = 0;
 
-    std::string getType() const;
+    virtual const std::vector<int>& getIndices() const = 0;
+    virtual void setIndices(const std::vector<int>& value) = 0;
 
-    int getSize() const;
+    virtual double getLambda() const = 0;
+    virtual void setLambda(double value) = 0;
 
-    const std::string& getLibName() const;
+    virtual const std::vector<std::string>& getDisabledJoints() const = 0;
+    virtual void setDisabledJoints(const std::vector<std::string>& value) = 0;
 
-    virtual const Eigen::MatrixXd& getWeight() const;
-    virtual bool setWeight(const Eigen::MatrixXd& value);
+    virtual void update(double time, double period) = 0;
+    virtual void reset() = 0;
 
-    virtual const std::vector<int>& getIndices() const;
-    virtual void setIndices(const std::vector<int>& value);
+    virtual ActivationState getActivationState() const = 0;
+    virtual bool setActivationState(const ActivationState& value) = 0;
 
-    virtual double getLambda() const;
-    virtual void setLambda(double value);
-
-    virtual const std::vector<std::string>& getDisabledJoints() const;
-    virtual void setDisabledJoints(const std::vector<std::string>& value);
-
-    virtual void update(double time, double period);
-    virtual void reset();
-
-    virtual ActivationState getActivationState() const;
-    virtual bool setActivationState(const ActivationState& value);
-
-    void registerObserver(TaskObserver::WeakPtr obs);
+    virtual void registerObserver(TaskObserver::WeakPtr obs) = 0;
 
     virtual void log(MatLogger::Ptr logger,
                      bool init_logger = false,
-                     int buf_size = 1e5);
+                     int buf_size = 1e5) = 0;
 
 
 
-    virtual ~TaskDescription() = default;
-
-    ModelInterface::ConstPtr getModel() const;
 
     template <typename TaskDerivedType>
     static bool HasType(ConstPtr task);
 
-
-protected:
-
-    ModelInterface::ConstPtr _model;
-
-    void setLibName(std::string lib_name);
-
-    double getTime() const;
-
-private:
-
-    /**
-     * @brief ctrl_mode
-     */
-    ActivationState _activ_state;
-
-    /**
-     * @brief Task type
-     */
-    std::string _type;
-
-    /**
-     * @brief Task name
-     */
-    std::string _name;
-
-    /**
-     * @brief Task size
-     */
-    int _size;
-
-    /**
-     * @brief Library where task factories can be found
-     */
-    std::string _lib_name;
-
-    /**
-     * @brief Task weight. Inside an aggregated task, each component
-     * is weighted according to this variable, that is therefore useful
-     * to model soft priorities. It MUST be a positive-definite symmetric
-     * matrix of size equal to the task size.
-     */
-    Eigen::MatrixXd _weight;
-
-    /**
-     * @brief Vector of indices representing a subtask of the original task.
-     * The resulting task size is equal to indices.size(). When modifying
-     * this variable manually, the weight matrix must be changed as well to
-     * reflect the size change. Otherwise, use operator%.
-     */
-    std::vector<int> _indices;
-
-    /**
-     * @brief Feedback gain on the task error. Lower values
-     * make the cartesian controller less reactive.
-     */
-    double _lambda;
-
-    /**
-     * @brief Feedback gain on the task velocity error. Lower values
-     * make the cartesian controller less reactive.
-     * NOTE: if negative this value has not been set and should not be used!
-     */
-    double _lambda2;
-
-    /**
-     * @brief Vector of joint names that are disabled from
-     * contributing to the task.
-     */
-    std::vector<std::string> _disabled_joints;
-
-    std::list<TaskObserver::WeakPtr> _observers;
-
-    double _time;
+    virtual ~TaskDescription() = default;
 
 };
 

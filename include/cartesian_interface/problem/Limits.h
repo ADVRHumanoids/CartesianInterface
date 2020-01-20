@@ -6,57 +6,29 @@
 
 namespace XBot { namespace Cartesian {
     
-    class JointLimits : public ConstraintDescription
+    class JointLimits : public virtual ConstraintDescription
     {
 
     public:
 
         CARTESIO_DECLARE_SMART_PTR(JointLimits)
 
-        JointLimits(ModelInterface::ConstPtr model);
-        JointLimits(YAML::Node yaml, ModelInterface::ConstPtr model);
+        virtual bool setBoundScaling(double value) = 0;
+        virtual double getBoundScaling() const = 0;
 
-        bool setBoundScaling(double value);
-        double getBoundScaling() const;
-
-        Eigen::VectorXd getQmin() const;
-        Eigen::VectorXd getQmax() const;
-
-    private:
-
-        double _bound_scaling;
-        Eigen::VectorXd _qmin, _qmax;
-
-        // TaskDescription interface
-    public:
-        bool validate() override;
-        void update(double time, double period) override;
-        void reset() override;
+        virtual Eigen::VectorXd getQmin() const = 0;
+        virtual Eigen::VectorXd getQmax() const = 0;
 
     };
 
-    class VelocityLimits : public ConstraintDescription
+    class VelocityLimits : public virtual ConstraintDescription
     {
 
     public:
 
         CARTESIO_DECLARE_SMART_PTR(VelocityLimits)
 
-        VelocityLimits(ModelInterface::ConstPtr model);
-        VelocityLimits(YAML::Node yaml, ModelInterface::ConstPtr model);
-
-        Eigen::VectorXd getQdotMax() const;
-
-    private:
-
-        double _bound_scaling;
-        Eigen::VectorXd _qdot_max;
-
-        // TaskDescription interface
-    public:
-        bool validate() override;
-        void update(double time, double period) override;
-        void reset() override;
+        virtual Eigen::VectorXd getQdotMax() const = 0;
 
     };
     

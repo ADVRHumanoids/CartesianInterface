@@ -715,7 +715,7 @@ void RosServerClass::init_load_ros_task_api()
 
         try {
 
-            auto task_ros = TaskRos::MakeInstance(t);
+            auto task_ros = TaskRos::MakeInstance(t, _model);
 
             _ros_tasks.push_back(task_ros);
 
@@ -724,7 +724,7 @@ void RosServerClass::init_load_ros_task_api()
         {
             Logger::warning("%s \n", e.what());
 
-            _ros_tasks.push_back(std::make_shared<TaskRos>(t));
+            _ros_tasks.push_back(std::make_shared<TaskRos>(t, _model));
         }
 
     }

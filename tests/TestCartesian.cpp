@@ -5,6 +5,8 @@
 
 #include "testutils.h"
 
+#include "problem/impl/Cartesian.h"
+
 using namespace XBot::Cartesian;
 auto ctx = Context::MakeContext(0.001);
 
@@ -12,7 +14,7 @@ TEST(TestCartesian, checkDefault)
 {
 
     auto model = GetTestModel();
-    CartesianTask t(model, "MyTask", "arm1_8", "pelvis");
+    CartesianTaskImpl t(model, "MyTask", "arm1_8", "pelvis");
 
     ASSERT_TRUE(t.validate());
 

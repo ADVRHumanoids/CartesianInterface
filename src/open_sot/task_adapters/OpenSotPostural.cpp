@@ -28,7 +28,7 @@ bool OpenSotPosturalAdapter::initialize()
 {
     OpenSotTaskAdapter::initialize();
 
-    _use_inertia_matrix = _ci_postural->use_inertia_matrix;
+    _use_inertia_matrix = _ci_postural->useInertiaMatrixWeight();
 
     return true;
 }

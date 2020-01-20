@@ -17,7 +17,7 @@ namespace XBot { namespace Cartesian {
 
 class OpenSotTaskAdapter :
         public std::enable_shared_from_this<OpenSotTaskAdapter>,
-        public TaskObserver
+        public virtual TaskObserver
 {
 
 public:

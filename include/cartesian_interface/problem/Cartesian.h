@@ -10,7 +10,7 @@
 
 namespace XBot { namespace Cartesian {
 
-class CartesianTaskObserver
+class CartesianTaskObserver : public virtual TaskObserver
 {
 
 public:
@@ -25,143 +25,69 @@ public:
 };
 
 /**
-     * @brief Description of a cartesian task
-     */
-class CartesianTask : public TaskDescription {
+ * @brief Description of a cartesian task
+ */
+class CartesianTask : public virtual TaskDescription {
 
 public:
 
-    typedef std::shared_ptr<CartesianTask> Ptr;
-    typedef std::shared_ptr<const CartesianTask> ConstPtr;
+    CARTESIO_DECLARE_SMART_PTR(CartesianTask)
 
-    /* Constructors */
-    CartesianTask() = default;
-
-    CartesianTask(ModelInterface::ConstPtr model,
-                  std::string name,
-                  std::string distal_link,
-                  std::string base_link = "world");
-
-    CartesianTask(YAML::Node node, ModelInterface::ConstPtr model);
-
-    virtual bool validate() override;
+    virtual void enableOnlineTrajectoryGeneration() = 0;
 
     /* Parameters */
-    bool isBodyJacobian() const;
+    virtual bool isSubtaskLocal() const = 0;
 
     /* Safety limits */
     virtual void getVelocityLimits(double& max_vel_lin,
-                                   double& max_vel_ang) const;
+                                   double& max_vel_ang) const = 0;
 
     virtual void getAccelerationLimits(double& max_acc_lin,
-                                       double& max_acc_ang) const;
+                                       double& max_acc_ang) const = 0;
 
     virtual void setVelocityLimits(double max_vel_lin,
-                                   double max_vel_ang);
+                                   double max_vel_ang) = 0;
 
     virtual void setAccelerationLimits(double max_acc_lin,
-                                       double max_acc_ang);
+                                       double max_acc_ang) = 0;
 
-    /**
-         * @brief enableOtg enables online trajectory generation,
-         * which enforces safety limtis to the Cartesian reference signals
-         */
-    virtual void enableOtg();
+    virtual State getTaskState() const = 0;
 
-    virtual State getTaskState() const;
+    virtual const std::string& getBaseLink() const = 0;
+    virtual bool setBaseLink(const std::string& new_base_link) = 0;
 
-    virtual const std::string& getBaseLink() const;
-    virtual bool setBaseLink(const std::string& new_base_link);
+    virtual const std::string& getDistalLink() const = 0;
 
-    virtual const std::string& getDistalLink() const;
+    virtual ControlType getControlMode() const = 0;
+    virtual bool setControlMode(const ControlType & value) = 0;
 
-    ControlType getControlMode() const;
-    bool setControlMode(const ControlType & value);
-
-    virtual bool getCurrentPose(Eigen::Affine3d& base_T_ee) const; // ?
+    virtual bool getCurrentPose(Eigen::Affine3d& base_T_ee) const = 0; // ?
 
     virtual bool getPoseReference(Eigen::Affine3d& base_T_ref,
                                   Eigen::Vector6d * base_vel_ref = nullptr,
-                                  Eigen::Vector6d * base_acc_ref = nullptr) const;
+                                  Eigen::Vector6d * base_acc_ref = nullptr) const = 0;
 
     virtual bool getPoseReferenceRaw(Eigen::Affine3d& base_T_ref,
                                      Eigen::Vector6d * base_vel_ref = nullptr,
-                                     Eigen::Vector6d * base_acc_ref = nullptr) const;
+                                     Eigen::Vector6d * base_acc_ref = nullptr) const = 0;
 
-    virtual bool setPoseReference(const Eigen::Affine3d& base_T_ref);
+    virtual bool setPoseReference(const Eigen::Affine3d& base_T_ref) = 0;
 
-    virtual bool setPoseReferenceRaw(const Eigen::Affine3d& base_T_ref);
+    virtual bool setPoseReferenceRaw(const Eigen::Affine3d& base_T_ref) = 0;
 
-    virtual bool setVelocityReference(const Eigen::Vector6d& base_vel_ref);
+    virtual bool setVelocityReference(const Eigen::Vector6d& base_vel_ref) = 0;
 
-    virtual bool getPoseTarget(Eigen::Affine3d& base_T_ref) const;
+    virtual bool getPoseTarget(Eigen::Affine3d& base_T_ref) const = 0;
 
     virtual bool setPoseTarget(const Eigen::Affine3d& base_T_ref,
-                               double time);
+                               double time) = 0;
 
-    virtual int getCurrentSegmentId() const;
+    virtual int getCurrentSegmentId() const = 0;
 
-    virtual bool setWayPoints(const Trajectory::WayPointVector& way_points);
+    virtual bool setWayPoints(const Trajectory::WayPointVector& way_points) = 0;
 
-    virtual void abort();
+    virtual void abort() = 0;
 
-    void update(double time, double period) override;
-
-    void reset() override;
-
-    virtual void log(MatLogger::Ptr logger,
-                     bool init_logger = false,
-                     int buf_size = 1e5) override;
-
-    void registerObserver(CartesianTaskObserver::WeakPtr observer);
-
-private:
-
-    ControlType _ctrl_mode;
-
-    std::list<CartesianTaskObserver::WeakPtr> _observers;
-
-    /**
-         * @brief The task controls the relative motion of distal_link w.r.t base_link
-         */
-    std::string _base_link, _distal_link;
-
-    /**
-         * @brief Set Cartesian task in local (body) frame
-         */
-    bool _is_body_jacobian;
-
-    /**
-         * @brief Parameter that weights orientation errors w.r.t. position errors.
-         * For example, setting it to orientation_gain = 2.0 means that an error of
-         * 2 rad is recovered in the same time as an error of 1 meter.
-         */
-    double _orientation_gain;
-
-    /* Task implementation variables (TBD: pimpl) */
-
-    typedef Eigen::Matrix<double, 7, 1> EigenVector7d;
-
-    bool check_reach() const;
-    void apply_otg();
-    void reset_otg();
-    Eigen::Affine3d get_pose_ref_otg() const;
-    virtual Eigen::Affine3d get_current_pose() const;
-
-    Eigen::Affine3d _T;
-    Eigen::Vector6d _vel;
-    Eigen::Vector6d _acc;
-
-    EigenVector7d _otg_des, _otg_ref, _otg_vref;
-    EigenVector7d _otg_maxvel, _otg_maxacc;
-
-    State _state;
-    double _vref_time_to_live;
-
-    Trajectory::Ptr _trajectory;
-    Reflexxes::Utils::TrajectoryGenerator::Ptr _otg;
-
-    Context _ctx;
 };
 
 } }

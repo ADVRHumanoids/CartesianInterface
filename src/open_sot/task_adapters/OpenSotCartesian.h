@@ -14,7 +14,7 @@ namespace XBot { namespace Cartesian {
 
 class OpenSotCartesianAdapter :
         public OpenSotTaskAdapter,
-        public CartesianTaskObserver
+        public virtual CartesianTaskObserver
 {
 
 public:

@@ -1,5 +1,4 @@
-#include <cartesian_interface/problem/Task.h>
-
+#include "Task.h"
 
 using namespace XBot::Cartesian;
 
@@ -50,17 +49,17 @@ Stack XBot::Cartesian::operator/(TaskDescription::Ptr task_1, AggregatedTask tas
 TaskDescription::Ptr XBot::Cartesian::operator*(Eigen::Ref<const Eigen::MatrixXd> weight, 
                                                 TaskDescription::Ptr task)
 {
-    if(weight.rows() != task->_weight.rows())
+    if(weight.rows() != task->getSize())
     {
         throw std::invalid_argument("weight matrix size mismatch");
     }
     
-    if(weight.cols() != task->_weight.cols())
+    if(weight.cols() != task->getSize())
     {
         throw std::invalid_argument("weight matrix size mismatch");
     }
     
-    task->_weight = weight*task->_weight;
+    task->setWeight(weight*task->getWeight());
     return task;
 }
 
@@ -70,40 +69,19 @@ TaskDescription::Ptr XBot::Cartesian::operator%(std::vector<int> indices, TaskDe
     std::vector<int> new_indices;
     for(int idx : indices)
     {
-        new_indices.push_back(task->_indices[idx]);
+        new_indices.push_back(task->getIndices()[idx]);
     }
     
-    task->_indices = new_indices;
-    Eigen::MatrixXd new_weight(new_indices.size(), task->_weight.cols());
-    
-    {
-        int i = 0;
-        for(uint idx : indices)
-        {
-            new_weight.row(i) = task->_weight.row(idx);
-            i++;
-        }
-    }
-    
-    task->_weight.resize(indices.size(), indices.size());
-    
-    {
-        int i = 0;
-        for(uint idx : indices)
-        {
-            task->_weight.col(i) = new_weight.col(idx);
-            i++;
-        }
-    }
+    task->setIndices(new_indices);
     
     return task;
 }
 
-TaskDescription::TaskDescription(std::string type,
+TaskDescriptionImpl::TaskDescriptionImpl(std::string type,
                                  std::string name,
                                  int size,
-                                 ModelInterface::ConstPtr model):
-    TaskDescription()
+                                 XBot::ModelInterface::ConstPtr model):
+    TaskDescriptionImpl()
 {
     _type = type;
     _name = name;
@@ -118,11 +96,11 @@ TaskDescription::TaskDescription(std::string type,
     }
 }
 
-TaskDescription::TaskDescription(YAML::Node task_node,
+TaskDescriptionImpl::TaskDescriptionImpl(YAML::Node task_node,
                                  XBot::ModelInterface::ConstPtr model,
                                  std::string name,
                                  int size):
-    TaskDescription(task_node["type"].as<std::string>(),
+    TaskDescriptionImpl(task_node["type"].as<std::string>(),
                     name,
                     size,
                     model)
@@ -208,7 +186,7 @@ TaskDescription::TaskDescription(YAML::Node task_node,
     }
 }
 
-bool TaskDescription::validate()
+bool TaskDescriptionImpl::validate()
 {
     bool ret = true;
 
@@ -232,17 +210,17 @@ bool TaskDescription::validate()
     return ret;
 }
 
-std::string TaskDescription::getType() const
+const std::string& TaskDescriptionImpl::getType() const
 {
     return _type;
 }
 
-ActivationState TaskDescription::getActivationState() const
+ActivationState TaskDescriptionImpl::getActivationState() const
 {
     return _activ_state;
 }
 
-bool TaskDescription::setActivationState(const ActivationState & value)
+bool TaskDescriptionImpl::setActivationState(const ActivationState & value)
 {
     _activ_state = value;
     reset();
@@ -252,12 +230,12 @@ bool TaskDescription::setActivationState(const ActivationState & value)
     return true;
 }
 
-void TaskDescription::registerObserver(std::weak_ptr<TaskObserver> obs)
+void TaskDescriptionImpl::registerObserver(std::weak_ptr<TaskObserver> obs)
 {
     _observers.push_back(obs);
 }
 
-void TaskDescription::log(MatLogger::Ptr logger, bool init_logger, int buf_size)
+void TaskDescriptionImpl::log(MatLogger::Ptr logger, bool init_logger, int buf_size)
 {
     if(init_logger)
     {
@@ -268,22 +246,22 @@ void TaskDescription::log(MatLogger::Ptr logger, bool init_logger, int buf_size)
     logger->add(getName() + "_active", _activ_state == ActivationState::Enabled);
 }
 
-XBot::ModelInterface::ConstPtr TaskDescription::getModel() const
+XBot::ModelInterface::ConstPtr TaskDescriptionImpl::getModel() const
 {
     return _model;
 }
 
-void TaskDescription::setLibName(std::string __lib_name)
+void TaskDescriptionImpl::setLibName(std::string __lib_name)
 {
     _lib_name = __lib_name;
 }
 
-double TaskDescription::getTime() const
+double TaskDescriptionImpl::getTime() const
 {
     return _time;
 }
 
-TaskDescription::TaskDescription():
+TaskDescriptionImpl::TaskDescriptionImpl():
     _activ_state(ActivationState::Enabled),
     _size(-1),
     _lambda(1.0),
@@ -293,27 +271,27 @@ TaskDescription::TaskDescription():
 
 }
 
-const std::string& TaskDescription::getName() const
+const std::string& TaskDescriptionImpl::getName() const
 {
     return _name;
 }
 
-int TaskDescription::getSize() const
+int TaskDescriptionImpl::getSize() const
 {
     return _size;
 }
 
-const std::string& TaskDescription::getLibName() const
+const std::string& TaskDescriptionImpl::getLibName() const
 {
     return _lib_name;
 }
 
-const Eigen::MatrixXd& TaskDescription::getWeight() const
+const Eigen::MatrixXd& TaskDescriptionImpl::getWeight() const
 {
     return _weight;
 }
 
-bool TaskDescription::setWeight(const Eigen::MatrixXd & value)
+bool TaskDescriptionImpl::setWeight(const Eigen::MatrixXd & value)
 {
     _weight = value;
 
@@ -322,12 +300,12 @@ bool TaskDescription::setWeight(const Eigen::MatrixXd & value)
     return true;
 }
 
-const std::vector<int>& TaskDescription::getIndices() const
+const std::vector<int>& TaskDescriptionImpl::getIndices() const
 {
     return _indices;
 }
 
-void TaskDescription::setIndices(const std::vector<int> & value)
+void TaskDescriptionImpl::setIndices(const std::vector<int> & value)
 {
     auto invalid_idx_predicate = [this](int idx){ return idx >= _size || idx < 0; };
     if(std::any_of(value.begin(), value.end(), invalid_idx_predicate))
@@ -338,32 +316,32 @@ void TaskDescription::setIndices(const std::vector<int> & value)
     _indices = value;
 }
 
-double TaskDescription::getLambda() const
+double TaskDescriptionImpl::getLambda() const
 {
     return _lambda;
 }
 
-void TaskDescription::setLambda(double value)
+void TaskDescriptionImpl::setLambda(double value)
 {
     _lambda = value;
 }
 
-const std::vector<std::string>& TaskDescription::getDisabledJoints() const
+const std::vector<std::string>& TaskDescriptionImpl::getDisabledJoints() const
 {
     return _disabled_joints;
 }
 
-void TaskDescription::setDisabledJoints(const std::vector<std::string> & value)
+void TaskDescriptionImpl::setDisabledJoints(const std::vector<std::string> & value)
 {
     _disabled_joints = value;
 }
 
-void TaskDescription::update(double time, double period)
+void TaskDescriptionImpl::update(double time, double period)
 {
     _time = time;
 }
 
-void TaskDescription::reset()
+void TaskDescriptionImpl::reset()
 {
 
 }

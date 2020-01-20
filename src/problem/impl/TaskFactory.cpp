@@ -1,13 +1,13 @@
 #include <cartesian_interface/utils/TaskFactory.h>
 #include <cartesian_interface/utils/LoadObject.hpp>
 
-#include <cartesian_interface/problem/Cartesian.h>
-#include <cartesian_interface/problem/Interaction.h>
-#include <cartesian_interface/problem/Com.h>
-#include <cartesian_interface/problem/Postural.h>
-#include <cartesian_interface/problem/Gaze.h>
-#include <cartesian_interface/problem/Limits.h>
-#include <cartesian_interface/problem/MinJointVel.h>
+#include "Cartesian.h"
+#include "Interaction.h"
+#include "Com.h"
+#include "Postural.h"
+#include "Gaze.h"
+#include "Limits.h"
+#include "MinJointVel.h"
 
 namespace XBot { namespace Cartesian { 
 
@@ -40,7 +40,7 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node task_node,
     {
         if(task_type == "Cartesian") // TBD ERROR CHECKING
         {
-            task_desc = std::make_shared<CartesianTask>(task_node,  model);
+            task_desc = std::make_shared<CartesianTaskImpl>(task_node,  model);
         }
 //        else if(task_type == "Interaction")
 //        {
@@ -48,19 +48,19 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node task_node,
 //        }
         else if(task_type == "Com")
         {
-            task_desc = std::make_shared<ComTask>(task_node,  model);
+            task_desc = std::make_shared<ComTaskImpl>(task_node,  model);
         }
         else if(task_type == "Postural")
         {
-            task_desc = std::make_shared<PosturalTask>(task_node,  model);
+            task_desc = std::make_shared<PosturalTaskImpl>(task_node,  model);
         }
         else if(task_type == "JointLimits")
         {
-            task_desc = std::make_shared<JointLimits>(task_node,  model);
+            task_desc = std::make_shared<JointLimitsImpl>(task_node,  model);
         }
         else if(task_type == "VelocityLimits")
         {
-            task_desc = std::make_shared<VelocityLimits>(task_node,  model);
+            task_desc = std::make_shared<VelocityLimitsImpl>(task_node,  model);
         }
 //        else if(task_type == "Gaze")
 //        {

@@ -52,7 +52,8 @@ class CartesianRos : public TaskRos
 
 public:
 
-    explicit CartesianRos(TaskDescription::Ptr task);
+    CartesianRos(TaskDescription::Ptr task,
+                 ModelInterface::ConstPtr model);
 
     virtual void run(ros::Time time) override;
 

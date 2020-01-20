@@ -18,7 +18,6 @@ public:
     void getAccelerationLimits(double & max_acc_lin, double & max_acc_ang) const override;
     void setVelocityLimits(double max_vel_lin, double max_vel_ang) override;
     void setAccelerationLimits(double max_acc_lin, double max_acc_ang) override;
-    void enableOtg() override;
     State getTaskState() const override;
     const std::string & getBaseLink() const override;
     bool setBaseLink(const std::string & new_base_link) override;
@@ -39,10 +38,8 @@ public:
     bool setWayPoints(const Trajectory::WayPointVector & way_points) override;
     void abort() override;
 
-    virtual ~CartesianRos();;
+    virtual ~CartesianRos();
 
-private:
-    Eigen::Affine3d get_current_pose() const override;
 };
 
 } }

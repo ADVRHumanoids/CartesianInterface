@@ -17,7 +17,7 @@ OpenSotConstraintFromTaskAdapter::OpenSotConstraintFromTaskAdapter(ConstraintDes
     // construct and initialize task adapter
     try
     {
-        _task_adapter = OpenSotTaskAdapter::MakeInstance(constr_from_task->task,
+        _task_adapter = OpenSotTaskAdapter::MakeInstance(constr_from_task->getTask(),
                                                          model);
     }
     catch(...)

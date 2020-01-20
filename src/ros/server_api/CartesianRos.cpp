@@ -33,8 +33,9 @@ geometry_msgs::Pose get_normalized_pose(const geometry_msgs::Pose& pose)
 
 }
 
-CartesianRos::CartesianRos(TaskDescription::Ptr task):
-    TaskRos(task)
+CartesianRos::CartesianRos(TaskDescription::Ptr task,
+                           ModelInterface::ConstPtr model):
+    TaskRos(task, model)
 {
     _cart = std::dynamic_pointer_cast<CartesianTask>(task);
 
@@ -148,7 +149,7 @@ bool CartesianRos::get_task_info_cb(cartesian_interface::GetCartesianTaskInfoReq
     res.base_link = _cart->getBaseLink();
     res.distal_link = _cart->getDistalLink();
     res.control_mode = EnumToString(_cart->getControlMode());
-    res.use_body_jacobian = _cart->isBodyJacobian();
+    res.use_body_jacobian = _cart->isSubtaskLocal();
 
     return true;
 }

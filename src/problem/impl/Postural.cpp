@@ -1,19 +1,20 @@
-#include <cartesian_interface/problem/Postural.h>
 #include <cartesian_interface/utils/TaskFactory.h>
+
+#include "Postural.h"
 
 using namespace XBot::Cartesian;
 
-PosturalTask::PosturalTask(ModelInterface::ConstPtr model, int ndof):
-    TaskDescription("Postural", "Postural", ndof, model),
-    use_inertia_matrix(false)
+PosturalTaskImpl::PosturalTaskImpl(ModelInterface::ConstPtr model, int ndof):
+    TaskDescriptionImpl("Postural", "Postural", ndof, model),
+    _use_inertia_matrix(false)
 {
 
 }
 
-PosturalTask::PosturalTask(YAML::Node task_node,
+PosturalTaskImpl::PosturalTaskImpl(YAML::Node task_node,
                            ModelInterface::ConstPtr model):
-    TaskDescription(task_node, model, "Postural", model->getJointNum()),
-    use_inertia_matrix(false)
+    TaskDescriptionImpl(task_node, model, "Postural", model->getJointNum()),
+    _use_inertia_matrix(false)
 {
     Eigen::MatrixXd weight;
     weight.setIdentity(getSize(), getSize());
@@ -43,32 +44,37 @@ PosturalTask::PosturalTask(YAML::Node task_node,
 
     if(task_node["use_inertia"] && task_node["use_inertia"].as<bool>())
     {
-        use_inertia_matrix = true;
+        _use_inertia_matrix = true;
     }
 
 }
 
-void PosturalTask::getReferencePosture(Eigen::VectorXd & qref) const
+bool PosturalTaskImpl::useInertiaMatrixWeight() const
+{
+    return _use_inertia_matrix;
+}
+
+void PosturalTaskImpl::getReferencePosture(Eigen::VectorXd & qref) const
 {
     qref = _qref;
 }
 
-void PosturalTask::getReferencePosture(XBot::JointNameMap & qref) const
+void PosturalTaskImpl::getReferencePosture(XBot::JointNameMap & qref) const
 {
     _model->eigenToMap(_qref, qref);
 }
 
-void PosturalTask::setReferencePosture(const XBot::JointNameMap & qref)
+void PosturalTaskImpl::setReferencePosture(const XBot::JointNameMap & qref)
 {
     _model->mapToEigen(qref, _qref);
 }
 
-void PosturalTask::update(double time, double period)
+void PosturalTaskImpl::update(double time, double period)
 {
-    TaskDescription::update(time, period);
+    TaskDescriptionImpl::update(time, period);
 }
 
-void PosturalTask::reset()
+void PosturalTaskImpl::reset()
 {
     _model->getJointPosition(_qref);
 }

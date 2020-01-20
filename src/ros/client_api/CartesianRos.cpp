@@ -25,10 +25,6 @@ void CartesianRos::setAccelerationLimits(double max_acc_lin, double max_acc_ang)
 {
 }
 
-void CartesianRos::enableOtg()
-{
-}
-
 State CartesianRos::getTaskState() const
 {
 }
@@ -91,6 +87,3 @@ void CartesianRos::abort()
 
 CartesianRos::~CartesianRos() {}
 
-Eigen::Affine3d CartesianRos::get_current_pose() const
-{
-}

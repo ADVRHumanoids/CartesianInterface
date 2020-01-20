@@ -1,45 +1,45 @@
-#include <cartesian_interface/problem/Limits.h>
+#include "Limits.h"
 
 #include <fmt/format.h>
 
 using namespace XBot::Cartesian;
 
-Eigen::VectorXd JointLimits::getQmin() const
+Eigen::VectorXd JointLimitsImpl::getQmin() const
 {
-    return _qmin;
+    return 0.5*(_qmin + _qmax) - 0.5*(_qmax - _qmin)*_bound_scaling;
 }
 
-Eigen::VectorXd JointLimits::getQmax() const
+Eigen::VectorXd JointLimitsImpl::getQmax() const
 {
-    return _qmax;
+    return 0.5*(_qmin + _qmax) + 0.5*(_qmax - _qmin)*_bound_scaling;
 }
 
-JointLimits::JointLimits(XBot::ModelInterface::ConstPtr model):
-    ConstraintDescription("JointLimits",
-                          "JointLimits",
-                          model->getJointNum(),
-                          model),
+JointLimitsImpl::JointLimitsImpl(XBot::ModelInterface::ConstPtr model):
+    TaskDescriptionImpl("JointLimits",
+                        "JointLimits",
+                        model->getJointNum(),
+                        model),
     _bound_scaling(1.0)
 {
     model->getJointLimits(_qmin, _qmax);
 }
 
-JointLimits::JointLimits(YAML::Node yaml, XBot::ModelInterface::ConstPtr model):
-    ConstraintDescription(yaml,
-                          model,
-                          "JointLimits",
-                          model->getJointNum()),
+JointLimitsImpl::JointLimitsImpl(YAML::Node yaml, XBot::ModelInterface::ConstPtr model):
+    TaskDescriptionImpl(yaml,
+                        model,
+                        "JointLimits",
+                        model->getJointNum()),
     _bound_scaling(1.0)
 {
-     model->getJointLimits(_qmin, _qmax);
+    model->getJointLimits(_qmin, _qmax);
 
-     if(yaml["bound_scaling"])
-     {
-         _bound_scaling = yaml["bound_scaling"].as<double>();
-     }
+    if(yaml["bound_scaling"])
+    {
+        _bound_scaling = yaml["bound_scaling"].as<double>();
+    }
 
-     if(yaml["limits"])
-     {
+    if(yaml["limits"])
+    {
         for(auto lim : yaml["limits"])
         {
             auto jname = lim.first.as<std::string>();
@@ -70,63 +70,63 @@ JointLimits::JointLimits(YAML::Node yaml, XBot::ModelInterface::ConstPtr model):
             _qmax[idx] = lim_value.second;
 
         }
-     }
+    }
 
 }
 
-bool JointLimits::setBoundScaling(double value)
+bool JointLimitsImpl::setBoundScaling(double value)
 {
     _bound_scaling = value;
     return true;
 }
 
-double JointLimits::getBoundScaling() const
+double JointLimitsImpl::getBoundScaling() const
 {
     return _bound_scaling;
 }
 
 
-bool XBot::Cartesian::JointLimits::validate()
+bool XBot::Cartesian::JointLimitsImpl::validate()
 {
     return (_qmax - _qmin).minCoeff() >= 0;
 }
 
-void XBot::Cartesian::JointLimits::update(double time, double period)
+void XBot::Cartesian::JointLimitsImpl::update(double time, double period)
 {
-    TaskDescription::update(time, period);
+    TaskDescriptionImpl::update(time, period);
 }
 
-void XBot::Cartesian::JointLimits::reset()
+void XBot::Cartesian::JointLimitsImpl::reset()
 {
 }
 
-VelocityLimits::VelocityLimits(XBot::ModelInterface::ConstPtr model):
-    ConstraintDescription("VelocityLimits",
-                          "VelocityLimits",
-                          model->getJointNum(),
-                          model),
+VelocityLimitsImpl::VelocityLimitsImpl(XBot::ModelInterface::ConstPtr model):
+    TaskDescriptionImpl("VelocityLimits",
+                        "VelocityLimits",
+                        model->getJointNum(),
+                        model),
     _bound_scaling(1.0)
 {
     model->getVelocityLimits(_qdot_max);
 }
 
-VelocityLimits::VelocityLimits(YAML::Node yaml,
-                               XBot::ModelInterface::ConstPtr model):
-    ConstraintDescription(yaml,
-                          model,
-                          "VelocityLimits",
-                          model->getJointNum()),
+VelocityLimitsImpl::VelocityLimitsImpl(YAML::Node yaml,
+                                       XBot::ModelInterface::ConstPtr model):
+    TaskDescriptionImpl(yaml,
+                        model,
+                        "VelocityLimits",
+                        model->getJointNum()),
     _bound_scaling(1.0)
 {
-     model->getVelocityLimits(_qdot_max);
+    model->getVelocityLimits(_qdot_max);
 
-     if(yaml["bound_scaling"])
-     {
-         _bound_scaling = yaml["bound_scaling"].as<double>();
-     }
+    if(yaml["bound_scaling"])
+    {
+        _bound_scaling = yaml["bound_scaling"].as<double>();
+    }
 
-     if(yaml["limits"])
-     {
+    if(yaml["limits"])
+    {
         for(auto lim : yaml["limits"])
         {
             auto jname = lim.first.as<std::string>();
@@ -156,26 +156,26 @@ VelocityLimits::VelocityLimits(YAML::Node yaml,
             _qdot_max[idx] = lim_value;
 
         }
-     }
+    }
 
 }
 
-Eigen::VectorXd VelocityLimits::getQdotMax() const
+Eigen::VectorXd VelocityLimitsImpl::getQdotMax() const
 {
     return _bound_scaling * _qdot_max;
 }
 
-bool VelocityLimits::validate()
+bool VelocityLimitsImpl::validate()
 {
     return _qdot_max.minCoeff() > 0.0 && _bound_scaling > 0.0;
 }
 
-void VelocityLimits::update(double time, double period)
+void VelocityLimitsImpl::update(double time, double period)
 {
-    ConstraintDescription::update(time, period);
+    TaskDescriptionImpl::update(time, period);
 }
 
-void VelocityLimits::reset()
+void VelocityLimitsImpl::reset()
 {
 
 }

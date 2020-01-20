@@ -19,13 +19,15 @@ public:
 
     CARTESIO_DECLARE_SMART_PTR(TaskRos)
 
-    explicit TaskRos(TaskDescription::Ptr task);
+    TaskRos(TaskDescription::Ptr task,
+            ModelInterface::ConstPtr model);
 
     virtual void run(ros::Time time);
 
     virtual ~TaskRos() = default;
 
-    static Ptr MakeInstance(TaskDescription::Ptr task);
+    static Ptr MakeInstance(TaskDescription::Ptr task,
+                            ModelInterface::ConstPtr model);
 
 protected:
 

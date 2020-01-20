@@ -727,7 +727,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::enableOtg(double expected_dt)
     
     for(auto tpair : _cart_task_map)
     {
-        tpair.second->enableOtg();
+        tpair.second->enableOnlineTrajectoryGeneration();
     }
 }
 

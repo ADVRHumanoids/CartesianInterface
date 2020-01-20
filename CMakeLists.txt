@@ -107,15 +107,15 @@ set(CartesianInterface_SRC
 #        src/utils/LockfreeBufferImpl.cpp
 #        src/utils/ManipulabilityAnalyzer.cpp
         src/problem/ProblemDescription.cpp
-        src/problem/Cartesian.cpp
-        src/problem/Com.cpp
-        src/problem/Limits.cpp
+        src/problem/impl/Cartesian.cpp
+        src/problem/impl/Com.cpp
+        src/problem/impl/Limits.cpp
 #        src/problem/Gaze.cpp
-        src/problem/Postural.cpp
+        src/problem/impl/Postural.cpp
 #        src/problem/Interaction.cpp
-        src/problem/TaskFactory.cpp
-        src/problem/Task.cpp
-        src/problem/Constraint.cpp
+        src/problem/impl/TaskFactory.cpp
+        src/problem/impl/Task.cpp
+        src/problem/impl/Constraint.cpp
         src/utils/ForceEstimation.cpp
         src/utils/RobotStatePublisher.cpp
 #        src/problem/MinJointVel.cpp

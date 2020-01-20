@@ -6,10 +6,11 @@
 
 using namespace XBot::Cartesian;
 
-TaskRos::TaskRos(TaskDescription::Ptr task):
+TaskRos::TaskRos(TaskDescription::Ptr task,
+                 ModelInterface::ConstPtr model):
     _task(task),
     task_name(task->getName()),
-    _model(task->getModel())
+    _model(model)
 {
     _get_task_info_srv = _ctx.nh().advertiseService(task_name + "/get_task_properties",
                                                     &TaskRos::get_task_info_cb, this);
@@ -154,14 +155,15 @@ const char * RosApiNotFound::what() const noexcept
 }
 
 
-TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task)
+TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
+                                   ModelInterface::ConstPtr model)
 {
     TaskRos * ros_adapter = nullptr;
 
     /* If lib name specified, load factory from plugin */
     if(task->getType() == "Cartesian") /* Otherwise, construct supported tasks */
     {
-        ros_adapter = new CartesianRos(task);
+        ros_adapter = new CartesianRos(task, model);
     }
     //    else if(task->getType() == "Postural")
     //    {
@@ -175,7 +177,7 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task)
         {
             ros_adapter = CallFunction<TaskRos*>(RosApiPluginName(task),
                                                  "create_cartesio_ros_api",
-                                                 task);
+                                                 task, model);
         }
         catch(LibNotFound&)
         {

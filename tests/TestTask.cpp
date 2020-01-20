@@ -3,6 +3,8 @@
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/Context.h>
 
+#include "problem/impl/Task.h"
+
 #include "testutils.h"
 
 using namespace XBot::Cartesian;
@@ -10,7 +12,7 @@ using namespace XBot::Cartesian;
 TEST(TestTask, checkDefault)
 {
     auto model = GetTestModel();
-    TaskDescription t("Cartesian", "MyTask", 6, model);
+    TaskDescriptionImpl t("Cartesian", "MyTask", 6, model);
 
     ASSERT_EQ(t.getName(), "MyTask");
     ASSERT_EQ(t.getType(), "Cartesian");
@@ -33,7 +35,7 @@ TEST(TestTask, checkDefaultYaml)
     auto yaml = YAML::Load(yaml_str);
 
     auto model = GetTestModel();
-    TaskDescription t(yaml, model, "MyTask", 6);
+    TaskDescriptionImpl t(yaml, model, "MyTask", 6);
 
     ASSERT_EQ(t.getName(), "MyTask");
     ASSERT_EQ(t.getType(), "Cartesian");
@@ -62,7 +64,7 @@ TEST(TestTask, checkDefaultYaml1)
     auto yaml = YAML::Load(yaml_str);
 
     auto model = GetTestModel();
-    TaskDescription t(yaml, model, "MyTask", 6);
+    TaskDescriptionImpl t(yaml, model, "MyTask", 6);
 
     Eigen::VectorXd expected_weight(6);
     expected_weight << 1, 2, 3, 4, 5, 6;
@@ -94,7 +96,7 @@ TEST(TestTask, checkDefaultYaml2)
     auto yaml = YAML::Load(yaml_str);
 
     auto model = GetTestModel();
-    TaskDescription t(yaml, model, "MyTask", 6);
+    TaskDescriptionImpl t(yaml, model, "MyTask", 6);
 
     Eigen::VectorXd expected_weight(6);
     expected_weight << 10, 10, 10, 10, 10, 10;
@@ -126,7 +128,7 @@ TEST(TestTask, checkGetSet)
     auto yaml = YAML::Load(yaml_str);
 
     auto model = GetTestModel();
-    TaskDescription t(yaml, model, "MyTask", 6);
+    TaskDescriptionImpl t(yaml, model, "MyTask", 6);
 
     Eigen::MatrixXd w = 2*Eigen::MatrixXd::Identity(t.getSize(), t.getSize());
 
@@ -155,7 +157,7 @@ TEST(TestTask, checkObserver)
     auto yaml = YAML::Load(yaml_str);
 
     auto model = GetTestModel();
-    TaskDescription t(yaml, model, "MyTask", 6);
+    TaskDescriptionImpl t(yaml, model, "MyTask", 6);
 
     struct Obs : TaskObserver
     {

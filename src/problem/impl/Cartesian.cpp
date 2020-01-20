@@ -1,4 +1,4 @@
-#include <cartesian_interface/problem/Cartesian.h>
+#include "Cartesian.h"
 
 using namespace XBot::Cartesian;
 
@@ -9,11 +9,11 @@ const double DEFAULT_REACH_THRESHOLD = 1e-6;
 }
 
 
-CartesianTask::CartesianTask(ModelInterface::ConstPtr model,
+CartesianTaskImpl::CartesianTaskImpl(ModelInterface::ConstPtr model,
                              std::string name,
                              std::string distal_link,
                              std::string base_link):
-    TaskDescription("Cartesian", name, 6, model),
+    TaskDescriptionImpl("Cartesian", name, 6, model),
     _distal_link(distal_link),
     _base_link(base_link),
     _orientation_gain(1.0),
@@ -59,8 +59,8 @@ int get_size(YAML::Node task_node)
 }
 }
 
-CartesianTask::CartesianTask(YAML::Node task_node, ModelInterface::ConstPtr model):
-    TaskDescription(task_node, model, ::get_name(task_node), ::get_size(task_node)),
+CartesianTaskImpl::CartesianTaskImpl(YAML::Node task_node, ModelInterface::ConstPtr model):
+    TaskDescriptionImpl(task_node, model, ::get_name(task_node), ::get_size(task_node)),
     _ctrl_mode(ControlType::Position),
     _state(State::Online),
     _vref_time_to_live(-1.0),
@@ -94,9 +94,9 @@ CartesianTask::CartesianTask(YAML::Node task_node, ModelInterface::ConstPtr mode
     reset();
 }
 
-bool CartesianTask::validate()
+bool CartesianTaskImpl::validate()
 {
-    bool ret = TaskDescription::validate();
+    bool ret = TaskDescriptionImpl::validate();
 
     Eigen::Affine3d T;
     if(!_model->getPose(_base_link, T))
@@ -126,19 +126,19 @@ bool CartesianTask::validate()
     return ret;
 }
 
-void CartesianTask::getVelocityLimits(double & max_vel_lin, double & max_vel_ang) const
+void CartesianTaskImpl::getVelocityLimits(double & max_vel_lin, double & max_vel_ang) const
 {
     max_vel_lin = _otg_maxvel[0];
     max_vel_ang = _otg_maxvel[3]*2;
 }
 
-void CartesianTask::getAccelerationLimits(double & max_acc_lin, double & max_acc_ang) const
+void CartesianTaskImpl::getAccelerationLimits(double & max_acc_lin, double & max_acc_ang) const
 {
     max_acc_lin = _otg_maxacc[0];
     max_acc_ang = _otg_maxacc[3]*2;
 }
 
-void CartesianTask::setVelocityLimits(double max_vel_lin, double max_vel_ang)
+void CartesianTaskImpl::setVelocityLimits(double max_vel_lin, double max_vel_ang)
 {
     _otg_maxvel << max_vel_lin, max_vel_lin, max_vel_lin,
             max_vel_ang/2.0, max_vel_ang/2.0, max_vel_ang/2.0, max_vel_ang/2.0;
@@ -155,7 +155,7 @@ void CartesianTask::setVelocityLimits(double max_vel_lin, double max_vel_ang)
     NOTIFY_OBSERVERS(SafetyLimits)
 }
 
-void CartesianTask::setAccelerationLimits(double max_acc_lin, double max_acc_ang)
+void CartesianTaskImpl::setAccelerationLimits(double max_acc_lin, double max_acc_ang)
 {
     _otg_maxacc << max_acc_lin, max_acc_lin, max_acc_lin,
             max_acc_ang/2.0, max_acc_ang/2.0, max_acc_ang/2.0, max_acc_ang/2.0;
@@ -172,7 +172,7 @@ void CartesianTask::setAccelerationLimits(double max_acc_lin, double max_acc_ang
     NOTIFY_OBSERVERS(SafetyLimits)
 }
 
-void CartesianTask::enableOtg()
+void CartesianTaskImpl::enableOtg()
 {
     _otg = std::make_shared<Reflexxes::Utils::TrajectoryGenerator>(7, // 3 + 4
                                                                   _ctx.getControlPeriod(),
@@ -182,17 +182,17 @@ void CartesianTask::enableOtg()
     _otg->setAccelerationLimits(_otg_maxacc);
 }
 
-State CartesianTask::getTaskState() const
+State CartesianTaskImpl::getTaskState() const
 {
     return _state;
 }
 
-const std::string & CartesianTask::getBaseLink() const
+const std::string & CartesianTaskImpl::getBaseLink() const
 {
     return _base_link;
 }
 
-bool CartesianTask::getPoseReference(Eigen::Affine3d & base_T_ref,
+bool CartesianTaskImpl::getPoseReference(Eigen::Affine3d & base_T_ref,
                                      Eigen::Vector6d * base_vel_ref,
                                      Eigen::Vector6d * base_acc_ref) const
 {
@@ -204,7 +204,7 @@ bool CartesianTask::getPoseReference(Eigen::Affine3d & base_T_ref,
     return true;
 }
 
-bool CartesianTask::getPoseReferenceRaw(Eigen::Affine3d & base_T_ref,
+bool CartesianTaskImpl::getPoseReferenceRaw(Eigen::Affine3d & base_T_ref,
                                         Eigen::Vector6d * base_vel_ref,
                                         Eigen::Vector6d * base_acc_ref) const
 {
@@ -216,7 +216,7 @@ bool CartesianTask::getPoseReferenceRaw(Eigen::Affine3d & base_T_ref,
     return true;
 }
 
-bool CartesianTask::getPoseTarget(Eigen::Affine3d & base_T_ref) const
+bool CartesianTaskImpl::getPoseTarget(Eigen::Affine3d & base_T_ref) const
 {
     if(_state == State::Reaching)
     {
@@ -230,12 +230,12 @@ bool CartesianTask::getPoseTarget(Eigen::Affine3d & base_T_ref) const
     }
 }
 
-int CartesianTask::getCurrentSegmentId() const
+int CartesianTaskImpl::getCurrentSegmentId() const
 {
     return _trajectory->getCurrentSegmentId(getTime());
 }
 
-bool CartesianTask::setBaseLink(const std::string & new_base_link)
+bool CartesianTaskImpl::setBaseLink(const std::string & new_base_link)
 {
     /* Check that new base link exists */
     Eigen::Affine3d T;
@@ -267,12 +267,12 @@ bool CartesianTask::setBaseLink(const std::string & new_base_link)
     return true;
 }
 
-const std::string & CartesianTask::getDistalLink() const
+const std::string & CartesianTaskImpl::getDistalLink() const
 {
     return _distal_link;
 }
 
-bool CartesianTask::setPoseReference(const Eigen::Affine3d & base_T_ref)
+bool CartesianTaskImpl::setPoseReference(const Eigen::Affine3d & base_T_ref)
 {
     if(_state == State::Reaching)
     {
@@ -302,7 +302,7 @@ bool CartesianTask::setPoseReference(const Eigen::Affine3d & base_T_ref)
     return true;
 }
 
-bool CartesianTask::setPoseReferenceRaw(const Eigen::Affine3d & base_T_ref)
+bool CartesianTaskImpl::setPoseReferenceRaw(const Eigen::Affine3d & base_T_ref)
 {
     bool ret = setPoseReference(base_T_ref);
     reset_otg();
@@ -310,7 +310,7 @@ bool CartesianTask::setPoseReferenceRaw(const Eigen::Affine3d & base_T_ref)
     return ret;
 }
 
-bool CartesianTask::setVelocityReference(const Eigen::Vector6d & base_vel_ref)
+bool CartesianTaskImpl::setVelocityReference(const Eigen::Vector6d & base_vel_ref)
 {
     if(getActivationState() == ActivationState::Disabled)
     {
@@ -325,7 +325,7 @@ bool CartesianTask::setVelocityReference(const Eigen::Vector6d & base_vel_ref)
     return true;
 }
 
-bool CartesianTask::setPoseTarget(const Eigen::Affine3d & base_T_ref, double time)
+bool CartesianTaskImpl::setPoseTarget(const Eigen::Affine3d & base_T_ref, double time)
 {
     if(_state == State::Reaching)
     {
@@ -350,7 +350,7 @@ bool CartesianTask::setPoseTarget(const Eigen::Affine3d & base_T_ref, double tim
     return true;
 }
 
-bool CartesianTask::setWayPoints(const Trajectory::WayPointVector & way_points)
+bool CartesianTaskImpl::setWayPoints(const Trajectory::WayPointVector & way_points)
 {
     if(_state == State::Reaching)
     {
@@ -379,13 +379,13 @@ bool CartesianTask::setWayPoints(const Trajectory::WayPointVector & way_points)
     return true;
 }
 
-bool CartesianTask::getCurrentPose(Eigen::Affine3d & base_T_ee) const
+bool CartesianTaskImpl::getCurrentPose(Eigen::Affine3d & base_T_ee) const
 {
     base_T_ee = get_current_pose();
     return true;
 }
 
-void CartesianTask::abort()
+void CartesianTaskImpl::abort()
 {
     if(_state == State::Reaching)
     {
@@ -394,9 +394,9 @@ void CartesianTask::abort()
     }
 }
 
-void CartesianTask::update(double time, double period)
+void CartesianTaskImpl::update(double time, double period)
 {
-    TaskDescription::update(time, period);
+    TaskDescriptionImpl::update(time, period);
 
     _vref_time_to_live -= period;
     
@@ -422,7 +422,7 @@ void CartesianTask::update(double time, double period)
     apply_otg();
 }
 
-void CartesianTask::reset()
+void CartesianTaskImpl::reset()
 {
     _T = get_current_pose();
     
@@ -434,7 +434,7 @@ void CartesianTask::reset()
     reset_otg();
 }
 
-void CartesianTask::log(MatLogger::Ptr logger, bool init_logger, int buf_size)
+void CartesianTaskImpl::log(MatLogger::Ptr logger, bool init_logger, int buf_size)
 {
     if(init_logger)
     {
@@ -455,17 +455,21 @@ void CartesianTask::log(MatLogger::Ptr logger, bool init_logger, int buf_size)
     logger->add(getName() + "_state",   _state == State::Reaching);
 }
 
-void CartesianTask::registerObserver(CartesianTaskObserver::WeakPtr observer)
+void CartesianTaskImpl::registerObserver(TaskObserver::WeakPtr observer)
 {
-    _observers.push_back(observer);
+    if(auto cobs = std::dynamic_pointer_cast<CartesianTaskObserver>(observer.lock()))
+    {
+        _observers.push_back(cobs);
+    }
+
 }
 
-ControlType CartesianTask::getControlMode() const
+ControlType CartesianTaskImpl::getControlMode() const
 {
     return _ctrl_mode;
 }
 
-bool CartesianTask::setControlMode(const ControlType & value)
+bool CartesianTaskImpl::setControlMode(const ControlType & value)
 {
     _ctrl_mode = value;
     
@@ -474,7 +478,7 @@ bool CartesianTask::setControlMode(const ControlType & value)
     return true;
 }
 
-bool CartesianTask::check_reach() const
+bool CartesianTaskImpl::check_reach() const
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
 
@@ -484,7 +488,7 @@ bool CartesianTask::check_reach() const
     return Tref.isApprox(Totg, DEFAULT_REACH_THRESHOLD);
 }
 
-void CartesianTask::apply_otg()
+void CartesianTaskImpl::apply_otg()
 {
     if(!_otg) return;
     
@@ -511,7 +515,7 @@ void CartesianTask::apply_otg()
     
 }
 
-void CartesianTask::reset_otg()
+void CartesianTaskImpl::reset_otg()
 {
     if(!_otg) return;
     
@@ -522,7 +526,7 @@ void CartesianTask::reset_otg()
     _otg->reset(_otg_des);
 }
 
-Eigen::Affine3d CartesianTask::get_pose_ref_otg() const
+Eigen::Affine3d CartesianTaskImpl::get_pose_ref_otg() const
 {
     if(!_otg)
     {
@@ -541,7 +545,7 @@ Eigen::Affine3d CartesianTask::get_pose_ref_otg() const
     return Totg;
 }
 
-Eigen::Affine3d CartesianTask::get_current_pose() const
+Eigen::Affine3d CartesianTaskImpl::get_current_pose() const
 {
     Eigen::Affine3d ret;
     
@@ -567,7 +571,7 @@ Eigen::Affine3d CartesianTask::get_current_pose() const
     return ret;
 }
 
-bool CartesianTask::isBodyJacobian() const
+bool CartesianTaskImpl::isSubtaskLocal() const
 {
     return _is_body_jacobian;
 }
@@ -585,4 +589,13 @@ bool CartesianTaskObserver::onControlModeChanged()
 bool CartesianTaskObserver::onSafetyLimitsChanged()
 {
     return true;
+}
+
+
+void CartesianTaskImpl::enableOnlineTrajectoryGeneration()
+{
+    _otg = std::make_shared<Reflexxes::Utils::TrajectoryGenerator>(7,
+                                                                   _ctx.getControlPeriod(),
+                                                                   EigenVector7d::Zero());
+    reset();
 }
