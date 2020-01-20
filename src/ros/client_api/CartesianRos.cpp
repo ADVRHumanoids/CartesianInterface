@@ -1,13 +1,23 @@
 #include "CartesianRos.h"
 
 using namespace XBot::Cartesian;
+using namespace XBot::Cartesian::ClientApi;
 
-CartesianRos::CartesianRos(std::string name):
-    TaskRos(name)
+
+CartesianRos::CartesianRos(std::string name,
+                           ros::NodeHandle nh):
+    TaskRos(name, nh)
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
 }
 
+void CartesianRos::enableOnlineTrajectoryGeneration()
+{
+}
+
+bool CartesianRos::isSubtaskLocal() const
+{
+}
 
 void CartesianRos::getVelocityLimits(double & max_vel_lin, double & max_vel_ang) const
 {
@@ -38,6 +48,14 @@ bool CartesianRos::setBaseLink(const std::string & new_base_link)
 }
 
 const std::string & CartesianRos::getDistalLink() const
+{
+}
+
+ControlType CartesianRos::getControlMode() const
+{
+}
+
+bool CartesianRos::setControlMode(const ControlType & value)
 {
 }
 
@@ -84,6 +102,3 @@ bool CartesianRos::setWayPoints(const Trajectory::WayPointVector & way_points)
 void CartesianRos::abort()
 {
 }
-
-CartesianRos::~CartesianRos() {}
-

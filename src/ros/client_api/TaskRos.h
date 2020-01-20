@@ -4,14 +4,22 @@
 #include <cartesian_interface/problem/Task.h>
 #include <ros/ros.h>
 
+#include <cartesian_interface/GetTaskInfo.h>
+
 namespace XBot { namespace Cartesian {
 
-class TaskRos : virtual public TaskDescription
+namespace ClientApi
+{
+    class TaskRos;
+}
+
+class ClientApi::TaskRos : virtual public TaskDescription
 {
 
 public:
 
-    TaskRos(std::string name);
+    TaskRos(std::string name,
+            ros::NodeHandle nh);
 
     bool validate() override;
 
@@ -41,7 +49,15 @@ public:
 
     bool setActivationState(const ActivationState & value) override;
 
-    virtual ~TaskRos();
+    const std::string & getName() const override;
+
+    const std::string & getType() const override;
+
+    int getSize() const override;
+
+    const std::string & getLibName() const override;
+
+    void registerObserver(TaskObserver::WeakPtr obs) override;
 
 protected:
 
@@ -49,10 +65,27 @@ protected:
 
 private:
 
-    ros::ServiceClient _task_prop_cli;
-    ros::ServiceClient _set_weight_cli;
-    ros::ServiceClient _set_lambda_cli;
-    ros::ServiceClient _activate_cli;
+    cartesian_interface::GetTaskInfoResponse get_task_info() const;
+
+    bool _async_update;
+
+    std::string _name;
+    mutable std::string _type;
+    double _lambda;
+    ActivationState _activ_state;
+    int _size;
+
+    mutable std::vector<std::string> _disabled_joints;
+    mutable std::vector<int> _indices;
+    mutable Eigen::MatrixXd _weight;
+
+    std::list<TaskObserver::WeakPtr> _observers;
+
+    mutable ros::ServiceClient _task_prop_cli;
+    mutable ros::ServiceClient _set_weight_cli;
+    mutable ros::ServiceClient _set_lambda_cli;
+    mutable ros::ServiceClient _activate_cli;
+
 };
 
 } }

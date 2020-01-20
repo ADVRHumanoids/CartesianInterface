@@ -1,12 +1,28 @@
 #include "ros/client_api/CartesianRos.h"
+#include "fmt/format.h"
+#include "fmt/ostream.h"
 
-int main()
+int main(int argc, char ** argv)
 {
 
     using namespace XBot::Cartesian;
 
-    auto ctx = Context::MakeContext(0);
+    std::string name = "arm1_8";
+    ros::init(argc, argv, "ros_client_test");
 
-    std::string name = "s";
-    CartesianRos c(name);
+    auto b = new ClientApi::TaskRos(name, ros::NodeHandle("cartesian"));
+
+    std::cout << fmt::format("Name {} \n"
+                             "Type {} \n"
+                             "Size {} \n"
+                             "Lambda {} \n"
+                             "Activation {} \n"
+                             "Weight {} \n",
+                             b->getName(),
+                             b->getType(),
+                             b->getSize(),
+                             b->getLambda(),
+                             EnumToString(b->getActivationState()),
+                             b->getWeight());
+
 }
