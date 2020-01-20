@@ -4,6 +4,8 @@
 #include <cartesian_interface/problem/Cartesian.h>
 #include "TaskRos.h"
 
+#include <cartesian_interface/GetCartesianTaskInfo.h>
+
 namespace XBot { namespace Cartesian {
 
 namespace ClientApi
@@ -46,6 +48,24 @@ public:
     int getCurrentSegmentId() const override;
     bool setWayPoints(const Trajectory::WayPointVector & way_points) override;
     void abort() override;
+
+private:
+
+    cartesian_interface::GetCartesianTaskInfoResponse get_task_info() const;
+
+    ros::Publisher _pose_ref_pub;
+    ros::Publisher _vel_ref_pub;
+    ros::Subscriber _pose_ref_sub;
+    ros::Subscriber _vel_ref_sub;
+    mutable ros::ServiceClient _set_base_link_cli;
+    mutable ros::ServiceClient _set_ctrl_mode_cli;
+    mutable ros::ServiceClient _cart_info_cli;
+
+    Eigen::Affine3d _Tref;
+    Eigen::Vector6d _vref;
+
+    mutable std::string _base_link, _distal_link;
+
 };
 
 } }

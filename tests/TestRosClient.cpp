@@ -10,7 +10,8 @@ int main(int argc, char ** argv)
     std::string name = "arm1_8";
     ros::init(argc, argv, "ros_client_test");
 
-    auto b = new ClientApi::TaskRos(name, ros::NodeHandle("cartesian"));
+    auto b = new ClientApi::TaskRos(name,
+                                    ros::NodeHandle("cartesian"));
 
     std::cout << fmt::format("Name {} \n"
                              "Type {} \n"
@@ -24,5 +25,18 @@ int main(int argc, char ** argv)
                              b->getLambda(),
                              EnumToString(b->getActivationState()),
                              b->getWeight());
+
+    auto c = new ClientApi::CartesianRos(name,
+                                         ros::NodeHandle("cartesian"));
+
+    fmt::print(stdout,
+               "Base link {} \n"
+               "Distal link {} \n"
+               "Control mode {} \n"
+               "Task state {} \n",
+               c->getBaseLink(),
+               c->getDistalLink(),
+               EnumToString(c->getControlMode()),
+               EnumToString(c->getTaskState()));
 
 }
