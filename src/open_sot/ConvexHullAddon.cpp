@@ -1,7 +1,6 @@
 #include <cartesian_interface/problem/Task.h>
 #include <cartesian_interface/open_sot/TaskInterface.h>
 #include <OpenSoT/constraints/velocity/ConvexHull.h>
-#include <boost/make_shared.hpp>
 #include <visualization_msgs/Marker.h>
 #include <ros/node_handle.h>
 
@@ -81,7 +80,7 @@ public:
         Eigen::VectorXd q;
         model->getJointPosition(q);
         
-        _constr = boost::make_shared<OpenSoT::constraints::velocity::ConvexHull>
+        _constr = std::make_shared<OpenSoT::constraints::velocity::ConvexHull>
                                 (q,
                                  const_cast<XBot::ModelInterface&>(*model), // HACK non-const model required
                                  convexhull_desc->contact_links,
@@ -110,7 +109,7 @@ public:
         /**
           * This part should be done in a dedicated update_ros() in the future
           */
-        OpenSoT::constraints::velocity::ConvexHull::Ptr constr = boost::static_pointer_cast<
+        OpenSoT::constraints::velocity::ConvexHull::Ptr constr = std::static_pointer_cast<
                 OpenSoT::constraints::velocity::ConvexHull>(_constr);
         ch.clear();
         if(constr->getConvexHull(ch))

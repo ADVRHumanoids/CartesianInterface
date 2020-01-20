@@ -8,7 +8,6 @@
 #include <cartesian_interface/problem/Limits.h>
 #include <cartesian_interface/problem/AngularMomentum.h>
 #include <cartesian_interface/utils/LoadObject.hpp>
-#include <boost/make_shared.hpp>
 #include <OpenSoT/constraints/velocity/JointLimits.h>
 #include <OpenSoT/constraints/velocity/VelocityLimits.h>
 #include <OpenSoT/constraints/TaskToConstraint.h>
@@ -61,18 +60,18 @@ namespace
     {
         if(front_end_string == "ihqp")
         {
-            return boost::make_shared<OpenSoT::solvers::iHQP>(stack_of_tasks,
+            return std::make_shared<OpenSoT::solvers::iHQP>(stack_of_tasks,
                                                               bounds,
                                                               eps_regularisation,
                                                               be_solver);
         }
         else if(front_end_string == "ehqp")
         {
-            return boost::make_shared<OpenSoT::solvers::eHQP>(stack_of_tasks);
+            return std::make_shared<OpenSoT::solvers::eHQP>(stack_of_tasks);
         }
         else if(front_end_string == "nhqp")
         {
-            auto frontend = boost::make_shared<OpenSoT::solvers::nHQP>(stack_of_tasks,
+            auto frontend = std::make_shared<OpenSoT::solvers::nHQP>(stack_of_tasks,
                                                                        bounds,
                                                                        eps_regularisation,
                                                                        be_solver);
@@ -138,7 +137,7 @@ OpenSoT::tasks::Aggregated::TaskPtr OpenSotImpl::aggregated_from_stack(Aggregate
     /* Return Aggregated */
     if(tasks_list.size() > 1)
     {
-        return boost::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _q.size());
+        return std::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _q.size());
     }
     else
     {
@@ -156,7 +155,7 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
         std::string distal_link = cartesian_desc->distal_link;
         std::string base_link = cartesian_desc->base_link;
         
-        auto cartesian_task = boost::make_shared<OpenSoT::tasks::velocity::Cartesian>
+        auto cartesian_task = std::make_shared<OpenSoT::tasks::velocity::Cartesian>
                                             (base_link + "_TO_" + distal_link,
                                                 _q,
                                                 *_model,
@@ -207,7 +206,7 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
                                              i_desc->force_estimation_chains);
         }
         
-        auto admittance_task = boost::make_shared<OpenSoT::tasks::velocity::CartesianAdmittance>
+        auto admittance_task = std::make_shared<OpenSoT::tasks::velocity::CartesianAdmittance>
                                                ("adm_" + base_link + "_TO_" + distal_link,
                                                 _q,
                                                 *_model,
@@ -270,7 +269,7 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
         auto gaze_desc = GetAsGaze(task_desc);
         std::string base_link = gaze_desc->base_link;
 
-        opensot_task = _gaze_task = boost::make_shared<GazeTask>(base_link + "_TO_" + "gaze",_q, *_model, base_link);
+        opensot_task = _gaze_task = std::make_shared<GazeTask>(base_link + "_TO_" + "gaze",_q, *_model, base_link);
         _gaze_task->setLambda(gaze_desc->lambda);
 
         
@@ -283,7 +282,7 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
     else if(task_desc->type == "Com")
     {
         auto com_desc = GetAsCom(task_desc);
-        opensot_task = _com_task = boost::make_shared<CoMTask>(_q, *_model);
+        opensot_task = _com_task = std::make_shared<CoMTask>(_q, *_model);
         
         _com_task->setLambda(com_desc->lambda);
         
@@ -294,7 +293,7 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
         auto angular_mom_desc = GetAsAngularMomentum(task_desc);
         _minimize_rate_of_change = angular_mom_desc->min_rate;
 
-        opensot_task = _angular_momentum_task = boost::make_shared<AngularMomentumTask>(_q, *_model);
+        opensot_task = _angular_momentum_task = std::make_shared<AngularMomentumTask>(_q, *_model);
 
 
         XBot::Logger::info("OpenSot: Angular Momentum found, rate of change minimization set to: %d\n", _minimize_rate_of_change);
@@ -304,7 +303,7 @@ OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
         auto postural_desc = GetAsPostural(task_desc);
         _use_inertia_matrix.push_back(postural_desc->use_inertia_matrix);
 
-        auto postural_task = boost::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
+        auto postural_task = std::make_shared<OpenSoT::tasks::velocity::Postural>(_q);
         
         _postural_tasks.push_back(postural_task);
         
@@ -399,7 +398,7 @@ OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr OpenSotIm
         Eigen::VectorXd qmin, qmax;
         _model->getJointLimits(qmin, qmax);
 
-        auto joint_lims = boost::make_shared<OpenSoT::constraints::velocity::JointLimits>
+        auto joint_lims = std::make_shared<OpenSoT::constraints::velocity::JointLimits>
                                             (_q,
                                                 qmax,
                                                 qmin
@@ -421,7 +420,7 @@ OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr OpenSotIm
 in configuration file (add problem_description/solver_options/control_dt field)\n");
         }
         
-        auto vel_lims = boost::make_shared<OpenSoT::constraints::velocity::VelocityLimits>
+        auto vel_lims = std::make_shared<OpenSoT::constraints::velocity::VelocityLimits>
                                             (qdotmax, control_dt);
 
         return vel_lims;
@@ -436,7 +435,7 @@ in configuration file (add problem_description/solver_options/control_dt field)\
             
             if(opensot_task)
             {
-                return boost::make_shared<OpenSoT::constraints::TaskToConstraint>(opensot_task);
+                return std::make_shared<OpenSoT::constraints::TaskToConstraint>(opensot_task);
             }
             else
             {
@@ -495,7 +494,7 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
 
     /* Parse stack #0 and create autostack */
     auto stack_0 = aggregated_from_stack(ik_problem.getTask(0));
-    _autostack = boost::make_shared<OpenSoT::AutoStack>(stack_0);
+    _autostack = std::make_shared<OpenSoT::AutoStack>(stack_0);
 
     /* Parse remaining stacks  */
     for(int i = 1; i < ik_problem.getNumTasks(); i++)
