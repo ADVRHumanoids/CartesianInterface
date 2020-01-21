@@ -56,6 +56,8 @@ TEST_F(TestRos, check1)
 
     ClientApi::TaskRos task(name, nh);
 
+    ros::spinOnce();
+
     EXPECT_EQ(task.getName(), "arm1_8");
     EXPECT_EQ(task.getType(), "Cartesian");
     EXPECT_EQ(task.getSize(), 6);
@@ -65,10 +67,40 @@ TEST_F(TestRos, check1)
 
     ClientApi::CartesianRos cart(name, nh);
 
+    ros::spinOnce();
+
     EXPECT_EQ(cart.getBaseLink(), "pelvis");
     EXPECT_EQ(cart.getDistalLink(), "arm1_8");
     EXPECT_EQ(cart.getControlMode(), ControlType::Position);
     EXPECT_EQ(cart.getTaskState(), State::Online);
+
+    EXPECT_TRUE(task.setActivationState(ActivationState::Disabled));
+    EXPECT_EQ(task.getActivationState(), ActivationState::Disabled);
+
+    EXPECT_TRUE(task.setActivationState(ActivationState::Enabled));
+    EXPECT_EQ(task.getActivationState(), ActivationState::Enabled);
+
+    task.setLambda(1.0);
+    EXPECT_NEAR(task.getLambda(), 1.0, 0.0001);
+
+    EXPECT_THROW(task.setLambda(-0.1), std::runtime_error);
+    EXPECT_THROW(task.setLambda(1.1), std::runtime_error);
+
+    Eigen::MatrixXf w;
+    w.setRandom(6, 6);
+    w = w.transpose()*w;
+    EXPECT_TRUE(task.setWeight(w.cast<double>()));
+    EXPECT_EQ(task.getWeight(), w.cast<double>());
+
+    EXPECT_FALSE(cart.setBaseLink("cazzi"));
+    EXPECT_TRUE(cart.setBaseLink("world"));
+    EXPECT_EQ(cart.getBaseLink(), "world");
+    EXPECT_TRUE(cart.setBaseLink("torso_2"));
+    EXPECT_EQ(cart.getBaseLink(), "torso_2");
+
+    EXPECT_TRUE(cart.setControlMode(ControlType::Velocity));
+    EXPECT_EQ(cart.getControlMode(), ControlType::Velocity);
+
 
 }
 

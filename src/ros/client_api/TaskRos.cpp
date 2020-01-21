@@ -22,7 +22,7 @@ TaskRos::TaskRos(std::string name,
 
     _set_lambda_cli = _nh.serviceClient<cartesian_interface::SetLambda>(name + "/set_lambda");
     _set_weight_cli = _nh.serviceClient<cartesian_interface::SetWeight>(name + "/set_weight");
-    _activate_cli = _nh.serviceClient<cartesian_interface::SetWeight>(name + "/set_task_active");
+    _activate_cli = _nh.serviceClient<cartesian_interface::SetTaskActive>(name + "/set_active");
 
 }
 
@@ -111,6 +111,13 @@ void TaskRos::setLambda(double value)
                                              _set_lambda_cli.getService()));
     }
 
+    if(!srv.response.success)
+    {
+        throw std::runtime_error(fmt::format("Service '{}' returned false: {}",
+                                             _set_lambda_cli.getService(),
+                                             srv.response.message));
+    }
+
     ROS_INFO("%s", srv.response.message.c_str());
 
 }
@@ -138,7 +145,7 @@ ActivationState TaskRos::getActivationState() const
 bool TaskRos::setActivationState(const ActivationState & value)
 {
     cartesian_interface::SetTaskActive srv;
-    srv.request.activation_state = value == ActivationState::Enabled;
+    srv.request.activation_state = (value == ActivationState::Enabled);
 
     if(!_activate_cli.call(srv))
     {

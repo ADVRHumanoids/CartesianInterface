@@ -53,6 +53,7 @@ void CartesianRos::enableOnlineTrajectoryGeneration()
 
 bool CartesianRos::isSubtaskLocal() const
 {
+    return get_task_info().use_body_jacobian;
 }
 
 void CartesianRos::getVelocityLimits(double & max_vel_lin, double & max_vel_ang) const
@@ -84,6 +85,18 @@ const std::string & CartesianRos::getBaseLink() const
 
 bool CartesianRos::setBaseLink(const std::string & new_base_link)
 {
+    SetBaseLink srv;
+    srv.request.base_link = new_base_link;
+
+    if(!_set_base_link_cli.call(srv))
+    {
+        throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                             _set_base_link_cli.getService()));
+    }
+
+    ROS_INFO("%s", srv.response.message.c_str());
+
+    return srv.response.success;
 }
 
 const std::string & CartesianRos::getDistalLink() const
@@ -99,6 +112,18 @@ ControlType CartesianRos::getControlMode() const
 
 bool CartesianRos::setControlMode(const ControlType & value)
 {
+    SetControlMode srv;
+    srv.request.ctrl_mode = EnumToString(value);
+
+    if(!_set_ctrl_mode_cli.call(srv))
+    {
+        throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                             _set_ctrl_mode_cli.getService()));
+    }
+
+    ROS_INFO("%s", srv.response.message.c_str());
+
+    return srv.response.success;
 }
 
 bool CartesianRos::getCurrentPose(Eigen::Affine3d & base_T_ee) const
