@@ -1,4 +1,5 @@
-#include <cartesian_interface/open_sot/OpenSotImpl.h>
+#include "OpenSotImpl.h"
+
 #include <cartesian_interface/problem/ProblemDescription.h>
 #include <cartesian_interface/problem/Task.h>
 #include <cartesian_interface/utils/LoadObject.hpp>

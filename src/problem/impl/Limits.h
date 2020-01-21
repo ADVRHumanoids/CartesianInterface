@@ -6,7 +6,7 @@
 
 namespace XBot { namespace Cartesian {
     
-    class JointLimitsImpl : public virtual ConstraintDescription,
+    class JointLimitsImpl : public virtual JointLimits,
             public TaskDescriptionImpl
     {
 
@@ -17,11 +17,11 @@ namespace XBot { namespace Cartesian {
         JointLimitsImpl(ModelInterface::ConstPtr model);
         JointLimitsImpl(YAML::Node yaml, ModelInterface::ConstPtr model);
 
-        bool setBoundScaling(double value);
-        double getBoundScaling() const;
+        bool setBoundScaling(double value) override;
+        double getBoundScaling() const override;
 
-        Eigen::VectorXd getQmin() const;
-        Eigen::VectorXd getQmax() const;
+        Eigen::VectorXd getQmin() const override;
+        Eigen::VectorXd getQmax() const override;
 
     private:
 
@@ -36,7 +36,7 @@ namespace XBot { namespace Cartesian {
 
     };
 
-    class VelocityLimitsImpl : public virtual ConstraintDescription,
+    class VelocityLimitsImpl : public virtual VelocityLimits,
             public TaskDescriptionImpl
     {
 
@@ -47,7 +47,7 @@ namespace XBot { namespace Cartesian {
         VelocityLimitsImpl(ModelInterface::ConstPtr model);
         VelocityLimitsImpl(YAML::Node yaml, ModelInterface::ConstPtr model);
 
-        Eigen::VectorXd getQdotMax() const;
+        Eigen::VectorXd getQdotMax() const override;
 
     private:
 

@@ -3,6 +3,7 @@
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/utils/LoadObject.hpp>
 
+
 using namespace XBot::Cartesian;
 
 namespace {
