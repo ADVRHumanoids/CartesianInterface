@@ -3,6 +3,12 @@
 
 #include <XBotInterface/ModelInterface.h>
 
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+
 inline XBot::ModelInterface::Ptr GetTestModel()
 {
 
@@ -36,6 +42,70 @@ inline XBot::ModelInterface::Ptr GetTestModel()
 
     return model;
 
+}
+
+class Process
+{
+
+public:
+
+    Process(std::vector<const char *> args);
+
+    int wait();
+
+    void kill(int signal = SIGTERM);
+
+    ~Process();
+
+private:
+
+    std::string _name;
+    pid_t _pid;
+
+};
+
+Process::Process(std::vector< const char* > args):
+    _name(args[0])
+{
+    args.push_back(nullptr);
+    char ** argv = (char**)args.data();
+
+    _pid = ::fork();
+
+    if(_pid == -1)
+    {
+        perror("fork");
+        throw std::runtime_error("Unable to fork()");
+    }
+
+    if(_pid == 0)
+    {
+        ::execvp(argv[0], argv);
+        perror("execvp");
+        throw std::runtime_error("Unknown command");
+    }
+
+}
+
+int Process::wait()
+{
+    int status;
+    while(::waitpid(_pid, &status, 0) != _pid);
+    printf("Child process '%s' exited with status %d\n", _name.c_str(), status);
+    return status;
+
+}
+
+void Process::kill(int signal)
+{
+    ::kill(_pid, signal);
+    printf("Killed process '%s' with signal %d\n", _name.c_str(), signal);
+}
+
+Process::~Process()
+{
+    kill(SIGINT);
+    wait();
 }
 
 #endif // TESTUTILS_H
