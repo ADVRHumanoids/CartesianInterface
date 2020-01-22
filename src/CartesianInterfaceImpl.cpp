@@ -53,6 +53,10 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model,
             }
 
         }
+        else
+        {
+            add_task(constr);
+        }
     }
 
     reset(0.0);
@@ -85,73 +89,20 @@ void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task
     else if(auto postural_desc = std::dynamic_pointer_cast<PosturalTask>(task_desc))
     {
         _postural_task_map[task_desc->getName()] = postural_desc;
+
+        Logger::success(Logger::Severity::HIGH,
+                        "Successfully added postural task '%s'\n",
+                        task_desc->getName().c_str());
     }
     else
     {
-        Logger::warning("Unsupported task type for task '%s'\n", task_desc->getType().c_str());
+        Logger::success(Logger::Severity::HIGH,
+                        "Successfully added task '%s' with type '%s'\n",
+                        task_desc->getName().c_str(),
+                        task_desc->getType().c_str());
     }
 
 
-}
-
-std::string CartesianInterface::ControlTypeAsString(ControlType ctrl)
-{
-    switch(ctrl)
-    {
-    case ControlType::Position:
-        return "Position";
-        break;
-
-    case ControlType::Velocity:
-        return "Velocity";
-        break;
-
-    default:
-        throw std::runtime_error("Invalid control type");
-    }
-}
-
-
-std::string CartesianInterface::StateAsString(State ctrl)
-{
-    switch(ctrl)
-    {
-    case State::Reaching:
-        return "Reaching";
-        break;
-
-    case State::Online:
-        return "Online";
-        break;
-
-    default:
-        throw std::runtime_error("Invalid state");
-    }
-}
-
-ControlType CartesianInterface::ControlTypeFromString(const std::string& ctrl)
-{
-    
-    std::string ctrl_lower = ctrl;
-    boost::algorithm::to_lower(ctrl_lower);
-    
-    if(ctrl_lower == "position") return ControlType::Position;
-    if(ctrl_lower == "velocity") return ControlType::Velocity;
-    
-    throw std::invalid_argument("Invalid control type '" + ctrl + "'");
-    
-}
-
-
-State CartesianInterface::StateFromString(const std::string& state)
-{
-    std::string state_lower = state;
-    boost::algorithm::to_lower(state_lower);
-    
-    if(state_lower == "online") return State::Online;
-    if(state_lower == "reaching") return State::Reaching;
-    
-    throw std::invalid_argument("Invalid state '" + state + "'");
 }
 
 bool XBot::Cartesian::CartesianInterfaceImpl::setBaseLink(const std::string& ee_name, 
@@ -572,8 +523,8 @@ bool CartesianInterfaceImpl::setControlMode(const std::string& ee_name, ControlT
     task->setControlMode(ctrl_type);
     
     Logger::success(Logger::Severity::HIGH,
-                    "Control mode changed to %s for task '%s' \n",
-                    ControlTypeAsString(ctrl_type).c_str(), task->getName().c_str());
+                    "Control mode changed to '%s' for task '%s' \n",
+                    EnumToString(ctrl_type).c_str(), task->getName().c_str());
 
     return true;
 }

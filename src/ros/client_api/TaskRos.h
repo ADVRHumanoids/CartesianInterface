@@ -59,6 +59,10 @@ public:
 
     void registerObserver(TaskObserver::WeakPtr obs) override;
 
+    static Ptr MakeInstance(std::string name,
+                            std::string type,
+                            ros::NodeHandle nh);
+
 protected:
 
     ros::NodeHandle _nh;

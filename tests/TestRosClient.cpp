@@ -1,10 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <cartesian_interface/ros/RosImpl.h>
 #include "ros/client_api/CartesianRos.h"
 #include "fmt/format.h"
 #include "fmt/ostream.h"
 
 #include "testutils.h"
+
+using namespace XBot::Cartesian;
 
 class TestRos: public ::testing::Test
 {
@@ -24,9 +27,8 @@ class TestRos: public ::testing::Test
         ros::param::set("/robot_description_semantic", srdf);
         ros::param::set("/cartesian/problem_description", prob);
 
-        _cartesio.reset(new Process({"rosrun",
-                                     "cartesian_interface",
-                                     "ros_server_node",
+        std::string binary_dir(CARTESIO__TEST_BINARY_PATH);
+        _cartesio.reset(new Process({binary_dir + "/ros_server_node",
                                      "_is_model_floating_base:=true",
                                      "_model_type:=RBDL",
                                      "_solver:=OpenSot"
@@ -41,9 +43,57 @@ class TestRos: public ::testing::Test
     std::unique_ptr<Process> _roscore, _cartesio;
 };
 
+TEST_F(TestRos, checkClient)
+{
+    int attempts = 5;
+    while(attempts-- && !ros::service::exists("/cartesian/get_task_list", true))
+    {
+        printf("Retrying to reach server... \n");
+        sleep(1);
+    }
+
+    RosClient cli;
+
+    auto tlist = cli.getTaskList();
+
+    EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "arm1_8") == tlist.end());
+    EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "arm2_8") == tlist.end());
+    EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "wheel_1") == tlist.end());
+    EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "wheel_2") == tlist.end());
+    EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "wheel_3") == tlist.end());
+    EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "wheel_4") == tlist.end());
+    EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "JointLimits") == tlist.end());
+    EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "VelocityLimits") == tlist.end());
+    EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "Com") == tlist.end());
+    EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "Postural") == tlist.end());
+    EXPECT_EQ(tlist.size(), 10);
+
+    auto c = std::dynamic_pointer_cast<CartesianTask>(cli.getTask("arm1_8"));
+    EXPECT_TRUE(bool(c));
+
+    c = std::dynamic_pointer_cast<CartesianTask>(cli.getTask("arm2_8"));
+    EXPECT_TRUE(bool(c));
+
+    c = std::dynamic_pointer_cast<CartesianTask>(cli.getTask("wheel_1"));
+    EXPECT_TRUE(bool(c));
+
+    c = std::dynamic_pointer_cast<CartesianTask>(cli.getTask("wheel_2"));
+    EXPECT_TRUE(bool(c));
+
+    c = std::dynamic_pointer_cast<CartesianTask>(cli.getTask("wheel_3"));
+    EXPECT_TRUE(bool(c));
+
+    c = std::dynamic_pointer_cast<CartesianTask>(cli.getTask("wheel_4"));
+    EXPECT_TRUE(bool(c));
+
+    auto p = std::dynamic_pointer_cast<PosturalTask>(cli.getTask("Postural"));
+    EXPECT_TRUE(bool(p));
+
+
+}
+
 TEST_F(TestRos, check1)
 {
-    using namespace XBot::Cartesian;
 
     ros::NodeHandle nh("cartesian");
     std::string name = "arm1_8";
@@ -75,10 +125,10 @@ TEST_F(TestRos, check1)
     EXPECT_EQ(cart.getTaskState(), State::Online);
 
     EXPECT_TRUE(task.setActivationState(ActivationState::Disabled));
-    EXPECT_EQ(task.getActivationState(), ActivationState::Disabled);
+    EXPECT_EQ  (task.getActivationState(), ActivationState::Disabled);
 
     EXPECT_TRUE(task.setActivationState(ActivationState::Enabled));
-    EXPECT_EQ(task.getActivationState(), ActivationState::Enabled);
+    EXPECT_EQ  (task.getActivationState(), ActivationState::Enabled);
 
     task.setLambda(1.0);
     EXPECT_NEAR(task.getLambda(), 1.0, 0.0001);
@@ -86,20 +136,24 @@ TEST_F(TestRos, check1)
     EXPECT_THROW(task.setLambda(-0.1), std::runtime_error);
     EXPECT_THROW(task.setLambda(1.1), std::runtime_error);
 
-    Eigen::MatrixXf w;
+    Eigen::MatrixXf w, wrong;
     w.setRandom(6, 6);
     w = w.transpose()*w;
     EXPECT_TRUE(task.setWeight(w.cast<double>()));
-    EXPECT_EQ(task.getWeight(), w.cast<double>());
+    EXPECT_EQ  (task.getWeight(), w.cast<double>());
+
+    wrong.setRandom(6, 1);
+    EXPECT_FALSE(task.setWeight(wrong.cast<double>()));
+    EXPECT_EQ  (task.getWeight(), w.cast<double>());
 
     EXPECT_FALSE(cart.setBaseLink("cazzi"));
-    EXPECT_TRUE(cart.setBaseLink("world"));
-    EXPECT_EQ(cart.getBaseLink(), "world");
-    EXPECT_TRUE(cart.setBaseLink("torso_2"));
-    EXPECT_EQ(cart.getBaseLink(), "torso_2");
+    EXPECT_TRUE (cart.setBaseLink("world"));
+    EXPECT_EQ   (cart.getBaseLink(), "world");
+    EXPECT_TRUE (cart.setBaseLink("torso_2"));
+    EXPECT_EQ   (cart.getBaseLink(), "torso_2");
 
     EXPECT_TRUE(cart.setControlMode(ControlType::Velocity));
-    EXPECT_EQ(cart.getControlMode(), ControlType::Velocity);
+    EXPECT_EQ  (cart.getControlMode(), ControlType::Velocity);
 
 
 }

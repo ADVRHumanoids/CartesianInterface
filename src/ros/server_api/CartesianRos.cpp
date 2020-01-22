@@ -7,6 +7,7 @@
 #include "fmt/format.h"
 
 using namespace XBot::Cartesian;
+using namespace XBot::Cartesian::ServerApi;
 
 namespace  {
 
@@ -33,11 +34,11 @@ geometry_msgs::Pose get_normalized_pose(const geometry_msgs::Pose& pose)
 
 }
 
-CartesianRos::CartesianRos(TaskDescription::Ptr task,
+CartesianRos::CartesianRos(CartesianTask::Ptr cart_task,
                            ModelInterface::ConstPtr model):
-    TaskRos(task, model)
+    TaskRos(cart_task, model)
 {
-    _cart = std::dynamic_pointer_cast<CartesianTask>(task);
+    _cart = cart_task;
 
     if(!_cart)
     {
@@ -46,25 +47,25 @@ CartesianRos::CartesianRos(TaskDescription::Ptr task,
 
     _reach_action_manager.reset(new ReachActionManager(_ctx.nh(), task_name, _cart));
 
-    _pose_ref_pub = _ctx.nh().advertise<geometry_msgs::PoseStamped>(task->getName() + "/current_reference", 1);
+    _pose_ref_pub = _ctx.nh().advertise<geometry_msgs::PoseStamped>(_task->getName() + "/current_reference", 1);
 
-    _vel_ref_pub = _ctx.nh().advertise<geometry_msgs::TwistStamped>(task->getName() + "/current_velocity_reference", 1);
+    _vel_ref_pub = _ctx.nh().advertise<geometry_msgs::TwistStamped>(_task->getName() + "/current_velocity_reference", 1);
 
-    _pose_ref_sub = _ctx.nh().subscribe(task->getName() + "/reference", 1,
+    _pose_ref_sub = _ctx.nh().subscribe(_task->getName() + "/reference", 1,
                                         &CartesianRos::online_position_reference_cb,
                                         this);
 
-    _vel_ref_sub = _ctx.nh().subscribe(task->getName() + "/velocity_reference", 1,
+    _vel_ref_sub = _ctx.nh().subscribe(_task->getName() + "/velocity_reference", 1,
                                        &CartesianRos::online_velocity_reference_cb,
                                        this);
 
-    _set_base_link_srv = _ctx.nh().advertiseService(task->getName() + "/set_base_link",
+    _set_base_link_srv = _ctx.nh().advertiseService(_task->getName() + "/set_base_link",
                                                     &CartesianRos::set_base_link_cb, this);
 
-    _set_ctrl_srv = _ctx.nh().advertiseService(task->getName() + "/set_control_mode",
+    _set_ctrl_srv = _ctx.nh().advertiseService(_task->getName() + "/set_control_mode",
                                                &CartesianRos::set_control_mode_cb, this);
 
-    _get_info_srv = _ctx.nh().advertiseService(task->getName() + "/get_cartesian_task_properties",
+    _get_info_srv = _ctx.nh().advertiseService(_task->getName() + "/get_cartesian_task_properties",
                                                &CartesianRos::get_task_info_cb, this);
 }
 

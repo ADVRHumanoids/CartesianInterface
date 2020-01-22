@@ -12,7 +12,12 @@
 
 namespace XBot { namespace Cartesian {
 
-class TaskRos
+namespace ServerApi
+{
+    class TaskRos;
+}
+
+class ServerApi::TaskRos
 {
 
 public:

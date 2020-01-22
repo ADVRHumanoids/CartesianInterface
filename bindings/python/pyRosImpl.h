@@ -17,14 +17,14 @@ std::string waypoint_repr(const Trajectory::WayPoint& w)
     return ss.str();
 }
 
-std::string ci_repr(const RosImpl& r)
+std::string ci_repr(const RosClient& r)
 {
     std::stringstream ss;
     ss << r;
     return ss.str();
 }
 
-auto py_get_pose_reference(const RosImpl& r, const std::string& ee)
+auto py_get_pose_reference(const RosClient& r, const std::string& ee)
 {
     Eigen::Affine3d T;
     Eigen::Vector6d v, a;
@@ -35,7 +35,7 @@ auto py_get_pose_reference(const RosImpl& r, const std::string& ee)
     
 }
 
-auto py_get_interaction_reference(const RosImpl& r, const std::string& ee)
+auto py_get_interaction_reference(const RosClient& r, const std::string& ee)
 {
     Eigen::Matrix6d k, d;
     Eigen::Vector6d f;
@@ -46,40 +46,40 @@ auto py_get_interaction_reference(const RosImpl& r, const std::string& ee)
     
 }
 
-auto py_send_waypoints(RosImpl& r, 
+auto py_send_waypoints(RosClient& r,
                        const std::string& ee, 
                        const std::vector<Trajectory::WayPoint>& wpv,
                        bool incremental = false
                       )
 {
-    return r.setWayPoints(ee, wpv, incremental);
+    return false; //r.setWayPoints(ee, wpv, incremental);
 }
     
-auto py_send_target_pose(RosImpl& r, 
+auto py_send_target_pose(RosClient& r,
                          const std::string& ee,
                          const Eigen::Affine3d& T, 
                          double time,
                          bool incremental
                         )
 {
-    return r.setTargetPose(ee, T, time, incremental);
+    return false; //r.setTargetPose(ee, T, time, incremental);
 }
 
-auto py_get_velocity_limits(RosImpl& r, const std::string& ee)
+auto py_get_velocity_limits(RosClient& r, const std::string& ee)
 {
     double lin = 0.0, ang = 0.0;
     r.getVelocityLimits(ee, lin, ang);
     return std::make_tuple(lin, ang);
 }
 
-auto py_get_acceleration_limits(RosImpl& r, const std::string& ee)
+auto py_get_acceleration_limits(RosClient& r, const std::string& ee)
 {
     double lin = 0.0, ang = 0.0;
     r.getAccelerationLimits(ee, lin, ang);
     return std::make_tuple(lin, ang);
 }
 
-auto py_get_pose_from_tf(RosImpl& r, const std::string& source_frame, const std::string& target_frame)
+auto py_get_pose_from_tf(RosClient& r, const std::string& source_frame, const std::string& target_frame)
 {
     Eigen::Affine3d T;
 

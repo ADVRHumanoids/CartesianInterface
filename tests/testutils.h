@@ -49,7 +49,7 @@ class Process
 
 public:
 
-    Process(std::vector<const char *> args);
+    Process(std::vector<std::string> args);
 
     int wait();
 
@@ -64,11 +64,14 @@ private:
 
 };
 
-Process::Process(std::vector< const char* > args):
+Process::Process(std::vector<std::string>  args):
     _name(args[0])
 {
-    args.push_back(nullptr);
-    char ** argv = (char**)args.data();
+    std::vector<const char *> args_cstr;
+    for(auto& a : args) args_cstr.push_back(a.c_str());
+    args_cstr.push_back(nullptr);
+
+    char ** argv = (char**)args_cstr.data();
 
     _pid = ::fork();
 

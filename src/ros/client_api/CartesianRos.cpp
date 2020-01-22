@@ -180,6 +180,11 @@ void CartesianRos::abort()
 {
 }
 
+bool CartesianRos::waitReachCompleted()
+{
+
+}
+
 GetCartesianTaskInfoResponse CartesianRos::get_task_info() const
 {
     cartesian_interface::GetCartesianTaskInfo srv;

@@ -5,6 +5,7 @@
 #include "CartesianRos.h"
 
 using namespace XBot::Cartesian;
+using namespace XBot::Cartesian::ServerApi;
 
 TaskRos::TaskRos(TaskDescription::Ptr task,
                  ModelInterface::ConstPtr model):
@@ -25,7 +26,7 @@ TaskRos::TaskRos(TaskDescription::Ptr task,
                                                  &TaskRos::set_active_cb, this);
 }
 
-void XBot::Cartesian::TaskRos::run(ros::Time time)
+void TaskRos::run(ros::Time time)
 {
 }
 
@@ -160,10 +161,10 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
 {
     TaskRos * ros_adapter = nullptr;
 
-    /* If lib name specified, load factory from plugin */
-    if(task->getType() == "Cartesian") /* Otherwise, construct supported tasks */
+    /* Try all supported dynamic casts, from the most derived to the least derived class */
+    if(auto cart = std::dynamic_pointer_cast<CartesianTask>(task)) /* Otherwise, construct supported tasks */
     {
-        ros_adapter = new CartesianRos(task, model);
+        ros_adapter = new CartesianRos(cart, model);
     }
     //    else if(task->getType() == "Postural")
     //    {
@@ -185,7 +186,7 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
                                    "lib '{}' not found for unsupported task type '{}'",
                                    task->getName(), RosApiPluginName(task), task->getType());
 
-            throw RosApiNotFound(str);
+            ros_adapter = new TaskRos(task, model);
         }
     }
 

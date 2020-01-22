@@ -21,6 +21,8 @@ public:
                 ProblemDescription ik_problem);
 
     virtual bool update(double time, double period) override;
+
+
     
     virtual ~OpenSotImpl() override;
     

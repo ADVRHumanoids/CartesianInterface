@@ -49,6 +49,8 @@ public:
     bool setWayPoints(const Trajectory::WayPointVector & way_points) override;
     void abort() override;
 
+    bool waitReachCompleted();
+
 private:
 
     cartesian_interface::GetCartesianTaskInfoResponse get_task_info() const;

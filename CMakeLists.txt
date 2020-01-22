@@ -13,24 +13,24 @@ find_package(ReflexxesTypeII REQUIRED)
 find_package(alglib QUIET)
 find_package(Eigen3 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp
-                                        std_msgs
-                                        geometry_msgs
-                                        sensor_msgs
-                                        actionlib
-                                        robot_state_publisher
-                                        message_generation
-                                        interactive_markers
-                                        tf tf_conversions)
+    std_msgs
+    geometry_msgs
+    sensor_msgs
+    actionlib
+    robot_state_publisher
+    message_generation
+    interactive_markers
+    tf tf_conversions)
 
 include_directories(include
-                    src
-                    ${OpenSoT_INCLUDE_DIRS}
-                    ${XBotInterface_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIRS}
-                    ${catkin_INCLUDE_DIRS}
-                    ${ReflexxesTypeII_INCLUDE_DIRS}
-                    ${alglib_INCLUDE_DIRS}
-                    )
+    src
+    ${OpenSoT_INCLUDE_DIRS}
+    ${XBotInterface_INCLUDE_DIRS}
+    ${EIGEN3_INCLUDE_DIRS}
+    ${catkin_INCLUDE_DIRS}
+    ${ReflexxesTypeII_INCLUDE_DIRS}
+    ${alglib_INCLUDE_DIRS}
+    )
 
 
 # C++ 11
@@ -39,49 +39,49 @@ add_compile_options(-Wl,--no-undefined)
 
 # Generate messages in the 'msg' folder
 add_message_files(
-  FILES
-  Impedance3.msg 
-  Impedance6.msg
-  JoystickStatus.msg
-  TaskInfo.msg
-)
+    FILES
+    Impedance3.msg
+    Impedance6.msg
+    JoystickStatus.msg
+    TaskInfo.msg
+    )
 
 # Generate services in the 'srv' folder
 add_service_files(
-  FILES
-  GetTaskInfo.srv
-  SetTaskActive.srv
-  LoadController.srv
-  GetTaskList.srv
-  ResetWorld.srv
-  GetImpedance.srv
-  ToggleAxis.srv
-  SetContactFrame.srv
-  SetJoystickActiveTask.srv
-  SetJoystickTaskMaxSpeed.srv
-  SetJoystickTaskBaseFrame.srv
-  GetCartesianTaskInfo.srv
-  SetWeight.srv
-  SetLambda.srv
-  SetBaseLink.srv
-  SetControlMode.srv
-)
+    FILES
+    GetTaskInfo.srv
+    SetTaskActive.srv
+    LoadController.srv
+    GetTaskList.srv
+    ResetWorld.srv
+    GetImpedance.srv
+    ToggleAxis.srv
+    SetContactFrame.srv
+    SetJoystickActiveTask.srv
+    SetJoystickTaskMaxSpeed.srv
+    SetJoystickTaskBaseFrame.srv
+    GetCartesianTaskInfo.srv
+    SetWeight.srv
+    SetLambda.srv
+    SetBaseLink.srv
+    SetControlMode.srv
+    )
 
 
 # Generate actions in the 'action' folder
 add_action_files(
-  FILES
-  ReachPose.action
-)
+    FILES
+    ReachPose.action
+    )
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
-  DEPENDENCIES
-  std_msgs
-  geometry_msgs
-  sensor_msgs
-  actionlib_msgs
-)
+    DEPENDENCIES
+    std_msgs
+    geometry_msgs
+    sensor_msgs
+    actionlib_msgs
+    )
 
 ###################################
 ## catkin specific configuration ##
@@ -93,32 +93,32 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-   INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIRS}
-   LIBRARIES CartesianInterface
-#  CATKIN_DEPENDS other_catkin_pkg
-   DEPENDS XBotInterface yaml-cpp
-   CFG_EXTRAS ${PROJECT_NAME}-extras.cmake
-)
+    INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIRS}
+    LIBRARIES CartesianInterface
+    #  CATKIN_DEPENDS other_catkin_pkg
+    DEPENDS XBotInterface yaml-cpp
+    CFG_EXTRAS ${PROJECT_NAME}-extras.cmake
+    )
 
 # Interface implementation
 set(CartesianInterface_SRC
     src/Context.cpp
-        src/CartesianInterfaceImpl.cpp
-#        src/utils/LockfreeBufferImpl.cpp
-#        src/utils/ManipulabilityAnalyzer.cpp
-        src/problem/ProblemDescription.cpp
-        src/problem/impl/Cartesian.cpp
-        src/problem/impl/Com.cpp
-        src/problem/impl/Limits.cpp
-#        src/problem/Gaze.cpp
-        src/problem/impl/Postural.cpp
-#        src/problem/Interaction.cpp
-        src/problem/impl/TaskFactory.cpp
-        src/problem/impl/Task.cpp
-        src/problem/impl/Constraint.cpp
-        src/utils/ForceEstimation.cpp
-        src/utils/RobotStatePublisher.cpp
-#        src/problem/MinJointVel.cpp
+    src/CartesianInterfaceImpl.cpp
+    #        src/utils/LockfreeBufferImpl.cpp
+    #        src/utils/ManipulabilityAnalyzer.cpp
+    src/problem/ProblemDescription.cpp
+    src/problem/impl/Cartesian.cpp
+    src/problem/impl/Com.cpp
+    src/problem/impl/Limits.cpp
+    #        src/problem/Gaze.cpp
+    src/problem/impl/Postural.cpp
+    #        src/problem/Interaction.cpp
+    src/problem/impl/TaskFactory.cpp
+    src/problem/impl/Task.cpp
+    src/problem/impl/Constraint.cpp
+    src/utils/ForceEstimation.cpp
+    src/utils/RobotStatePublisher.cpp
+    #        src/problem/MinJointVel.cpp
     )
 
 # OpenSot implementation
@@ -131,34 +131,36 @@ set(CartesianInterfaceSOT_SRC
     src/open_sot/task_adapters/OpenSotVelocityLimits.cpp
     src/open_sot/task_adapters/OpenSotConstraintFromTask.cpp
     src/open_sot/OpenSotImpl.cpp
-    )  
-    
+    )
+
 # OpenSot implementation
 set(CartesianInterfaceSOTacc_SRC
-#        src/open_sot/OpenSotAccImpl.cpp
-    )      
+    #        src/open_sot/OpenSotAccImpl.cpp
+    )
 
 # Ros implementation
 set(CartesianInterfaceROS_SRC
     src/ros/RosContext.cpp
     src/ros/server_api/TaskRos.cpp
     src/ros/server_api/CartesianRos.cpp
+    src/ros/server_api/PosturalRos.cpp
     src/ros/client_api/TaskRos.cpp
     src/ros/client_api/CartesianRos.cpp
-#        src/ros/RosImpl.cpp
-        src/ros/RosServerClass.cpp
-#        src/ros/CartesianMarker.cpp
-#        src/ros/JoyStick.cpp
-#        src/ros/CartesianAnalyzer.cpp
+    src/ros/client_api/PosturalRos.cpp
+    src/ros/RosImpl.cpp
+    src/ros/RosServerClass.cpp
+    #        src/ros/CartesianMarker.cpp
+    #        src/ros/JoyStick.cpp
+    #        src/ros/CartesianAnalyzer.cpp
     src/ros/RosExecutor.cpp
     )
 
 # Trajectory
 set(Trajectory_SRC src/trajectory/Trajectory.cpp)
-    
+
 if(${alglib_FOUND})
     set(Trajectory_SRC ${Trajectory_SRC}
-                       src/trajectory/Spline.cpp)
+        src/trajectory/Spline.cpp)
 endif()
 
 # should we use xbot internal robot state publisher?
@@ -173,18 +175,18 @@ endif()
 
 # libCartesianInterface
 add_library(CartesianInterface SHARED ${CartesianInterface_SRC}
-                                      ${CartesianInterfaceROS_SRC}
-                                      ${Trajectory_SRC}
-                                      )
+    ${CartesianInterfaceROS_SRC}
+    ${Trajectory_SRC}
+    )
 target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
-                                                ${XBotInterface_LIBRARIES}
-                                                ${catkin_LIBRARIES}
-                                                ${XBOT_RSPUB_LIBRARIES}
-                                                yaml-cpp
-                                                ${ReflexxesTypeII_LIBRARIES}
-                                                ${alglib_LIBRARIES}
-                                        PRIVATE fmt::fmt-header-only
-                      )
+    ${XBotInterface_LIBRARIES}
+    ${catkin_LIBRARIES}
+    ${XBOT_RSPUB_LIBRARIES}
+    yaml-cpp
+    ${ReflexxesTypeII_LIBRARIES}
+    ${alglib_LIBRARIES}
+    PRIVATE fmt::fmt-header-only
+    )
 
 add_dependencies(CartesianInterface ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
@@ -192,21 +194,21 @@ install(TARGETS CartesianInterface CartesianInterface
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+    )
 
 
 
 # libCartesianOpenSot
 add_library(CartesianOpenSot SHARED ${CartesianInterfaceSOT_SRC})
 target_link_libraries(CartesianOpenSot PUBLIC ${OpenSoT_LIBRARIES}
-                                              CartesianInterface
-                                              PRIVATE fmt::fmt-header-only
-                      )
+    CartesianInterface
+    PRIVATE fmt::fmt-header-only
+    )
 install(TARGETS CartesianOpenSot CartesianOpenSot
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+    )
 
 ## Addons for libCartesianOpenSot
 
@@ -310,7 +312,7 @@ install(TARGETS CartesianOpenSot CartesianOpenSot
 #)
 
 #add_subdirectory(examples)
-#add_subdirectory(bindings/python/)
+add_subdirectory(bindings/python/)
 
 
 #option(COMPILE_XBOT_PLUGIN OFF)
@@ -325,13 +327,13 @@ install(DIRECTORY include/cartesian_interface/
     DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
     FILES_MATCHING PATTERN "*.h*"
     PATTERN ".svn" EXCLUDE
-)
+    )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  FILES_MATCHING PATTERN "*.launch"
-)
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+    FILES_MATCHING PATTERN "*.launch"
+    )
 
 
 
@@ -343,7 +345,7 @@ install(PROGRAMS src/postural_gui DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 option(BUILD_TESTS "Compile CartesianInterface tests" FALSE)
 
 if(BUILD_TESTS)
-  enable_testing()
-  add_custom_target(test_verbose ${CMAKE_CTEST_COMMAND} -V)
-  add_subdirectory(tests)
+    enable_testing()
+    add_custom_target(test_verbose ${CMAKE_CTEST_COMMAND} -V)
+    add_subdirectory(tests)
 endif()

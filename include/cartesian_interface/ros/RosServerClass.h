@@ -68,7 +68,7 @@ namespace XBot { namespace Cartesian {
 
         RosContext::Ptr _ros_ctx;
 
-        std::list<TaskRos::Ptr> _ros_tasks;
+        std::list<ServerApi::TaskRos::Ptr> _ros_tasks;
 
 //        void init_reach_pose_action_servers();
         void init_state_broadcasting();

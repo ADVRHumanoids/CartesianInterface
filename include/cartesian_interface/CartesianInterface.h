@@ -28,8 +28,6 @@
 
 namespace XBot { namespace Cartesian {
 
-enum class TaskInterface { Deprecated };
-    
 /**
 * @brief The CartesianInterface class provides a generic way 
 * to perform cartesian control of floating base robots.
@@ -185,14 +183,6 @@ public:
     virtual TaskDescription::Ptr getTask(const std::string& task_name) = 0;
                           
     virtual ~CartesianInterface(){}
-    
-    static std::string ControlTypeAsString(ControlType ctrl);
-    static std::string StateAsString(State state);
-    static std::string TaskInterfaceAsString(TaskInterface ifc);
-    
-    static ControlType ControlTypeFromString(const std::string& ctrl);
-    static State StateFromString(const std::string& state);
-    static TaskInterface TaskInterfaceFromString(const std::string& ifc);
     
 };
 

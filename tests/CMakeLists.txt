@@ -18,6 +18,7 @@ if(NOT GTEST_FOUND)
 endif()
 
 add_definitions(-DCARTESIO_TEST_CONFIG_PATH="${CMAKE_CURRENT_SOURCE_DIR}/configs/")
+add_definitions(-DCARTESIO__TEST_BINARY_PATH="${CMAKE_BINARY_DIR}/devel/lib/cartesian_interface")
 
 set(TestLibs CartesianInterface ${GTEST_BOTH_LIBRARIES})
 include_directories(${GTEST_INCLUDE_DIRS})

@@ -5,6 +5,9 @@
 #include <cartesian_interface/SetWeight.h>
 #include <cartesian_interface/SetTaskActive.h>
 
+#include "CartesianRos.h"
+#include "PosturalRos.h"
+
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ClientApi;
 
@@ -61,6 +64,17 @@ bool TaskRos::setWeight(const Eigen::MatrixXd & value)
 {
     int size = getSize();
 
+    if(value.rows() != size || value.cols() != size)
+    {
+
+        Logger::error("%s \n",
+                      fmt::format("Invalid weight size ({} x {}), expected {} x {}",
+                                  value.rows(), value.cols(),
+                                  size, size).c_str());
+
+        return false;
+    }
+
     cartesian_interface::SetWeight srv;
     srv.request.weight.resize(size*size);
     Eigen::MatrixXf::Map(srv.request.weight.data(),
@@ -90,7 +104,7 @@ const std::vector<int>& TaskRos::getIndices() const
 void TaskRos::setIndices(const std::vector<int> & value)
 {
     throw std::runtime_error(fmt::format("Unsupported function '{}'",
-                             __PRETTY_FUNCTION__));
+                                         __PRETTY_FUNCTION__));
 }
 
 double TaskRos::getLambda() const
@@ -125,13 +139,13 @@ void TaskRos::setLambda(double value)
 const std::vector<std::string> & TaskRos::getDisabledJoints() const
 {
     throw std::runtime_error(fmt::format("Unsupported function '{}'",
-                             __PRETTY_FUNCTION__));
+                                         __PRETTY_FUNCTION__));
 }
 
 void TaskRos::setDisabledJoints(const std::vector<std::string> & value)
 {
     throw std::runtime_error(fmt::format("Unsupported function '{}'",
-                             __PRETTY_FUNCTION__));
+                                         __PRETTY_FUNCTION__));
 }
 
 ActivationState TaskRos::getActivationState() const
@@ -178,11 +192,29 @@ int TaskRos::getSize() const
 const std::string & TaskRos::getLibName() const
 {
     throw std::runtime_error(fmt::format("Unsupported function '{}'",
-                             __PRETTY_FUNCTION__));
+                                         __PRETTY_FUNCTION__));
 }
 
 void TaskRos::registerObserver(TaskObserver::WeakPtr obs)
 {
+}
+
+TaskDescription::Ptr TaskRos::MakeInstance(std::string name,
+                                           std::string type,
+                                           ros::NodeHandle nh)
+{
+    if(type == "Cartesian")
+    {
+        return std::make_shared<CartesianRos>(name, nh);
+    }
+    else if(type == "Postural")
+    {
+        return std::make_shared<PosturalRos>(name, nh);
+    }
+    else
+    {
+        return std::make_shared<TaskRos>(name, nh);
+    }
 }
 
 cartesian_interface::GetTaskInfoResponse TaskRos::get_task_info() const

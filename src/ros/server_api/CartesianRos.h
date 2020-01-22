@@ -47,12 +47,17 @@ private:
 
 };
 
-class CartesianRos : public TaskRos
+namespace ServerApi
+{
+    class CartesianRos;
+}
+
+class ServerApi::CartesianRos : public ServerApi::TaskRos
 {
 
 public:
 
-    CartesianRos(TaskDescription::Ptr task,
+    CartesianRos(CartesianTask::Ptr task,
                  ModelInterface::ConstPtr model);
 
     virtual void run(ros::Time time) override;

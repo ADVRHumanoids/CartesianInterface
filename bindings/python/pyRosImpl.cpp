@@ -6,9 +6,12 @@ PYBIND11_MODULE(pyci, m) {
     /* Create binding for ControlType enum */
     py::enum_<ControlType>(m, "ControlType", py::arithmetic())
         .value("Position", ControlType::Position)
-        .value("Velocity", ControlType::Velocity)
-        .value("Disabled", ControlType::Disabled);
-        
+        .value("Velocity", ControlType::Velocity);
+
+    py::enum_<ActivationState>(m, "ActivationState", py::arithmetic())
+        .value("Enabled", ActivationState::Enabled)
+        .value("Disabled", ActivationState::Disabled);
+
     py::class_<Trajectory::WayPoint>(m, "WayPoint")
         .def(py::init())
         .def(py::init<Eigen::Affine3d, double>())
@@ -16,26 +19,26 @@ PYBIND11_MODULE(pyci, m) {
         .def_readwrite("time", &Trajectory::WayPoint::time)
         .def("__repr__", waypoint_repr);
     
-    py::class_<RosImpl>(m, "CartesianInterfaceRos")
+    py::class_<RosClient>(m, "CartesianInterfaceRos")
         .def(py::init<std::string>(), py::arg("namespace") = "cartesian")
         .def("__repr__", ci_repr)
-        .def("update", &RosImpl::update, py::arg("time") = 0, py::arg("period") = 0)
-        .def("getTaskList", &RosImpl::getTaskList)
-        .def("reset", (bool (RosImpl::*)(void)) &RosImpl::reset)
-        .def("getControlMode", &RosImpl::getControlMode)
-        .def("setControlMode", &RosImpl::setControlMode)
-        .def("getBaseLink", &RosImpl::getBaseLink)
-        .def("setBaseLink", &RosImpl::setBaseLink)
-        .def("loadController", &RosImpl::loadController, 
+        .def("update", &RosClient::update, py::arg("time") = 0, py::arg("period") = 0)
+        .def("getTaskList", &RosClient::getTaskList)
+        .def("reset", (bool (RosClient::*)(void)) &RosClient::reset)
+        .def("getControlMode", &RosClient::getControlMode)
+        .def("setControlMode", &RosClient::setControlMode)
+        .def("getBaseLink", &RosClient::getBaseLink)
+        .def("setBaseLink", &RosClient::setBaseLink)
+        .def("loadController", &RosClient::loadController,
              py::arg("controller_name"), 
              py::arg("problem_description_name") = "",
              py::arg("problem_description_string") = "",
              py::arg("force_reload") = true)
         .def("getVelocityLimits", py_get_velocity_limits)
         .def("getAccelerationLimits", py_get_acceleration_limits)
-        .def("setVelocityLimits", &RosImpl::setVelocityLimits)
-        .def("setAccelerationLimits", &RosImpl::setAccelerationLimits)
-        .def("setReferencePosture", &RosImpl::setReferencePosture)
+        .def("setVelocityLimits", &RosClient::setVelocityLimits)
+        .def("setAccelerationLimits", &RosClient::setAccelerationLimits)
+        .def("setReferencePosture", &RosClient::setReferencePosture)
         .def("setTargetPose", py_send_target_pose, 
              py::arg("task_name"), 
              py::arg("pose"), 
@@ -45,24 +48,24 @@ PYBIND11_MODULE(pyci, m) {
              py::arg("task_name"), 
              py::arg("waypoints"), 
              py::arg("incremental") = false)
-        .def("waitReachCompleted", &RosImpl::waitReachCompleted, 
+        .def("waitReachCompleted", &RosClient::waitReachCompleted,
              py::arg("task_name"), 
              py::arg("timeout") = 0.0)
         .def("getPoseReference", py_get_pose_reference)
         .def("getDesiredInteraction", py_get_interaction_reference)
-        .def("setPoseReference", &RosImpl::setPoseReference)
-        .def("setForceReference", &RosImpl::setForceReference)
-        .def("setDesiredStiffness", &RosImpl::setDesiredStiffness)
-        .def("setDesiredDamping", &RosImpl::setDesiredDamping)
-        .def("resetWorld", (bool (RosImpl::*)(const Eigen::Affine3d&)) &RosImpl::resetWorld)
-        .def("resetWorld", (bool (RosImpl::*)(const std::string&))     &RosImpl::resetWorld)
-        .def("setVelocityReference", (bool (RosImpl::*)(const std::string&,
-                                                        const Eigen::Vector6d&))  &RosImpl::setVelocityReference)
-        .def("setVelocityReferenceAsync", &RosImpl::setVelocityReferenceAsync)
-        .def("setVelocityReference", (bool (RosImpl::*)(const std::string&,
+        .def("setPoseReference", &RosClient::setPoseReference)
+        .def("setForceReference", &RosClient::setForceReference)
+        .def("setDesiredStiffness", &RosClient::setDesiredStiffness)
+        .def("setDesiredDamping", &RosClient::setDesiredDamping)
+        .def("resetWorld", (bool (RosClient::*)(const Eigen::Affine3d&)) &RosClient::resetWorld)
+        .def("resetWorld", (bool (RosClient::*)(const std::string&))     &RosClient::resetWorld)
+        .def("setVelocityReference", (bool (RosClient::*)(const std::string&,
+                                                        const Eigen::Vector6d&))  &RosClient::setVelocityReference)
+//        .def("setVelocityReferenceAsync", &RosClient::setVelocityReferenceAsync)
+        .def("setVelocityReference", (bool (RosClient::*)(const std::string&,
                                                         const Eigen::Vector6d&,
-                                                        const std::string&))  &RosImpl::setVelocityReference)
-        .def("stopVelocityReferenceAsync", &RosImpl::stopVelocityReferenceAsync)
+                                                        const std::string&))  &RosClient::setVelocityReference)
+//        .def("stopVelocityReferenceAsync", &RosClient::stopVelocityReferenceAsync)
         .def("getPoseFromTf", py_get_pose_from_tf);
         
     

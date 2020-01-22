@@ -60,7 +60,7 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     //    init_task_info_services();
     //    init_interaction_srvs();
     //    init_task_info_setters();
-    //    init_task_list_service();
+    init_task_list_service();
     //    init_postural_task_topics_and_services();
     //    init_update_param_services();
     init_reset_world_service();
@@ -713,20 +713,9 @@ void RosServerClass::init_load_ros_task_api()
     {
         auto t = _ci->getTask(tname);
 
-        try {
+        auto task_ros = ServerApi::TaskRos::MakeInstance(t, _model);
 
-            auto task_ros = TaskRos::MakeInstance(t, _model);
-
-            _ros_tasks.push_back(task_ros);
-
-        }
-        catch(RosApiNotFound& e)
-        {
-            Logger::warning("%s \n", e.what());
-
-            _ros_tasks.push_back(std::make_shared<TaskRos>(t, _model));
-        }
-
+        _ros_tasks.push_back(task_ros);
     }
 }
 
