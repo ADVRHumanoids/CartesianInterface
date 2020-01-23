@@ -3,6 +3,7 @@
 #include <cartesian_interface/GetCartesianTaskInfo.h>
 #include <cartesian_interface/SetBaseLink.h>
 #include <cartesian_interface/SetControlMode.h>
+#include <cartesian_interface/SetSafetyLimits.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -52,6 +53,8 @@ CartesianRos::CartesianRos(std::string name,
 
     _pose_ref_sub = _nh.subscribe<geometry_msgs::TwistStamped>(name + "/current_velocity_reference", 1,
                                                               on_vref_recv);
+
+    _set_safety_lims_cli = _nh.serviceClient<SetSafetyLimits>(name + "/set_safety_limits");
 }
 
 void CartesianRos::enableOnlineTrajectoryGeneration()
@@ -63,20 +66,56 @@ bool CartesianRos::isSubtaskLocal() const
     return get_task_info().use_body_jacobian;
 }
 
-void CartesianRos::getVelocityLimits(double & max_vel_lin, double & max_vel_ang) const
+void CartesianRos::getVelocityLimits(double & max_vel_lin,
+                                     double & max_vel_ang) const
 {
+    auto info = get_task_info();
+    max_vel_lin = info.max_vel_lin;
+    max_vel_ang = info.max_vel_ang;
 }
 
-void CartesianRos::getAccelerationLimits(double & max_acc_lin, double & max_acc_ang) const
+void CartesianRos::getAccelerationLimits(double & max_acc_lin,
+                                         double & max_acc_ang) const
 {
+    auto info = get_task_info();
+    max_acc_lin = info.max_acc_lin;
+    max_acc_ang = info.max_acc_ang;
 }
 
-void CartesianRos::setVelocityLimits(double max_vel_lin, double max_vel_ang)
+void CartesianRos::setVelocityLimits(double max_vel_lin,
+                                     double max_vel_ang)
 {
+    SetSafetyLimits srv;
+    srv.request.max_vel_lin = max_vel_lin;
+    srv.request.max_vel_ang = max_vel_ang;
+    srv.request.max_acc_lin = -1.0;
+    srv.request.max_acc_ang = -1.0;
+
+    if(!_set_safety_lims_cli.call(srv))
+    {
+        throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                             _set_safety_lims_cli.getService()));
+    }
+
+    ROS_INFO("%s", srv.response.message.c_str());
 }
 
-void CartesianRos::setAccelerationLimits(double max_acc_lin, double max_acc_ang)
+void CartesianRos::setAccelerationLimits(double max_acc_lin,
+                                         double max_acc_ang)
 {
+    SetSafetyLimits srv;
+    srv.request.max_vel_lin = -1.0;
+    srv.request.max_vel_ang = -1.0;
+    srv.request.max_acc_lin = max_acc_lin;
+    srv.request.max_acc_ang = max_acc_ang;
+
+    if(!_set_safety_lims_cli.call(srv))
+    {
+        throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                             _set_safety_lims_cli.getService()));
+    }
+
+    ROS_INFO("%s", srv.response.message.c_str());
 }
 
 State CartesianRos::getTaskState() const
@@ -133,22 +172,26 @@ bool CartesianRos::setControlMode(const ControlType & value)
     return srv.response.success;
 }
 
-bool CartesianRos::getCurrentPose(Eigen::Affine3d & base_T_ee) const
+bool CartesianRos::getCurrentPose(Eigen::Affine3d& base_T_ee) const
 {
 }
 
-bool CartesianRos::getPoseReference(Eigen::Affine3d & base_T_ref, Eigen::Vector6d * base_vel_ref, Eigen::Vector6d * base_acc_ref) const
+bool CartesianRos::getPoseReference(Eigen::Affine3d& base_T_ref,
+                                    Eigen::Vector6d* base_vel_ref,
+                                    Eigen::Vector6d* base_acc_ref) const
 {
     base_T_ref = _Tref;
     if(base_vel_ref) *base_vel_ref = _vref;
     return true;
 }
 
-bool CartesianRos::getPoseReferenceRaw(Eigen::Affine3d & base_T_ref, Eigen::Vector6d * base_vel_ref, Eigen::Vector6d * base_acc_ref) const
+bool CartesianRos::getPoseReferenceRaw(Eigen::Affine3d& base_T_ref, Eigen::Vector6d * base_vel_ref, Eigen::Vector6d * base_acc_ref) const
 {
+    throw std::runtime_error(fmt::format("Unsupported function '{}'",
+                                         __PRETTY_FUNCTION__));
 }
 
-bool CartesianRos::setPoseReference(const Eigen::Affine3d & base_T_ref)
+bool CartesianRos::setPoseReference(const Eigen::Affine3d& base_T_ref)
 {
     geometry_msgs::PoseStamped msg;
     msg.header.stamp = ros::Time::now();
@@ -159,32 +202,66 @@ bool CartesianRos::setPoseReference(const Eigen::Affine3d & base_T_ref)
     return true;
 }
 
-bool CartesianRos::setPoseReferenceRaw(const Eigen::Affine3d & base_T_ref)
+bool CartesianRos::setPoseReferenceRaw(const Eigen::Affine3d& base_T_ref)
 {
+    throw std::runtime_error(fmt::format("Unsupported function '{}'",
+                                         __PRETTY_FUNCTION__));
 }
 
-bool CartesianRos::setVelocityReference(const Eigen::Vector6d & base_vel_ref)
+bool CartesianRos::setVelocityReference(const Eigen::Vector6d& base_vel_ref)
 {
+    geometry_msgs::TwistStamped msg;
+    msg.header.frame_id = "";
+    msg.header.stamp = ros::Time::now();
+    tf::twistEigenToMsg(base_vel_ref, msg.twist);
+    _vel_ref_pub.publish(msg);
+
+    return true;
 }
 
-bool CartesianRos::getPoseTarget(Eigen::Affine3d & base_T_ref) const
+bool CartesianRos::getPoseTarget(Eigen::Affine3d& base_T_ref) const
 {
+    throw std::runtime_error(fmt::format("Unsupported function '{}'",
+                                         __PRETTY_FUNCTION__));
 }
 
-bool CartesianRos::setPoseTarget(const Eigen::Affine3d & base_T_ref, double time)
+bool CartesianRos::setPoseTarget(const Eigen::Affine3d& base_T_ref,
+                                 double time)
 {
+    Trajectory::WayPoint wp;
+    wp.time = time;
+    wp.frame = base_T_ref;
+
+    return setWayPoints({wp});
 }
 
 int CartesianRos::getCurrentSegmentId() const
 {
+    return _current_segment_idx;
 }
 
-bool CartesianRos::setWayPoints(const Trajectory::WayPointVector & way_points)
+bool CartesianRos::setWayPoints(const Trajectory::WayPointVector& way_points)
+{
+    return setWayPoints(way_points, false);
+}
+
+void CartesianRos::abort()
+{
+    _action_cli.cancelAllGoals();
+}
+
+bool CartesianRos::waitReachCompleted(double timeout)
+{
+    return _action_cli.waitForResult(ros::Duration(timeout));
+}
+
+bool CartesianRos::setWayPoints(const Trajectory::WayPointVector& way_points,
+                                bool incremental)
 {
     cartesian_interface::ReachPoseGoal goal;
-    goal.incremental = false;
+    goal.incremental = incremental;
 
-    for(auto f : way_points)
+    for(const auto& f : way_points)
     {
         geometry_msgs::Pose frame;
         tf::poseEigenToMsg(f.frame, frame);
@@ -199,22 +276,31 @@ bool CartesianRos::setWayPoints(const Trajectory::WayPointVector & way_points)
 //                                             _nh.resolveName(getName() + "/reach")));
 //    }
 
-    _action_cli.sendGoal(goal);
+    _action_cli.sendGoal(goal,
+                         boost::bind(&CartesianRos::on_action_done, this, _1, _2),
+                         boost::bind(&CartesianRos::on_action_active, this),
+                         boost::bind(&CartesianRos::on_reach_feedback_recv, this, _1));
     return true;
-}
-
-void CartesianRos::abort()
-{
-    _action_cli.cancelAllGoals();
-}
-
-bool CartesianRos::waitReachCompleted(double timeout)
-{
-    return _action_cli.waitForResult(ros::Duration(timeout));
 }
 
 GetCartesianTaskInfoResponse CartesianRos::get_task_info() const
 {
+    if(asyncMode())
+    {
+        GetCartesianTaskInfoResponse res;
+        res.base_link         = _info.base_link        ;
+        res.distal_link       = _info.distal_link      ;
+        res.control_mode      = _info.control_mode     ;
+        res.state             = _info.state            ;
+        res.use_body_jacobian = _info.use_body_jacobian;
+        res.max_vel_lin       = _info.max_vel_lin      ;
+        res.max_vel_ang       = _info.max_vel_ang      ;
+        res.max_acc_lin       = _info.max_acc_lin      ;
+        res.max_acc_ang       = _info.max_acc_ang      ;
+
+        return res;
+    }
+
     cartesian_interface::GetCartesianTaskInfo srv;
     if(!_cart_info_cli.call(srv))
     {
@@ -223,4 +309,24 @@ GetCartesianTaskInfoResponse CartesianRos::get_task_info() const
     }
 
     return srv.response;
+}
+
+void CartesianRos::on_reach_feedback_recv(const ReachPoseFeedbackConstPtr & feedback)
+{
+    _current_segment_idx = feedback->current_segment_id;
+}
+
+void CartesianRos::on_action_active()
+{
+    ROS_INFO("Reach action for task '%s' has become active",
+             getName().c_str());
+}
+
+void CartesianRos::on_action_done(const actionlib::SimpleClientGoalState & state,
+                                  const ReachPoseResultConstPtr & result)
+{
+    ROS_INFO("Reach action for task '%s' has been completed",
+             getName().c_str());
+
+    _current_segment_idx = -1;
 }

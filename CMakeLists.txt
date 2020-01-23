@@ -44,6 +44,7 @@ add_message_files(
     Impedance6.msg
     JoystickStatus.msg
     TaskInfo.msg
+    CartesianTaskInfo.msg
     )
 
 # Generate services in the 'srv' folder

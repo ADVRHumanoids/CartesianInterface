@@ -52,7 +52,7 @@ auto py_send_waypoints(RosClient& r,
                        bool incremental = false
                       )
 {
-    return false; //r.setWayPoints(ee, wpv, incremental);
+    return r.setWayPoints(ee, wpv, incremental);
 }
     
 auto py_send_target_pose(RosClient& r,
@@ -62,7 +62,10 @@ auto py_send_target_pose(RosClient& r,
                          bool incremental
                         )
 {
-    return false; //r.setTargetPose(ee, T, time, incremental);
+    Trajectory::WayPoint wp;
+    wp.time = time;
+    wp.frame = T;
+    return r.setWayPoints(ee, {wp}, incremental);
 }
 
 auto py_get_velocity_limits(RosClient& r, const std::string& ee)

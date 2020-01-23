@@ -5,6 +5,7 @@
 #include "TaskRos.h"
 
 #include <cartesian_interface/GetCartesianTaskInfo.h>
+#include <cartesian_interface/CartesianTaskInfo.h>
 
 #include <actionlib/client/simple_action_client.h>
 #include <cartesian_interface/ReachPoseAction.h>
@@ -13,17 +14,19 @@ namespace XBot { namespace Cartesian {
 
 namespace ClientApi
 {
-    class CartesianRos;
+class CartesianRos;
 }
 
 class ClientApi::CartesianRos : virtual public CartesianTask,
-                                public ClientApi::TaskRos
+        public ClientApi::TaskRos
 {
 
 
 
     // CartesianTask interface
 public:
+
+    CARTESIO_DECLARE_SMART_PTR(CartesianRos)
 
     CartesianRos(std::string name,
                  ros::NodeHandle nh);
@@ -54,7 +57,14 @@ public:
 
     bool waitReachCompleted(double timeout);
 
+    bool setWayPoints(const Trajectory::WayPointVector& way_points,
+                      bool incremental
+                      );
+
 private:
+
+    typedef cartesian_interface::ReachPoseAction ActionType;
+    typedef actionlib::SimpleActionClient<ActionType> ActionClient;
 
     cartesian_interface::GetCartesianTaskInfoResponse get_task_info() const;
 
@@ -62,16 +72,27 @@ private:
     ros::Publisher _vel_ref_pub;
     ros::Subscriber _pose_ref_sub;
     ros::Subscriber _vel_ref_sub;
-    mutable ros::ServiceClient _set_base_link_cli;
-    mutable ros::ServiceClient _set_ctrl_mode_cli;
+    ros::ServiceClient _set_safety_lims_cli;
+    ros::ServiceClient _set_base_link_cli;
+    ros::ServiceClient _set_ctrl_mode_cli;
     mutable ros::ServiceClient _cart_info_cli;
 
     Eigen::Affine3d _Tref;
     Eigen::Vector6d _vref;
 
-    actionlib::SimpleActionClient<cartesian_interface::ReachPoseAction> _action_cli;
+    ActionClient _action_cli;
+    int _current_segment_idx;
 
     mutable std::string _base_link, _distal_link;
+
+    cartesian_interface::CartesianTaskInfo _info;
+
+    void on_reach_feedback_recv(const cartesian_interface::ReachPoseFeedbackConstPtr& feedback);
+
+    void on_action_active();
+
+    void on_action_done(const actionlib::SimpleClientGoalState& state,
+                        const cartesian_interface::ReachPoseResultConstPtr& result);
 
 
 };

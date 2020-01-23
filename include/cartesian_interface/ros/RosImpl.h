@@ -22,69 +22,72 @@
 
 namespace XBot { namespace Cartesian {
 
-    struct RosInitializer
-    {
-        RosInitializer(std::string ns);
+struct RosInitializer
+{
+    RosInitializer(std::string ns);
 
-        ros::NodeHandle& nh();
-        void callAvailable();
+    ros::NodeHandle& nh();
+    void callAvailable();
 
-    private:
+private:
 
-        ros::CallbackQueue _queue;
-        std::unique_ptr<ros::NodeHandle> _nh;
-    };
-    
-    class RosClient : public CartesianInterfaceImpl,
-            private virtual RosInitializer
-    {
-        
-    public:
-        
-        friend std::ostream& operator<<(std::ostream& os, const RosClient& r);
-        
-        RosClient(std::string ns = "cartesian");
+    ros::CallbackQueue _queue;
+    std::unique_ptr<ros::NodeHandle> _nh;
+};
 
-//        void set_async_mode(bool async);
-        
-//        virtual bool reset();
+class RosClient : public CartesianInterfaceImpl,
+        private virtual RosInitializer
+{
 
-//        bool setVelocityReference(const std::string& end_effector,
-//                                  const Eigen::Vector6d& base_vel_ref,
-//                                  const std::string& base_frame);
-                            
-//        virtual bool resetWorld(const Eigen::Affine3d& w_T_new_world);
-//        bool resetWorld(const std::string& ee_name);
-//        bool setWayPoints(const std::string& end_effector,
-//                                  const Trajectory::WayPointVector& way_points,
-//                                  bool incremental
-//                                 );
-//        virtual bool reset(double time);
+public:
 
-        void loadController(const std::string& controller_name,
-                            const std::string& problem_description_name = "",
-                            const std::string& problem_description_string = "",
-                            const bool force_reload = true);
+    friend std::ostream& operator<<(std::ostream& os, const RosClient& r);
 
-        bool waitReachCompleted(const std::string& ee_name, double timeout_sec = 0);
+    RosClient(std::string ns = "cartesian");
 
-//        virtual bool abort(const std::string& end_effector);
+    //        void set_async_mode(bool async);
 
-        virtual bool update(double time, double period);
+    //        virtual bool reset();
 
-        bool getPoseFromTf(const std::string& source_frame,
-                           const std::string& target_frame,
-                           Eigen::Affine3d& t_T_s);
-            
+    //        bool setVelocityReference(const std::string& end_effector,
+    //                                  const Eigen::Vector6d& base_vel_ref,
+    //                                  const std::string& base_frame);
 
-    private:
+    //        virtual bool resetWorld(const Eigen::Affine3d& w_T_new_world);
+    //        bool resetWorld(const std::string& ee_name);
 
-        tf::TransformListener _listener;
-        ros::ServiceClient _load_ctrl_srv;
-        
-    };
+    bool setWayPoints(const std::string& end_effector,
+                      const Trajectory::WayPointVector& way_points,
+                      bool incremental
+                      );
 
-    std::ostream& operator<<(std::ostream& os, const RosClient& r);
+    //        virtual bool reset(double time);
+
+    void loadController(const std::string& controller_name,
+                        const std::string& problem_description_name = "",
+                        const std::string& problem_description_string = "",
+                        const bool force_reload = true);
+
+    bool waitReachCompleted(const std::string& ee_name, double timeout_sec = 0);
+
+    //        virtual bool abort(const std::string& end_effector);
+
+    virtual bool update(double time, double period);
+
+    bool getPoseFromTf(const std::string& source_frame,
+                       const std::string& target_frame,
+                       Eigen::Affine3d& t_T_s);
+
+
+private:
+
+    tf::TransformListener _listener;
+    ros::ServiceClient _load_ctrl_srv;
+
+
+};
+
+std::ostream& operator<<(std::ostream& os, const RosClient& r);
 
 } }
 

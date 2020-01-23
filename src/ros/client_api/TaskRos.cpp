@@ -199,6 +199,16 @@ void TaskRos::registerObserver(TaskObserver::WeakPtr obs)
 {
 }
 
+void TaskRos::setAsyncMode(bool is_async)
+{
+    _async = is_async;
+}
+
+bool TaskRos::asyncMode() const
+{
+    return _async;
+}
+
 TaskDescription::Ptr TaskRos::MakeInstance(std::string name,
                                            std::string type,
                                            ros::NodeHandle nh)
@@ -219,6 +229,21 @@ TaskDescription::Ptr TaskRos::MakeInstance(std::string name,
 
 cartesian_interface::GetTaskInfoResponse TaskRos::get_task_info() const
 {
+    if(asyncMode())
+    {
+        cartesian_interface::GetTaskInfoResponse res;
+        res.name = _info.name;
+        res.size = _info.size;
+        res.type = _info.type;
+        res.lambda = _info.lambda;
+        res.weight = _info.weight;
+        res.indices = _info.indices;
+        res.disabled_joints = _info.disabled_joints;
+        res.activation_state = _info.activation_state;
+
+        return res;
+    }
+
     cartesian_interface::GetTaskInfo srv;
     if(!_task_prop_cli.call(srv))
     {
@@ -228,4 +253,9 @@ cartesian_interface::GetTaskInfoResponse TaskRos::get_task_info() const
 
     return srv.response;
 
+}
+
+void TaskRos::on_task_info_recv(cartesian_interface::TaskInfoConstPtr msg)
+{
+    _info = *msg;
 }

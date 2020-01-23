@@ -108,6 +108,17 @@ RosClient::RosClient(std::string ns):
     _load_ctrl_srv = nh().serviceClient<LoadController>("load_controller");
 }
 
+bool RosClient::setWayPoints(const std::string& end_effector,
+                             const Trajectory::WayPointVector& way_points,
+                             bool incremental)
+{
+    auto cart_ros = std::dynamic_pointer_cast<ClientApi::CartesianRos>(getTask(end_effector));
+
+    if(!cart_ros) return false;
+
+    return cart_ros->setWayPoints(way_points, incremental);
+}
+
 bool XBot::Cartesian::RosClient::getPoseFromTf(const std::string& source_frame,
                                                const std::string& target_frame,
                                                Eigen::Affine3d& t_T_s)

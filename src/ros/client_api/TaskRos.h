@@ -5,6 +5,7 @@
 #include <ros/ros.h>
 
 #include <cartesian_interface/GetTaskInfo.h>
+#include <cartesian_interface/TaskInfo.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -59,6 +60,9 @@ public:
 
     void registerObserver(TaskObserver::WeakPtr obs) override;
 
+    void setAsyncMode(bool is_async);
+    bool asyncMode() const;
+
     static Ptr MakeInstance(std::string name,
                             std::string type,
                             ros::NodeHandle nh);
@@ -70,6 +74,8 @@ protected:
 private:
 
     cartesian_interface::GetTaskInfoResponse get_task_info() const;
+
+    void on_task_info_recv(cartesian_interface::TaskInfoConstPtr msg);
 
     bool _async_update;
 
@@ -86,9 +92,15 @@ private:
     std::list<TaskObserver::WeakPtr> _observers;
 
     mutable ros::ServiceClient _task_prop_cli;
-    mutable ros::ServiceClient _set_weight_cli;
-    mutable ros::ServiceClient _set_lambda_cli;
-    mutable ros::ServiceClient _activate_cli;
+    ros::ServiceClient _set_weight_cli;
+    ros::ServiceClient _set_lambda_cli;
+    ros::ServiceClient _activate_cli;
+
+    cartesian_interface::TaskInfo _info;
+
+    mutable
+
+    bool _async;
 
 };
 

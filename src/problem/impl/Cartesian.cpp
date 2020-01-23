@@ -31,6 +31,7 @@ CartesianTaskImpl::CartesianTaskImpl(ModelInterface::ConstPtr model,
 
 namespace
 {
+
 std::string get_name(YAML::Node task_node)
 {
     if(task_node["type"].as<std::string>() == "Com")
@@ -57,6 +58,7 @@ int get_size(YAML::Node task_node)
     
     return 6;
 }
+
 }
 
 CartesianTaskImpl::CartesianTaskImpl(YAML::Node task_node, ModelInterface::ConstPtr model):
