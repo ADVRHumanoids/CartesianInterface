@@ -14,7 +14,8 @@ using namespace XBot::Cartesian::ClientApi;
 TaskRos::TaskRos(std::string name,
                  ros::NodeHandle nh):
     _nh(nh),
-    _name(name)
+    _name(name),
+    _async(false)
 {
     _task_prop_cli = _nh.serviceClient<cartesian_interface::GetTaskInfo>(name + "/get_task_properties");
     if(!_task_prop_cli.waitForExistence(ros::Duration(1.0)) || !_task_prop_cli.exists())

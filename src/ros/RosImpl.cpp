@@ -108,6 +108,17 @@ RosClient::RosClient(std::string ns):
     _load_ctrl_srv = nh().serviceClient<LoadController>("load_controller");
 }
 
+void RosClient::set_async_mode(bool async)
+{
+    for(auto t : getTaskList())
+    {
+        if(auto tros = std::dynamic_pointer_cast<ClientApi::TaskRos>(getTask(t)))
+        {
+            tros->setAsyncMode(async);
+        }
+    }
+}
+
 bool RosClient::setWayPoints(const std::string& end_effector,
                              const Trajectory::WayPointVector& way_points,
                              bool incremental)

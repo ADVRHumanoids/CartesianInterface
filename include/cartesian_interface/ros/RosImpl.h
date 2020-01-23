@@ -45,7 +45,7 @@ public:
 
     RosClient(std::string ns = "cartesian");
 
-    //        void set_async_mode(bool async);
+    void set_async_mode(bool async);
 
     //        virtual bool reset();
 

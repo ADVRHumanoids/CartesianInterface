@@ -44,6 +44,7 @@ CartesianMarker::CartesianMarker(const std::string& task_name,
     _use_mesh(use_mesh)
 {
     _task = std::make_shared<ClientApi::CartesianRos>(task_name, _nh);
+
     _distal_link = _task->getDistalLink();
     _base_link = _task->getBaseLink();
 
@@ -58,8 +59,10 @@ CartesianMarker::CartesianMarker(const std::string& task_name,
 
     _server.applyChanges();
 
-    _clear_service = _nh.advertiseService(_int_marker.name + "/clear_marker", &CartesianMarker::clearMarker, this);
-    _spawn_service = _nh.advertiseService(_int_marker.name + "/spawn_marker", &CartesianMarker::spawnMarker, this);
+    _clear_service = _nh.advertiseService(_int_marker.name + "/clear_marker",
+                                          &CartesianMarker::clearMarker, this);
+    _spawn_service = _nh.advertiseService(_int_marker.name + "/spawn_marker",
+                                          &CartesianMarker::spawnMarker, this);
 
 
     std::string topic_name = task_name + "/wp";
