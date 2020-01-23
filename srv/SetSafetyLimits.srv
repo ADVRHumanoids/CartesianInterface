@@ -1,0 +1,7 @@
+float32 max_vel_lin
+float32 max_vel_ang
+float32 max_acc_lin
+float32 max_acc_ang
+---
+bool success
+string message

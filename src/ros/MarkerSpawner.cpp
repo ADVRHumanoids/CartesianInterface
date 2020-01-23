@@ -96,11 +96,13 @@ bool reset_callback(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& re
 
 void construct_markers(ros::NodeHandle nh, MarkerMap& markers)
 {
+    markers.clear();
+
     /* Get task list from cartesian server */
     ros::ServiceClient task_list_client = nh.serviceClient<cartesian_interface::GetTaskList>("get_task_list");
-    cartesian_interface::GetTaskListRequest req;
-    cartesian_interface::GetTaskListResponse res;
     task_list_client.waitForExistence();
+    cartesian_interface::GetTaskListRequest  req;
+    cartesian_interface::GetTaskListResponse res;
     Logger::info(Logger::Severity::HIGH, "Marker spawner: retrieving task list\n");
     if(!task_list_client.call(req, res))
     {
@@ -113,38 +115,39 @@ void construct_markers(ros::NodeHandle nh, MarkerMap& markers)
     robot_urdf.initString(robot_urdf_string);
 
 
-    for(int i = 0; i < res.distal_links.size(); i++)
+    for(int i = 0; i < res.names.size(); i++)
     {
-        std::string ee_name = res.distal_links[i];
-        std::string base_link = res.base_links[i];
         unsigned int control_type;
         bool use_mesh = true;
         
-        if(ee_name == "com" || ee_name == "gaze")
+        if(res.types[i] == "Com" || res.types[i] == "Gaze")
         {
             control_type = visualization_msgs::InteractiveMarkerControl::MOVE_3D;
             use_mesh = false;
         }
-        else
+        else if(res.types[i] == "Cartesian" || res.types[i] == "Interaction")
         {
             control_type = visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D;
         }
+        else
+        {
+            continue;
+        }
         
-        base_link = base_link == "world" ? "world_odom" : base_link;
-        auto marker = std::make_shared<CartesianMarker>(base_link,
-                                                   ee_name,
-                                                   robot_urdf,
-                                                   control_type,
-                                                   nh,
-                                                   g_tf_prefix_slash,
-                                                   use_mesh
-                                                  );
+        ros::spinOnce();
+        auto marker = std::make_shared<CartesianMarker>(res.names[i],
+                                                        robot_urdf,
+                                                        control_type,
+                                                        nh,
+                                                        g_tf_prefix_slash,
+                                                        use_mesh
+                                                        );
         
-        markers[ee_name] = marker;
+        markers[res.names[i]] = marker;
     }
     
 
     
-   
+
 }
 

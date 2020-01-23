@@ -65,13 +65,19 @@ CartesianRos::CartesianRos(CartesianTask::Ptr cart_task,
     _set_ctrl_srv = _ctx.nh().advertiseService(_task->getName() + "/set_control_mode",
                                                &CartesianRos::set_control_mode_cb, this);
 
+    _set_safety_srv = _ctx.nh().advertiseService(_task->getName() + "/set_safety_limits",
+                                                 &CartesianRos::set_safety_lims_cb, this);
+
     _get_info_srv = _ctx.nh().advertiseService(_task->getName() + "/get_cartesian_task_properties",
                                                &CartesianRos::get_task_info_cb, this);
+
 }
 
 void CartesianRos::run(ros::Time time)
 {
     TaskRos::run(time);
+
+    _reach_action_manager->run();
 
     publish_ref(time);
 }
@@ -152,6 +158,12 @@ bool CartesianRos::get_task_info_cb(cartesian_interface::GetCartesianTaskInfoReq
     res.control_mode = EnumToString(_cart->getControlMode());
     res.use_body_jacobian = _cart->isSubtaskLocal();
 
+    _cart->getVelocityLimits(res.max_vel_lin,
+                             res.max_vel_ang);
+
+    _cart->getAccelerationLimits(res.max_acc_lin,
+                                 res.max_acc_ang);
+
     return true;
 }
 
@@ -196,6 +208,34 @@ bool CartesianRos::set_control_mode_cb(cartesian_interface::SetControlModeReques
     return true;
 }
 
+bool CartesianRos::set_safety_lims_cb(cartesian_interface::SetSafetyLimitsRequest & req,
+                                      cartesian_interface::SetSafetyLimitsResponse & res)
+{
+    double lin, ang;
+    _cart->getVelocityLimits(lin, ang);
+
+    if(req.max_vel_lin > 0) lin = req.max_vel_lin;
+    if(req.max_vel_ang > 0) ang = req.max_vel_ang;
+
+    _cart->setVelocityLimits(lin, ang);
+
+    res.message = fmt::format("Successfully set velocity limits to {}/{}, ",
+                              lin, ang);
+
+    _cart->getAccelerationLimits(lin, ang);
+
+    if(req.max_acc_lin > 0) lin = req.max_acc_lin;
+    if(req.max_acc_ang > 0) ang = req.max_acc_ang;
+
+    res.message += fmt::format("acceleration limits to {}/{} (linear/angular)",
+                               lin, ang);
+
+    _cart->setAccelerationLimits(lin, ang);
+
+    res.success = true;
+    return true;
+}
+
 ReachActionManager::ReachActionManager(ros::NodeHandle nh,
                                        std::string task_name,
                                        CartesianTask::Ptr task):
@@ -234,18 +274,24 @@ void ReachActionManager::run_state_idle()
     if(_action_server->isNewGoalAvailable())
     {
         Logger::info(Logger::Severity::HIGH,
-                     "Accepted new goal for task '%s'\n", _name.c_str());
+                     "Received new goal for task '%s'\n", _name.c_str());
 
         // obtain new goal
         auto goal = _action_server->acceptNewGoal();
 
         // check consistency
-        if(goal->frames.size() != goal->time.size())
+        if(goal->frames.size() != goal->time.size() || goal->frames.size() == 0)
         {
             _action_server->setAborted(cartesian_interface::ReachPoseResult(),
-                                       "Time and frame size must match");
+                                       "Time and frame size must match and not be empty");
+
+            Logger::error("Invalid goal received for task '%s' \n", _name.c_str());
+
             return; // next state is 'idle'
         }
+
+        Logger::info(Logger::Severity::HIGH,
+                     "Accepted new goal for task '%s'\n", _name.c_str());
 
         // get current state for task (note: should it be getPoseReference instead?)
         Eigen::Affine3d base_T_ee;

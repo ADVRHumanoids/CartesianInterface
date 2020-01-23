@@ -49,6 +49,7 @@ RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
     _nh.setCallbackQueue(&_cbk_queue);
 
     _ros_ctx = RosContext::MakeContext(_nh, _tf_prefix);
+    _tf_prefix_slash = _ros_ctx->tf_prefix_slash();
 
 
     //    init_online_pos_topics();

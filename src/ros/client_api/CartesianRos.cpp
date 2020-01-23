@@ -13,13 +13,20 @@ using namespace cartesian_interface;
 
 CartesianRos::CartesianRos(std::string name,
                            ros::NodeHandle nh):
-    TaskRos(name, nh)
+    TaskRos(name, nh),
+    _action_cli(nh, name + "/reach", false)
 {
     _cart_info_cli = _nh.serviceClient<GetCartesianTaskInfo>(name + "/get_cartesian_task_properties");
     if(!_cart_info_cli.waitForExistence(ros::Duration(1.0)) || !_cart_info_cli.exists())
     {
         throw std::runtime_error(fmt::format("Non existent service '{}'",
                                              _cart_info_cli.getService()));
+    }
+
+    if(!_action_cli.isServerConnected())
+    {
+//        throw std::runtime_error(fmt::format("Unable to reach action server '{}'",
+//                                             nh.resolveName(name + "/reach")));
     }
 
     _set_base_link_cli = _nh.serviceClient<SetBaseLink>(name + "/set_base_link");
@@ -174,15 +181,36 @@ int CartesianRos::getCurrentSegmentId() const
 
 bool CartesianRos::setWayPoints(const Trajectory::WayPointVector & way_points)
 {
+    cartesian_interface::ReachPoseGoal goal;
+    goal.incremental = false;
+
+    for(auto f : way_points)
+    {
+        geometry_msgs::Pose frame;
+        tf::poseEigenToMsg(f.frame, frame);
+
+        goal.frames.push_back(frame);
+        goal.time.push_back(f.time);
+    }
+
+//    if(!_action_cli.waitForServer(ros::Duration(2.0)))
+//    {
+//        throw std::runtime_error(fmt::format("Unable to reach action server '{}'",
+//                                             _nh.resolveName(getName() + "/reach")));
+//    }
+
+    _action_cli.sendGoal(goal);
+    return true;
 }
 
 void CartesianRos::abort()
 {
+    _action_cli.cancelAllGoals();
 }
 
-bool CartesianRos::waitReachCompleted()
+bool CartesianRos::waitReachCompleted(double timeout)
 {
-
+    return _action_cli.waitForResult(ros::Duration(timeout));
 }
 
 GetCartesianTaskInfoResponse CartesianRos::get_task_info() const

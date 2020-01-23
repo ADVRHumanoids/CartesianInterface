@@ -13,6 +13,7 @@
 #include <cartesian_interface/GetCartesianTaskInfo.h>
 #include <cartesian_interface/SetBaseLink.h>
 #include <cartesian_interface/SetControlMode.h>
+#include <cartesian_interface/SetSafetyLimits.h>
 
 
 namespace XBot { namespace Cartesian {
@@ -81,11 +82,14 @@ private:
     bool set_control_mode_cb(cartesian_interface::SetControlModeRequest& req,
                              cartesian_interface::SetControlModeResponse& res);
 
+    bool set_safety_lims_cb(cartesian_interface::SetSafetyLimitsRequest& req,
+                             cartesian_interface::SetSafetyLimitsResponse& res);
+
 
 
     ros::Publisher _pose_ref_pub, _vel_ref_pub;
     ros::Subscriber _pose_ref_sub, _vel_ref_sub;
-    ros::ServiceServer _get_info_srv, _set_base_link_srv, _set_ctrl_srv;
+    ros::ServiceServer _get_info_srv, _set_base_link_srv, _set_ctrl_srv, _set_safety_srv;
 
     CartesianTask::Ptr _cart;
 

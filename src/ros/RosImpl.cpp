@@ -510,7 +510,7 @@ bool RosClient::waitReachCompleted(const std::string & ee_name, double timeout_s
 
     if(!cart_ros) return false;
 
-    return cart_ros->waitReachCompleted();
+    return cart_ros->waitReachCompleted(timeout_sec);
 }
 
 

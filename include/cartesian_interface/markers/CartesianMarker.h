@@ -13,6 +13,9 @@
 #include <cartesian_interface/ReachPoseAction.h>
 #include <actionlib/client/simple_action_client.h>
 
+#include <cartesian_interface/problem/Cartesian.h>
+
+
 namespace urdf {
     typedef  boost::shared_ptr<Link> LinkSharedPtr;
     typedef  boost::shared_ptr<const Link> LinkConstSharedPtr;
@@ -25,7 +28,9 @@ namespace urdf {
 
 namespace XBot { namespace Cartesian {
 
-class CartesianMarker{
+
+class CartesianMarker
+{
     
 public:
     
@@ -43,17 +48,16 @@ public:
      * @param tf_prefix
      * @param use_mesh, if false sphere is used
      */
-    CartesianMarker(const std::string& base_link, 
-                    const std::string& distal_link,
+    CartesianMarker(const std::string& task_name,
                     const urdf::Model& robot_urdf,
                     const unsigned int control_type,
                     std::string tf_prefix = "",
                     const bool use_mesh = true);
-    CartesianMarker(const std::string& base_link,
-                    const std::string& distal_link,
+
+    CartesianMarker(const std::string& task_name,
                     const urdf::Model& robot_urdf,
                     const unsigned int control_type,
-                    ros::NodeHandle& nh,
+                    ros::NodeHandle nh,
                     std::string tf_prefix = "",
                     const bool use_mesh = true);
     
@@ -99,6 +103,9 @@ public:
 
 
 private:
+
+    CartesianTask::Ptr _task;
+
     /**
      * @brief _nh
      */
@@ -174,12 +181,8 @@ private:
     tf::TransformListener _listener;
     tf::StampedTransform _transform;
     
-    ros::Publisher _ref_pose_pub;
-
     ros::ServiceServer _clear_service;
     ros::ServiceServer _spawn_service;
-    ros::ServiceClient _set_properties_service_client;
-    ros::ServiceClient _get_properties_service_client;
 //    ros::ServiceServer _global_service;
 //    ros::ServiceServer _local_service;
 
@@ -189,7 +192,6 @@ private:
      * @brief _waypoints contains all the waypoints BUT not the initial position!
      */
     std::vector<geometry_msgs::Pose> _waypoints;
-    actionlib::SimpleActionClient<cartesian_interface::ReachPoseAction> _waypoint_action_client;
     /**
      * @brief _T contains the times of each waypoint-trajectory
      */

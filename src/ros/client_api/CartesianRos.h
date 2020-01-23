@@ -6,6 +6,9 @@
 
 #include <cartesian_interface/GetCartesianTaskInfo.h>
 
+#include <actionlib/client/simple_action_client.h>
+#include <cartesian_interface/ReachPoseAction.h>
+
 namespace XBot { namespace Cartesian {
 
 namespace ClientApi
@@ -49,7 +52,7 @@ public:
     bool setWayPoints(const Trajectory::WayPointVector & way_points) override;
     void abort() override;
 
-    bool waitReachCompleted();
+    bool waitReachCompleted(double timeout);
 
 private:
 
@@ -66,7 +69,10 @@ private:
     Eigen::Affine3d _Tref;
     Eigen::Vector6d _vref;
 
+    actionlib::SimpleActionClient<cartesian_interface::ReachPoseAction> _action_cli;
+
     mutable std::string _base_link, _distal_link;
+
 
 };
 
