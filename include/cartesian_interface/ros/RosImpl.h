@@ -3,19 +3,9 @@
 
 #include <string>
 #include <vector>
-#include <mutex>
 
 #include <ros/ros.h>
-#include <ros/callback_queue.h>
-#include <actionlib/client/simple_action_client.h>
-#include <actionlib/client/terminal_state.h>
-#include <cartesian_interface/ReachPoseAction.h>
-#include <geometry_msgs/TwistStamped.h>
-#include <eigen_conversions/eigen_msg.h>
-#include <cartesian_interface/TaskInfo.h>
-
 #include <tf/transform_listener.h>
-#include <tf_conversions/tf_eigen.h>
 
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 

@@ -1,5 +1,4 @@
-#include <cartesian_interface/utils/LockfreeBufferImpl.h>
-#include "rt/TaskRt.h"
+#include "LockfreeBufferImpl.h"
 
 #define NOT_IMPL throw std::runtime_error(__PRETTY_FUNCTION__ + std::string(" not implemented"))
 

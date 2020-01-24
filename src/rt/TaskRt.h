@@ -2,7 +2,7 @@
 #define TASKRT_H
 
 #include <cartesian_interface/problem/Task.h>
-#include <cartesian_interface/utils/boost/spsc_queue_ci.hpp>
+#include "utils/boost/spsc_queue_ci.hpp"
 #include "problem/impl/Task.h"
 
 namespace XBot { namespace Cartesian {

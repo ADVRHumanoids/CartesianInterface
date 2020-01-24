@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <gtest/gtest.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
-#include <cartesian_interface/utils/LoadObject.hpp>
+#include "utils/DynamicLoading.h"
 
 
 using namespace XBot::Cartesian;
@@ -78,9 +78,9 @@ protected:
             throw std::runtime_error("libCartesian" + impl_name + ".so must be listed inside LD_LIBRARY_PATH");
         }
         
-        ci = Utils::LoadObject<CartesianInterfaceImpl>(path_to_shared_lib,
-                                                       "create_instance",
-                                                       model, ik_problem);
+        ci.reset( CallFunction<CartesianInterfaceImpl*>(path_to_shared_lib,
+                                                        "create_instance",
+                                                        model, ik_problem) );
 
     }
 

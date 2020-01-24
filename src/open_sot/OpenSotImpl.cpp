@@ -2,12 +2,13 @@
 
 #include <cartesian_interface/problem/ProblemDescription.h>
 #include <cartesian_interface/problem/Task.h>
-#include <cartesian_interface/utils/LoadObject.hpp>
 #include <boost/make_shared.hpp>
 #include <OpenSoT/constraints/TaskToConstraint.h>
 #include <OpenSoT/solvers/eHQP.h>
 #include <OpenSoT/solvers/iHQP.h>
 #include <OpenSoT/solvers/nHQP.h>
+
+#include "utils/DynamicLoading.h"
 
 #include "task_adapters/OpenSotTask.h"
 

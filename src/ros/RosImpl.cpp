@@ -4,6 +4,7 @@
 #include <cartesian_interface/GetTaskList.h>
 #include <sensor_msgs/JointState.h>
 #include <geometry_msgs/WrenchStamped.h>
+#include <tf_conversions/tf_eigen.h>
 #include <std_srvs/Trigger.h>
 
 #include "fmt/format.h"

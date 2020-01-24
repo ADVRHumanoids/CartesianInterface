@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <gtest/gtest.h>
 
-#include <cartesian_interface/utils/LockfreeBufferImpl.h>
-#include <cartesian_interface/utils/LoadObject.hpp>
+#include "utils/LockfreeBufferImpl.h"
+#include "utils/DynamicLoading.h"
 
 #include "testutils.h"
 
@@ -59,9 +59,9 @@ class TestRt: public ::testing::Test
             throw std::runtime_error("libCartesian" + impl_name + ".so must be listed inside LD_LIBRARY_PATH");
         }
 
-        ci_rt = Utils::LoadObject<CartesianInterfaceImpl>(path_to_shared_lib,
-                                                       "create_instance",
-                                                       model, ik_problem);
+        ci_rt.reset( CallFunction<CartesianInterfaceImpl*>(path_to_shared_lib,
+                                                           "create_instance",
+                                                           model, ik_problem) );
 
 
         auto model_lf = XBot::ModelInterface::getModel(opt);
