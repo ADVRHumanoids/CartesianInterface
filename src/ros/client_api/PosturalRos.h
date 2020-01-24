@@ -34,7 +34,7 @@ private:
 
     void on_current_ref_recv(sensor_msgs::JointStateConstPtr msg);
 
-    ros::Publisher _ref_pub;
+    ros::Publisher  _ref_pub;
     ros::Subscriber _current_ref_sub;
 
     JointNameMap _current_ref;
