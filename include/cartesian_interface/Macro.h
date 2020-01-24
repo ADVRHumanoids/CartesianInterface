@@ -7,5 +7,11 @@
     typedef std::weak_ptr<Class> WeakPtr; \
     typedef std::unique_ptr<Class> UniquePtr; \
 
+#define NOTIFY_OBSERVERS(FieldName) \
+    for(auto obs_weak: _observers) \
+    { \
+        if(auto obs = obs_weak.lock()) obs->on##FieldName##Changed(); \
+    }
+
 
 #endif // MACRO_H

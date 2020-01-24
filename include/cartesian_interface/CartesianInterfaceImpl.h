@@ -143,9 +143,6 @@ public:
     virtual TaskDescription::Ptr getTask(const std::string& task_name);
 
     ~CartesianInterfaceImpl();
-
-    /* New API 2020 */
-
     
 protected:
     
