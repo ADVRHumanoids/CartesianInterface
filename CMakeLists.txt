@@ -106,7 +106,7 @@ catkin_package(
 set(CartesianInterface_SRC
     src/Context.cpp
     src/CartesianInterfaceImpl.cpp
-    #        src/utils/LockfreeBufferImpl.cpp
+    src/utils/LockfreeBufferImpl.cpp
     #        src/utils/ManipulabilityAnalyzer.cpp
     src/problem/ProblemDescription.cpp
     src/problem/impl/Cartesian.cpp
@@ -118,6 +118,8 @@ set(CartesianInterface_SRC
     src/problem/impl/TaskFactory.cpp
     src/problem/impl/Task.cpp
     src/problem/impl/Constraint.cpp
+    src/rt/TaskRt.cpp
+    src/rt/CartesianRt.cpp
     src/utils/ForceEstimation.cpp
     src/utils/RobotStatePublisher.cpp
     #        src/problem/MinJointVel.cpp

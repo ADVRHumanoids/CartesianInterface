@@ -210,23 +210,6 @@ bool TaskRos::asyncMode() const
     return _async;
 }
 
-TaskDescription::Ptr TaskRos::MakeInstance(std::string name,
-                                           std::string type,
-                                           ros::NodeHandle nh)
-{
-    if(type == "Cartesian")
-    {
-        return std::make_shared<CartesianRos>(name, nh);
-    }
-    else if(type == "Postural")
-    {
-        return std::make_shared<PosturalRos>(name, nh);
-    }
-    else
-    {
-        return std::make_shared<TaskRos>(name, nh);
-    }
-}
 
 cartesian_interface::GetTaskInfoResponse TaskRos::get_task_info() const
 {
@@ -259,4 +242,22 @@ cartesian_interface::GetTaskInfoResponse TaskRos::get_task_info() const
 void TaskRos::on_task_info_recv(cartesian_interface::TaskInfoConstPtr msg)
 {
     _info = *msg;
+}
+
+TaskDescription::Ptr TaskRos::MakeInstance(std::string name,
+                                           std::string type,
+                                           ros::NodeHandle nh)
+{
+    if(type == "Cartesian")
+    {
+        return std::make_shared<CartesianRos>(name, nh);
+    }
+    else if(type == "Postural")
+    {
+        return std::make_shared<PosturalRos>(name, nh);
+    }
+    else
+    {
+        return std::make_shared<TaskRos>(name, nh);
+    }
 }

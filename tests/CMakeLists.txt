@@ -49,6 +49,11 @@ target_link_libraries(TestRosClient ${TestLibs} fmt::fmt-header-only)
 add_dependencies(TestRosClient GTest-ext CartesianInterface)
 add_test(NAME TestRosClient COMMAND TestRosClient)
 
+add_executable(TestRt TestRt.cpp)
+target_link_libraries(TestRt dl ${TestLibs} fmt::fmt-header-only)
+add_dependencies(TestRt GTest-ext CartesianInterface)
+add_test(NAME TestRt COMMAND TestRt)
+
 #add_executable(TestRos TestRos.cpp)
 #target_link_libraries(TestRos ${TestLibs})
 #add_dependencies(TestRos GTest-ext CartesianInterface)

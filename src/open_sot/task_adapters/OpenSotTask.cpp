@@ -114,8 +114,8 @@ OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr ta
     if(task->getLibName() != "")
     {
         task_adapter = CallFunction<OpenSotTaskAdapter*>(task->getLibName(),
-                                                                  "create_opensot_task_adapter",
-                                                                  task, model);
+                                                         "create_opensot_task_adapter",
+                                                         task, model);
     }
     else if(task->getType() == "Cartesian") /* Otherwise, construct supported tasks */
     {
