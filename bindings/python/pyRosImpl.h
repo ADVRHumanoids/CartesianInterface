@@ -24,6 +24,18 @@ std::string ci_repr(const RosClient& r)
     return ss.str();
 }
 
+auto py_task_get_pose_reference(const CartesianTask& r)
+{
+    Eigen::Affine3d T;
+    Eigen::Vector6d v, a;
+
+    r.getPoseReference(T, &v, &a);
+
+    return std::make_tuple(T, v, a);
+
+}
+
+
 auto py_get_pose_reference(const RosClient& r, const std::string& ee)
 {
     Eigen::Affine3d T;

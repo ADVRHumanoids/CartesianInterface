@@ -48,7 +48,8 @@ PYBIND11_MODULE(pyci, m) {
             .def("setControlMode", &CartesianTask::setControlMode)
             .def("setPoseReference", &CartesianTask::setPoseReference)
             .def("setVelocityLimits", &CartesianTask::setVelocityLimits)
-            .def("setAccelerationLimits", &CartesianTask::setAccelerationLimits);
+            .def("setAccelerationLimits", &CartesianTask::setAccelerationLimits)
+            .def("getPoseReference", py_task_get_pose_reference);
 
     py::class_<ClientApi::CartesianRos,
             CartesianTask,
