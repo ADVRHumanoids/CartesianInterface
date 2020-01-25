@@ -6,12 +6,18 @@ using namespace XBot::Cartesian::ClientApi;
 
 
 PosturalRos::PosturalRos(std::string name, ros::NodeHandle nh):
-    TaskRos(name, nh)
+    TaskRos(name, nh),
+    _curr_ref_recv(false)
 {
     _ref_pub = _nh.advertise<sensor_msgs::JointState>(name + "/reference", 5);
 
     _current_ref_sub = _nh.subscribe(name + "/current_reference", 1,
                                      &PosturalRos::on_current_ref_recv, this);
+}
+
+bool PosturalRos::validate()
+{
+    return TaskRos::validate() && _curr_ref_recv;
 }
 
 bool PosturalRos::useInertiaMatrixWeight() const
@@ -49,6 +55,7 @@ void PosturalRos::setReferencePosture(const XBot::JointNameMap & qref)
 
 void PosturalRos::on_current_ref_recv(sensor_msgs::JointStateConstPtr msg)
 {
+    _curr_ref_recv = true;
 
     for(int i = 0; i < msg->name.size(); i++)
     {

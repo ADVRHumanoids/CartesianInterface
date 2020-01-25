@@ -266,6 +266,10 @@ void ReachActionManager::run()
     }
 }
 
+ReachActionManager::~ReachActionManager()
+{
+}
+
 void ReachActionManager::run_state_idle()
 {
     // wait for new goal to be available,

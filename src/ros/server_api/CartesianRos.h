@@ -29,6 +29,8 @@ public:
 
     void run();
 
+    ~ReachActionManager();
+
 private:
 
     typedef actionlib::SimpleActionServer<cartesian_interface::ReachPoseAction> ActionServer;

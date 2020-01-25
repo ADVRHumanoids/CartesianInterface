@@ -25,9 +25,10 @@ public:
 };
 
 /**
- * @brief Description of a cartesian task
+ * @brief Abstract interface of a cartesian task
  */
-class CartesianTask : public virtual TaskDescription {
+class CartesianTask : public virtual TaskDescription
+{
 
 public:
 

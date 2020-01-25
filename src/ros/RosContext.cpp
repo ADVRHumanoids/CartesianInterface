@@ -14,6 +14,10 @@ public:
     std::string tf_prefix_slash;
 
     RosContextImpl();
+
+    ~RosContextImpl()
+    {
+    }
 };
 
 std::weak_ptr<RosContextImpl> RosContext::_weak_impl;

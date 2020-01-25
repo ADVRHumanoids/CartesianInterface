@@ -98,8 +98,6 @@ private:
 
     cartesian_interface::TaskInfo _info;
 
-    mutable
-
     bool _async;
 
 };

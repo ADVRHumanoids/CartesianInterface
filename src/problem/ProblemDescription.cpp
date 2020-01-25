@@ -10,6 +10,8 @@
 #include <cartesian_interface/problem/MinJointVel.h>
 #include <XBotInterface/Logger.hpp>
 
+#include "fmt/format.h"
+
 using namespace XBot::Cartesian;
 
 ProblemDescription::ProblemDescription(AggregatedTask task):
@@ -30,9 +32,34 @@ ProblemDescription::ProblemDescription(Stack stack):
 
 }
 
-bool ProblemDescription::validate()
+bool ProblemDescription::validate(bool verbose) const
 {
-    return true;
+    bool ret = true;
+
+    for(auto& aggr : _stack)
+    {
+        for(auto& t : aggr)
+        {
+            bool valid = t->validate();
+            ret = ret && valid;
+            if(!valid && verbose)
+            {
+                fmt::print("validate() returned false for task '{}' \n", t->getName());
+            }
+        }
+    }
+
+    for(auto& c : _bounds)
+    {
+        bool valid = c->validate();
+        ret = ret && valid;
+        if(!valid && verbose)
+        {
+            fmt::print("validate() returned false for constraint '{}' \n", c->getName());
+        }
+    }
+
+    return ret;
 }
 
 

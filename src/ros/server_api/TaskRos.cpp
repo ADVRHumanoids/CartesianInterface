@@ -3,6 +3,7 @@
 #include "fmt/format.h"
 
 #include "CartesianRos.h"
+#include "PosturalRos.h"
 
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ServerApi;
@@ -162,17 +163,15 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
     TaskRos * ros_adapter = nullptr;
 
     /* Try all supported dynamic casts, from the most derived to the least derived class */
-    if(auto cart = std::dynamic_pointer_cast<CartesianTask>(task)) /* Otherwise, construct supported tasks */
+    if(auto cart = std::dynamic_pointer_cast<CartesianTask>(task))
     {
         ros_adapter = new CartesianRos(cart, model);
     }
-    //    else if(task->getType() == "Postural")
-    //    {
-    //    }
-    //    else if(task->getType() == "Com")
-    //    {
-    //    }
-    else
+    else if(auto post = std::dynamic_pointer_cast<PosturalTask>(task))
+    {
+        ros_adapter = new PosturalRos(post, model);
+    }
+    else /* Otherwise, construct plugin, or fallback to generic Task interface */
     {
         try
         {

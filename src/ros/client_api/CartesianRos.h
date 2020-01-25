@@ -31,6 +31,7 @@ public:
     CartesianRos(std::string name,
                  ros::NodeHandle nh);
 
+    bool validate() override;
     void enableOnlineTrajectoryGeneration() override;
     bool isSubtaskLocal() const override;
     void getVelocityLimits(double & max_vel_lin, double & max_vel_ang) const override;
@@ -77,6 +78,7 @@ private:
     ros::ServiceClient _set_ctrl_mode_cli;
     mutable ros::ServiceClient _cart_info_cli;
 
+    bool _Tref_recv, _vref_recv;
     Eigen::Affine3d _Tref;
     Eigen::Vector6d _vref;
 

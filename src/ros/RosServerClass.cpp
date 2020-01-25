@@ -579,6 +579,7 @@ XBot::ModelInterface::ConstPtr RosServerClass::getModel() const
     return _model;
 }
 
+
 //void XBot::Cartesian::RosServerClass::init_task_info_setters()
 //{
 //    for(std::string ee_name : _ci->getTaskList())

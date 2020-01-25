@@ -45,13 +45,6 @@ class TestRos: public ::testing::Test
 
 TEST_F(TestRos, checkClient)
 {
-    int attempts = 5;
-    while(attempts-- && !ros::service::exists("/cartesian/get_task_list", true))
-    {
-        printf("Retrying to reach server... \n");
-        sleep(1);
-    }
-
     RosClient cli;
 
     auto tlist = cli.getTaskList();
@@ -92,19 +85,13 @@ TEST_F(TestRos, checkClient)
 
 }
 
-TEST_F(TestRos, check1)
+TEST_F(TestRos, checkCartesian)
 {
 
-    ros::NodeHandle nh("cartesian");
+    RosClient cli;
     std::string name = "arm1_8";
 
-    int attempts = 5;
-    while(attempts-- && !ros::service::exists("/cartesian/" + name + "/get_task_properties", true))
-    {
-        sleep(1);
-    }
-
-    ClientApi::TaskRos task(name, nh);
+    auto& task = *cli.getTask(name);
 
     ros::spinOnce();
 
@@ -115,7 +102,7 @@ TEST_F(TestRos, check1)
     EXPECT_EQ(task.getActivationState(), ActivationState::Enabled);
     EXPECT_NEAR((task.getWeight() - Eigen::MatrixXd::Identity(6,6)).norm(), 0, 0.0001);
 
-    ClientApi::CartesianRos cart(name, nh);
+    auto& cart = dynamic_cast<CartesianTask&>(task);
 
     ros::spinOnce();
 
@@ -157,6 +144,53 @@ TEST_F(TestRos, check1)
 
 
 }
+
+TEST_F(TestRos, checkPostural)
+{
+    RosClient cli;
+
+    auto postural_task = std::dynamic_pointer_cast<PosturalTask>(cli.getTask("Postural"));
+
+    ASSERT_TRUE(bool(postural_task));
+
+    EXPECT_NEAR(postural_task->getLambda(), 0.01, 0.0001);
+
+    Eigen::MatrixXd w;
+    w.setIdentity(postural_task->getSize(), postural_task->getSize());
+    w.diagonal().head<6>().setZero();
+    EXPECT_EQ(postural_task->getWeight(), w);
+
+    XBot::JointNameMap qref;
+    postural_task->getReferencePosture(qref);
+
+    EXPECT_EQ(qref.size(), postural_task->getSize());
+
+    qref.clear();
+    qref["j_arm1_4"] = 0.0;
+    postural_task->setReferencePosture(qref);
+
+    sleep(1);
+
+    cli.update(0,0);
+
+    postural_task->getReferencePosture(qref);
+
+    EXPECT_EQ(qref.at("j_arm1_4"), 0.0);
+
+}
+
+TEST_F(TestRos, checkLifetime)
+{
+    auto cli = new RosClient;
+
+    {
+        auto larm = cli->getTask("arm1_8");
+
+        delete cli;
+    }
+
+}
+
 
 int main(int argc, char ** argv)
 {

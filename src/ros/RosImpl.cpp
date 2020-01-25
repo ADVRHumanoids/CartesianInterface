@@ -27,6 +27,18 @@ ProblemDescription construct_problem(ros::NodeHandle nh)
 
     GetTaskList srv;
 
+    int attempts = 100;
+    while(attempts-- && !get_task_list_srv.exists())
+    {
+        if(attempts % 10 == 0)
+        {
+            fmt::print("Trying to contact server for service '{}' ... \n",
+                       get_task_list_srv.getService());
+        }
+
+        usleep(0.1 * 1e6);
+    }
+
     if(!get_task_list_srv.waitForExistence(ros::Duration(1.0)) ||
             !get_task_list_srv.call(srv))
     {
@@ -60,7 +72,7 @@ std::ostream& XBot::Cartesian::operator<<(std::ostream& os, const RosClient& r)
     for(auto t : tasklist)
     {
         os << " - ";
-        os << XBot::bold_on << t << XBot::bold_off;
+        os << XBot::bold_on << t << XBot::bold_off << "\n";
     }
     
     return os;
@@ -107,6 +119,20 @@ RosClient::RosClient(std::string ns):
                            ::construct_problem(nh()))
 {
     _load_ctrl_srv = nh().serviceClient<LoadController>("load_controller");
+
+    int attempts = 100;
+    while(attempts-- && !getIkProblem().validate())
+    {
+        if(attempts % 10 == 0) fmt::print("Waiting for all tasks to become valid... \n");
+
+        callAvailable();
+        usleep(0.1 * 1e6);
+    }
+
+    if(!getIkProblem().validate(true))
+    {
+        throw std::runtime_error("Invalid problem");
+    }
 }
 
 void RosClient::set_async_mode(bool async)
@@ -136,7 +162,6 @@ bool XBot::Cartesian::RosClient::getPoseFromTf(const std::string& source_frame,
                                                Eigen::Affine3d& t_T_s)
 {
 
-    _listener.clear();
     tf::StampedTransform T;
 
 
@@ -153,7 +178,7 @@ bool XBot::Cartesian::RosClient::getPoseFromTf(const std::string& source_frame,
     }
     catch(tf::TransformException ex)
     {
-        ROS_ERROR("%s",ex.what());
+        ROS_ERROR("%s", ex.what());
         return false;
     }
 

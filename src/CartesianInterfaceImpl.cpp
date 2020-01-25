@@ -19,10 +19,6 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model,
     _solver_options(ik_problem.getSolverOptions()),
     _ik_problem(ik_problem)
 {
-    if(!ik_problem.validate())
-    {
-        throw std::runtime_error("Invalid ik probelem");
-    }
 
     /* Parse tasks */
     for(int i = 0; i < ik_problem.getNumTasks(); i++)
@@ -82,7 +78,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task
             _com_task_map[cart_desc->getName()] = com_desc;
         }
 
-        Logger::success(Logger::Severity::HIGH) <<  "Successfully added task with\n" <<
+        Logger::success(Logger::Severity::HIGH) <<  "Successfully added Cartesian task with\n" <<
                                                     "   BASE LINK:   " << XBot::bold_on << cart_desc->getBaseLink() << XBot::bold_off  << "\n" << XBot::color_yellow <<
                                                     "   DISTAL LINK: " << XBot::bold_on << cart_desc->getDistalLink() << XBot::bold_off << Logger::endl();
     }

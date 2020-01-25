@@ -5,7 +5,8 @@ using namespace XBot::Cartesian::ServerApi;
 
 PosturalRos::PosturalRos(PosturalTask::Ptr task,
                          XBot::ModelInterface::ConstPtr model):
-    TaskRos(task, model)
+    TaskRos(task, model),
+    _postural(task)
 {
     _current_ref_pub = _ctx.nh().advertise<sensor_msgs::JointState>(task->getName() + "/current_reference", 1);
 

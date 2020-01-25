@@ -32,6 +32,11 @@ TaskRos::TaskRos(std::string name,
 
 bool TaskRos::validate()
 {
+    if(asyncMode() && _info.name.empty())
+    {
+        return false;
+    }
+
     return true;
 }
 

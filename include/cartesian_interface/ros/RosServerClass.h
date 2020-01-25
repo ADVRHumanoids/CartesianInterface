@@ -66,9 +66,6 @@ namespace XBot { namespace Cartesian {
 
         typedef Utils::RobotStatePublisher RsPub;
 
-        RosContext::Ptr _ros_ctx;
-
-        std::list<ServerApi::TaskRos::Ptr> _ros_tasks;
 
 //        void init_reach_pose_action_servers();
         void init_state_broadcasting();
@@ -138,29 +135,25 @@ namespace XBot { namespace Cartesian {
         bool reset_world_cb(cartesian_interface::ResetWorldRequest& req, 
                             cartesian_interface::ResetWorldResponse& res);
 
+        ros::CallbackQueue _cbk_queue;
+        ros::NodeHandle _nh;
+
+        RosContext::Ptr _ros_ctx;
+
+        std::list<ServerApi::TaskRos::Ptr> _ros_tasks;
+
         Options _opt;
         
         std::string _tf_prefix, _tf_prefix_slash;
         
-        ros::NodeHandle _nh;
-        ros::CallbackQueue _cbk_queue;
 
         CartesianInterface::Ptr _ci;
         ModelInterface::ConstPtr _model;
         tf::TransformBroadcaster _tf_broadcaster;
         std::unique_ptr<RsPub> _rspub;
-
-//        std::vector<ReachActionManager> _action_managers;
-//        std::vector<ros::Subscriber> _pos_sub, _vel_sub, _imp_sub, _force_sub;
-//        std::vector<ros::Publisher> _state_pub;
         ros::Publisher _com_pub, _solution_pub;
-//        std::vector<ros::Publisher> _info_pub;
-//        ros::Subscriber _posture_sub;
-//        std::vector<ros::ServiceServer> _get_task_info_srv, _set_task_info_srv, _impedance_srv;
         ros::ServiceServer _reset_srv, 
                            _tasklist_srv, 
-//                           _reset_posture_srv,
-//                           _update_limits_srv,
                            _reset_world_srv;
         ros::Timer _heartbeat_timer;
         ros::Publisher _heartbeat_pub;

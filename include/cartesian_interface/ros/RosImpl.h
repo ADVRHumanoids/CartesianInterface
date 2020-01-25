@@ -26,7 +26,7 @@ private:
 };
 
 class RosClient : public CartesianInterfaceImpl,
-        private virtual RosInitializer
+                  private virtual RosInitializer
 {
 
 public:

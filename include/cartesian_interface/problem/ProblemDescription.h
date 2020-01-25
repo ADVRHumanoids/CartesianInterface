@@ -56,7 +56,10 @@ namespace XBot { namespace Cartesian {
          */
         ProblemDescription(Stack stack);
 
-        bool validate();
+        /**
+         * @brief validate checks if all internal tasks validate() function returns true
+         */
+        bool validate(bool verbose = false) const;
 
         TaskDescription::Ptr getTask(const std::string& name);
         

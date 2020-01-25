@@ -15,7 +15,8 @@ using namespace cartesian_interface;
 CartesianRos::CartesianRos(std::string name,
                            ros::NodeHandle nh):
     TaskRos(name, nh),
-    _action_cli(nh, name + "/reach", false)
+    _action_cli(nh, name + "/reach", false),
+    _Tref_recv(false), _vref_recv(false)
 {
     _cart_info_cli = _nh.serviceClient<GetCartesianTaskInfo>(name + "/get_cartesian_task_properties");
     if(!_cart_info_cli.waitForExistence(ros::Duration(1.0)) || !_cart_info_cli.exists())
@@ -40,6 +41,7 @@ CartesianRos::CartesianRos(std::string name,
 
     auto on_ref_recv = [this](geometry_msgs::PoseStampedConstPtr msg)
     {
+        _Tref_recv = true;
         tf::poseMsgToEigen(msg->pose, _Tref);
     };
 
@@ -48,13 +50,19 @@ CartesianRos::CartesianRos(std::string name,
 
     auto on_vref_recv = [this](geometry_msgs::TwistStampedConstPtr msg)
     {
+        _vref_recv = true;
         tf::twistMsgToEigen(msg->twist, _vref);
     };
 
-    _pose_ref_sub = _nh.subscribe<geometry_msgs::TwistStamped>(name + "/current_velocity_reference", 1,
+    _vel_ref_sub = _nh.subscribe<geometry_msgs::TwistStamped>(name + "/current_velocity_reference", 1,
                                                               on_vref_recv);
 
     _set_safety_lims_cli = _nh.serviceClient<SetSafetyLimits>(name + "/set_safety_limits");
+}
+
+bool CartesianRos::validate()
+{
+    return TaskRos::validate() && _Tref_recv && _vref_recv;
 }
 
 void CartesianRos::enableOnlineTrajectoryGeneration()
@@ -174,6 +182,8 @@ bool CartesianRos::setControlMode(const ControlType & value)
 
 bool CartesianRos::getCurrentPose(Eigen::Affine3d& base_T_ee) const
 {
+    throw std::runtime_error(fmt::format("Unsupported function '{}'",
+                                         __PRETTY_FUNCTION__));
 }
 
 bool CartesianRos::getPoseReference(Eigen::Affine3d& base_T_ref,
@@ -182,6 +192,7 @@ bool CartesianRos::getPoseReference(Eigen::Affine3d& base_T_ref,
 {
     base_T_ref = _Tref;
     if(base_vel_ref) *base_vel_ref = _vref;
+    if(base_acc_ref) base_acc_ref->setZero();
     return true;
 }
 
