@@ -1,5 +1,5 @@
 string name
-string type
+string[] type
 uint32 size
 uint32[] indices
 float32[] weight

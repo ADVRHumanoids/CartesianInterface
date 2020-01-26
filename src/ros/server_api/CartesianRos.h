@@ -55,13 +55,17 @@ namespace ServerApi
     class CartesianRos;
 }
 
-class ServerApi::CartesianRos : public ServerApi::TaskRos
+class ServerApi::CartesianRos : public ServerApi::TaskRos,
+        public virtual CartesianTaskObserver
 {
 
 public:
 
     CartesianRos(CartesianTask::Ptr task,
                  ModelInterface::ConstPtr model);
+
+    bool onBaseLinkChanged() override;
+    bool onControlModeChanged() override;
 
     virtual void run(ros::Time time) override;
 
@@ -96,6 +100,8 @@ private:
     CartesianTask::Ptr _cart;
 
     std::unique_ptr<ReachActionManager> _reach_action_manager;
+
+
 
 
 

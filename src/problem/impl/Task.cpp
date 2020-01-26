@@ -105,6 +105,10 @@ TaskDescriptionImpl::TaskDescriptionImpl(YAML::Node task_node,
                     size,
                     model)
 {
+    if(task_node["name"])
+    {
+        _name = task_node["name"].as<std::string>();
+    }
 
     if(task_node["weight"] && task_node["weight"].IsScalar())
     {

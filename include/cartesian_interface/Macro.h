@@ -8,9 +8,13 @@
     typedef std::unique_ptr<Class> UniquePtr; \
 
 #define NOTIFY_OBSERVERS(FieldName) \
+    bool notify_success = true; \
     for(auto obs_weak: _observers) \
     { \
-        if(auto obs = obs_weak.lock()) obs->on##FieldName##Changed(); \
+        if(auto obs = obs_weak.lock()) \
+        {   \
+            if(!obs->on##FieldName##Changed()) notify_success = false; \
+        } \
     }
 
 

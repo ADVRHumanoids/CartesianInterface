@@ -25,7 +25,6 @@ ProblemDescription construct_problem(ros::NodeHandle nh)
 
     auto get_task_list_srv = nh.serviceClient<GetTaskList>("get_task_list");
 
-    GetTaskList srv;
 
     int attempts = 100;
     while(attempts-- && !get_task_list_srv.exists())
@@ -39,8 +38,9 @@ ProblemDescription construct_problem(ros::NodeHandle nh)
         usleep(0.1 * 1e6);
     }
 
+    GetTaskList srv_list;
     if(!get_task_list_srv.waitForExistence(ros::Duration(1.0)) ||
-            !get_task_list_srv.call(srv))
+            !get_task_list_srv.call(srv_list))
     {
         throw std::runtime_error(fmt::format("Unable to call service '{}'",
                                              get_task_list_srv.getService()));
@@ -48,10 +48,22 @@ ProblemDescription construct_problem(ros::NodeHandle nh)
 
     AggregatedTask tasks;
 
-    for(int i = 0; i < srv.response.names.size(); i++)
+    for(int i = 0; i < srv_list.response.names.size(); i++)
     {
-        auto t = ClientApi::TaskRos::MakeInstance(srv.response.names[i],
-                                                  srv.response.types.at(i),
+        std::string name = srv_list.response.names[i];
+
+        auto get_task_info_srv = nh.serviceClient<GetTaskInfo>(name + "/get_task_properties");
+
+        GetTaskInfo srv_info;
+        if(!get_task_info_srv.waitForExistence(ros::Duration(1.0)) ||
+                !get_task_info_srv.call(srv_info))
+        {
+            throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                                 get_task_info_srv.getService()));
+        }
+
+        auto t = ClientApi::TaskRos::MakeInstance(name,
+                                                  srv_info.response.type,
                                                   nh);
 
         tasks.push_back(t);

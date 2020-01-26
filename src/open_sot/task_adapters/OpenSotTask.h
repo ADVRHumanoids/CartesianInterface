@@ -16,7 +16,6 @@ using ConstraintPtr = OpenSoT::constraints::Aggregated::ConstraintPtr;
 namespace XBot { namespace Cartesian {
 
 class OpenSotTaskAdapter :
-        public std::enable_shared_from_this<OpenSotTaskAdapter>,
         public virtual TaskObserver
 {
 
@@ -59,7 +58,6 @@ private:
 };
 
 class OpenSotConstraintAdapter :
-        public std::enable_shared_from_this<OpenSotConstraintAdapter>,
         public TaskObserver
 {
 

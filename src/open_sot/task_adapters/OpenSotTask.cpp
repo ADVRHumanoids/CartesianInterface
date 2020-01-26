@@ -141,7 +141,7 @@ OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr ta
 
     if(!task_shared_ptr->initialize())
     {
-        throw std::runtime_error(fmt::format("Unable to inizialize task '{}'", task->getName()));
+        throw std::runtime_error(fmt::format("Unable to inizialize OpenSotTaskAdapter for task '{}'", task->getName()));
     }
 
     return task_shared_ptr;
@@ -217,7 +217,8 @@ OpenSotConstraintAdapter::Ptr OpenSotConstraintAdapter::MakeInstance(ConstraintD
 
     if(!constr_shared_ptr->initialize())
     {
-        throw std::runtime_error(fmt::format("Unable to inizialize constraint '{}'", constr->getName()));
+        throw std::runtime_error(fmt::format("Unable to inizialize OpenSotConstraintAdapter for task '{}'",
+                                             constr->getName()));
     }
 
     return constr_shared_ptr;

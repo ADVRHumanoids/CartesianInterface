@@ -55,12 +55,16 @@ public:
     int getCurrentSegmentId() const override;
     bool setWayPoints(const Trajectory::WayPointVector & way_points) override;
     void abort() override;
+    void registerObserver(TaskObserver::WeakPtr obs) override;
 
     bool waitReachCompleted(double timeout);
 
     bool setWayPoints(const Trajectory::WayPointVector& way_points,
                       bool incremental
                       );
+protected:
+
+    void notifyTaskChanged(const std::string & message) override;
 
 private:
 
@@ -85,6 +89,8 @@ private:
     ActionClient _action_cli;
     int _current_segment_idx;
 
+    std::list<CartesianTaskObserver::WeakPtr> _observers;
+
     mutable std::string _base_link, _distal_link;
 
     cartesian_interface::CartesianTaskInfo _info;
@@ -95,7 +101,6 @@ private:
 
     void on_action_done(const actionlib::SimpleClientGoalState& state,
                         const cartesian_interface::ReachPoseResultConstPtr& result);
-
 
 };
 

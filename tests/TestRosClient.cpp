@@ -179,17 +179,9 @@ TEST_F(TestRos, checkPostural)
 
 }
 
-TEST_F(TestRos, checkLifetime)
-{
-    auto cli = new RosClient;
-
-    {
-        auto larm = cli->getTask("arm1_8");
-
-        delete cli;
-    }
-
-}
+//TEST_F(TestRos, checkLifetime)
+//{
+//}
 
 
 int main(int argc, char ** argv)

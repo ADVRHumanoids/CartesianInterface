@@ -38,6 +38,8 @@ CartesianRos::CartesianRos(CartesianTask::Ptr cart_task,
                            ModelInterface::ConstPtr model):
     TaskRos(cart_task, model)
 {
+    registerType("Cartesian");
+
     _cart = cart_task;
 
     if(!_cart)
@@ -435,3 +437,16 @@ void ReachActionManager::run_state_completed()
     return;
 }
 
+
+
+bool XBot::Cartesian::ServerApi::CartesianRos::onBaseLinkChanged()
+{
+    notifyTaskChanged("BaseLink");
+    return true;
+}
+
+bool XBot::Cartesian::ServerApi::CartesianRos::onControlModeChanged()
+{
+    notifyTaskChanged("ControlMode");
+    return true;
+}

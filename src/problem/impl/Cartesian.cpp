@@ -459,6 +459,8 @@ void CartesianTaskImpl::log(MatLogger::Ptr logger, bool init_logger, int buf_siz
 
 void CartesianTaskImpl::registerObserver(TaskObserver::WeakPtr observer)
 {
+    TaskDescriptionImpl::registerObserver(observer);
+
     if(auto cobs = std::dynamic_pointer_cast<CartesianTaskObserver>(observer.lock()))
     {
         _observers.push_back(cobs);

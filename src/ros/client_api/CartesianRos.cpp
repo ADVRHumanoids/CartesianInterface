@@ -341,3 +341,26 @@ void CartesianRos::on_action_done(const actionlib::SimpleClientGoalState & state
 
     _current_segment_idx = -1;
 }
+
+
+void CartesianRos::registerObserver(TaskObserver::WeakPtr obs)
+{
+    if(auto cobs = std::dynamic_pointer_cast<CartesianTaskObserver>(obs.lock()))
+    {
+        _observers.push_back(cobs);
+    }
+}
+
+void CartesianRos::notifyTaskChanged(const std::string & message)
+{
+    TaskRos::notifyTaskChanged(message);
+
+    if(message == "BaseLink")
+    {
+        NOTIFY_OBSERVERS(BaseLink);
+    }
+    else if(message == "ControlMode")
+    {
+        NOTIFY_OBSERVERS(ControlMode);
+    }
+}

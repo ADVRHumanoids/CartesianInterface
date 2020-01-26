@@ -6,6 +6,7 @@
 
 #include <cartesian_interface/GetTaskInfo.h>
 #include <cartesian_interface/TaskInfo.h>
+#include <std_msgs/String.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -64,18 +65,21 @@ public:
     bool asyncMode() const;
 
     static Ptr MakeInstance(std::string name,
-                            std::string type,
+                            std::vector<std::string> type,
                             ros::NodeHandle nh);
 
 protected:
 
     ros::NodeHandle _nh;
 
+    virtual void notifyTaskChanged(const std::string& message);
+
 private:
 
     cartesian_interface::GetTaskInfoResponse get_task_info() const;
 
     void on_task_info_recv(cartesian_interface::TaskInfoConstPtr msg);
+    void on_task_changed_ev_recv(std_msgs::StringConstPtr msg);
 
     bool _async_update;
 
@@ -95,6 +99,7 @@ private:
     ros::ServiceClient _set_weight_cli;
     ros::ServiceClient _set_lambda_cli;
     ros::ServiceClient _activate_cli;
+    ros::Subscriber _task_changed_sub;
 
     cartesian_interface::TaskInfo _info;
 

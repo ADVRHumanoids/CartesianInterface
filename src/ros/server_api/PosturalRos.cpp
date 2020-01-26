@@ -8,6 +8,8 @@ PosturalRos::PosturalRos(PosturalTask::Ptr task,
     TaskRos(task, model),
     _postural(task)
 {
+    registerType("Postural");
+
     _current_ref_pub = _ctx.nh().advertise<sensor_msgs::JointState>(task->getName() + "/current_reference", 1);
 
     _ref_sub = _ctx.nh().subscribe(task->getName() + "/reference", 1,

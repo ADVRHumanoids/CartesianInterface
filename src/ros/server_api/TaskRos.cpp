@@ -5,6 +5,8 @@
 #include "CartesianRos.h"
 #include "PosturalRos.h"
 
+#include <std_msgs/String.h>
+
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ServerApi;
 
@@ -25,10 +27,21 @@ TaskRos::TaskRos(TaskDescription::Ptr task,
 
     _set_active_srv = _ctx.nh().advertiseService(task_name + "/set_active",
                                                  &TaskRos::set_active_cb, this);
+
+    _task_changed_pub = _ctx.nh().advertise<std_msgs::String>(task_name + "/task_changed_event", 10);
+
+    _type_hierarchy.push_back("Task");
 }
 
 void TaskRos::run(ros::Time time)
 {
+}
+
+bool TaskRos::onActivationStateChanged()
+{
+    notifyTaskChanged("ActivationState");
+
+    return true;
 }
 
 
@@ -37,7 +50,7 @@ bool TaskRos::get_task_info_cb(cartesian_interface::GetTaskInfoRequest & req,
 {
     res.name = _task->getName();
 
-    res.type = _task->getType();
+    res.type.assign(_type_hierarchy.begin(), _type_hierarchy.end());
 
     res.size = _task->getSize();
 
@@ -191,7 +204,33 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
 
     Ptr rosapi_shared_ptr(ros_adapter);
 
+    if(!rosapi_shared_ptr->initialize())
+    {
+        throw std::runtime_error(fmt::format("Unable to initialize TaskRos instance for task '{}'",
+                                             task->getName()));
+    }
+
     return rosapi_shared_ptr;
+}
+
+bool TaskRos::initialize()
+{
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    _task->registerObserver(shared_from_this());
+
+    return true;
+}
+
+void TaskRos::notifyTaskChanged(const std::string & message)
+{
+    std_msgs::String msg;
+    msg.data = message;
+    _task_changed_pub.publish(msg);
+}
+
+void TaskRos::registerType(const std::string & type)
+{
+    _type_hierarchy.push_front(type);
 }
 
 std::string TaskRos::RosApiPluginName(TaskDescription::Ptr task)

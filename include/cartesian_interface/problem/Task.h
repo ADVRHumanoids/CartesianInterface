@@ -18,7 +18,8 @@ namespace XBot { namespace Cartesian {
  *     (e.g. MyObserver : public virtual TaskObsever)
  *  2) call TaskDescription::registerObserver(myobs)
  */
-class TaskObserver
+class TaskObserver :
+        public std::enable_shared_from_this<TaskObserver>
 {
 public:
 

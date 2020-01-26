@@ -27,6 +27,8 @@ TaskRos::TaskRos(std::string name,
     _set_lambda_cli = _nh.serviceClient<cartesian_interface::SetLambda>(name + "/set_lambda");
     _set_weight_cli = _nh.serviceClient<cartesian_interface::SetWeight>(name + "/set_weight");
     _activate_cli = _nh.serviceClient<cartesian_interface::SetTaskActive>(name + "/set_active");
+    _task_changed_sub = _nh.subscribe(name + "/task_changed_event", 10,
+                                      &TaskRos::on_task_changed_ev_recv, this);
 
 }
 
@@ -186,7 +188,7 @@ const std::string & TaskRos::getName() const
 
 const std::string & TaskRos::getType() const
 {
-    _type = get_task_info().type;
+    _type = get_task_info().type.front();
     return _type;
 }
 
@@ -203,6 +205,7 @@ const std::string & TaskRos::getLibName() const
 
 void TaskRos::registerObserver(TaskObserver::WeakPtr obs)
 {
+    _observers.push_back(obs);
 }
 
 void TaskRos::setAsyncMode(bool is_async)
@@ -249,20 +252,36 @@ void TaskRos::on_task_info_recv(cartesian_interface::TaskInfoConstPtr msg)
     _info = *msg;
 }
 
+void TaskRos::on_task_changed_ev_recv(std_msgs::StringConstPtr msg)
+{
+    notifyTaskChanged(msg->data);
+}
+
 TaskDescription::Ptr TaskRos::MakeInstance(std::string name,
-                                           std::string type,
+                                           std::vector<std::string> type_list,
                                            ros::NodeHandle nh)
 {
-    if(type == "Cartesian")
+    for(auto type : type_list)
     {
-        return std::make_shared<CartesianRos>(name, nh);
+        if(type == "Cartesian")
+        {
+            return std::make_shared<CartesianRos>(name, nh);
+        }
+        else if(type == "Postural")
+        {
+            return std::make_shared<PosturalRos>(name, nh);
+        }
+        else if(type == "Task")
+        {
+            return std::make_shared<TaskRos>(name, nh);
+        }
     }
-    else if(type == "Postural")
+}
+
+void TaskRos::notifyTaskChanged(const std::string & message)
+{
+    if(message == "ActivationState")
     {
-        return std::make_shared<PosturalRos>(name, nh);
-    }
-    else
-    {
-        return std::make_shared<TaskRos>(name, nh);
+        NOTIFY_OBSERVERS(ActivationState)
     }
 }

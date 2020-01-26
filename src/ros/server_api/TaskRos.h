@@ -17,7 +17,7 @@ namespace ServerApi
     class TaskRos;
 }
 
-class ServerApi::TaskRos
+class ServerApi::TaskRos : public virtual TaskObserver
 {
 
 public:
@@ -29,12 +29,18 @@ public:
 
     virtual void run(ros::Time time);
 
-    virtual ~TaskRos() = default;
+    bool onActivationStateChanged() override;
 
     static Ptr MakeInstance(TaskDescription::Ptr task,
                             ModelInterface::ConstPtr model);
 
 protected:
+
+    virtual bool initialize();
+
+    void notifyTaskChanged(const std::string& msg);
+
+    void registerType(const std::string& type);
 
     const std::string task_name;
 
@@ -60,10 +66,12 @@ private:
                        cartesian_interface::SetTaskActiveResponse& res);
 
 
+    std::list<std::string> _type_hierarchy;
 
     ros::ServiceServer _get_task_info_srv, _set_lambda_srv, _set_weight_srv;
     ros::ServiceServer _set_active_srv;
 
+    ros::Publisher _task_changed_pub;
 
 
 };
