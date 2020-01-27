@@ -14,6 +14,8 @@ public:
 
     virtual TaskDescription::Ptr getTask() = 0;
 
+    virtual const std::vector<int>& getSubtaskIndices() const = 0;
+
 };
 
 } }

@@ -21,6 +21,10 @@ public:
 
     TaskDescription::Ptr getTask() override;
 
+    const Eigen::MatrixXd& getWeight() const override;
+    bool setWeight(const Eigen::MatrixXd& value) override;
+
+    const std::vector<int>& getSubtaskIndices() const override;
 
 private:
 
@@ -29,6 +33,9 @@ private:
 
     TaskDescriptionImpl::Ptr _task;
 
+    std::vector<int> _indices;
+
+    mutable Eigen::MatrixXd _tmp_weight_small, _tmp_weight_big;
 };
 
 } }

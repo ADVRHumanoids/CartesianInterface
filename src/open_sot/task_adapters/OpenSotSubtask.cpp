@@ -26,7 +26,11 @@ OpenSotSubtaskAdapter::OpenSotSubtaskAdapter(TaskDescription::Ptr task,
 
 TaskPtr OpenSotSubtaskAdapter::constructTask()
 {
-    return _task_adapter->getOpenSotTask();
+    std::list<uint> indices_list(_ci_subtask->getSubtaskIndices().begin(),
+                                 _ci_subtask->getSubtaskIndices().end());
+
+    return boost::make_shared<SubtaskSoT>(_task_adapter->getOpenSotTask(),
+                                          indices_list);
 }
 
 bool OpenSotSubtaskAdapter::initialize()

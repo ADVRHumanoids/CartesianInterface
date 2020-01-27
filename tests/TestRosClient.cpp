@@ -58,8 +58,10 @@ TEST_F(TestRos, checkClient)
     EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "JointLimits") == tlist.end());
     EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "VelocityLimits") == tlist.end());
     EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "Com") == tlist.end());
+    EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "ComXY") == tlist.end());
+    EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "ComZ") == tlist.end());
     EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "Postural") == tlist.end());
-    EXPECT_EQ(tlist.size(), 10);
+    EXPECT_EQ(tlist.size(), 12);
 
     auto c = std::dynamic_pointer_cast<CartesianTask>(cli.getTask("arm1_8"));
     EXPECT_TRUE(bool(c));

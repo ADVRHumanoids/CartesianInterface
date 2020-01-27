@@ -95,12 +95,12 @@ bool OpenSotTaskAdapter::onActivationStateChanged()
 
     if(activ == ActivationState::Disabled)
     {
-        _opensot_task->setActive(false);
+        _sub_task->setActive(false);
     }
 
     if(activ == ActivationState::Enabled)
     {
-        _opensot_task->setActive(true);
+        _sub_task->setActive(true);
     }
 
     return true;
