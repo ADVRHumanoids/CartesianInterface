@@ -114,6 +114,7 @@ set(CartesianInterface_SRC
     src/problem/impl/Limits.cpp
     #        src/problem/Gaze.cpp
     src/problem/impl/Postural.cpp
+    src/problem/impl/Subtask.cpp
     #        src/problem/Interaction.cpp
     src/problem/impl/TaskFactory.cpp
     src/problem/impl/Task.cpp
@@ -131,6 +132,7 @@ set(CartesianInterfaceSOT_SRC
     src/open_sot/task_adapters/OpenSotCartesian.cpp
     src/open_sot/task_adapters/OpenSotCom.cpp
     src/open_sot/task_adapters/OpenSotPostural.cpp
+    src/open_sot/task_adapters/OpenSotSubtask.cpp
     src/open_sot/task_adapters/OpenSotJointLimits.cpp
     src/open_sot/task_adapters/OpenSotVelocityLimits.cpp
     src/open_sot/task_adapters/OpenSotConstraintFromTask.cpp

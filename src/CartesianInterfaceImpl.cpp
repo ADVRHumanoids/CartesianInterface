@@ -5,6 +5,8 @@
 #include <cartesian_interface/Context.h>
 #include <cartesian_interface/Enum.h>
 
+#include <cartesian_interface/problem/Subtask.h>
+
 using namespace XBot::Cartesian;
 
 namespace {
@@ -25,9 +27,12 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model,
     {
         for(auto task_desc : ik_problem.getTask(i))
         {
-
             add_task(task_desc);
 
+            if(auto subtask = std::dynamic_pointer_cast<Subtask>(task_desc))
+            {
+                add_task(subtask->getTask());
+            }
         }
     }
 
@@ -63,6 +68,10 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model,
 
 void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task_desc)
 {
+    if(_task_map.count(task_desc->getName()))
+    {
+        return;
+    }
 
     _task_map[task_desc->getName()] = task_desc;
     _task_list.push_back(task_desc->getName());

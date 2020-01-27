@@ -4,8 +4,8 @@ solver_options:
 
 stack:
     - ["Wheel_FR", "Wheel_HR", "Wheel_HL", "Wheel_FL"]
-    - ["LeftArm", "RightArm"]
-    - ["Postural", "Com"]
+    - ["LeftArm", "RightArm", "ComXY"]
+    - ["Postural", "ComZ"]
 constraints: ["JointLimits", "VelocityLimits"]
 
 JointLimits:
@@ -52,11 +52,17 @@ Postural:
         VIRTUALJOINT_5: 0.0
         VIRTUALJOINT_6: 0.0
 
-    
-Com:
+ComTask:
     type: "Com"
-    lambda: 0.05
-    indices: [0, 1]
     weight: 10
+    lambda: 0.05
 
+ComXY:
+    type: "Subtask"
+    task: "ComTask"
+    indices: [0, 1]
 
+ComZ:
+    type: "Subtask"
+    task: "ComTask"
+    indices: [2]

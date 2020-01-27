@@ -10,7 +10,11 @@
 #include <cartesian_interface/problem/MinJointVel.h>
 #include <XBotInterface/Logger.hpp>
 
+#include "impl/Subtask.h"
+
 #include "fmt/format.h"
+
+
 
 using namespace XBot::Cartesian;
 
@@ -110,79 +114,64 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
         Logger::success("Solver options node found\n");
     }
 
-    YAML::Node regularization = yaml_node["regularization"];
+    //    YAML::Node regularization = yaml_node["regularization"];
 
-    if(regularization)
-    {
-        for(auto task : regularization)
-        {
-            std::string task_name = task.as<std::string>();
+    //    if(regularization)
+    //    {
+    //        for(auto task : regularization)
+    //        {
+    //            std::string task_name = task.as<std::string>();
 
-            if(!yaml_node[task_name])
-            {
-                throw std::runtime_error("problem description parsing failed: node '" + task_name + "' undefined");
-            }
+    //            if(!yaml_node[task_name])
+    //            {
+    //                throw std::runtime_error("problem description parsing failed: node '" + task_name + "' undefined");
+    //            }
 
-            if(!yaml_node[task_name]["type"])
-            {
-                throw std::runtime_error("problem description parsing failed: missing type for '" + task_name + "'");
-            }
+    //            if(!yaml_node[task_name]["type"])
+    //            {
+    //                throw std::runtime_error("problem description parsing failed: missing type for '" + task_name + "'");
+    //            }
 
-            std::string lib_name = "";
+    //            std::string lib_name = "";
 
-            if(yaml_node[task_name]["lib_name"])
-            {
-                lib_name = yaml_node[task_name]["lib_name"].as<std::string>();
-            }
+    //            if(yaml_node[task_name]["lib_name"])
+    //            {
+    //                lib_name = yaml_node[task_name]["lib_name"].as<std::string>();
+    //            }
 
-            auto task_desc = MakeTaskDescription(yaml_node[task_name],
-                                                 model,
-                                                 lib_name);
+    //            auto task_desc = MakeTaskDescription(yaml_node[task_name],
+    //                                                 model,
+    //                                                 lib_name);
 
-            _regularisation.push_back(task_desc);
-        }
-    }
+    //            _regularisation.push_back(task_desc);
+    //        }
+    //    }
 
 
-    
+    /* Parse stack */
+
     YAML::Node stack = yaml_node["stack"];
-    
+
+    TaskFactory factory(yaml_node, model);
+
     for(auto stack_level : stack)
     {
         AggregatedTask aggr_task;
         
         for(auto task : stack_level)
         {
-            std::string task_name = task.as<std::string>();
-            
-            if(!yaml_node[task_name])
-            {
-                throw std::runtime_error("problem description parsing failed: node '" + task_name + "' undefined");
-            }
-            
-            if(!yaml_node[task_name]["type"])
-            {
-                throw std::runtime_error("problem description parsing failed: missing type for '" + task_name + "'");
-            }
-            
-            std::string lib_name = "";
-            
-            if(yaml_node[task_name]["lib_name"])
-            {
-                lib_name = yaml_node[task_name]["lib_name"].as<std::string>();
-            }
-            
-            auto task_desc = MakeTaskDescription(yaml_node[task_name],
-                                                 model,
-                                                 lib_name);
+            auto task_desc = factory.makeTask(task.as<std::string>());
             
             aggr_task.push_back(task_desc);
-            
         }
         
         _stack.push_back(aggr_task);
     }
+
     
+
+    /* Parse constraints */
+
     YAML::Node constraints = yaml_node["constraints"];
     
     if(constraints)
@@ -191,26 +180,7 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
         {
             std::string constr_name = constr.as<std::string>();
             
-            if(!yaml_node[constr_name])
-            {
-                throw std::runtime_error("problem description parsing failed: node '" + constr_name + "' undefined");
-            }
-
-            if(!yaml_node[constr_name]["type"])
-            {
-                throw std::runtime_error("problem description parsing failed: missing type for '" + constr_name + "'");
-            }
-
-            std::string lib_name = "";
-            
-            if(yaml_node[constr_name]["lib_name"])
-            {
-                lib_name = yaml_node[constr_name]["lib_name"].as<std::string>();
-            }
-
-            auto task = MakeTaskDescription(yaml_node[constr_name],
-                                            model,
-                                            lib_name);
+            auto task = factory.makeTask(constr_name);
 
             if(auto constr = ConstraintDescription::AsConstraint(task))
             {

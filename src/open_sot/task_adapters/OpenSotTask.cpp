@@ -10,6 +10,7 @@
 #include "OpenSotConstraintFromTask.h"
 #include "OpenSotPostural.h"
 #include "OpenSotCom.h"
+#include "OpenSotSubtask.h"
 
 #include "fmt/format.h"
 
@@ -128,6 +129,10 @@ OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr ta
     else if(task->getType() == "Com")
     {
         task_adapter = new OpenSotComAdapter(task, model);
+    }
+    else if(task->getType() == "Subtask") /* Otherwise, construct supported tasks */
+    {
+        task_adapter = new OpenSotSubtaskAdapter(task, model);
     }
     else
     {
