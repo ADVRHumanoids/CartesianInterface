@@ -184,23 +184,26 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
     {
         ros_adapter = new PosturalRos(post, model);
     }
-    else /* Otherwise, construct plugin, or fallback to generic Task interface */
+    else if(!task->getLibName().empty()) /* Otherwise, construct plugin, or fallback to generic Task interface */
     {
         try
         {
-            ros_adapter = CallFunction<TaskRos*>(RosApiPluginName(task),
+            ros_adapter = CallFunction<TaskRos*>(task->getLibName(),
                                                  "create_cartesio_ros_api",
-                                                 task, model);
+                                                 task,
+                                                 model,
+                                                 detail::Version CARTESIO_VERSION);
         }
         catch(LibNotFound&)
         {
-            auto str = fmt::format("Unable to construct TaskRos instance for task '{}': "
-                                   "lib '{}' not found for unsupported task type '{}'",
-                                   task->getName(), RosApiPluginName(task), task->getType());
+            fmt::print("Unable to construct TaskRos instance for task '{}': "
+                      "lib '{}' not found for unsupported task type '{}'",
+                      task->getName(), RosApiPluginName(task), task->getType());
 
-            ros_adapter = new TaskRos(task, model);
         }
     }
+
+    if(!ros_adapter) ros_adapter = new TaskRos(task, model);
 
     Ptr rosapi_shared_ptr(ros_adapter);
 
@@ -215,7 +218,6 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
 
 bool TaskRos::initialize()
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
     _task->registerObserver(shared_from_this());
 
     return true;

@@ -77,7 +77,8 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
         task_desc.reset( CallFunction<TaskDescription *>(lib_name,
                                                          "create_cartesian_interface_task_description",
                                                          task_node,
-                                                         model
+                                                         model,
+                                                         detail::Version CARTESIO_VERSION
                                                          ) );
         
         if(!task_desc)

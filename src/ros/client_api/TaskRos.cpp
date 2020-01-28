@@ -276,6 +276,7 @@ TaskDescription::Ptr TaskRos::MakeInstance(std::string name,
             return std::make_shared<TaskRos>(name, nh);
         }
     }
+
 }
 
 void TaskRos::notifyTaskChanged(const std::string & message)

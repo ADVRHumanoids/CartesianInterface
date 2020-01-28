@@ -231,15 +231,20 @@ install(TARGETS CartesianOpenSot CartesianOpenSot
 #        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 #endif()
 
-##AngularMomentumAddon (Velocity)
-#add_library(CartesioAngularMomentumAddon SHARED src/open_sot/AngularMomentumAddon.cpp)
-#target_link_libraries(CartesioAngularMomentumAddon PRIVATE ${OpenSoT_LIBRARIES}
-#                                                          CartesianInterface
-#                                                          ${PCL_LIBRARIES})
-#install(TARGETS CartesioAngularMomentumAddon CartesioAngularMomentumAddon
-#        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+#AngularMomentumAddon (Velocity)
+add_library(CartesioAngularMomentumAddon SHARED
+    src/plugin/angular_mom/AngularMomentum.cpp
+    src/plugin/angular_mom/OpenSotAngularMomentum.cpp
+    src/plugin/angular_mom/AngularMomentumRos.cpp)
+target_link_libraries(CartesioAngularMomentumAddon PRIVATE ${OpenSoT_LIBRARIES}
+    CartesianInterface
+    CartesianOpenSot
+    ${PCL_LIBRARIES}
+    fmt::fmt-header-only)
+install(TARGETS CartesioAngularMomentumAddon CartesioAngularMomentumAddon
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 
 ## libCartesianOpenSotAcc
@@ -260,7 +265,7 @@ install(TARGETS ros_server_node ros_server_node
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+    )
 
 # Marker spawner executable
 add_executable(marker_spawner src/ros/MarkerSpawner.cpp)
@@ -269,7 +274,7 @@ install(TARGETS marker_spawner marker_spawner
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+    )
 
 ## JoyStick spawner executable
 #add_executable(joystick_spawner src/ros/JoyStickSpawner.cpp)

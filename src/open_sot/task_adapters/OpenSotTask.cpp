@@ -116,7 +116,9 @@ OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr ta
     {
         task_adapter = CallFunction<OpenSotTaskAdapter*>(task->getLibName(),
                                                          "create_opensot_task_adapter",
-                                                         task, model);
+                                                         task,
+                                                         model,
+                                                         detail::Version CARTESIO_VERSION);
     }
     else if(task->getType() == "Cartesian") /* Otherwise, construct supported tasks */
     {
@@ -196,7 +198,9 @@ OpenSotConstraintAdapter::Ptr OpenSotConstraintAdapter::MakeInstance(ConstraintD
     {
         constr_adapter = CallFunction<OpenSotConstraintAdapter*>(constr->getLibName(),
                                                                  "create_opensot_constr_adapter",
-                                                                 constr, model);
+                                                                 constr,
+                                                                 model,
+                                                                 detail::Version CARTESIO_VERSION);
     }
     else if(constr->getType() == "ConstraintFromTask")
     {
