@@ -2,15 +2,17 @@
 #include <cartesian_interface/problem/Cartesian.h>
 
 #if EIGEN_VERSION_AT_LEAST(3, 2, 92)
-    #define HAS_SVD_SET_THRESHOLD
+#define HAS_SVD_SET_THRESHOLD
 #else
-    #warning "Your Eigen version does not support SVD threshold. Manipulability analyzer may not be stable."
+#warning "Your Eigen version does not support SVD threshold. Manipulability analyzer may not be stable."
 #endif
 
+using namespace XBot::Cartesian;
 
-XBot::Cartesian::ManipulabilityAnalyzer::ManipulabilityAnalyzer(XBot::ModelInterface::ConstPtr model,
-                                                                XBot::Cartesian::ProblemDescription ik_problem, 
-                                                                std::string tf_prefix):
+
+ManipulabilityAnalyzer::ManipulabilityAnalyzer(XBot::ModelInterface::ConstPtr model,
+                                               ProblemDescription ik_problem,
+                                               std::string tf_prefix):
     _model(model),
     _ik_problem(ik_problem),
     _logger(XBot::MatLogger::getLogger("/tmp/manipulability_analyzer_log")),
@@ -26,12 +28,15 @@ XBot::Cartesian::ManipulabilityAnalyzer::ManipulabilityAnalyzer(XBot::ModelInter
     {
         for(int j = 0; j < ik_problem.getTask(i).size(); j++)
         {
-            if(ik_problem.getTask(i).at(j)->type != "Cartesian")
+            auto task = ik_problem.getTask(i).at(j);
+            auto cart = std::dynamic_pointer_cast<CartesianTask>(task);
+
+            if(!cart)
             {
                 continue;
             }
             
-            std::string name = GetAsCartesian(ik_problem.getTask(i).at(j))->distal_link;
+            std::string name = cart->getName();
             _pub_map_pos[name] = nh.advertise<visualization_msgs::Marker>("ellipses/" + name + "/linear", 1);
             _pub_map_rot[name] = nh.advertise<visualization_msgs::Marker>("ellipses/" + name + "/angular", 1);
             
@@ -47,32 +52,16 @@ XBot::Cartesian::ManipulabilityAnalyzer::ManipulabilityAnalyzer(XBot::ModelInter
 }
 
 
-bool XBot::Cartesian::ManipulabilityAnalyzer::compute_task_matrix(XBot::Cartesian::TaskDescription::Ptr task, 
-                                                                  Eigen::MatrixXd& A, 
-                                                                  Eigen::Affine3d& T)
+bool ManipulabilityAnalyzer::compute_task_matrix(CartesianTask::Ptr cart_ij,
+                                                 Eigen::MatrixXd& A,
+                                                 Eigen::Affine3d& T)
 {
-    CartesianTask::Ptr cart_ij = GetAsCartesian(task);
-
     if(!cart_ij)
     {
         return false;
     }
     
-    if(cart_ij->type == "Cartesian")
-    {
-        
-        if(cart_ij->base_link == "world")
-        {
-            _model->getJacobian(cart_ij->distal_link, A);
-            _model->getPose(cart_ij->distal_link, T);
-        }
-        else
-        {
-            _model->getRelativeJacobian(cart_ij->distal_link, cart_ij->base_link, A);
-            _model->getPose(cart_ij->distal_link, cart_ij->base_link, T);
-        }
-    }
-    else if(cart_ij->type == "Com")
+    if(cart_ij->getType() == "Com")
     {
         _model->getCOMJacobian(A);
         A.conservativeResize(6, A.cols());
@@ -84,12 +73,22 @@ bool XBot::Cartesian::ManipulabilityAnalyzer::compute_task_matrix(XBot::Cartesia
     }
     else
     {
-        return false;
+        
+        if(cart_ij->getBaseLink() == "world")
+        {
+            _model->getJacobian(cart_ij->getDistalLink(), A);
+            _model->getPose(cart_ij->getDistalLink(), T);
+        }
+        else
+        {
+            _model->getRelativeJacobian(cart_ij->getDistalLink(), cart_ij->getBaseLink(), A);
+            _model->getPose(cart_ij->getDistalLink(), cart_ij->getBaseLink(), T);
+        }
     }
     
     for(int k = 0; k < 6; k++)
     {
-        if( std::find(cart_ij->indices.begin(), cart_ij->indices.end(), k) == cart_ij->indices.end() )
+        if(std::find(cart_ij->getIndices().begin(), cart_ij->getIndices().end(), k) == cart_ij->getIndices().end() )
         {
             A.row(k).setZero();
         }
@@ -99,7 +98,7 @@ bool XBot::Cartesian::ManipulabilityAnalyzer::compute_task_matrix(XBot::Cartesia
 }
 
 
-void XBot::Cartesian::ManipulabilityAnalyzer::compute()
+void ManipulabilityAnalyzer::compute()
 {
     _nullspace_bases.resize(_ik_problem.getNumTasks() + 1);
     _nullspace_bases[0] = Eigen::MatrixXd::Identity(_model->getJointNum(), _model->getJointNum());
@@ -107,20 +106,21 @@ void XBot::Cartesian::ManipulabilityAnalyzer::compute()
     
     for(int i = 0; i < _ik_problem.getNumTasks(); i++)
     {
-        Eigen::MatrixXd Ji(0, _nullspace_bases.at(i).cols()); 
+        Eigen::MatrixXd Ji(0, _nullspace_bases.at(i).cols());
         
         for(int j = 0; j < _ik_problem.getTask(i).size(); j++)
         {
             Eigen::MatrixXd Aij;
             Eigen::Affine3d Tij;
             TaskDescription::Ptr task = _ik_problem.getTask(i).at(j);
-            if(!compute_task_matrix(task, Aij, Tij))
+            auto cart = std::dynamic_pointer_cast<CartesianTask>(task);
+            if(!compute_task_matrix(cart, Aij, Tij))
             {
                 continue;
             }
             
-            _task_poses[GetAsCartesian(task)->distal_link] = Tij;
-            _task_idx[GetAsCartesian(task)->distal_link] = std::make_pair(i, static_cast<int>(Ji.rows()));
+            _task_poses[cart->getDistalLink()] = Tij;
+            _task_idx[cart->getDistalLink()] = std::make_pair(i, static_cast<int>(Ji.rows()));
             
             Aij = Aij * _nullspace_bases.at(i);
             
@@ -161,7 +161,7 @@ void XBot::Cartesian::ManipulabilityAnalyzer::compute()
     publish();
 }
 
-void XBot::Cartesian::ManipulabilityAnalyzer::publish()
+void ManipulabilityAnalyzer::publish()
 {
     auto now = ros::Time::now();
     
@@ -172,21 +172,21 @@ void XBot::Cartesian::ManipulabilityAnalyzer::publish()
         int prio = _task_idx.at(task_name).first;
         int start_idx = _task_idx.at(task_name).second;
         
-        auto marker_pos = ComputeEllipsoidFromQuadraticForm(_tasks[prio], 
-                                                            _task_poses.at(task_name).translation(), 
+        auto marker_pos = ComputeEllipsoidFromQuadraticForm(_tasks[prio],
+                                                            _task_poses.at(task_name).translation(),
                                                             _tf_prefix_slash + "world_odom",
                                                             start_idx
-                                                           );
+                                                            );
         
         marker_pos.scale.x *= _scale_pos.at(task_name);
         marker_pos.scale.y *= _scale_pos.at(task_name);
         marker_pos.scale.z *= _scale_pos.at(task_name);
         
-        auto marker_rot = ComputeEllipsoidFromQuadraticForm(_tasks[prio], 
-                                                            _task_poses.at(task_name).translation(), 
+        auto marker_rot = ComputeEllipsoidFromQuadraticForm(_tasks[prio],
+                                                            _task_poses.at(task_name).translation(),
                                                             _tf_prefix_slash + "world_odom",
                                                             start_idx + 3
-                                                           );
+                                                            );
         
         marker_rot.scale.x *= _scale_rot.at(task_name);
         marker_rot.scale.y *= _scale_rot.at(task_name);
@@ -198,8 +198,8 @@ void XBot::Cartesian::ManipulabilityAnalyzer::publish()
 }
 
 
-visualization_msgs::Marker XBot::Cartesian::ManipulabilityAnalyzer::ComputeEllipsoidFromQuadraticForm(const Eigen::MatrixXd& JJtinv,
-                                                                                                      const Eigen::Vector3d& pos, const std::string& base_link, int start_idx)
+visualization_msgs::Marker ManipulabilityAnalyzer::ComputeEllipsoidFromQuadraticForm(const Eigen::MatrixXd& JJtinv,
+                                                                                     const Eigen::Vector3d& pos, const std::string& base_link, int start_idx)
 {
     static Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver;
     Eigen::Matrix3d K = JJtinv.middleRows<3>(start_idx).middleCols<3>(start_idx);

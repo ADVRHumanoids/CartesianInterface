@@ -60,6 +60,16 @@ TaskPtr OpenSotInteractionAdapter::constructTask()
     return _opensot_adm;
 }
 
+bool OpenSotInteractionAdapter::initialize()
+{
+    if(!OpenSotCartesianAdapter::initialize())
+    {
+        return false;
+    }
+
+    return true;
+}
+
 void OpenSotInteractionAdapter::update(double time, double period)
 {
     OpenSotCartesianAdapter::update(time, period);

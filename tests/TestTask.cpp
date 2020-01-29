@@ -84,10 +84,45 @@ TEST(TestTask, checkDefaultYaml1)
 
 }
 
+TEST(TestTask, checkDefaultYaml3)
+{
+    std::string yaml_str =
+            "type: Cartesian                         \n"
+            "active: false                           \n"
+            "lambda: 0.1                             \n"
+            "weight: [1, 2, 3, 4, 5, 6]              \n"
+            "indices: [0, 1, 2]                      \n"
+            "lib_name: libCazzi.so                   \n"
+            "disabled_joints: [j_arm1_7, torso_yaw]  \n";
+
+    auto yaml = YAML::Load(yaml_str);
+
+    auto model = GetTestModel();
+    TaskDescriptionImpl t(yaml, model, "MyTask", 6);
+
+    Eigen::VectorXd expected_weight(6);
+    expected_weight << 1, 2, 3, 4, 5, 6;
+
+    ASSERT_EQ(t.getName(), "MyTask");
+    ASSERT_EQ(t.getType(), "Cartesian");
+    ASSERT_EQ(t.getSize(), 6);
+    ASSERT_EQ(t.getLambda(), .1);
+    ASSERT_EQ(t.getIndices(), (std::vector<int>{0, 1, 2}));
+    ASSERT_EQ(t.getActivationState(), ActivationState::Disabled);
+    ASSERT_EQ(t.getModel(), model);
+    ASSERT_EQ(t.getWeight(), Eigen::MatrixXd(expected_weight.asDiagonal()));
+    ASSERT_EQ(t.getLibName(), "libCazzi.so");
+    ASSERT_EQ(t.getDisabledJoints(), (std::vector<std::string>{"j_arm1_7", "torso_yaw"}));
+
+    ASSERT_TRUE(t.validate());
+
+}
+
 TEST(TestTask, checkDefaultYaml2)
 {
     std::string yaml_str =
             "type: Cartesian                         \n"
+            "active: true                            \n"
             "weight: 10.0                            \n"
             "indices: [0, 1, 2]                      \n"
             "lib_name: libCazzi.so                   \n"

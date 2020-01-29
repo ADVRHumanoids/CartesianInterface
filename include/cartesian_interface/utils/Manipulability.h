@@ -2,6 +2,7 @@
 #define __CI_MANIPULABILITY_H__
 
 #include <cartesian_interface/problem/ProblemDescription.h>
+#include <cartesian_interface/problem/Cartesian.h>
 #include <cartesian_interface/utils/LoadConfig.h>
 
 #include <XBotInterface/MatLogger.hpp>
@@ -43,7 +44,7 @@ public:
     
 private:
     
-    bool compute_task_matrix(TaskDescription::Ptr task, Eigen::MatrixXd& A, Eigen::Affine3d& T);
+    bool compute_task_matrix(CartesianTask::Ptr task, Eigen::MatrixXd& A, Eigen::Affine3d& T);
     void publish();
     
     XBot::MatLogger::Ptr _logger;

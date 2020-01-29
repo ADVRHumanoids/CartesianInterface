@@ -48,6 +48,8 @@ InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
         _m = Eigen::Vector6d::Map(inertia.data()).asDiagonal();
     }
 
+    _fmin.setConstant(-1000.0);
+    _fmax.setConstant(1000.0);
     if(task_node["force_min"])
     {
         fmin = task_node["force_min"].as<std::vector<double>>();

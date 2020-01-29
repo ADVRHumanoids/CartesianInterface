@@ -92,10 +92,14 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
         {
             task_desc = std::make_shared<CartesianTaskImpl>(task_node,  model);
         }
-        //        else if(task_type == "Interaction")
-        //        {
-        //            task_desc = InteractionTask::yaml_parse_interaction(task_node, model);
-        //        }
+        else if(task_type == "Interaction")
+        {
+            task_desc = std::make_shared<InteractionTaskImpl>(task_node,  model);
+        }
+        else if(task_type == "Admittance")
+        {
+            task_desc = std::make_shared<AdmittanceTaskImpl>(task_node,  model);
+        }
         else if(task_type == "Com")
         {
             task_desc = std::make_shared<ComTaskImpl>(task_node,  model);

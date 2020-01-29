@@ -5,7 +5,7 @@
 
 #include "testutils.h"
 
-#include "problem/impl/Cartesian.h"
+#include "problem/impl/Interaction.h"
 
 using namespace XBot::Cartesian;
 auto ctx = Context::MakeContext(0.001);
@@ -52,150 +52,236 @@ TEST(TestCartesian, checkDefault)
 
 
 
-//TEST(TestCartesian, checkDefaultYaml1)
-//{
-//    std::string yaml_str =
-//            "type: Cartesian                         \n"
-//            "weight: [1, 2, 3, 4, 5, 6]              \n"
-//            "indices: [0, 1, 2]                      \n"
-//            "lib_name: libCazzi.so                   \n"
-//            "disabled_joints: [j_arm1_7, torso_yaw]  \n";
+TEST(TestCartesian, checkDefaultYaml1)
+{
+    std::string yaml_str =
+            "name: larm                         \n"
+            "type: Cartesian                    \n"
+            "distal_link: arm1_8                \n"
+            "use_body_jacobian: true            \n"
+            "orientation_gain: 5.0              \n";
 
-//    auto yaml = YAML::Load(yaml_str);
+    auto yaml = YAML::Load(yaml_str);
 
-//    auto model = GetTestModel();
-//    TaskDescription t(yaml, model, "MyTask", 6);
+    auto model = GetTestModel();
+    CartesianTaskImpl t(yaml, model);
 
-//    Eigen::VectorXd expected_weight(6);
-//    expected_weight << 1, 2, 3, 4, 5, 6;
+    ASSERT_EQ(t.getName(), "larm");
+    ASSERT_EQ(t.getType(), "Cartesian");
+    ASSERT_EQ(t.getSize(), 6);
+    ASSERT_EQ(t.getIndices(), (std::vector<int>{0, 1, 2, 3, 4, 5}));
+    ASSERT_EQ(t.getActivationState(), ActivationState::Enabled);
+    ASSERT_EQ(t.getModel(), model);
+    ASSERT_EQ(t.getWeight(), Eigen::MatrixXd::Identity(6,6));
+    ASSERT_EQ(t.getDistalLink(), "arm1_8");
+    ASSERT_EQ(t.getBaseLink(), "world");
+    ASSERT_EQ(t.isSubtaskLocal(), true);
 
-//    ASSERT_EQ(t.getName(), "MyTask");
-//    ASSERT_EQ(t.getType(), "Cartesian");
-//    ASSERT_EQ(t.getSize(), 6);
-//    ASSERT_EQ(t.getIndices(), (std::vector<int>{0, 1, 2}));
-//    ASSERT_EQ(t.getActivationState(), ActivationState::Enabled);
-//    ASSERT_EQ(t.getModel(), model);
-//    ASSERT_EQ(t.getWeight(), Eigen::MatrixXd(expected_weight.asDiagonal()));
-//    ASSERT_EQ(t.getLibName(), "libCazzi.so");
-//    ASSERT_EQ(t.getDisabledJoints(), (std::vector<std::string>{"j_arm1_7", "torso_yaw"}));
+    ASSERT_TRUE(t.validate());
 
-//    ASSERT_TRUE(t.validate());
+}
 
-//}
+TEST(TestCartesian, checkDefaultYaml2)
+{
+    std::string yaml_str =
+            "name: larm                         \n"
+            "type: Cartesian                    \n"
+            "distal_link: arm1_8                \n"
+            "base_link: pelvis                  \n"
+            "use_body_jacobian: true            \n"
+            "orientation_gain: 5.0              \n";
 
-//TEST(TestCartesian, checkDefaultYaml2)
-//{
-//    std::string yaml_str =
-//            "type: Cartesian                         \n"
-//            "weight: 10.0                            \n"
-//            "indices: [0, 1, 2]                      \n"
-//            "lib_name: libCazzi.so                   \n"
-//            "enabled_joints: [j_arm1_7, torso_yaw]   \n";
+    auto yaml = YAML::Load(yaml_str);
 
-//    auto yaml = YAML::Load(yaml_str);
+    auto model = GetTestModel();
+    CartesianTaskImpl t(yaml, model);
 
-//    auto model = GetTestModel();
-//    TaskDescription t(yaml, model, "MyTask", 6);
+    ASSERT_EQ(t.getName(), "larm");
+    ASSERT_EQ(t.getType(), "Cartesian");
+    ASSERT_EQ(t.getSize(), 6);
+    ASSERT_EQ(t.getIndices(), (std::vector<int>{0, 1, 2, 3, 4, 5}));
+    ASSERT_EQ(t.getActivationState(), ActivationState::Enabled);
+    ASSERT_EQ(t.getModel(), model);
+    ASSERT_EQ(t.getWeight(), Eigen::MatrixXd::Identity(6,6));
+    ASSERT_EQ(t.getDistalLink(), "arm1_8");
+    ASSERT_EQ(t.getBaseLink(), "pelvis");
+    ASSERT_EQ(t.isSubtaskLocal(), true);
 
-//    Eigen::VectorXd expected_weight(6);
-//    expected_weight << 10, 10, 10, 10, 10, 10;
+    ASSERT_TRUE(t.validate());
 
-//    auto joints = model->getEnabledJointNames();
-//    joints.erase(std::remove(joints.begin(), joints.end(), "j_arm1_7"),
-//                 joints.end());
-//    joints.erase(std::remove(joints.begin(), joints.end(), "torso_yaw"),
-//                 joints.end());
+}
 
-//    ASSERT_EQ(t.getName(), "MyTask");
-//    ASSERT_EQ(t.getType(), "Cartesian");
-//    ASSERT_EQ(t.getSize(), 6);
-//    ASSERT_EQ(t.getIndices(), (std::vector<int>{0, 1, 2}));
-//    ASSERT_EQ(t.getActivationState(), ActivationState::Enabled);
-//    ASSERT_EQ(t.getModel(), model);
-//    ASSERT_EQ(t.getWeight(), Eigen::MatrixXd(expected_weight.asDiagonal()));
-//    ASSERT_EQ(t.getLibName(), "libCazzi.so");
-//    ASSERT_EQ(t.getDisabledJoints(), joints);
+TEST(TestCartesian, checkAdmittance)
+{
+    std::string yaml_str =
+            "name: larm                             \n"
+            "type: Admittance                       \n"
+            "distal_link: arm1_8                    \n"
+            "base_link: pelvis                      \n"
+            "force_dead_zone: [10, 10, 10, 3, 3, 3] \n"
+            "force_estimation_chains: [left_arm]    \n"
+            "stiffness: [10, 10, 10, 3, 3, 3]       \n"
+            "inertia: [10, 10, 10, 3, 3, 3]         \n"
+            "damping: [10, 10, 10, 3, 3, 3]         \n";
 
-//    ASSERT_TRUE(t.validate());
+    auto yaml = YAML::Load(yaml_str);
 
-//}
+    auto model = GetTestModel();
+    AdmittanceTaskImpl t(yaml, model);
 
-//TEST(TestCartesian, checkGetSet)
-//{
-//    std::string yaml_str = "type: Cartesian \n";
-//    auto yaml = YAML::Load(yaml_str);
+    Eigen::Vector6d vec;
+    vec << 10, 10, 10, 3, 3, 3;
 
-//    auto model = GetTestModel();
-//    TaskDescription t(yaml, model, "MyTask", 6);
+    Eigen::Matrix6d mat(vec.asDiagonal());
 
-//    Eigen::MatrixXd w = 2*Eigen::MatrixXd::Identity(t.getSize(), t.getSize());
+    ASSERT_EQ(t.getName(), "larm");
+    ASSERT_EQ(t.getType(), "Admittance");
+    ASSERT_EQ(t.getSize(), 6);
+    ASSERT_EQ(t.getIndices(), (std::vector<int>{0, 1, 2, 3, 4, 5}));
+    ASSERT_EQ(t.getActivationState(), ActivationState::Enabled);
+    ASSERT_EQ(t.getModel(), model);
+    ASSERT_EQ(t.getWeight(), Eigen::MatrixXd::Identity(6,6));
+    ASSERT_EQ(t.getDistalLink(), "arm1_8");
+    ASSERT_EQ(t.getBaseLink(), "pelvis");
+    ASSERT_EQ(t.getForceDeadzone(), vec);
+    ASSERT_EQ(t.getStiffness(), mat);
+    ASSERT_EQ(t.getDamping(), mat);
+    ASSERT_EQ(t.getInertia(), mat);
+    ASSERT_EQ(t.getForceEstimationChains(), std::vector<std::string>{"left_arm"});
 
-//    t.setLambda(0.5);
-//    t.setWeight(w);
-//    t.setIndices({0, 4, 5});
-//    t.setActivationState(ActivationState::Disabled);
+
+    ASSERT_TRUE(t.validate());
+
+}
 
 
-//    ASSERT_EQ(t.getName(), "MyTask");
-//    ASSERT_EQ(t.getType(), "Cartesian");
-//    ASSERT_EQ(t.getSize(), 6);
-//    ASSERT_EQ(t.getIndices(), (std::vector<int>{0, 4, 5}));
-//    ASSERT_EQ(t.getActivationState(), ActivationState::Disabled);
-//    ASSERT_EQ(t.getModel(), model);
-//    ASSERT_EQ(t.getWeight(), w);
-//    ASSERT_EQ(t.getLibName(), "");
-//    ASSERT_TRUE(t.getDisabledJoints().empty());
+TEST(TestCartesian, checkObserver)
+{
+    std::string yaml_str =
+            "name: larm                         \n"
+            "type: Cartesian                    \n"
+            "distal_link: arm1_8                \n"
+            "base_link: pelvis                  \n"
+            "use_body_jacobian: true            \n"
+            "orientation_gain: 5.0              \n";
 
-//    ASSERT_TRUE(t.validate());
-//}
+    auto yaml = YAML::Load(yaml_str);
 
-//TEST(TestCartesian, checkObserver)
-//{
-//    std::string yaml_str = "type: Cartesian \n";
-//    auto yaml = YAML::Load(yaml_str);
+    auto model = GetTestModel();
+    CartesianTaskImpl t(yaml, model);
 
-//    auto model = GetTestModel();
-//    TaskDescription t(yaml, model, "MyTask", 6);
 
-//    struct Obs : TaskObserver
-//    {
-//        virtual bool onWeightChanged(){return _on_w();}
-//        virtual bool onActivationStateChanged(){return _on_act();}
+    struct Obs : CartesianTaskObserver
+    {
+        virtual bool onWeightChanged(){return _on_w();}
+        virtual bool onActivationStateChanged(){return _on_act();}
+        virtual bool onBaseLinkChanged(){return _on_bl();}
+        virtual bool onControlModeChanged(){return _on_cm();}
+        virtual bool onSafetyLimitsChanged(){return _on_sl();}
 
-//        std::function<bool(void)> _on_w, _on_act;
-//    };
+        std::function<bool(void)> _on_w,
+                _on_act,
+                _on_bl,
+                _on_cm,
+                _on_sl;
+    };
 
-//    auto obs = std::make_shared<Obs>();
+    auto obs = std::make_shared<Obs>();
 
-//    bool w_cb_called = false;
-//    bool act_cb_called = false;
+    bool w_cb_called = false;
+    bool act_cb_called = false;
+    bool bl_cb_called = false;
+    bool cm_cb_called = false;
+    bool sl_cb_called = false;
 
-//    auto on_w = [&w_cb_called]()
-//    {
-//        w_cb_called = true;
-//        return true;
-//    };
+    obs->_on_w = [&w_cb_called]()
+    {
+        w_cb_called = true;
+        return true;
+    };
 
-//    auto on_act = [&act_cb_called]()
-//    {
-//        act_cb_called = true;
-//        return true;
-//    };
+    obs->_on_act = [&act_cb_called]()
+    {
+        act_cb_called = true;
+        return true;
+    };
 
-//    obs->_on_w = on_w;
-//    obs->_on_act = on_act;
+    obs->_on_bl = [&bl_cb_called]()
+    {
+        bl_cb_called = true;
+        return true;
+    };
 
-//    t.registerObserver(obs);
+    obs->_on_cm = [&cm_cb_called]()
+    {
+        cm_cb_called = true;
+        return true;
+    };
 
-//    t.setWeight(Eigen::MatrixXd::Identity(6,6));
-//    ASSERT_TRUE(w_cb_called);
-//    ASSERT_FALSE(act_cb_called);
+    obs->_on_sl = [&sl_cb_called]()
+    {
+        sl_cb_called = true;
+        return true;
+    };
 
-//    t.setActivationState(ActivationState::Enabled);
-//    ASSERT_TRUE(w_cb_called);
-//    ASSERT_TRUE(act_cb_called);
 
-//}
+    t.registerObserver(obs);
+
+    t.setWeight(Eigen::MatrixXd::Identity(6,6));
+    ASSERT_TRUE(w_cb_called);
+    w_cb_called = false;
+
+    t.setActivationState(ActivationState::Enabled);
+    ASSERT_TRUE(act_cb_called);
+    act_cb_called = false;
+
+    t.setBaseLink("cazzi");
+    ASSERT_FALSE(bl_cb_called);
+    t.setBaseLink("pelvis");
+    ASSERT_TRUE(bl_cb_called);
+    bl_cb_called = false;
+
+    t.setControlMode(ControlType::Velocity);
+    ASSERT_TRUE(cm_cb_called);
+    cm_cb_called = false;
+
+    t.setVelocityLimits(1, 1);
+    ASSERT_TRUE(sl_cb_called);
+    sl_cb_called = false;
+    t.setAccelerationLimits(1, 1);
+    ASSERT_TRUE(sl_cb_called);
+    sl_cb_called = false;
+
+    /* Check that obs lifetime is not extended by the task */
+    obs.reset();
+    ASSERT_EQ(obs.use_count(), 0);
+
+    t.setWeight(Eigen::MatrixXd::Identity(6,6));
+    ASSERT_FALSE(w_cb_called);
+    w_cb_called = false;
+
+    t.setActivationState(ActivationState::Enabled);
+    ASSERT_FALSE(act_cb_called);
+    act_cb_called = false;
+
+    t.setBaseLink("cazzi");
+    ASSERT_FALSE(bl_cb_called);
+    t.setBaseLink("pelvis");
+    ASSERT_FALSE(bl_cb_called);
+    bl_cb_called = false;
+
+    t.setControlMode(ControlType::Velocity);
+    ASSERT_FALSE(cm_cb_called);
+    cm_cb_called = false;
+
+    t.setVelocityLimits(1, 1);
+    ASSERT_FALSE(sl_cb_called);
+    sl_cb_called = false;
+    t.setAccelerationLimits(1, 1);
+    ASSERT_FALSE(sl_cb_called);
+    sl_cb_called = false;
+
+}
 
 
 int main(int argc, char **argv) {

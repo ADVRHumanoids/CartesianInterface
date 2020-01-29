@@ -110,6 +110,11 @@ TaskDescriptionImpl::TaskDescriptionImpl(YAML::Node task_node,
         _name = task_node["name"].as<std::string>();
     }
 
+    if(task_node["active"] && !task_node["active"].as<bool>())
+    {
+        setActivationState(ActivationState::Disabled);
+    }
+
     if(task_node["weight"] && task_node["weight"].IsScalar())
     {
         _weight = task_node["weight"].as<double>() * Eigen::MatrixXd::Identity(_size, _size);

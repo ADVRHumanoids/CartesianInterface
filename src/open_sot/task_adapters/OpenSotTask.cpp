@@ -66,6 +66,14 @@ bool OpenSotTaskAdapter::initialize()
         _sub_task = _opensot_task % indices_list;
     }
 
+    // activation state
+    auto activ = _ci_task->getActivationState();
+
+    if(activ == ActivationState::Disabled)
+    {
+        _sub_task->setActive(false);
+    }
+
 
     /* Register observer */
     _ci_task->registerObserver(shared_from_this());
