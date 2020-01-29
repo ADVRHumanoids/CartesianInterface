@@ -158,6 +158,17 @@ void RosClient::set_async_mode(bool async)
     }
 }
 
+bool RosClient::setVelocityReference(const std::string& end_effector,
+                                     const Eigen::Vector6d& base_vel_ref,
+                                     const std::string& base_frame)
+{
+    auto cart_ros = std::dynamic_pointer_cast<ClientApi::CartesianRos>(getTask(end_effector));
+
+    if(!cart_ros) return false;
+
+    return cart_ros->setVelocityReference(base_vel_ref, base_frame);
+}
+
 bool RosClient::setWayPoints(const std::string& end_effector,
                              const Trajectory::WayPointVector& way_points,
                              bool incremental)

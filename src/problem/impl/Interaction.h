@@ -1,60 +1,78 @@
-#ifndef __XBOT_CARTESIAN_PROBLEM_INTERACTION_H__
-#define __XBOT_CARTESIAN_PROBLEM_INTERACTION_H__
+#ifndef __XBOT_CARTESIAN_PROBLEM_INTERACTION_IMPL_H__
+#define __XBOT_CARTESIAN_PROBLEM_INTERACTION_IMPL_H__
 
-#include <cartesian_interface/problem/Cartesian.h>
-
-namespace Eigen 
-{
-    typedef Eigen::Matrix<double, 6, 1> Vector6d;
-}
+#include "Cartesian.h"
+#include <cartesian_interface/problem/Interaction.h>
 
 namespace XBot { namespace Cartesian {
-    
-    /**
-     * @brief Description of an interaction task (extends CartesianTask)
-     */
-    struct InteractionTask : CartesianTask {
-        
-        /**
-        * @brief Interaction parameters for the task (linear, then angular)
-        */
-        Eigen::Vector6d stiffness, damping, inertia, force_dead_zone;
-        
-        /**
-        * @brief Chains to be used for force estimation
-        */
-        std::vector<std::string> force_estimation_chains;
 
-        typedef std::shared_ptr<InteractionTask> Ptr;
-        typedef std::shared_ptr<const InteractionTask> ConstPtr;
-        
-        InteractionTask() = default;
-        InteractionTask(std::string distal_link, 
-                        std::string base_link = "world", 
-                        int size = 6,
-                        std::string type = "Interaction");
+class InteractionTaskImpl : public virtual InteractionTask,
+        public CartesianTaskImpl
 
-        static TaskDescription::Ptr yaml_parse_interaction(YAML::Node node, ModelInterface::ConstPtr model);
-        
-        
-    };
-    
-    /**
-     * @brief Make a cartesian task and return a shared pointer
-     */
-    InteractionTask::Ptr MakeInteraction(std::string distal_link, std::string base_link = "world");
+{
 
-    /**
-     * @brief Dynamic cast a generic task to an InteractionTask
-     * 
-     * @return A null pointer if the cast is unsuccessful (i.e. task is not an InteractionTask)
-     */
-    InteractionTask::Ptr GetAsInteraction(TaskDescription::Ptr task);
-    
-    
-    
-  
-    
+public:
+
+    InteractionTaskImpl(ModelInterface::ConstPtr model,
+                        std::string name,
+                        std::string distal_link,
+                        std::string base_link = "world");
+
+    InteractionTaskImpl(ModelInterface::ConstPtr model,
+                        std::string name,
+                        std::string type,
+                        std::string distal_link,
+                        std::string base_link);
+
+    InteractionTaskImpl(YAML::Node node,
+                        ModelInterface::ConstPtr model);
+
+    void update(double time, double period) override;
+    void log(MatLogger::Ptr logger, bool init_logger, int buf_size) override;
+
+    const Eigen::Matrix6d& getStiffness() const override;
+    const Eigen::Matrix6d& getDamping() const override;
+    const Eigen::Matrix6d& getInertia() const override;
+    const Eigen::Vector6d& getForceReference() const override;
+    void getForceLimits(Eigen::Vector6d& fmin,
+                        Eigen::Vector6d& fmax) const override;
+
+    void setStiffness(const Eigen::Matrix6d& k) override;
+    void setDamping(const Eigen::Matrix6d& d) override;
+    void setInertia(const Eigen::Matrix6d& m) override;
+    void setForceReference(const Eigen::Vector6d& f) override;
+    bool setForceLimits(const Eigen::Vector6d& fmin,
+                        const Eigen::Vector6d& fmax) override;
+
+private:
+
+    static constexpr double REF_TTL = 0.3;
+
+    Eigen::Matrix6d _k, _d, _m;
+    Eigen::Vector6d _fref, _fmin, _fmax;
+    double _ref_timeout;
+
+};
+
+class AdmittanceTaskImpl : public virtual AdmittanceTask,
+        public InteractionTaskImpl
+{
+
+public:
+
+    AdmittanceTaskImpl(YAML::Node node,
+                       ModelInterface::ConstPtr model);
+
+    const Eigen::Vector6d& getForceDeadzone() const override;
+    const std::vector<std::string>& getForceEstimationChains() const override;
+
+private:
+
+    Eigen::Vector6d _dz;
+    std::vector<std::string> _fest_chains;
+};
+
+
 } }
 
 

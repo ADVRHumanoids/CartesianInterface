@@ -3,58 +3,43 @@
 
 #include <cartesian_interface/problem/Cartesian.h>
 
-namespace Eigen 
-{
-    typedef Eigen::Matrix<double, 6, 1> Vector6d;
-}
-
 namespace XBot { namespace Cartesian {
-    
-    /**
-     * @brief Description of an interaction task (extends CartesianTask)
-     */
-    struct InteractionTask : CartesianTask {
-        
-        /**
-        * @brief Interaction parameters for the task (linear, then angular)
-        */
-        Eigen::Vector6d stiffness, damping, inertia, force_dead_zone;
-        
-        /**
-        * @brief Chains to be used for force estimation
-        */
-        std::vector<std::string> force_estimation_chains;
 
-        typedef std::shared_ptr<InteractionTask> Ptr;
-        typedef std::shared_ptr<const InteractionTask> ConstPtr;
-        
-        InteractionTask() = default;
-        InteractionTask(std::string distal_link, 
-                        std::string base_link = "world", 
-                        int size = 6,
-                        std::string type = "Interaction");
+class InteractionTask : public virtual CartesianTask
+{
 
-        static TaskDescription::Ptr yaml_parse_interaction(YAML::Node node, ModelInterface::ConstPtr model);
-        
-        
-    };
-    
-    /**
-     * @brief Make a cartesian task and return a shared pointer
-     */
-    InteractionTask::Ptr MakeInteraction(std::string distal_link, std::string base_link = "world");
+public:
 
-    /**
-     * @brief Dynamic cast a generic task to an InteractionTask
-     * 
-     * @return A null pointer if the cast is unsuccessful (i.e. task is not an InteractionTask)
-     */
-    InteractionTask::Ptr GetAsInteraction(TaskDescription::Ptr task);
-    
-    
-    
-  
-    
+    CARTESIO_DECLARE_SMART_PTR(InteractionTask)
+
+    virtual const Eigen::Matrix6d& getStiffness() const = 0;
+    virtual const Eigen::Matrix6d& getDamping() const = 0;
+    virtual const Eigen::Matrix6d& getInertia() const = 0;
+    virtual const Eigen::Vector6d& getForceReference() const = 0;
+    virtual void getForceLimits(Eigen::Vector6d& fmin,
+                                Eigen::Vector6d& fmax) const = 0;
+
+    virtual void setStiffness(const Eigen::Matrix6d& k) = 0;
+    virtual void setDamping(const Eigen::Matrix6d& d) = 0;
+    virtual void setInertia(const Eigen::Matrix6d& m) = 0;
+    virtual void setForceReference(const Eigen::Vector6d& f) = 0;
+    virtual bool setForceLimits(const Eigen::Vector6d& fmin,
+                                const Eigen::Vector6d& fmax)= 0;
+
+};
+
+class AdmittanceTask : public virtual InteractionTask
+{
+
+public:
+
+    CARTESIO_DECLARE_SMART_PTR(AdmittanceTask)
+
+    virtual const Eigen::Vector6d& getForceDeadzone() const = 0;
+    virtual const std::vector<std::string>& getForceEstimationChains() const = 0;
+
+};
+
 } }
 
 

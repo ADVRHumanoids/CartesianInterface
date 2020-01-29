@@ -26,7 +26,7 @@ public:
     
     typedef std::shared_ptr<JoyStick> Ptr;
 
-    JoyStick(std::shared_ptr<RosImpl> ci_ros,
+    JoyStick(std::shared_ptr<RosClient> ci_ros,
              std::string tf_prefix = "");
 
     ~JoyStick();
@@ -86,7 +86,7 @@ private:
 
     int _selected_task;
 
-    std::shared_ptr<RosImpl> _ci;
+    std::shared_ptr<RosClient> _ci;
 
     double _linear_speed_sf;
     double _angular_speed_sf;

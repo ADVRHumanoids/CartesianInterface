@@ -2,7 +2,7 @@
 #define CartesianPlugin_UTILS_H_
 
 #include <XCM/XBotControlPlugin.h>
-#include <cartesian_interface/utils/LockfreeBufferImpl.h>
+#include "utils/LockfreeBufferImpl.h"
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
 
@@ -16,7 +16,7 @@ namespace XBot { namespace Cartesian { namespace Utils {
         typedef std::shared_ptr<SyncFromIO> Ptr;
         
         SyncFromIO(XBot::Handle::Ptr handle, 
-                XBot::Cartesian::CartesianInterface::ConstPtr ci, 
+                XBot::Cartesian::CartesianInterfaceImpl::Ptr ci,
                 XBot::ModelInterface::ConstPtr model,
                 std::string tf_prefix = "ci",
                 std::string ros_namespace = "cartesian"
@@ -43,7 +43,7 @@ namespace XBot { namespace Cartesian { namespace Utils {
 
 
 inline XBot::Cartesian::Utils::SyncFromIO::SyncFromIO(XBot::Handle::Ptr handle, 
-                                                      XBot::Cartesian::CartesianInterface::ConstPtr ci, 
+                                                      XBot::Cartesian::CartesianInterfaceImpl::Ptr ci,
                                                       XBot::ModelInterface::ConstPtr model,
                                                       std::string tf_prefix,
                                                       std::string ros_namespace

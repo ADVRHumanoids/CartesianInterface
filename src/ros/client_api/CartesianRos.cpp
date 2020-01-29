@@ -221,8 +221,14 @@ bool CartesianRos::setPoseReferenceRaw(const Eigen::Affine3d& base_T_ref)
 
 bool CartesianRos::setVelocityReference(const Eigen::Vector6d& base_vel_ref)
 {
+    return setVelocityReference(base_vel_ref, "");
+}
+
+bool CartesianRos::setVelocityReference(const Eigen::Vector6d& base_vel_ref,
+                                        const std::string& base_frame)
+{
     geometry_msgs::TwistStamped msg;
-    msg.header.frame_id = "";
+    msg.header.frame_id = base_frame;
     msg.header.stamp = ros::Time::now();
     tf::twistEigenToMsg(base_vel_ref, msg.twist);
     _vel_ref_pub.publish(msg);

@@ -60,7 +60,6 @@ void OpenSotCartesianAdapter::update(double time, double period)
 
 bool OpenSotCartesianAdapter::onBaseLinkChanged()
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
     return _opensot_cart->setBaseLink(_ci_cart->getBaseLink());
 }
 

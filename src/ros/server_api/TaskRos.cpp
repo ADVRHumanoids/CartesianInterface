@@ -4,6 +4,7 @@
 
 #include "CartesianRos.h"
 #include "PosturalRos.h"
+#include "InteractionRos.h"
 
 #include <std_msgs/String.h>
 
@@ -176,7 +177,11 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
     TaskRos * ros_adapter = nullptr;
 
     /* Try all supported dynamic casts, from the most derived to the least derived class */
-    if(auto cart = std::dynamic_pointer_cast<CartesianTask>(task))
+    if(auto inter = std::dynamic_pointer_cast<InteractionTask>(task))
+    {
+        ros_adapter = new InteractionRos(inter, model);
+    }
+    else if(auto cart = std::dynamic_pointer_cast<CartesianTask>(task))
     {
         ros_adapter = new CartesianRos(cart, model);
     }
@@ -197,8 +202,8 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
         catch(LibNotFound&)
         {
             fmt::print("Unable to construct TaskRos instance for task '{}': "
-                      "lib '{}' not found for unsupported task type '{}'",
-                      task->getName(), RosApiPluginName(task), task->getType());
+                       "lib '{}' not found for unsupported task type '{}'",
+                       task->getName(), RosApiPluginName(task), task->getType());
 
         }
     }

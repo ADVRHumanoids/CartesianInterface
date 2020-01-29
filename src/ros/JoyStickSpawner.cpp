@@ -15,14 +15,14 @@
 
 using namespace XBot::Cartesian;
 
-std::shared_ptr<RosImpl> ci_ros;
+std::shared_ptr<RosClient> ci_ros;
 std::unique_ptr<JoyStick> joystick;
 
 void constructJoyStick(ros::NodeHandle nh, std::unique_ptr<JoyStick>& joystick)
 {
     joystick.reset();
 
-    ci_ros = std::make_shared<RosImpl>();
+    ci_ros = std::make_shared<RosClient>();
 
     ros::NodeHandle nh_priv("~");
     auto tf_prefix = nh_priv.param<std::string>("tf_prefix", "ci");

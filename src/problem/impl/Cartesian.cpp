@@ -10,10 +10,20 @@ const double DEFAULT_REACH_THRESHOLD = 1e-6;
 
 
 CartesianTaskImpl::CartesianTaskImpl(ModelInterface::ConstPtr model,
-                             std::string name,
-                             std::string distal_link,
-                             std::string base_link):
-    TaskDescriptionImpl("Cartesian", name, 6, model),
+                                     std::string name,
+                                     std::string distal_link,
+                                     std::string base_link):
+    CartesianTaskImpl(model, name, "Cartesian", distal_link, base_link)
+{
+
+}
+
+CartesianTaskImpl::CartesianTaskImpl(XBot::ModelInterface::ConstPtr model,
+                                     std::string name,
+                                     std::string type,
+                                     std::string distal_link,
+                                     std::string base_link):
+    TaskDescriptionImpl(type, name, 6, model),
     _distal_link(distal_link),
     _base_link(base_link),
     _orientation_gain(1.0),
@@ -177,8 +187,8 @@ void CartesianTaskImpl::setAccelerationLimits(double max_acc_lin, double max_acc
 void CartesianTaskImpl::enableOtg()
 {
     _otg = std::make_shared<Reflexxes::Utils::TrajectoryGenerator>(7, // 3 + 4
-                                                                  _ctx.getControlPeriod(),
-                                                                  EigenVector7d::Zero());
+                                                                   _ctx.getControlPeriod(),
+                                                                   EigenVector7d::Zero());
     reset_otg();
     _otg->setVelocityLimits(_otg_maxvel);
     _otg->setAccelerationLimits(_otg_maxacc);
@@ -195,8 +205,8 @@ const std::string & CartesianTaskImpl::getBaseLink() const
 }
 
 bool CartesianTaskImpl::getPoseReference(Eigen::Affine3d & base_T_ref,
-                                     Eigen::Vector6d * base_vel_ref,
-                                     Eigen::Vector6d * base_acc_ref) const
+                                         Eigen::Vector6d * base_vel_ref,
+                                         Eigen::Vector6d * base_acc_ref) const
 {
     base_T_ref = get_pose_ref_otg();
     
@@ -207,8 +217,8 @@ bool CartesianTaskImpl::getPoseReference(Eigen::Affine3d & base_T_ref,
 }
 
 bool CartesianTaskImpl::getPoseReferenceRaw(Eigen::Affine3d & base_T_ref,
-                                        Eigen::Vector6d * base_vel_ref,
-                                        Eigen::Vector6d * base_acc_ref) const
+                                            Eigen::Vector6d * base_vel_ref,
+                                            Eigen::Vector6d * base_acc_ref) const
 {
     base_T_ref = _T;
     

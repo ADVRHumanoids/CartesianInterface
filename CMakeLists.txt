@@ -115,7 +115,7 @@ set(CartesianInterface_SRC
     #        src/problem/Gaze.cpp
     src/problem/impl/Postural.cpp
     src/problem/impl/Subtask.cpp
-    #        src/problem/Interaction.cpp
+    src/problem/impl/Interaction.cpp
     src/problem/impl/TaskFactory.cpp
     src/problem/impl/Task.cpp
     src/problem/impl/Constraint.cpp
@@ -130,6 +130,7 @@ set(CartesianInterface_SRC
 set(CartesianInterfaceSOT_SRC
     src/open_sot/task_adapters/OpenSotTask.cpp
     src/open_sot/task_adapters/OpenSotCartesian.cpp
+    src/open_sot/task_adapters/OpenSotInteraction.cpp
     src/open_sot/task_adapters/OpenSotCom.cpp
     src/open_sot/task_adapters/OpenSotPostural.cpp
     src/open_sot/task_adapters/OpenSotSubtask.cpp
@@ -149,6 +150,7 @@ set(CartesianInterfaceROS_SRC
     src/ros/RosContext.cpp
     src/ros/server_api/TaskRos.cpp
     src/ros/server_api/CartesianRos.cpp
+    src/ros/server_api/InteractionRos.cpp
     src/ros/server_api/PosturalRos.cpp
     src/ros/client_api/TaskRos.cpp
     src/ros/client_api/CartesianRos.cpp
@@ -156,7 +158,7 @@ set(CartesianInterfaceROS_SRC
     src/ros/RosImpl.cpp
     src/ros/RosServerClass.cpp
     src/ros/CartesianMarker.cpp
-    #        src/ros/JoyStick.cpp
+    src/ros/JoyStick.cpp
     #        src/ros/CartesianAnalyzer.cpp
     src/ros/RosExecutor.cpp
     )
@@ -236,11 +238,13 @@ add_library(CartesioAngularMomentumAddon SHARED
     src/plugin/angular_mom/AngularMomentum.cpp
     src/plugin/angular_mom/OpenSotAngularMomentum.cpp
     src/plugin/angular_mom/AngularMomentumRos.cpp)
+
 target_link_libraries(CartesioAngularMomentumAddon PRIVATE ${OpenSoT_LIBRARIES}
     CartesianInterface
     CartesianOpenSot
     ${PCL_LIBRARIES}
     fmt::fmt-header-only)
+
 install(TARGETS CartesioAngularMomentumAddon CartesioAngularMomentumAddon
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -276,14 +280,14 @@ install(TARGETS marker_spawner marker_spawner
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
     )
 
-## JoyStick spawner executable
-#add_executable(joystick_spawner src/ros/JoyStickSpawner.cpp)
-#target_link_libraries(joystick_spawner CartesianInterface)
-#install(TARGETS joystick_spawner joystick_spawner
-#    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#)
+# JoyStick spawner executable
+add_executable(joystick_spawner src/ros/JoyStickSpawner.cpp)
+target_link_libraries(joystick_spawner CartesianInterface)
+install(TARGETS joystick_spawner joystick_spawner
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 
 ## CartesianAnalyzer executable
@@ -313,24 +317,24 @@ install(TARGETS marker_spawner marker_spawner
 #    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 #)
 
-## Robot state publisher executable
-#add_executable(robot_state_publisher src/utils/RobotStatePublisherNode.cpp)
-#target_link_libraries(robot_state_publisher CartesianInterface)
-#install(TARGETS robot_state_publisher robot_state_publisher
-#    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#)
+# Robot state publisher executable
+add_executable(robot_state_publisher src/utils/RobotStatePublisherNode.cpp)
+target_link_libraries(robot_state_publisher CartesianInterface)
+install(TARGETS robot_state_publisher robot_state_publisher
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 #add_subdirectory(examples)
 add_subdirectory(bindings/python/)
 
 
-#option(COMPILE_XBOT_PLUGIN OFF)
+option(COMPILE_XBOT_PLUGIN OFF)
 
-#if(${XCM_FOUND} AND ${COMPILE_XBOT_PLUGIN})
-#    add_subdirectory(xbotcore)
-#endif()
+if(${XCM_FOUND} AND ${COMPILE_XBOT_PLUGIN})
+    add_subdirectory(xbotcore)
+endif()
 
 
 # Mark cpp header files for installation

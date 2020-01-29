@@ -36,9 +36,10 @@ public:
 
 protected:
 
+    CartesianSoT::Ptr _opensot_cart;
+
 private:
 
-    CartesianSoT::Ptr _opensot_cart;
     CartesianTask::Ptr _ci_cart;
     double _old_lambda;
 };

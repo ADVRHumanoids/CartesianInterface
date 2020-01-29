@@ -24,7 +24,7 @@
 
 #include <XCM/IOPlugin.h>
 #include <cartesian_interface/ros/RosServerClass.h>
-#include <cartesian_interface/utils/LockfreeBufferImpl.h>
+#include "utils/LockfreeBufferImpl.h"
 
 
 namespace XBot { namespace Cartesian {

@@ -20,7 +20,8 @@
 #include <time.h>
 
 #include <CartesianPlugin/CartesianPlugin.h>
-#include <cartesian_interface/open_sot/OpenSotImpl.h>
+
+#include "utils/DynamicLoading.h"
 
 /* Specify that the class XBotPlugin::CartesianPlugin is a XBot RT plugin with name "CartesianPlugin" */
 REGISTER_XBOT_PLUGIN_(XBot::Cartesian::CartesianPlugin)
@@ -76,9 +77,9 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
         throw std::runtime_error("libCartesian" + impl_name + ".so must be listed inside LD_LIBRARY_PATH");
     }
     
-    _ci  = SoLib::getFactoryWithArgs<XBot::Cartesian::CartesianInterfaceImpl>(path_to_shared_lib, 
-                                                                              impl_name + "Impl", 
-                                                                              _model, ik_problem);
+    _ci.reset( CallFunction<CartesianInterfaceImpl*>(path_to_shared_lib,
+                                                       "create_instance",
+                                                       _model, ik_problem) );
     _ci->enableOtg(0.001);
     _ci->update(0,0);
     

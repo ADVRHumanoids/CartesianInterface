@@ -13,7 +13,7 @@
 
 using namespace XBot::Cartesian;
 
-JoyStick::JoyStick(std::shared_ptr<RosImpl> ci_ros,
+JoyStick::JoyStick(std::shared_ptr<RosClient> ci_ros,
                    std::string tf_prefix):
     _tf_prefix(tf_prefix),
     _ci(ci_ros),

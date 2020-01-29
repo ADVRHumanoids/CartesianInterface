@@ -3,6 +3,7 @@
 
 #include <XBotInterface/ModelInterface.h>
 #include <algorithm>
+#include <cartesian_interface/Macro.h>
 
 namespace XBot { namespace Cartesian { namespace Utils {
 
@@ -11,7 +12,7 @@ class ForceEstimation
 
 public:
 
-    typedef std::shared_ptr<ForceEstimation> Ptr;
+    CARTESIO_DECLARE_SMART_PTR(ForceEstimation)
 
     static constexpr double DEFAULT_SVD_THRESHOLD = 0.05;
 

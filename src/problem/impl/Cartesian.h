@@ -24,9 +24,15 @@ public:
     CartesianTaskImpl() = default;
 
     CartesianTaskImpl(ModelInterface::ConstPtr model,
-                  std::string name,
-                  std::string distal_link,
-                  std::string base_link = "world");
+                      std::string name,
+                      std::string distal_link,
+                      std::string base_link = "world");
+
+    CartesianTaskImpl(ModelInterface::ConstPtr model,
+                      std::string name,
+                      std::string type,
+                      std::string distal_link,
+                      std::string base_link);
 
     CartesianTaskImpl(YAML::Node node, ModelInterface::ConstPtr model);
 

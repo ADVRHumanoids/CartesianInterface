@@ -39,9 +39,9 @@ public:
 
     //        virtual bool reset();
 
-    //        bool setVelocityReference(const std::string& end_effector,
-    //                                  const Eigen::Vector6d& base_vel_ref,
-    //                                  const std::string& base_frame);
+    bool setVelocityReference(const std::string& end_effector,
+                              const Eigen::Vector6d& base_vel_ref,
+                              const std::string& base_frame);
 
     //        virtual bool resetWorld(const Eigen::Affine3d& w_T_new_world);
     //        bool resetWorld(const std::string& ee_name);
