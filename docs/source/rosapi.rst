@@ -17,19 +17,166 @@ remotely.
 
 Common task API
 ===============
-All task types inherit a common *Task ROS API*, made of the following **services**.
+All task types inherit a common *Task ROS API*, made of the following **services** and **topics**:
+
+    - `get_task_properties`_
+    - `set_active`_
+    - `set_lambda`_
+    - `set_weight`_
+    - `task_changed_event`_
+
+Services
+--------
 
 get_task_properties
 ^^^^^^^^^^^^^^^^^^^
+Returns all task properties.
+
+.. list-table:: Service description
+   :widths: 8 30
+   :header-rows: 0
+   :stub-columns: 1
+
+
+   * - Name
+     - get_task_properties
+   * - Type
+     - ``cartesian_interface::GetTaskInfo``
+   * - Request
+     - --
+   * - Response
+     - .. code-block:: yaml
+
+            string name
+            string[] type
+            float32 lambda
+            string activation_state
+            float32[] weight
+            uint32[] indices
+            uint32 size
+            string[] disabled_joints
+
+
+.. note::
+
+    The type hierarchy of the C++ task representation is reflected into
+    a list of types.
+
+    For instance, the C++ ``InteractionTask`` class derives
+    from ``CartesianTask``, which in turns derives from ``TaskDescription``.
+
+    Therefore, the type field will be ``type = [Interaction, Cartesian, Task]``.
+
 
 set_active
 ^^^^^^^^^^
+Activates/deactivates the task. Returns a success flag and a status message.
 
- - ``get_task_properties`` (type: ``cartesian_interface::GetTaskProperties``)
- - ``get_task_properties`` (type: ``cartesian_interface::GetTaskProperties``)
- - ``get_task_properties`` (type: ``cartesian_interface::GetTaskProperties``)
+.. list-table:: Service description
+   :widths: 8 30
+   :header-rows: 0
+   :stub-columns: 1
+
+
+   * - Name
+     - set_active
+   * - Type
+     - ``cartesian_interface::SetTaskActive``
+   * - Request
+     - .. code-block:: yaml
+
+            bool activation_state
+
+   * - Response
+     - .. code-block:: yaml
+
+            bool success
+            string message
+
+
+set_lambda
+^^^^^^^^^^
+Sets the task lambda value. Returns a success flag and a status message.
+
+.. list-table:: Service description
+   :widths: 8 30
+   :header-rows: 0
+   :stub-columns: 1
+
+
+   * - Name
+     - set_lambda
+   * - Type
+     - ``cartesian_interface::SetLambda``
+   * - Request
+     - .. code-block:: yaml
+
+            float32 lambda
+
+   * - Response
+     - .. code-block:: yaml
+
+            bool success
+            string message
+
+
+set_weight
+^^^^^^^^^^
+Sets the task weight value. Returns a success flag and a status message.
+The weight can be expressed as:
+
+  - a scalar
+  - a vector specifying the weight as a diagonal matrix
+  - the full weight matrix
+
+.. list-table:: Service description
+   :widths: 8 30
+   :header-rows: 0
+   :stub-columns: 1
+
+
+   * - Name
+     - set_weight
+   * - Type
+     - ``cartesian_interface::SetWeight``
+   * - Request
+     - .. code-block:: yaml
+
+            float32[] weight
+
+   * - Response
+     - .. code-block:: yaml
+
+            bool success
+            string message
+
+Topics
+------
+
+task_changed_event
+^^^^^^^^^^^^^^^^^^
+A message is published on this topic whenever a task property has changed. The
+message contains a string identifier of the actual property changed.
+
+.. list-table:: Topic description
+   :widths: 8 30
+   :header-rows: 0
+   :stub-columns: 1
+
+
+   * - Name
+     - set_weight
+   * - Type
+     - ``std_msgs::String``
 
 
 Supported tasks API
 ===================
+
+.. toctree::
+   :maxdepth: 1
+
+   tasks/cartesianros
+   tasks/posturalros
+   tasks/limitsros
 

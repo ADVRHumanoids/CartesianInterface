@@ -22,8 +22,11 @@ Contents
    :maxdepth: 2
 
    quickstart
+   design
    problemdesc
    rosapi
+   progr_cpp
+   progr_py
    plugins
 
 

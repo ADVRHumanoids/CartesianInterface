@@ -92,8 +92,8 @@ lib_name
 ^^^^^^^^
 specifies the library with the definition of the custom task type (see :ref:`this section<Expand>`)
 
-Example
--------
+Task definition example
+-----------------------
 
 .. code-block:: yaml
 
@@ -105,14 +105,14 @@ Example
         weight: 10.0
         indices: [0, 1, 2]
         lib_name: libCartesioTaskTypeName.so
-        enabled_joints: [j_arm1_7, torso_yaw]
+        disabled_joints: [j_arm1_7, torso_yaw]
 
 .. _SupportedTasks:
 
 Supported task types
 --------------------
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    tasks/cartesian
    tasks/postural
