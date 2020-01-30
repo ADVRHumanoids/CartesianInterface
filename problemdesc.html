@@ -1,0 +1,293 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Writing a problem description &mdash; CartesIO 2.0.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="CartesIO 2.0.0 documentation" href="index.html"/>
+        <link rel="next" title="Cartesian task" href="tasks/cartesian.html"/>
+        <link rel="prev" title="Quickstart" href="quickstart.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> CartesIO
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Writing a problem description</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#yaml-basic-structure">YAML basic structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#task-commom-parameters">Task commom parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#supported-task-types">Supported task types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tasks/cartesian.html">Cartesian task</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tasks/postural.html">Postural task</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tasks/limits.html">Joint limits and velocity limits</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#splitting-tasks-into-subtasks">Splitting tasks into subtasks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#specifying-tasks-as-constraints">Specifying tasks as constraints</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">CartesIO</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Writing a problem description</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/problemdesc.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="writing-a-problem-description">
+<h1>Writing a problem description<a class="headerlink" href="#writing-a-problem-description" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="yaml-basic-structure">
+<h2>YAML basic structure<a class="headerlink" href="#yaml-basic-structure" title="Permalink to this headline">¶</a></h2>
+<p>The basic structure of a problem description file is comprised by</p>
+<ul class="simple">
+<li>a <strong>stack</strong> field specifying a list of tasks <em>for each priority layer</em>.
+Tasks are declared as <em>labels</em> which are later defined at the bottom of the file.</li>
+<li>a <strong>constraints</strong> field specifying bounds for the underlying optimization. Again,
+these are declared as textual labels to be defined after.</li>
+<li>a task/constraint definition part where each textual label declared before is actually
+defined</li>
+</ul>
+<div class="highlight-yaml"><div class="highlight"><pre><span class="c1">## stack of tasks definition ##</span>
+
+<span class="l l-Scalar l-Scalar-Plain">stack</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="p p-Indicator">[</span><span class="s">&quot;LeftArm&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;RightArm&quot;</span><span class="p p-Indicator">]</span>
+    <span class="p p-Indicator">-</span> <span class="p p-Indicator">[</span><span class="s">&quot;Postural&quot;</span><span class="p p-Indicator">]</span>
+<span class="l l-Scalar l-Scalar-Plain">constraints</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;JointLimits&quot;</span><span class="p p-Indicator">]</span>
+
+<span class="c1">## task and constraint definition ##</span>
+
+<span class="l l-Scalar l-Scalar-Plain">JointLimits</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="s">&quot;JointLimits&quot;</span>
+
+<span class="l l-Scalar l-Scalar-Plain">LeftArm</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="s">&quot;Cartesian&quot;</span>
+    <span class="l l-Scalar l-Scalar-Plain">distal_link</span><span class="p p-Indicator">:</span> <span class="s">&quot;arm1_8&quot;</span>
+
+<span class="l l-Scalar l-Scalar-Plain">RightArm</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="s">&quot;Cartesian&quot;</span>
+    <span class="l l-Scalar l-Scalar-Plain">distal_link</span><span class="p p-Indicator">:</span> <span class="s">&quot;arm2_8&quot;</span>
+
+<span class="l l-Scalar l-Scalar-Plain">Postural</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="s">&quot;Postural&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="task-commom-parameters">
+<h2>Task commom parameters<a class="headerlink" href="#task-commom-parameters" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><strong>type</strong></li>
+<li><strong>name</strong></li>
+<li><strong>active</strong></li>
+<li><strong>type</strong></li>
+<li><strong>name</strong></li>
+<li><strong>active</strong></li>
+<li><strong>weight</strong></li>
+<li><strong>indices</strong></li>
+<li><strong>lib_name</strong></li>
+<li><strong>enabled_joints</strong></li>
+</ul>
+<p>Example:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">LeftArm</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">TaskTypeName</span>
+    <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">left_arm</span> <span class="c1"># optional</span>
+    <span class="l l-Scalar l-Scalar-Plain">active</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span> <span class="c1"># optional</span>
+    <span class="l l-Scalar l-Scalar-Plain">weight</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10.0</span> <span class="c1"># optional</span>
+    <span class="l l-Scalar l-Scalar-Plain">indices</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span> <span class="nv">1</span><span class="p p-Indicator">,</span> <span class="nv">2</span><span class="p p-Indicator">]</span> <span class="c1"># optional</span>
+    <span class="l l-Scalar l-Scalar-Plain">lib_name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">libCartesioTaskTypeName.so</span> <span class="c1"># optional</span>
+    <span class="l l-Scalar l-Scalar-Plain">enabled_joints</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[</span><span class="nv">j_arm1_7</span><span class="p p-Indicator">,</span> <span class="nv">torso_yaw</span><span class="p p-Indicator">]</span> <span class="c1"># optional</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="supported-task-types">
+<h2>Supported task types<a class="headerlink" href="#supported-task-types" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tasks/cartesian.html">Cartesian task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks/postural.html">Postural task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks/limits.html">Joint limits and velocity limits</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="splitting-tasks-into-subtasks">
+<h2>Splitting tasks into subtasks<a class="headerlink" href="#splitting-tasks-into-subtasks" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="specifying-tasks-as-constraints">
+<h2>Specifying tasks as constraints<a class="headerlink" href="#specifying-tasks-as-constraints" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="tasks/cartesian.html" class="btn btn-neutral float-right" title="Cartesian task" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="quickstart.html" class="btn btn-neutral" title="Quickstart" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Arturo Laurenzi.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'2.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

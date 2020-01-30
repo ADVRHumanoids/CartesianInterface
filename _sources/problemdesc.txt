@@ -1,0 +1,81 @@
+Writing a problem description
+=============================
+
+YAML basic structure
+--------------------
+The basic structure of a problem description file is comprised by
+
+- a **stack** field specifying a list of tasks *for each priority layer*.
+  Tasks are declared as *labels* which are later defined at the bottom of the file.
+- a **constraints** field specifying bounds for the underlying optimization. Again,
+  these are declared as textual labels to be defined after.
+- a task/constraint definition part where each textual label declared before is actually
+  defined
+
+.. code-block:: yaml
+
+    ## stack of tasks definition ##
+
+    stack:
+        - ["LeftArm", "RightArm"]
+        - ["Postural"]
+    constraints: ["JointLimits"]
+
+    ## task and constraint definition ##
+
+    JointLimits:
+        type: "JointLimits"
+
+    LeftArm:
+        type: "Cartesian"
+        distal_link: "arm1_8"
+
+    RightArm:
+        type: "Cartesian"
+        distal_link: "arm2_8"
+
+    Postural:
+        type: "Postural"
+
+
+Task commom parameters
+----------------------
+
+- **type**
+- **name**
+- **active**
+- **type**
+- **name**
+- **active**
+- **weight**
+- **indices**
+- **lib_name**
+- **enabled_joints**
+
+Example:
+
+.. code-block:: yaml
+
+    LeftArm:
+        type: TaskTypeName
+        name: left_arm # optional
+        active: true # optional
+        weight: 10.0 # optional
+        indices: [0, 1, 2] # optional
+        lib_name: libCartesioTaskTypeName.so # optional
+        enabled_joints: [j_arm1_7, torso_yaw] # optional
+
+Supported task types
+--------------------
+.. toctree::
+   :maxdepth: 2
+
+   tasks/cartesian
+   tasks/postural
+   tasks/limits
+
+Splitting tasks into subtasks
+-----------------------------
+
+Specifying tasks as constraints
+-------------------------------

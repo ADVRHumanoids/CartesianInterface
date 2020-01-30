@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Welcome to CartesIO’s documentation! &mdash; xbot2 2.0.0 documentation</title>
+  <title>Welcome to CartesIO’s documentation! &mdash; CartesIO 2.0.0 documentation</title>
   
 
   
@@ -30,8 +30,8 @@
   
 
   
-    <link rel="top" title="xbot2 2.0.0 documentation" href="#"/>
-        <link rel="next" title="Installation" href="install.html"/> 
+    <link rel="top" title="CartesIO 2.0.0 documentation" href="#"/>
+        <link rel="next" title="Quickstart" href="quickstart.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -49,7 +49,7 @@
           
 
           
-            <a href="#" class="icon icon-home"> xbot2
+            <a href="#" class="icon icon-home"> CartesIO
           
 
           
@@ -81,8 +81,8 @@
             
             
                 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="design.html">Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problemdesc.html">Writing a problem description</a></li>
 </ul>
 
             
@@ -96,7 +96,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="#">xbot2</a>
+        <a href="#">CartesIO</a>
       </nav>
 
 
@@ -129,46 +129,34 @@
             
   <div class="section" id="welcome-to-cartesio-s-documentation">
 <h1>Welcome to CartesIO&#8217;s documentation!<a class="headerlink" href="#welcome-to-cartesio-s-documentation" title="Permalink to this headline">¶</a></h1>
-<p>The <cite>CartesIO</cite> library (a.k.a. <em>CartesianInterface</em>, which was its codename during development),
-is an awesome library for robotic applications.</p>
+<p>General description</p>
 <div class="section" id="features">
 <h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><ul class="simple">
-<li>a flexible hardware abstraction layer, with multi-framework support (notably, ROS)</li>
-<li>a real-time plugin handler to develop custom RT controllers</li>
-<li>useful abstraction for inter-plugin communication</li>
-</ul>
-</div></blockquote>
+<p>It is an awesome library that will allow you to easily control your robot.</p>
 </div>
-<div class="section" id="contribute">
-<h2>Contribute<a class="headerlink" href="#contribute" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>Issue Tracker: github.com/$project/$project/issues</li>
-<li>Source Code: github.com/$project/$project</li>
-</ul>
-</div>
-<div class="section" id="support">
-<h2>Support<a class="headerlink" href="#support" title="Permalink to this headline">¶</a></h2>
-<p>If you are having issues, please let us know.
-We have a mailing list located at: <a class="reference external" href="mailto:project&#37;&#52;&#48;google-groups&#46;com">project<span>&#64;</span>google-groups<span>&#46;</span>com</a></p>
-</div>
-<div class="section" id="license">
-<h2>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h2>
-<p>The project is licensed under the BSD license.</p>
+<div class="section" id="how-to-install">
+<h2>How to install<a class="headerlink" href="#how-to-install" title="Permalink to this headline">¶</a></h2>
+<p>TBD</p>
 </div>
 <div class="section" id="contents">
 <h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="install.html#getting-the-binaries">Getting the binaries</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install.html#getting-the-sources">Getting the sources</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install.html#compile-and-install">Compile and install</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install.html#required-dependencies">Required dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#setting-up-the-robot-description">Setting up the robot description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#writing-a-simple-problem-description">Writing a simple problem description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#running-the-ros-cartesian-server">Running the ROS Cartesian Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#interacting-with-rviz-markers">Interacting with Rviz markers</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="design.html">Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problemdesc.html">Writing a problem description</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="problemdesc.html#yaml-basic-structure">YAML basic structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problemdesc.html#task-commom-parameters">Task commom parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problemdesc.html#supported-task-types">Supported task types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problemdesc.html#splitting-tasks-into-subtasks">Splitting tasks into subtasks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problemdesc.html#specifying-tasks-as-constraints">Specifying tasks as constraints</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -181,7 +169,7 @@ We have a mailing list located at: <a class="reference external" href="mailto:pr
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="install.html" class="btn btn-neutral float-right" title="Installation" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="quickstart.html" class="btn btn-neutral float-right" title="Quickstart" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>
@@ -191,7 +179,7 @@ We have a mailing list located at: <a class="reference external" href="mailto:pr
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Arturo Laurenzi, Luca Muratore.
+        &copy; Copyright 2020, Arturo Laurenzi.
 
     </p>
   </div>
