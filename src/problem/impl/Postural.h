@@ -45,10 +45,15 @@ namespace XBot { namespace Cartesian {
 
         void reset() override;
 
+        void setIndices(const std::vector<int>& value) override;
+
+        void setDisabledJoints(const std::vector<std::string>& value) override;
+
     private:
 
         Eigen::VectorXd _qref;
         bool _use_inertia_matrix;
+
     };
 
 } }

@@ -79,3 +79,18 @@ void PosturalTaskImpl::reset()
     _model->getJointPosition(_qref);
 }
 
+
+
+void PosturalTaskImpl::setIndices(const std::vector<int>& value)
+{
+    TaskDescriptionImpl::setIndices(value);
+
+    // TBD act on disabled joints
+}
+
+void PosturalTaskImpl::setDisabledJoints(const std::vector<std::string>& value)
+{
+    TaskDescriptionImpl::setDisabledJoints(value);
+
+    // TBD act on indices
+}
