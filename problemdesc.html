@@ -85,7 +85,19 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Writing a problem description</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#yaml-basic-structure">YAML basic structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#task-commom-parameters">Task commom parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#task-common-parameters">Task common parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#type">type</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#name">name</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#active">active</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lambda">lambda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#weight">weight</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#indices">indices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#disabled-joints">disabled_joints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#enabled-joints">enabled_joints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lib-name">lib_name</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#example">Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#supported-task-types">Supported task types</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="tasks/cartesian.html">Cartesian task</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tasks/postural.html">Postural task</a></li>
@@ -96,6 +108,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#specifying-tasks-as-constraints">Specifying tasks as constraints</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="rosapi.html">Auto-generated ROS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">How to expand CartesIO</a></li>
 </ul>
 
             
@@ -150,9 +164,10 @@
 Tasks are declared as <em>labels</em> which are later defined at the bottom of the file.</li>
 <li>a <strong>constraints</strong> field specifying bounds for the underlying optimization. Again,
 these are declared as textual labels to be defined after.</li>
-<li>a task/constraint definition part where each textual label declared before is actually
+<li>a task/constraint <strong>definition</strong> part where each textual label declared before is actually
 defined</li>
 </ul>
+<p>For example, a simple stack for a bimanual, redundant manipulation platform could be:</p>
 <div class="highlight-yaml"><div class="highlight"><pre><span class="c1">## stack of tasks definition ##</span>
 
 <span class="l l-Scalar l-Scalar-Plain">stack</span><span class="p p-Indicator">:</span>
@@ -178,37 +193,82 @@ defined</li>
 </pre></div>
 </div>
 </div>
-<div class="section" id="task-commom-parameters">
-<h2>Task commom parameters<a class="headerlink" href="#task-commom-parameters" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><strong>type</strong></li>
-<li><strong>name</strong></li>
-<li><strong>active</strong></li>
-<li><strong>type</strong></li>
-<li><strong>name</strong></li>
-<li><strong>active</strong></li>
-<li><strong>weight</strong></li>
-<li><strong>indices</strong></li>
-<li><strong>lib_name</strong></li>
-<li><strong>enabled_joints</strong></li>
-</ul>
-<p>Example:</p>
+<div class="section" id="task-common-parameters">
+<h2>Task common parameters<a class="headerlink" href="#task-common-parameters" title="Permalink to this headline">¶</a></h2>
+<p>All tasks share a list of common parameters, described below.</p>
+<div class="section" id="type">
+<h3>type<a class="headerlink" href="#type" title="Permalink to this headline">¶</a></h3>
+<p>is the literal name of the task type; a list of natively-supported
+types is available <a class="reference internal" href="#supportedtasks"><span>here</span></a>, whereas <a class="reference internal" href="plugins.html#expand"><span>this section</span></a>
+contains details on how to create <strong>custom types</strong></p>
+</div>
+<div class="section" id="name">
+<h3>name<a class="headerlink" href="#name" title="Permalink to this headline">¶</a></h3>
+<p>is the name of the task, which will be used to interact with the task itself,
+both from the programmatic API (C++/Python), and from the ROS api (topics, services, ...).
+The <code class="docutils literal"><span class="pre">name</span></code> field is optional, the default depending on the task type.</p>
+</div>
+<div class="section" id="active">
+<h3>active<a class="headerlink" href="#active" title="Permalink to this headline">¶</a></h3>
+<p>is a boolean specifying whether the task should be active right from creation,
+or not. It defaults to <code class="docutils literal"><span class="pre">true</span></code>.</p>
+</div>
+<div class="section" id="lambda">
+<h3>lambda<a class="headerlink" href="#lambda" title="Permalink to this headline">¶</a></h3>
+<p>is the value of the feedback gain for position tracking, as a floating point number
+ranging from 0 to 1. Defaults to 1.0.</p>
+</div>
+<div class="section" id="weight">
+<h3>weight<a class="headerlink" href="#weight" title="Permalink to this headline">¶</a></h3>
+<p>is used to give different <em>soft priority</em> to the task <em>degrees of freedom</em>, also w.r.t.
+other tasks at the same priority level. It must be either a scalar (e.g. <code class="docutils literal"><span class="pre">weight:</span> <span class="pre">10.0</span></code>) or a vector
+with as many elements as the task size (e.g. <code class="docutils literal"><span class="pre">weight:</span> <span class="pre">[1.,</span> <span class="pre">1.,</span> <span class="pre">1.,</span> <span class="pre">4.,</span> <span class="pre">4.,</span> <span class="pre">4.]</span></code> for a 6D task). Defaults to
+the identity.</p>
+</div>
+<div class="section" id="indices">
+<h3>indices<a class="headerlink" href="#indices" title="Permalink to this headline">¶</a></h3>
+<p>extract a subtask from the given vector of indices. For instance, <code class="docutils literal"><span class="pre">indices:</span> <span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">2]</span></code> extracts
+the position task from a <em>Cartesian</em> task. Defaults to <code class="docutils literal"><span class="pre">indices:</span> <span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">...,</span> <span class="pre">size-1]</span></code>)</p>
+</div>
+<div class="section" id="disabled-joints">
+<h3>disabled_joints<a class="headerlink" href="#disabled-joints" title="Permalink to this headline">¶</a></h3>
+<p>is a vector of joints that should not be used to perform the task</p>
+</div>
+<div class="section" id="enabled-joints">
+<h3>enabled_joints<a class="headerlink" href="#enabled-joints" title="Permalink to this headline">¶</a></h3>
+<p>provides a way to specify the disabled_joints in terms of which joints will
+be enabled</p>
+</div>
+<div class="section" id="lib-name">
+<h3>lib_name<a class="headerlink" href="#lib-name" title="Permalink to this headline">¶</a></h3>
+<p>specifies the library with the definition of the custom task type (see <a class="reference internal" href="plugins.html#expand"><span>this section</span></a>)</p>
+</div>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-yaml"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">LeftArm</span><span class="p p-Indicator">:</span>
     <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">TaskTypeName</span>
-    <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">left_arm</span> <span class="c1"># optional</span>
-    <span class="l l-Scalar l-Scalar-Plain">active</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span> <span class="c1"># optional</span>
-    <span class="l l-Scalar l-Scalar-Plain">weight</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10.0</span> <span class="c1"># optional</span>
-    <span class="l l-Scalar l-Scalar-Plain">indices</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span> <span class="nv">1</span><span class="p p-Indicator">,</span> <span class="nv">2</span><span class="p p-Indicator">]</span> <span class="c1"># optional</span>
-    <span class="l l-Scalar l-Scalar-Plain">lib_name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">libCartesioTaskTypeName.so</span> <span class="c1"># optional</span>
-    <span class="l l-Scalar l-Scalar-Plain">enabled_joints</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[</span><span class="nv">j_arm1_7</span><span class="p p-Indicator">,</span> <span class="nv">torso_yaw</span><span class="p p-Indicator">]</span> <span class="c1"># optional</span>
+    <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">left_arm</span>
+    <span class="l l-Scalar l-Scalar-Plain">active</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+    <span class="l l-Scalar l-Scalar-Plain">lambda</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0.1</span>
+    <span class="l l-Scalar l-Scalar-Plain">weight</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10.0</span>
+    <span class="l l-Scalar l-Scalar-Plain">indices</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span> <span class="nv">1</span><span class="p p-Indicator">,</span> <span class="nv">2</span><span class="p p-Indicator">]</span>
+    <span class="l l-Scalar l-Scalar-Plain">lib_name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">libCartesioTaskTypeName.so</span>
+    <span class="l l-Scalar l-Scalar-Plain">enabled_joints</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[</span><span class="nv">j_arm1_7</span><span class="p p-Indicator">,</span> <span class="nv">torso_yaw</span><span class="p p-Indicator">]</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="supported-task-types">
-<h2>Supported task types<a class="headerlink" href="#supported-task-types" title="Permalink to this headline">¶</a></h2>
+<span id="supportedtasks"></span><h2>Supported task types<a class="headerlink" href="#supported-task-types" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tasks/cartesian.html">Cartesian task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks/cartesian.html">Cartesian task</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tasks/cartesian.html#distal-link">distal_link</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tasks/cartesian.html#base-link">base_link</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tasks/cartesian.html#use-local-subtasks">use_local_subtasks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tasks/cartesian.html#orientation-gain">orientation_gain</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="tasks/postural.html">Postural task</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tasks/limits.html">Joint limits and velocity limits</a></li>
 </ul>

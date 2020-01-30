@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CartesIO's documentation!
-====================================
+Welcome to CartesI/O's documentation!
+=====================================
 General description
 
 Features
@@ -21,8 +21,10 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-   quickstart.rst
-   problemdesc.rst
+   quickstart
+   problemdesc
+   rosapi
+   plugins
 
 
 
