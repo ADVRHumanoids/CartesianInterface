@@ -158,7 +158,7 @@ bool CartesianRos::get_task_info_cb(cartesian_interface::GetCartesianTaskInfoReq
     res.base_link = _cart->getBaseLink();
     res.distal_link = _cart->getDistalLink();
     res.control_mode = EnumToString(_cart->getControlMode());
-    res.use_body_jacobian = _cart->isSubtaskLocal();
+    res.use_local_subtasks = _cart->isSubtaskLocal();
 
     _cart->getVelocityLimits(res.max_vel_lin,
                              res.max_vel_ang);

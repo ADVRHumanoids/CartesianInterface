@@ -71,7 +71,7 @@ void CartesianRos::enableOnlineTrajectoryGeneration()
 
 bool CartesianRos::isSubtaskLocal() const
 {
-    return get_task_info().use_body_jacobian;
+    return get_task_info().use_local_subtasks;
 }
 
 void CartesianRos::getVelocityLimits(double & max_vel_lin,
@@ -309,7 +309,7 @@ GetCartesianTaskInfoResponse CartesianRos::get_task_info() const
         res.distal_link       = _info.distal_link      ;
         res.control_mode      = _info.control_mode     ;
         res.state             = _info.state            ;
-        res.use_body_jacobian = _info.use_body_jacobian;
+        res.use_local_subtasks = _info.use_local_subtasks;
         res.max_vel_lin       = _info.max_vel_lin      ;
         res.max_vel_ang       = _info.max_vel_ang      ;
         res.max_acc_lin       = _info.max_acc_lin      ;

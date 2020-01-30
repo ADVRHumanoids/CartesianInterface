@@ -94,7 +94,7 @@ CartesianTaskImpl::CartesianTaskImpl(YAML::Node task_node, ModelInterface::Const
         _orientation_gain = task_node["orientation_gain"].as<double>();
     }
     
-    if(task_node["use_body_jacobian"] && task_node["use_body_jacobian"].as<bool>())
+    if(task_node["use_local_subtasks"] && task_node["use_local_subtasks"].as<bool>())
     {
         _is_body_jacobian = true;
     }
@@ -190,8 +190,8 @@ void CartesianTaskImpl::enableOtg()
                                                                    _ctx.getControlPeriod(),
                                                                    EigenVector7d::Zero());
     reset_otg();
-    _otg->setVelocityLimits(_otg_maxvel);
-    _otg->setAccelerationLimits(_otg_maxacc);
+    setVelocityLimits(1.0, 1.0);
+    setAccelerationLimits(10., 10.);
 }
 
 State CartesianTaskImpl::getTaskState() const

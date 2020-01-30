@@ -58,7 +58,7 @@ TEST(TestCartesian, checkDefaultYaml1)
             "name: larm                         \n"
             "type: Cartesian                    \n"
             "distal_link: arm1_8                \n"
-            "use_body_jacobian: true            \n"
+            "use_local_subtasks: true            \n"
             "orientation_gain: 5.0              \n";
 
     auto yaml = YAML::Load(yaml_str);
@@ -88,7 +88,7 @@ TEST(TestCartesian, checkDefaultYaml2)
             "type: Cartesian                    \n"
             "distal_link: arm1_8                \n"
             "base_link: pelvis                  \n"
-            "use_body_jacobian: true            \n"
+            "use_local_subtasks: true            \n"
             "orientation_gain: 5.0              \n";
 
     auto yaml = YAML::Load(yaml_str);
@@ -162,7 +162,7 @@ TEST(TestCartesian, checkObserver)
             "type: Cartesian                    \n"
             "distal_link: arm1_8                \n"
             "base_link: pelvis                  \n"
-            "use_body_jacobian: true            \n"
+            "use_local_subtasks: true            \n"
             "orientation_gain: 5.0              \n";
 
     auto yaml = YAML::Load(yaml_str);
