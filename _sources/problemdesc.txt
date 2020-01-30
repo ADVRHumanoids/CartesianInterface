@@ -112,7 +112,7 @@ Example
 Supported task types
 --------------------
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    tasks/cartesian
    tasks/postural

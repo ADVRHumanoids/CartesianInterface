@@ -4,8 +4,11 @@ Quickstart
 Setting up the robot description
 --------------------------------
 
-Writing a simple problem description
-------------------------------------
+Setting up the problem description
+----------------------------------
+
+Writing an example launch file
+------------------------------
 
 Running the ROS Cartesian Server
 --------------------------------
