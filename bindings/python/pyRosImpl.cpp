@@ -10,6 +10,10 @@ PYBIND11_MODULE(pyci, m) {
             .value("Position", ControlType::Position)
             .value("Velocity", ControlType::Velocity);
 
+    py::enum_<State>(m, "State", py::arithmetic())
+            .value("Online", State::Online)
+            .value("Reaching", State::Reaching);
+
     py::enum_<ActivationState>(m, "ActivationState", py::arithmetic())
             .value("Enabled", ActivationState::Enabled)
             .value("Disabled", ActivationState::Disabled);
@@ -36,10 +40,10 @@ PYBIND11_MODULE(pyci, m) {
 
     py::class_<CartesianTask,
             TaskDescription,
-            CartesianTask::Ptr>(m, "CartesianTask")
-            .def("getBaseLink", &CartesianTask::getBaseLink)
+            CartesianTask::Ptr>(m, "CartesianTask", py::multiple_inheritance())
+            .def("getBaseLink", &CartesianTask::getBaseLink, py::return_value_policy::reference_internal)
             .def("getTaskState", &CartesianTask::getTaskState)
-            .def("getDistalLink", &CartesianTask::getDistalLink)
+            .def("getDistalLink", &CartesianTask::getDistalLink, py::return_value_policy::reference_internal)
             .def("getControlMode", &CartesianTask::getControlMode)
             .def("getCurrentSegmentId", &CartesianTask::getCurrentSegmentId)
             .def("setBaseLink", &CartesianTask::setBaseLink)
@@ -53,7 +57,7 @@ PYBIND11_MODULE(pyci, m) {
 
     py::class_<ClientApi::CartesianRos,
             CartesianTask,
-            ClientApi::CartesianRos::Ptr>(m, "CartesianTaskRos");
+            ClientApi::CartesianRos::Ptr>(m, "CartesianTaskRos", py::multiple_inheritance());
 
     
     py::class_<RosClient>(m, "CartesianInterfaceRos")
