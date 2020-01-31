@@ -1,20 +1,9 @@
 Cartesian task ROS API
 ======================
 
-Services:
- - `get_cartesian_task_properties`_
- - `set_base_link`_
- - `set_control_mode`_
- - `set_safety_limits`_
+Contents:
 
-Topics:
- - `reference`_
- - `velocity_reference`_
- - `current_reference`_
- - `current_velocity_reference`_
-
-Actions:
- - `reach`_
+.. contents:: :local:
 
 Services
 --------

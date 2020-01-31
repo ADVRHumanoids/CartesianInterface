@@ -84,6 +84,7 @@
             
                 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../design.html">Design notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../problemdesc.html">Writing a problem description</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../rosapi.html">Auto-generated ROS API</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../rosapi.html#common-task-api">Common task API</a></li>
@@ -101,6 +102,8 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../progr_cpp.html">Programmatic API (C++)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../progr_py.html">Programmatic API (Python)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../plugins.html">How to expand CartesIO</a></li>
 </ul>
 
@@ -150,33 +153,33 @@
             
   <div class="section" id="cartesian-task-ros-api">
 <h1>Cartesian task ROS API<a class="headerlink" href="#cartesian-task-ros-api" title="Permalink to this headline">¶</a></h1>
-<dl class="docutils">
-<dt>Services:</dt>
-<dd><ul class="first last simple">
-<li><a class="reference internal" href="#get-cartesian-task-properties">get_cartesian_task_properties</a></li>
-<li><a class="reference internal" href="#set-base-link">set_base_link</a></li>
-<li><a class="reference internal" href="#set-control-mode">set_control_mode</a></li>
-<li><a class="reference internal" href="#set-safety-limits">set_safety_limits</a></li>
+<p>Contents:</p>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#services" id="id2">Services</a><ul>
+<li><a class="reference internal" href="#get-cartesian-task-properties" id="id3">get_cartesian_task_properties</a></li>
+<li><a class="reference internal" href="#set-base-link" id="id4">set_base_link</a></li>
+<li><a class="reference internal" href="#set-control-mode" id="id5">set_control_mode</a></li>
+<li><a class="reference internal" href="#set-safety-limits" id="id6">set_safety_limits</a></li>
 </ul>
-</dd>
-<dt>Topics:</dt>
-<dd><ul class="first last simple">
-<li><a class="reference internal" href="#reference">reference</a></li>
-<li><a class="reference internal" href="#velocity-reference">velocity_reference</a></li>
-<li><a class="reference internal" href="#current-reference">current_reference</a></li>
-<li><a class="reference internal" href="#current-velocity-reference">current_velocity_reference</a></li>
+</li>
+<li><a class="reference internal" href="#topics" id="id7">Topics</a><ul>
+<li><a class="reference internal" href="#reference" id="id8">reference</a></li>
+<li><a class="reference internal" href="#velocity-reference" id="id9">velocity_reference</a></li>
+<li><a class="reference internal" href="#current-reference" id="id10">current_reference</a></li>
+<li><a class="reference internal" href="#current-velocity-reference" id="id11">current_velocity_reference</a></li>
 </ul>
-</dd>
-<dt>Actions:</dt>
-<dd><ul class="first last simple">
-<li><a class="reference internal" href="#reach">reach</a></li>
+</li>
+<li><a class="reference internal" href="#actions" id="id12">Actions</a><ul>
+<li><a class="reference internal" href="#reach" id="id13">reach</a></li>
 </ul>
-</dd>
-</dl>
+</li>
+</ul>
+</div>
 <div class="section" id="services">
-<h2>Services<a class="headerlink" href="#services" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id2">Services</a><a class="headerlink" href="#services" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="get-cartesian-task-properties">
-<h3>get_cartesian_task_properties<a class="headerlink" href="#get-cartesian-task-properties" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id3">get_cartesian_task_properties</a><a class="headerlink" href="#get-cartesian-task-properties" title="Permalink to this headline">¶</a></h3>
 <p>Returns all cartesian task-specific properties.</p>
 <table border="1" class="docutils" id="id1">
 <caption><span class="caption-text">Service description</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
@@ -212,34 +215,34 @@
 </table>
 </div>
 <div class="section" id="set-base-link">
-<h3>set_base_link<a class="headerlink" href="#set-base-link" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id4">set_base_link</a><a class="headerlink" href="#set-base-link" title="Permalink to this headline">¶</a></h3>
 </div>
 <div class="section" id="set-control-mode">
-<h3>set_control_mode<a class="headerlink" href="#set-control-mode" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id5">set_control_mode</a><a class="headerlink" href="#set-control-mode" title="Permalink to this headline">¶</a></h3>
 </div>
 <div class="section" id="set-safety-limits">
-<h3>set_safety_limits<a class="headerlink" href="#set-safety-limits" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id6">set_safety_limits</a><a class="headerlink" href="#set-safety-limits" title="Permalink to this headline">¶</a></h3>
 </div>
 </div>
 <div class="section" id="topics">
-<h2>Topics<a class="headerlink" href="#topics" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id7">Topics</a><a class="headerlink" href="#topics" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="reference">
-<h3>reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id8">reference</a><a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h3>
 </div>
 <div class="section" id="velocity-reference">
-<h3>velocity_reference<a class="headerlink" href="#velocity-reference" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id9">velocity_reference</a><a class="headerlink" href="#velocity-reference" title="Permalink to this headline">¶</a></h3>
 </div>
 <div class="section" id="current-reference">
-<h3>current_reference<a class="headerlink" href="#current-reference" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id10">current_reference</a><a class="headerlink" href="#current-reference" title="Permalink to this headline">¶</a></h3>
 </div>
 <div class="section" id="current-velocity-reference">
-<h3>current_velocity_reference<a class="headerlink" href="#current-velocity-reference" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id11">current_velocity_reference</a><a class="headerlink" href="#current-velocity-reference" title="Permalink to this headline">¶</a></h3>
 </div>
 </div>
 <div class="section" id="actions">
-<h2>Actions<a class="headerlink" href="#actions" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id12">Actions</a><a class="headerlink" href="#actions" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="reach">
-<h3>reach<a class="headerlink" href="#reach" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id13">reach</a><a class="headerlink" href="#reach" title="Permalink to this headline">¶</a></h3>
 </div>
 </div>
 </div>
