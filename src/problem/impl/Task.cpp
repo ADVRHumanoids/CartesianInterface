@@ -248,7 +248,7 @@ void TaskDescriptionImpl::log(MatLogger::Ptr logger, bool init_logger, int buf_s
 {
     if(init_logger)
     {
-        logger->createScalarVariable(getName() + "_active", buf_size);
+        logger->createScalarVariable(getName() + "_active", 1, buf_size);
         return;
     }
 

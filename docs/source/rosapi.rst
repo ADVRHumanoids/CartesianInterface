@@ -14,16 +14,14 @@ remotely.
     The ROS API of a task with name ``mytask`` will be available under the namespace
     ``/cartesian/mytask``
 
+Contents:
+
+.. contents:: :local:
+
 
 Common task API
 ===============
-All task types inherit a common *Task ROS API*, made of the following **services** and **topics**:
-
-    - `get_task_properties`_
-    - `set_active`_
-    - `set_lambda`_
-    - `set_weight`_
-    - `task_changed_event`_
+All task types inherit a common *Task ROS API*, made of **services** and **topics**, as described below.
 
 Services
 --------

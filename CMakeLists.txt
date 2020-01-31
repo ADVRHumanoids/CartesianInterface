@@ -326,7 +326,7 @@ install(TARGETS robot_state_publisher robot_state_publisher
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-#add_subdirectory(examples)
+add_subdirectory(examples)
 add_subdirectory(bindings/python/)
 
 

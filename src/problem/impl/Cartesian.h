@@ -58,7 +58,7 @@ public:
          * @brief enableOtg enables online trajectory generation,
          * which enforces safety limtis to the Cartesian reference signals
          */
-    virtual void enableOtg();
+    void enableOnlineTrajectoryGeneration() override;
 
     virtual State getTaskState() const;
 
@@ -155,7 +155,7 @@ private:
 
     Context _ctx;
 
-    void enableOnlineTrajectoryGeneration() override;
+
 };
 
 } }

@@ -184,16 +184,6 @@ void CartesianTaskImpl::setAccelerationLimits(double max_acc_lin, double max_acc
     NOTIFY_OBSERVERS(SafetyLimits)
 }
 
-void CartesianTaskImpl::enableOtg()
-{
-    _otg = std::make_shared<Reflexxes::Utils::TrajectoryGenerator>(7, // 3 + 4
-                                                                   _ctx.getControlPeriod(),
-                                                                   EigenVector7d::Zero());
-    reset_otg();
-    setVelocityLimits(1.0, 1.0);
-    setAccelerationLimits(10., 10.);
-}
-
 State CartesianTaskImpl::getTaskState() const
 {
     return _state;
@@ -448,14 +438,16 @@ void CartesianTaskImpl::reset()
 
 void CartesianTaskImpl::log(MatLogger::Ptr logger, bool init_logger, int buf_size)
 {
+    TaskDescriptionImpl::log(logger, init_logger, buf_size);
+
     if(init_logger)
     {
-        logger->createVectorVariable(getName() + "_pos",     3, buf_size);
-        logger->createVectorVariable(getName() + "_pos_otg", 3, buf_size);
-        logger->createVectorVariable(getName() + "_vel",     6, buf_size);
-        logger->createVectorVariable(getName() + "_rot",     4, buf_size);
-        logger->createVectorVariable(getName() + "_rot_otg", 4, buf_size);
-        logger->createScalarVariable(getName() + "_state",      buf_size);
+        logger->createVectorVariable(getName() + "_pos",     3, 1, buf_size);
+        logger->createVectorVariable(getName() + "_pos_otg", 3, 1, buf_size);
+        logger->createVectorVariable(getName() + "_vel",     6, 1, buf_size);
+        logger->createVectorVariable(getName() + "_rot",     4, 1, buf_size);
+        logger->createVectorVariable(getName() + "_rot_otg", 4, 1, buf_size);
+        logger->createScalarVariable(getName() + "_state",      1, buf_size);
         return;
     }
 
@@ -494,8 +486,6 @@ bool CartesianTaskImpl::setControlMode(const ControlType & value)
 
 bool CartesianTaskImpl::check_reach() const
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
-
     auto Totg = get_pose_ref_otg();
     auto Tref = _trajectory->getWayPoints().back().frame;
     
@@ -608,8 +598,10 @@ bool CartesianTaskObserver::onSafetyLimitsChanged()
 
 void CartesianTaskImpl::enableOnlineTrajectoryGeneration()
 {
-    _otg = std::make_shared<Reflexxes::Utils::TrajectoryGenerator>(7,
+    _otg = std::make_shared<Reflexxes::Utils::TrajectoryGenerator>(7, // 3 + 4
                                                                    _ctx.getControlPeriod(),
                                                                    EigenVector7d::Zero());
-    reset();
+    reset_otg();
+    setVelocityLimits(1.0, 1.0);
+    setAccelerationLimits(10., 10.);
 }
