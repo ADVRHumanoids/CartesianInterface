@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>How to expand CartesIO &mdash; CartesIO 2.0.0 documentation</title>
+  <title>Implementing OpenSot support for a custom task &mdash; CartesIO 2.0.0 documentation</title>
   
 
   
@@ -31,8 +31,8 @@
 
   
     <link rel="top" title="CartesIO 2.0.0 documentation" href="index.html"/>
-        <link rel="next" title="Adding a new task/constraint type" href="plugins_task.html"/>
-        <link rel="prev" title="Programmatic API (Python)" href="progr_py.html"/> 
+        <link rel="up" title="How to expand CartesIO" href="plugins.html"/>
+        <link rel="prev" title="Implementing the ROS API for a custom task" href="plugins_ros.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -88,10 +88,10 @@
 <li class="toctree-l1"><a class="reference internal" href="rosapi.html">Auto-generated ROS API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progr_cpp.html">Programmatic API (C++)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progr_py.html">Programmatic API (Python)</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">How to expand CartesIO</a><ul>
+<li class="toctree-l1 current"><a class="reference internal" href="plugins.html">How to expand CartesIO</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="plugins_task.html">Adding a new task/constraint type</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugins_ros.html">Implementing the ROS API for a custom task</a></li>
-<li class="toctree-l2"><a class="reference internal" href="plugins_sot.html">Implementing OpenSot support for a custom task</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Implementing OpenSot support for a custom task</a></li>
 </ul>
 </li>
 </ul>
@@ -124,11 +124,13 @@
   <ul class="wy-breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
       
-    <li>How to expand CartesIO</li>
+          <li><a href="plugins.html">How to expand CartesIO</a> &raquo;</li>
+      
+    <li>Implementing OpenSot support for a custom task</li>
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/plugins.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/plugins_sot.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -138,35 +140,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="how-to-expand-cartesio">
-<span id="expand"></span><h1>How to expand CartesIO<a class="headerlink" href="#how-to-expand-cartesio" title="Permalink to this headline">¶</a></h1>
-<p>CartesIO supports only a limited set of tasks and constraints. These are usually enough for
-setting up most control problems; however, special tasks might be needed for implementing more
-&#8220;exotic&#8221; behaviors. For this reason, CastesIO is designed to be <strong>highly customizable</strong> at almost
-all its architectural layers; the user can implement:</p>
-<blockquote>
-<div><ul class="simple">
-<li>a <strong>new controller</strong>, which replaces the OpenSot-based velocity level inverse kinematics.
-For instance, a custom solver can be implemented from scratch, but remaining compatible with all the
-CartesIO interfaces and utilities. New controllers can then dynamically loaded
-with the <code class="docutils literal"><span class="pre">load_controller</span></code> ROS service.</li>
-<li>A <strong>new task/constraint</strong>, which is added to the library of supported CartesIO APIs. This way, we can
-a programmatic API, and a ROS interface to a new kind of task.</li>
-<li>When a new task/constraint is developed, the <strong>OpenSot support</strong> can be quickly implemented as well,
-in order to have it inside the default OpenSot-based velocity level inverse kinematics controller.</li>
-</ul>
-</div></blockquote>
-<p>The header files in <code class="docutils literal"><span class="pre">&lt;cartesian_interface/sdk/...&gt;</span></code> can be conveniently employed to re-use existing componens
-of the CartesIO framework. For instance, a specialization of a <code class="docutils literal"><span class="pre">Cartesian</span></code> task
-(such as a center-of-mass stabilizer) does not need to re-implement the whole Cartesian task API. All it needs
-to do is to properly inherit from the proper classes.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="plugins_task.html">Adding a new task/constraint type</a></li>
-<li class="toctree-l1"><a class="reference internal" href="plugins_ros.html">Implementing the ROS API for a custom task</a></li>
-<li class="toctree-l1"><a class="reference internal" href="plugins_sot.html">Implementing OpenSot support for a custom task</a></li>
-</ul>
-</div>
+  <div class="section" id="implementing-opensot-support-for-a-custom-task">
+<h1>Implementing OpenSot support for a custom task<a class="headerlink" href="#implementing-opensot-support-for-a-custom-task" title="Permalink to this headline">¶</a></h1>
 </div>
 
 
@@ -176,10 +151,8 @@ to do is to properly inherit from the proper classes.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="plugins_task.html" class="btn btn-neutral float-right" title="Adding a new task/constraint type" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
-      
-        <a href="progr_py.html" class="btn btn-neutral" title="Programmatic API (Python)" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="plugins_ros.html" class="btn btn-neutral" title="Implementing the ROS API for a custom task" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
