@@ -3,7 +3,7 @@
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/Context.h>
 
-#include "problem/impl/Task.h"
+#include "cartesian_interface/sdk/problem/Task.h"
 
 #include "testutils.h"
 

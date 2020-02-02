@@ -5,9 +5,9 @@ namespace XBot { namespace Cartesian { namespace detail {
 
 struct Version
 {
-    int major;
-    int minor;
-    int patch;
+    int major = -1;
+    int minor = -1;
+    int patch = -1;
 
     bool isCompatible(Version other)
     {
@@ -24,7 +24,7 @@ inline bool operator==(Version a, Version b)
 
 } } }
 
-#define CARTESIO_VERSION {2, 0, 0}
+#define CARTESIO_ABI_VERSION {2, 0, 0}
 
 #define CARTESIO_DECLARE_SMART_PTR(Class) \
     typedef std::shared_ptr<Class> Ptr; \
@@ -47,7 +47,7 @@ extern "C" TaskDescription* create_cartesian_interface_task_description(YAML::No
                                                                         ::XBot::ModelInterface::ConstPtr model, \
                                                                         ::XBot::Cartesian::detail::Version ci_ver) \
 { \
-    ::XBot::Cartesian::detail::Version plugin_ver = CARTESIO_VERSION; \
+    ::XBot::Cartesian::detail::Version plugin_ver = CARTESIO_ABI_VERSION; \
 \
     if(!plugin_ver.isCompatible(ci_ver)) \
     { \
@@ -71,7 +71,7 @@ extern "C" RetType* FactoryName(::XBot::Cartesian::TaskDescription::Ptr task, \
                                 ::XBot::ModelInterface::ConstPtr model, \
                                 ::XBot::Cartesian::detail::Version ci_ver) \
 { \
-    ::XBot::Cartesian::detail::Version plugin_ver = CARTESIO_VERSION; \
+    ::XBot::Cartesian::detail::Version plugin_ver = CARTESIO_ABI_VERSION; \
 \
     if(!plugin_ver.isCompatible(ci_ver)) \
     { \

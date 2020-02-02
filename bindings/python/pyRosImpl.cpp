@@ -46,6 +46,8 @@ PYBIND11_MODULE(pyci, m) {
             .def("getDistalLink", &CartesianTask::getDistalLink, py::return_value_policy::reference_internal)
             .def("getControlMode", &CartesianTask::getControlMode)
             .def("getCurrentSegmentId", &CartesianTask::getCurrentSegmentId)
+            .def("getVelocityLimits", py_task_get_vel_lims)
+            .def("getAccekerationLimits", py_task_get_acc_lims)
             .def("setBaseLink", &CartesianTask::setBaseLink)
             .def("setWayPoints", &CartesianTask::setWayPoints)
             .def("setPoseTarget", &CartesianTask::setPoseTarget)
@@ -53,11 +55,13 @@ PYBIND11_MODULE(pyci, m) {
             .def("setPoseReference", &CartesianTask::setPoseReference)
             .def("setVelocityLimits", &CartesianTask::setVelocityLimits)
             .def("setAccelerationLimits", &CartesianTask::setAccelerationLimits)
-            .def("getPoseReference", py_task_get_pose_reference);
+            .def("getPoseReference", py_task_get_pose_reference)
+            .def("abort", &CartesianTask::abort);
 
     py::class_<ClientApi::CartesianRos,
             CartesianTask,
-            ClientApi::CartesianRos::Ptr>(m, "CartesianTaskRos", py::multiple_inheritance());
+            ClientApi::CartesianRos::Ptr>(m, "CartesianTaskRos", py::multiple_inheritance())
+            .def("waitReachCompleted", &ClientApi::CartesianRos::waitReachCompleted);
 
     
     py::class_<RosClient>(m, "CartesianInterfaceRos")

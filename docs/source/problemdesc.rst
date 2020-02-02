@@ -1,3 +1,5 @@
+.. _Problem:
+
 Writing a problem description
 =============================
 

@@ -1,10 +1,10 @@
-#include "TaskRos.h"
+#include "ros/server_api/TaskRos.h"
 #include "utils/DynamicLoading.h"
 #include "fmt/format.h"
 
-#include "CartesianRos.h"
-#include "PosturalRos.h"
-#include "InteractionRos.h"
+#include "ros/server_api/CartesianRos.h"
+#include "ros/server_api/PosturalRos.h"
+#include "ros/server_api/InteractionRos.h"
 
 #include <std_msgs/String.h>
 
@@ -197,7 +197,7 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
                                                  "create_cartesio_ros_api",
                                                  task,
                                                  model,
-                                                 detail::Version CARTESIO_VERSION);
+                                                 detail::Version CARTESIO_ABI_VERSION);
         }
         catch(LibNotFound&)
         {

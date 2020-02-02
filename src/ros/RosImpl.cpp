@@ -1,4 +1,4 @@
-#include <cartesian_interface/ros/RosImpl.h>
+#include <cartesian_interface/ros/RosClient.h>
 #include <cartesian_interface/ResetWorld.h>
 #include <cartesian_interface/LoadController.h>
 #include <cartesian_interface/GetTaskList.h>
@@ -9,8 +9,8 @@
 
 #include "fmt/format.h"
 
-#include "client_api/TaskRos.h"
-#include "client_api/CartesianRos.h"
+#include "ros/client_api/TaskRos.h"
+#include "ros/client_api/CartesianRos.h"
 
 #define THROW_NOT_IMPL throw std::runtime_error("Not implemented function " + std::string(__func__));
 

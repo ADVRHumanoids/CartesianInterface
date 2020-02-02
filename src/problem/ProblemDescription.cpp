@@ -10,7 +10,7 @@
 #include <cartesian_interface/problem/MinJointVel.h>
 #include <XBotInterface/Logger.hpp>
 
-#include "impl/Subtask.h"
+#include "problem/Subtask.h"
 
 #include "fmt/format.h"
 

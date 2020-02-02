@@ -1,3 +1,5 @@
+add_subdirectory(plugin)
+
 install(DIRECTORY configs/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/examples/configs
   FILES_MATCHING PATTERN "*.yaml"
@@ -23,3 +25,8 @@ install(DIRECTORY urdf/
 install(DIRECTORY rviz/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/examples/rviz
 )
+
+install(DIRECTORY python/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/examples/python
+)
+

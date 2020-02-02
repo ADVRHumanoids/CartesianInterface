@@ -32,3 +32,4 @@
 *.app
 
 *.kdev4
+docs/xml/*

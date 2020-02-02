@@ -1,12 +1,12 @@
-#include "TaskRos.h"
+#include "ros/client_api/TaskRos.h"
 #include "fmt/format.h"
 
 #include <cartesian_interface/SetLambda.h>
 #include <cartesian_interface/SetWeight.h>
 #include <cartesian_interface/SetTaskActive.h>
 
-#include "CartesianRos.h"
-#include "PosturalRos.h"
+#include "ros/client_api/CartesianRos.h"
+#include "ros/client_api/PosturalRos.h"
 
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ClientApi;

@@ -1,3 +1,5 @@
+.. _RosApi:
+
 Auto-generated ROS API
 ######################
 For each of the defined tasks, a ROS API made of topics, services, and actions

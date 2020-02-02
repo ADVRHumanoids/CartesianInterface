@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <cartesian_interface/ros/RosImpl.h>
+#include <cartesian_interface/ros/RosClient.h>
 #include "ros/client_api/CartesianRos.h"
 #include "fmt/format.h"
 #include "fmt/ostream.h"

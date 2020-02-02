@@ -2,15 +2,13 @@
 
 #include "utils/DynamicLoading.h"
 
-#include "Cartesian.h"
-#include "Interaction.h"
-#include "Com.h"
-#include "Postural.h"
-#include "Gaze.h"
-#include "Limits.h"
-#include "MinJointVel.h"
+#include "problem/Cartesian.h"
+#include "problem/Interaction.h"
+#include "problem/Com.h"
+#include "problem/Postural.h"
+#include "problem/Limits.h"
 
-#include "problem/impl/Subtask.h"
+#include "problem/Subtask.h"
 
 #include "fmt/format.h"
 
@@ -78,7 +76,7 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
                                                          "create_cartesian_interface_task_description",
                                                          task_node,
                                                          model,
-                                                         detail::Version CARTESIO_VERSION
+                                                         detail::Version CARTESIO_ABI_VERSION
                                                          ) );
         
         if(!task_desc)

@@ -20,6 +20,7 @@ Contents
 
 .. toctree::
    :maxdepth: 2
+   :caption: Design and usage
 
    quickstart
    design
@@ -29,6 +30,14 @@ Contents
    progr_py
    plugins
 
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API reference
+
+   reference/problem
+   reference/trajectory
+   reference/sdk
 
 
 .. Indices and tables

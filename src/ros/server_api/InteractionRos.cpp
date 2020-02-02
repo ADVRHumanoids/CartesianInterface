@@ -1,4 +1,4 @@
-#include "InteractionRos.h"
+#include "ros/server_api/InteractionRos.h"
 #include <eigen_conversions/eigen_msg.h>
 
 using namespace XBot::Cartesian;

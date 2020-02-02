@@ -1,7 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 #include <pybind11/stl.h>
-#include <cartesian_interface/ros/RosImpl.h>
+#include <cartesian_interface/ros/RosClient.h>
 
 namespace py = pybind11;
 using namespace XBot::Cartesian;
@@ -35,6 +35,19 @@ auto py_task_get_pose_reference(const CartesianTask& r)
 
 }
 
+auto py_task_get_vel_lims(const CartesianTask& t)
+{
+    double l, a;
+    t.getVelocityLimits(l, a);
+    return std::make_tuple(l, a);
+}
+
+auto py_task_get_acc_lims(const CartesianTask& t)
+{
+    double l, a;
+    t.getAccelerationLimits(l, a);
+    return std::make_tuple(l, a);
+}
 
 auto py_get_pose_reference(const RosClient& r, const std::string& ee)
 {

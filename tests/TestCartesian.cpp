@@ -5,7 +5,7 @@
 
 #include "testutils.h"
 
-#include "problem/impl/Interaction.h"
+#include "cartesian_interface/sdk/problem/Interaction.h"
 
 using namespace XBot::Cartesian;
 auto ctx = Context::MakeContext(0.001);

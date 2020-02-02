@@ -7,7 +7,7 @@
 #include <cartesian_interface/SetJoystickActiveTask.h>
 #include <cartesian_interface/SetJoystickTaskMaxSpeed.h>
 #include <cartesian_interface/SetJoystickTaskBaseFrame.h>
-#include <cartesian_interface/ros/RosImpl.h>
+#include <cartesian_interface/ros/RosClient.h>
 
 namespace Eigen 
 {

@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp
     tf tf_conversions)
 
 include_directories(include
+    include/cartesian_interface/sdk
     src
     ${OpenSoT_INCLUDE_DIRS}
     ${XBotInterface_INCLUDE_DIRS}
@@ -128,21 +129,16 @@ set(CartesianInterface_SRC
 
 # OpenSot implementation
 set(CartesianInterfaceSOT_SRC
-    src/open_sot/task_adapters/OpenSotTask.cpp
-    src/open_sot/task_adapters/OpenSotCartesian.cpp
-    src/open_sot/task_adapters/OpenSotInteraction.cpp
-    src/open_sot/task_adapters/OpenSotCom.cpp
-    src/open_sot/task_adapters/OpenSotPostural.cpp
-    src/open_sot/task_adapters/OpenSotSubtask.cpp
-    src/open_sot/task_adapters/OpenSotJointLimits.cpp
-    src/open_sot/task_adapters/OpenSotVelocityLimits.cpp
-    src/open_sot/task_adapters/OpenSotConstraintFromTask.cpp
-    src/open_sot/OpenSotImpl.cpp
-    )
-
-# OpenSot implementation
-set(CartesianInterfaceSOTacc_SRC
-    #        src/open_sot/OpenSotAccImpl.cpp
+    src/opensot/task_adapters/OpenSotTask.cpp
+    src/opensot/task_adapters/OpenSotCartesian.cpp
+    src/opensot/task_adapters/OpenSotInteraction.cpp
+    src/opensot/task_adapters/OpenSotCom.cpp
+    src/opensot/task_adapters/OpenSotPostural.cpp
+    src/opensot/task_adapters/OpenSotSubtask.cpp
+    src/opensot/task_adapters/OpenSotJointLimits.cpp
+    src/opensot/task_adapters/OpenSotVelocityLimits.cpp
+    src/opensot/task_adapters/OpenSotConstraintFromTask.cpp
+    src/opensot/OpenSotImpl.cpp
     )
 
 # Ros implementation
@@ -171,25 +167,17 @@ if(${alglib_FOUND})
         src/trajectory/Spline.cpp)
 endif()
 
-# should we use xbot internal robot state publisher?
-option(USE_XBOT_ROBOT_STATE_PUB FALSE)
-set(XBOT_RSPUB_LIBRARIES "")
-if(${USE_XBOT_ROBOT_STATE_PUB})
-    add_definitions(-DXBOT_RSPUB)
-    find_package(robot_state_publisher_advr_solver REQUIRED)
-    include_directories(${robot_state_publisher_advr_solver_INCLUDE_DIRS})
-    set(XBOT_RSPUB_LIBRARIES ${robot_state_publisher_advr_solver_LIBRARIES})
-endif()
-
 # libCartesianInterface
-add_library(CartesianInterface SHARED ${CartesianInterface_SRC}
+add_library(CartesianInterface SHARED
+    ${CartesianInterface_SRC}
     ${CartesianInterfaceROS_SRC}
     ${Trajectory_SRC}
+    ${CartesianInterfaceSOT_SRC}
     )
+
 target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
     ${XBotInterface_LIBRARIES}
     ${catkin_LIBRARIES}
-    ${XBOT_RSPUB_LIBRARIES}
     yaml-cpp
     ${ReflexxesTypeII_LIBRARIES}
     ${alglib_LIBRARIES}
@@ -207,7 +195,7 @@ install(TARGETS CartesianInterface CartesianInterface
 
 
 # libCartesianOpenSot
-add_library(CartesianOpenSot SHARED ${CartesianInterfaceSOT_SRC})
+add_library(CartesianOpenSot SHARED src/opensot/OpenSotImpl.cpp)
 target_link_libraries(CartesianOpenSot PUBLIC ${OpenSoT_LIBRARIES}
     CartesianInterface
     PRIVATE fmt::fmt-header-only
@@ -232,35 +220,6 @@ install(TARGETS CartesianOpenSot CartesianOpenSot
 #        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 #endif()
-
-#AngularMomentumAddon (Velocity)
-add_library(CartesioAngularMomentumAddon SHARED
-    src/plugin/angular_mom/AngularMomentum.cpp
-    src/plugin/angular_mom/OpenSotAngularMomentum.cpp
-    src/plugin/angular_mom/AngularMomentumRos.cpp)
-
-target_link_libraries(CartesioAngularMomentumAddon PRIVATE ${OpenSoT_LIBRARIES}
-    CartesianInterface
-    CartesianOpenSot
-    ${PCL_LIBRARIES}
-    fmt::fmt-header-only)
-
-install(TARGETS CartesioAngularMomentumAddon CartesioAngularMomentumAddon
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
-
-## libCartesianOpenSotAcc
-#add_library(CartesianOpenSotAcc SHARED ${CartesianInterfaceSOTacc_SRC})
-#target_link_libraries(CartesianOpenSotAcc PUBLIC ${OpenSoT_LIBRARIES}
-#                                                 CartesianInterface
-#                      )
-#install(TARGETS CartesianOpenSotAcc CartesianOpenSotAcc
-#    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#)
 
 # Cartesian Server executable
 add_executable(ros_server_node src/ros/RosServerNode.cpp)
