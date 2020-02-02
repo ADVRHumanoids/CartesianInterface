@@ -85,7 +85,8 @@
           
             
             
-                <ul class="current">
+                <p class="caption"><span class="caption-text">Design and usage</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="design.html">Design notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problemdesc.html">Writing a problem description</a></li>
@@ -105,8 +106,11 @@
 </ul>
 </li>
 </ul>
+<p class="caption"><span class="caption-text">API reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="reference/task.html">Task API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/problem.html">Problem Description API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/trajectory.html">Trajectory Interpolation API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/sdk.html">SDK API Reference</a></li>
 </ul>
 
             
@@ -241,6 +245,17 @@ or from <code class="docutils literal notranslate"><span class="pre">ConstraintD
 </div>
 <div class="section" id="implement-all-methods">
 <h2><a class="toc-backref" href="#id3">(3) Implement all methods</a><a class="headerlink" href="#implement-all-methods" title="Permalink to this headline">¶</a></h2>
+<p>The constructor signature must match the following one: every task is constructed by CartesIO
+in a uniform way, with the relevant YAML node from the problem description file, and a const
+share pointer to the model. You must call the <code class="docutils literal notranslate"><span class="pre">TaskDescriptionImpl</span></code> constructor specifying</p>
+<blockquote>
+<div><ul class="simple">
+<li>the task name</li>
+<li>the task size</li>
+</ul>
+</div></blockquote>
+<p>The constructor is also the place where you parse custom parameters from the given YAML.
+The base class will do the same jobs for all <em>common Task parameters</em>.</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span class="cp">#include</span> <span class="cpf">&quot;AngularMomentum.h&quot;</span><span class="cp"></span>
 
 <span class="cp">#include</span> <span class="cpf">&quot;fmt/format.h&quot;</span><span class="cp"></span>
@@ -260,8 +275,11 @@ or from <code class="docutils literal notranslate"><span class="pre">ConstraintD
     <span class="cm">/* Here you can parse custom YAML fields from task_node */</span>
 
 <span class="p">}</span>
-
-<span class="n">Eigen</span><span class="o">::</span><span class="n">Vector3d</span> <span class="n">AngularMomentumImpl</span><span class="o">::</span><span class="n">getReference</span><span class="p">()</span> <span class="k">const</span>
+</pre></div>
+</div>
+<p>In this example, we implement a <em>reference timeout</em> as reference management logic. This way,
+if the user stops providing references, the desired value drops to zero automatically.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span class="n">Eigen</span><span class="o">::</span><span class="n">Vector3d</span> <span class="n">AngularMomentumImpl</span><span class="o">::</span><span class="n">getReference</span><span class="p">()</span> <span class="k">const</span>
 <span class="p">{</span>
     <span class="k">return</span> <span class="n">_lref</span><span class="p">;</span>
 <span class="p">}</span>
@@ -271,10 +289,14 @@ or from <code class="docutils literal notranslate"><span class="pre">ConstraintD
     <span class="n">_lref</span> <span class="o">=</span> <span class="n">lref</span><span class="p">;</span>
     <span class="n">_ref_timeout</span> <span class="o">=</span> <span class="n">getTime</span><span class="p">()</span> <span class="o">+</span> <span class="n">REF_TTL</span><span class="p">;</span>
 <span class="p">}</span>
-
-
-
-<span class="kt">void</span> <span class="n">XBot</span><span class="o">::</span><span class="n">Cartesian</span><span class="o">::</span><span class="n">AngularMomentumImpl</span><span class="o">::</span><span class="n">update</span><span class="p">(</span><span class="kt">double</span> <span class="n">time</span><span class="p">,</span> <span class="kt">double</span> <span class="n">period</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All methods which are overridden from the base class <code class="docutils literal notranslate"><span class="pre">TaskDescriptionImpl</span></code>
+must call the base class method!</p>
+</div>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span class="kt">void</span> <span class="n">XBot</span><span class="o">::</span><span class="n">Cartesian</span><span class="o">::</span><span class="n">AngularMomentumImpl</span><span class="o">::</span><span class="n">update</span><span class="p">(</span><span class="kt">double</span> <span class="n">time</span><span class="p">,</span> <span class="kt">double</span> <span class="n">period</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="c1">// call base class</span>
     <span class="n">TaskDescriptionImpl</span><span class="o">::</span><span class="n">update</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">period</span><span class="p">);</span>

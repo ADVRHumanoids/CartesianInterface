@@ -73,8 +73,8 @@ that we've prepared, which will guide you through the available API.
 
 To run the tutorial:
  - install the jupyter notebook (e.g. ``pip install notebook``)
- - ``roscd cartesian_interface/examples/python``
  - open a web browser (e.g. chrome, firefox, ...)
+ - ``roscd cartesian_interface/examples/python``
  - ``jupyter notebook ros_client_example.ipynb``
  - the notebook should display inside your browser
 

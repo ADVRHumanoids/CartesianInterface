@@ -87,6 +87,17 @@ or from ``ConstraintDescription`` if it's a constraint.
 (3) Implement all methods
 -------------------------
 
+The constructor signature must match the following one: every task is constructed by CartesIO
+in a uniform way, with the relevant YAML node from the problem description file, and a const
+share pointer to the model. You must call the ``TaskDescriptionImpl`` constructor specifying
+
+ - the task name
+ - the task size
+
+The constructor is also the place where you parse custom parameters from the given YAML.
+The base class will do the same jobs for all *common Task parameters*.
+
+
 .. code-block:: c++
 
     #include "AngularMomentum.h"
@@ -109,6 +120,11 @@ or from ``ConstraintDescription`` if it's a constraint.
 
     }
 
+In this example, we implement a *reference timeout* as reference management logic. This way,
+if the user stops providing references, the desired value drops to zero automatically.
+
+.. code-block:: c++
+
     Eigen::Vector3d AngularMomentumImpl::getReference() const
     {
         return _lref;
@@ -121,6 +137,12 @@ or from ``ConstraintDescription`` if it's a constraint.
     }
 
 
+.. note::
+
+    All methods which are overridden from the base class ``TaskDescriptionImpl``
+    must call the base class method!
+
+.. code-block:: c++
 
     void XBot::Cartesian::AngularMomentumImpl::update(double time, double period)
     {
