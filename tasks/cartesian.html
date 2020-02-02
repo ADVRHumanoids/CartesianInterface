@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="CartesIO 2.0.0 documentation" href="../index.html"/>
         <link rel="up" title="Writing a problem description" href="../problemdesc.html"/>
         <link rel="next" title="Postural task" href="postural.html"/>
@@ -84,11 +87,13 @@
             
                 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../design.html">Design notes</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../problemdesc.html">Writing a problem description</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../problemdesc.html#yaml-basic-structure">YAML basic structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../problemdesc.html#task-common-parameters">Task common parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problemdesc.html#task-definition-example">Task definition example</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../problemdesc.html#supported-task-types">Supported task types</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="">Cartesian task</a><ul>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Cartesian task</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#distal-link">distal_link</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#base-link">base_link</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#use-local-subtasks">use_local_subtasks</a></li>
@@ -104,7 +109,12 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../rosapi.html">Auto-generated ROS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../progr_cpp.html">Programmatic API (C++)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../progr_py.html">Programmatic API (Python)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../plugins.html">How to expand CartesIO</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../reference/task.html">Task API Reference</a></li>
 </ul>
 
             
@@ -141,7 +151,7 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/tasks/cartesian.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/tasks/cartesian.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -153,7 +163,7 @@
             
   <div class="section" id="cartesian-task">
 <h1>Cartesian task<a class="headerlink" href="#cartesian-task" title="Permalink to this headline">¶</a></h1>
-<p>A <em>Cartesian</em> task is specified by the <code class="docutils literal"><span class="pre">type:</span> <span class="pre">Cartesian</span></code> property. Its parameters
+<p>A <em>Cartesian</em> task is specified by the <code class="docutils literal notranslate"><span class="pre">type:</span> <span class="pre">Cartesian</span></code> property. Its parameters
 are described below.</p>
 <div class="section" id="distal-link">
 <h2>distal_link<a class="headerlink" href="#distal-link" title="Permalink to this headline">¶</a></h2>
@@ -161,22 +171,22 @@ are described below.</p>
 </div>
 <div class="section" id="base-link">
 <h2>base_link<a class="headerlink" href="#base-link" title="Permalink to this headline">¶</a></h2>
-<p>specifies the robot link w.r.t. which the <code class="docutils literal"><span class="pre">distal_link</span></code> is controlled
-(optional, defaults to <code class="docutils literal"><span class="pre">world</span></code>)</p>
+<p>specifies the robot link w.r.t. which the <code class="docutils literal notranslate"><span class="pre">distal_link</span></code> is controlled
+(optional, defaults to <code class="docutils literal notranslate"><span class="pre">world</span></code>)</p>
 </div>
 <div class="section" id="use-local-subtasks">
 <h2>use_local_subtasks<a class="headerlink" href="#use-local-subtasks" title="Permalink to this headline">¶</a></h2>
 <p>selects whether subtasks are defined w.r.t. the distal_link
-local frame, or w.r.t. the global (base_link) frame (optional, defaults to <code class="docutils literal"><span class="pre">false</span></code>)</p>
+local frame, or w.r.t. the global (base_link) frame (optional, defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p>
 </div>
 <div class="section" id="orientation-gain">
 <h2>orientation_gain<a class="headerlink" href="#orientation-gain" title="Permalink to this headline">¶</a></h2>
 <p>specifies the ratio between the orientation and position feedback;
-for instance, a value of <code class="docutils literal"><span class="pre">orientation_gain:</span> <span class="pre">2.0</span></code> means that an orientation error of
+for instance, a value of <code class="docutils literal notranslate"><span class="pre">orientation_gain:</span> <span class="pre">2.0</span></code> means that an orientation error of
 2 rad is recovered in the same time as a position error of 1 m.</p>
 <div class="section" id="example">
 <h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-yaml"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">MyCartesianTask</span><span class="p p-Indicator">:</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">MyCartesianTask</span><span class="p p-Indicator">:</span>
     <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">left_arm</span>
     <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Cartesian</span>
     <span class="l l-Scalar l-Scalar-Plain">distal_link</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">arm1_8</span>
@@ -239,6 +249,7 @@ for instance, a value of <code class="docutils literal"><span class="pre">orient
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="../_static/language_data.js"></script>
 
   
 

@@ -1,0 +1,430 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Cartesian Task API &mdash; CartesIO 2.0.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="CartesIO 2.0.0 documentation" href="../index.html"/>
+        <link rel="prev" title="Generic Task API" href="task.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> CartesIO
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">DESIGN AND USAGE</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../design.html">Design notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../problemdesc.html">Writing a problem description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rosapi.html">Auto-generated ROS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../progr_cpp.html">Programmatic API (C++)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../progr_py.html">Programmatic API (Python)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins.html">How to expand CartesIO</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API REFERENCE</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="task.html">Generic Task API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Cartesian Task API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">CartesIO</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+    <li>Cartesian Task API</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/reference/cartesian.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="cartesian-task-api">
+<h1>Cartesian Task API<a class="headerlink" href="#cartesian-task-api" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="_CPPv4N4XBot9Cartesian13CartesianTaskE">
+<span id="_CPPv3N4XBot9Cartesian13CartesianTaskE"></span><span id="_CPPv2N4XBot9Cartesian13CartesianTaskE"></span><span id="XBot::Cartesian::CartesianTask"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask"></span><em class="property">class </em><code class="descname">CartesianTask</code> : <em class="property">public</em> <em class="property">virtual</em> XBot::Cartesian::<a class="reference internal" href="task.html#_CPPv4N4XBot9Cartesian15TaskDescriptionE" title="XBot::Cartesian::TaskDescription">TaskDescription</a><a class="headerlink" href="#_CPPv4N4XBot9Cartesian13CartesianTaskE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Abstract interface of a cartesian task. </p>
+<p>Subclassed by XBot::Cartesian::CartesianRt, XBot::Cartesian::CartesianTaskImpl, XBot::Cartesian::ClientApi::CartesianRos, XBot::Cartesian::ComTask, XBot::Cartesian::GazeTask, XBot::Cartesian::InteractionTask</p>
+<div class="breathe-sectiondef container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian13CartesianTask11getBaseLinkEv">
+<span id="_CPPv3NK4XBot9Cartesian13CartesianTask11getBaseLinkEv"></span><span id="_CPPv2NK4XBot9Cartesian13CartesianTask11getBaseLinkEv"></span><span id="XBot::Cartesian::CartesianTask::getBaseLinkC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1a02e1186d7e67cb27d554f6f09b1c8ab0"></span><em class="property">virtual</em> <em class="property">const</em> std::string &amp;<code class="descname">getBaseLink</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian13CartesianTask11getBaseLinkEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getter for the task base link </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian13CartesianTask11setBaseLinkERKNSt6stringE">
+<span id="_CPPv3N4XBot9Cartesian13CartesianTask11setBaseLinkERKNSt6stringE"></span><span id="_CPPv2N4XBot9Cartesian13CartesianTask11setBaseLinkERKNSt6stringE"></span><span id="XBot::Cartesian::CartesianTask::setBaseLink__ssCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1a4689c3ebd8fc71c9022da51bf1e3928a"></span><em class="property">virtual</em> bool <code class="descname">setBaseLink</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>new_base_link</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian13CartesianTask11setBaseLinkERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setBaseLink changes the task base link with the provided one </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt><dd>true if the new base link is valid and the operation was successful </dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><code class="docutils literal notranslate"><span class="pre">new_base_link</span></code>: must belong to the model kinematic tree </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian13CartesianTask13getDistalLinkEv">
+<span id="_CPPv3NK4XBot9Cartesian13CartesianTask13getDistalLinkEv"></span><span id="_CPPv2NK4XBot9Cartesian13CartesianTask13getDistalLinkEv"></span><span id="XBot::Cartesian::CartesianTask::getDistalLinkC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1af30e7d5224fb6c4bdf26043a1f5c053e"></span><em class="property">virtual</em> <em class="property">const</em> std::string &amp;<code class="descname">getDistalLink</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian13CartesianTask13getDistalLinkEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getter for the task distal link </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian13CartesianTask14getControlModeEv">
+<span id="_CPPv3NK4XBot9Cartesian13CartesianTask14getControlModeEv"></span><span id="_CPPv2NK4XBot9Cartesian13CartesianTask14getControlModeEv"></span><span id="XBot::Cartesian::CartesianTask::getControlModeC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1a93c19e0a74ae2ad8800e3a81b7ca84d4"></span><em class="property">virtual</em> ControlType <code class="descname">getControlMode</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian13CartesianTask14getControlModeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getter for the task current control mode (i.e. Position, or Velocity) </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian13CartesianTask14setControlModeERK11ControlType">
+<span id="_CPPv3N4XBot9Cartesian13CartesianTask14setControlModeERK11ControlType"></span><span id="_CPPv2N4XBot9Cartesian13CartesianTask14setControlModeERK11ControlType"></span><span id="XBot::Cartesian::CartesianTask::setControlMode__ControlTypeCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1a894df3148de02ae4d394ae7c6b9dd447"></span><em class="property">virtual</em> bool <code class="descname">setControlMode</code><span class="sig-paren">(</span><em class="property">const</em> ControlType &amp;<em>value</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian13CartesianTask14setControlModeERK11ControlType" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setControlMode changes the current control mode </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt><dd>true if the operation was successful </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian13CartesianTask12getTaskStateEv">
+<span id="_CPPv3NK4XBot9Cartesian13CartesianTask12getTaskStateEv"></span><span id="_CPPv2NK4XBot9Cartesian13CartesianTask12getTaskStateEv"></span><span id="XBot::Cartesian::CartesianTask::getTaskStateC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1a5caed3f23e07dc4dc95a992e7d8c2482"></span><em class="property">virtual</em> State <code class="descname">getTaskState</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian13CartesianTask12getTaskStateEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getter for the current task state, which indicates if the task is currently performing a reaching motion, or if it is available for online control </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian13CartesianTask14isSubtaskLocalEv">
+<span id="_CPPv3NK4XBot9Cartesian13CartesianTask14isSubtaskLocalEv"></span><span id="_CPPv2NK4XBot9Cartesian13CartesianTask14isSubtaskLocalEv"></span><span id="XBot::Cartesian::CartesianTask::isSubtaskLocalC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1affb4d80b90e3e15cac2205f22a7ff2ee"></span><em class="property">virtual</em> bool <code class="descname">isSubtaskLocal</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian13CartesianTask14isSubtaskLocalEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>isSubtaskLocal returns true if subtasks extracted from this task should be in local (distal link) coordinates, and false otherwise (base link coordinates) </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian13CartesianTask14getCurrentPoseERN5Eigen8Affine3dE">
+<span id="_CPPv3NK4XBot9Cartesian13CartesianTask14getCurrentPoseERN5Eigen8Affine3dE"></span><span id="_CPPv2NK4XBot9Cartesian13CartesianTask14getCurrentPoseERN5Eigen8Affine3dE"></span><span id="XBot::Cartesian::CartesianTask::getCurrentPose__Eigen::Affine3dRC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1a601f7a8b6e9ababaf90ad6cf4ce79cad"></span><em class="property">virtual</em> bool <code class="descname">getCurrentPose</code><span class="sig-paren">(</span>Eigen::Affine3d &amp;<em>base_T_ee</em><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian13CartesianTask14getCurrentPoseERN5Eigen8Affine3dE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getCurrentPose returns the current pose value of the task, i.e. the pose of distal link relative to base link at the current solution (i.e. the model state) </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt><dd>true on success </dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><code class="docutils literal notranslate"><span class="pre">base_T_ee</span></code>: is filled in by the function </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian13CartesianTask16getPoseReferenceERN5Eigen8Affine3dEPN5Eigen8Vector6dEPN5Eigen8Vector6dE">
+<span id="_CPPv3NK4XBot9Cartesian13CartesianTask16getPoseReferenceERN5Eigen8Affine3dEPN5Eigen8Vector6dEPN5Eigen8Vector6dE"></span><span id="_CPPv2NK4XBot9Cartesian13CartesianTask16getPoseReferenceERN5Eigen8Affine3dEPN5Eigen8Vector6dEPN5Eigen8Vector6dE"></span><span id="XBot::Cartesian::CartesianTask::getPoseReference__Eigen::Affine3dR.Eigen::Vector6dP.Eigen::Vector6dPC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1ae4844a697f9b485e9764f08af629e3e7"></span><em class="property">virtual</em> bool <code class="descname">getPoseReference</code><span class="sig-paren">(</span>Eigen::Affine3d &amp;<em>base_T_ref</em>, Eigen::Vector6d *<em>base_vel_ref</em> = nullptr, Eigen::Vector6d *<em>base_acc_ref</em> = nullptr<span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian13CartesianTask16getPoseReferenceERN5Eigen8Affine3dEPN5Eigen8Vector6dEPN5Eigen8Vector6dE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getPoseReference returns the current desired value for the task pose, and optionally velocity and acceleration </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt><dd>true on success </dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><code class="docutils literal notranslate"><span class="pre">base_T_ref</span></code>: reference to desired pose </li>
+<li><code class="docutils literal notranslate"><span class="pre">base_vel_ref</span></code>: pointer to desired velocity </li>
+<li><code class="docutils literal notranslate"><span class="pre">base_acc_ref</span></code>: pointer to desired acceleration </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian13CartesianTask19getPoseReferenceRawERN5Eigen8Affine3dEPN5Eigen8Vector6dEPN5Eigen8Vector6dE">
+<span id="_CPPv3NK4XBot9Cartesian13CartesianTask19getPoseReferenceRawERN5Eigen8Affine3dEPN5Eigen8Vector6dEPN5Eigen8Vector6dE"></span><span id="_CPPv2NK4XBot9Cartesian13CartesianTask19getPoseReferenceRawERN5Eigen8Affine3dEPN5Eigen8Vector6dEPN5Eigen8Vector6dE"></span><span id="XBot::Cartesian::CartesianTask::getPoseReferenceRaw__Eigen::Affine3dR.Eigen::Vector6dP.Eigen::Vector6dPC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1a8c942a480f07b30fa1d5344253fde9be"></span><em class="property">virtual</em> bool <code class="descname">getPoseReferenceRaw</code><span class="sig-paren">(</span>Eigen::Affine3d &amp;<em>base_T_ref</em>, Eigen::Vector6d *<em>base_vel_ref</em> = nullptr, Eigen::Vector6d *<em>base_acc_ref</em> = nullptr<span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian13CartesianTask19getPoseReferenceRawERN5Eigen8Affine3dEPN5Eigen8Vector6dEPN5Eigen8Vector6dE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getPoseReferenceRaw returns the current desired value for the task pose, and optionally velocity and acceleration. The returned value is BEFORE any filtering or online trajectory generation being performed by the task. The references which are actually fed to the controller are instead given by getReferencePose. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt><dd>true on success </dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><code class="docutils literal notranslate"><span class="pre">base_T_ref</span></code>: reference to desired pose </li>
+<li><code class="docutils literal notranslate"><span class="pre">base_vel_ref</span></code>: pointer to desired velocity </li>
+<li><code class="docutils literal notranslate"><span class="pre">base_acc_ref</span></code>: pointer to desired acceleration </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian13CartesianTask16setPoseReferenceERKN5Eigen8Affine3dE">
+<span id="_CPPv3N4XBot9Cartesian13CartesianTask16setPoseReferenceERKN5Eigen8Affine3dE"></span><span id="_CPPv2N4XBot9Cartesian13CartesianTask16setPoseReferenceERKN5Eigen8Affine3dE"></span><span id="XBot::Cartesian::CartesianTask::setPoseReference__Eigen::Affine3dCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1aab04da94b5c13cf9d09f1502c184b36b"></span><em class="property">virtual</em> bool <code class="descname">setPoseReference</code><span class="sig-paren">(</span><em class="property">const</em> Eigen::Affine3d &amp;<em>base_T_ref</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian13CartesianTask16setPoseReferenceERKN5Eigen8Affine3dE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setPoseReference sets a new pose reference for the controller. If enableOnlineTrajectoryGeneration() was called, the provided reference is saturated according to the active velocity and acceleration limits. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt><dd>true on success </dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><code class="docutils literal notranslate"><span class="pre">base_T_ref</span></code>: the new reference </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian13CartesianTask19setPoseReferenceRawERKN5Eigen8Affine3dE">
+<span id="_CPPv3N4XBot9Cartesian13CartesianTask19setPoseReferenceRawERKN5Eigen8Affine3dE"></span><span id="_CPPv2N4XBot9Cartesian13CartesianTask19setPoseReferenceRawERKN5Eigen8Affine3dE"></span><span id="XBot::Cartesian::CartesianTask::setPoseReferenceRaw__Eigen::Affine3dCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1a8bdc54241e2bf1b74447ebe46c6afb2c"></span><em class="property">virtual</em> bool <code class="descname">setPoseReferenceRaw</code><span class="sig-paren">(</span><em class="property">const</em> Eigen::Affine3d &amp;<em>base_T_ref</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian13CartesianTask19setPoseReferenceRawERKN5Eigen8Affine3dE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setPoseReferenceRaw does the same as setPoseReference, but bypasses any trajectory generation. It is therefore less safe to use. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian13CartesianTask20setVelocityReferenceERKN5Eigen8Vector6dE">
+<span id="_CPPv3N4XBot9Cartesian13CartesianTask20setVelocityReferenceERKN5Eigen8Vector6dE"></span><span id="_CPPv2N4XBot9Cartesian13CartesianTask20setVelocityReferenceERKN5Eigen8Vector6dE"></span><span id="XBot::Cartesian::CartesianTask::setVelocityReference__Eigen::Vector6dCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1a26c74d69bdeb4d8fff0c5cb99a9b53b6"></span><em class="property">virtual</em> bool <code class="descname">setVelocityReference</code><span class="sig-paren">(</span><em class="property">const</em> Eigen::Vector6d &amp;<em>base_vel_ref</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian13CartesianTask20setVelocityReferenceERKN5Eigen8Vector6dE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setVelocityReference sets a new desired velocity for the task. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt><dd></dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian13CartesianTask13getPoseTargetERN5Eigen8Affine3dE">
+<span id="_CPPv3NK4XBot9Cartesian13CartesianTask13getPoseTargetERN5Eigen8Affine3dE"></span><span id="_CPPv2NK4XBot9Cartesian13CartesianTask13getPoseTargetERN5Eigen8Affine3dE"></span><span id="XBot::Cartesian::CartesianTask::getPoseTarget__Eigen::Affine3dRC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1af3e68d4681d62b0fc596bd6a300e83c1"></span><em class="property">virtual</em> bool <code class="descname">getPoseTarget</code><span class="sig-paren">(</span>Eigen::Affine3d &amp;<em>base_T_ref</em><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian13CartesianTask13getPoseTargetERN5Eigen8Affine3dE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getPoseTarget returns the current of the reaching motion being performed by the task, if the task state is Reaching. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt><dd>true if the task state is Reaching, false otherwise </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian13CartesianTask13setPoseTargetERKN5Eigen8Affine3dEd">
+<span id="_CPPv3N4XBot9Cartesian13CartesianTask13setPoseTargetERKN5Eigen8Affine3dEd"></span><span id="_CPPv2N4XBot9Cartesian13CartesianTask13setPoseTargetERKN5Eigen8Affine3dEd"></span><span id="XBot::Cartesian::CartesianTask::setPoseTarget__Eigen::Affine3dCR.double"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1a9eb5f020f6661d869ff66f69ee9fd8b1"></span><em class="property">virtual</em> bool <code class="descname">setPoseTarget</code><span class="sig-paren">(</span><em class="property">const</em> Eigen::Affine3d &amp;<em>base_T_ref</em>, double <em>time</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian13CartesianTask13setPoseTargetERKN5Eigen8Affine3dEd" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setPoseTarget commands a reaching motion to the given target </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt><dd>true on success, i.e. the task state was ‘Online` </dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><code class="docutils literal notranslate"><span class="pre">base_T_ref</span></code>: the pose to be reached </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: the time (in seconds) to reach the task </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian13CartesianTask12setWayPointsERKN10Trajectory14WayPointVectorE">
+<span id="_CPPv3N4XBot9Cartesian13CartesianTask12setWayPointsERKN10Trajectory14WayPointVectorE"></span><span id="_CPPv2N4XBot9Cartesian13CartesianTask12setWayPointsERKN10Trajectory14WayPointVectorE"></span><span id="XBot::Cartesian::CartesianTask::setWayPoints__Trajectory::WayPointVectorCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1a963ef808e70bbe491c647825fb2a590f"></span><em class="property">virtual</em> bool <code class="descname">setWayPoints</code><span class="sig-paren">(</span><em class="property">const</em> Trajectory::WayPointVector &amp;<em>way_points</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian13CartesianTask12setWayPointsERKN10Trajectory14WayPointVectorE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setWayPoints commands a reaching motion through the specified list of waypoints </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt><dd>true on success, i.e. the task state was ‘Online’ </dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><code class="docutils literal notranslate"><span class="pre">way_points</span></code>: a std::vector of WayPoints, each of which specifies a frame, and a time relative to the trajectory start </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian13CartesianTask19getCurrentSegmentIdEv">
+<span id="_CPPv3NK4XBot9Cartesian13CartesianTask19getCurrentSegmentIdEv"></span><span id="_CPPv2NK4XBot9Cartesian13CartesianTask19getCurrentSegmentIdEv"></span><span id="XBot::Cartesian::CartesianTask::getCurrentSegmentIdC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1a2d25f12305485b4d64214488ad040f86"></span><em class="property">virtual</em> int <code class="descname">getCurrentSegmentId</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian13CartesianTask19getCurrentSegmentIdEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getCurrentSegmentId returns the trajectory segment id currently being performed, or -1 if the task state is ‘Online’ </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian13CartesianTask5abortEv">
+<span id="_CPPv3N4XBot9Cartesian13CartesianTask5abortEv"></span><span id="_CPPv2N4XBot9Cartesian13CartesianTask5abortEv"></span><span id="XBot::Cartesian::CartesianTask::abort"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1a97af5d73d015b62b0e026dbe5f989143"></span><em class="property">virtual</em> void <code class="descname">abort</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian13CartesianTask5abortEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>abort interrupts any reaching motion </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian13CartesianTask17getVelocityLimitsERdRd">
+<span id="_CPPv3NK4XBot9Cartesian13CartesianTask17getVelocityLimitsERdRd"></span><span id="_CPPv2NK4XBot9Cartesian13CartesianTask17getVelocityLimitsERdRd"></span><span id="XBot::Cartesian::CartesianTask::getVelocityLimits__doubleR.doubleRC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1adcf587477b40829a960be2d41b743b77"></span><em class="property">virtual</em> void <code class="descname">getVelocityLimits</code><span class="sig-paren">(</span>double &amp;<em>max_vel_lin</em>, double &amp;<em>max_vel_ang</em><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian13CartesianTask17getVelocityLimitsERdRd" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getVelocityLimits return the currently active velocity limits for linear and angular motions </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian13CartesianTask21getAccelerationLimitsERdRd">
+<span id="_CPPv3NK4XBot9Cartesian13CartesianTask21getAccelerationLimitsERdRd"></span><span id="_CPPv2NK4XBot9Cartesian13CartesianTask21getAccelerationLimitsERdRd"></span><span id="XBot::Cartesian::CartesianTask::getAccelerationLimits__doubleR.doubleRC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1a172b049edd30e8a7aec5440cfc562a80"></span><em class="property">virtual</em> void <code class="descname">getAccelerationLimits</code><span class="sig-paren">(</span>double &amp;<em>max_acc_lin</em>, double &amp;<em>max_acc_ang</em><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian13CartesianTask21getAccelerationLimitsERdRd" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getAccelerationLimits return the currently active acceleration limits for linear and angular motions </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian13CartesianTask17setVelocityLimitsEdd">
+<span id="_CPPv3N4XBot9Cartesian13CartesianTask17setVelocityLimitsEdd"></span><span id="_CPPv2N4XBot9Cartesian13CartesianTask17setVelocityLimitsEdd"></span><span id="XBot::Cartesian::CartesianTask::setVelocityLimits__double.double"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1a3d41778477f915150e5b63047bd79bb5"></span><em class="property">virtual</em> void <code class="descname">setVelocityLimits</code><span class="sig-paren">(</span>double <em>max_vel_lin</em>, double <em>max_vel_ang</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian13CartesianTask17setVelocityLimitsEdd" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setVelocityLimits sets new velocity limits for linear and angular motions </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian13CartesianTask21setAccelerationLimitsEdd">
+<span id="_CPPv3N4XBot9Cartesian13CartesianTask21setAccelerationLimitsEdd"></span><span id="_CPPv2N4XBot9Cartesian13CartesianTask21setAccelerationLimitsEdd"></span><span id="XBot::Cartesian::CartesianTask::setAccelerationLimits__double.double"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianTask_1aa42c3877162fad00da40a83a359a0f80"></span><em class="property">virtual</em> void <code class="descname">setAccelerationLimits</code><span class="sig-paren">(</span>double <em>max_acc_lin</em>, double <em>max_acc_ang</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian13CartesianTask21setAccelerationLimitsEdd" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setAccelerationLimits sets new acceleration limits for linear and angular motions </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="task.html" class="btn btn-neutral" title="Generic Task API" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Arturo Laurenzi.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'2.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="../_static/language_data.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

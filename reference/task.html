@@ -1,0 +1,384 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Generic Task API &mdash; CartesIO 2.0.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="CartesIO 2.0.0 documentation" href="../index.html"/>
+        <link rel="next" title="Cartesian Task API" href="cartesian.html"/>
+        <link rel="prev" title="Implementing OpenSot support for a custom task" href="../plugins_sot.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> CartesIO
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">DESIGN AND USAGE</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../design.html">Design notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../problemdesc.html">Writing a problem description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rosapi.html">Auto-generated ROS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../progr_cpp.html">Programmatic API (C++)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../progr_py.html">Programmatic API (Python)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins.html">How to expand CartesIO</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API REFERENCE</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Generic Task API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cartesian.html">Cartesian Task API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">CartesIO</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+    <li>Generic Task API</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/reference/task.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="generic-task-api">
+<h1>Generic Task API<a class="headerlink" href="#generic-task-api" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="_CPPv4N4XBot9Cartesian15TaskDescriptionE">
+<span id="_CPPv3N4XBot9Cartesian15TaskDescriptionE"></span><span id="_CPPv2N4XBot9Cartesian15TaskDescriptionE"></span><span id="XBot::Cartesian::TaskDescription"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription"></span><em class="property">class </em><code class="descname">TaskDescription</code><a class="headerlink" href="#_CPPv4N4XBot9Cartesian15TaskDescriptionE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Base class for task descriptions, which contains properties that are shared among all tasks. </p>
+<p>Subclassed by <a class="reference internal" href="cartesian.html#classXBot_1_1Cartesian_1_1CartesianTask"><span class="std std-ref">XBot::Cartesian::CartesianTask</span></a>, XBot::Cartesian::ClientApi::TaskRos, XBot::Cartesian::ConstraintDescription, XBot::Cartesian::MinJointVelTask, XBot::Cartesian::PosturalTask, XBot::Cartesian::Subtask, XBot::Cartesian::TaskDescriptionImpl, XBot::Cartesian::TaskRt</p>
+<div class="breathe-sectiondef container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian15TaskDescription8validateEv">
+<span id="_CPPv3N4XBot9Cartesian15TaskDescription8validateEv"></span><span id="_CPPv2N4XBot9Cartesian15TaskDescription8validateEv"></span><span id="XBot::Cartesian::TaskDescription::validate"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1a87ad31534552ccab8282a8ac41b00d9b"></span><em class="property">virtual</em> bool <code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian15TaskDescription8validateEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>validate performs a consistency check over the task internal data </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt><dd>true if the test has been passed successfully, false otherwise </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian15TaskDescription7getNameEv">
+<span id="_CPPv3NK4XBot9Cartesian15TaskDescription7getNameEv"></span><span id="_CPPv2NK4XBot9Cartesian15TaskDescription7getNameEv"></span><span id="XBot::Cartesian::TaskDescription::getNameC"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1a8f1b58ea3fde2c5ad2f9a01e7c17415f"></span><em class="property">virtual</em> <em class="property">const</em> std::string &amp;<code class="descname">getName</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian15TaskDescription7getNameEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getName returns the task name, i.e. its literal identifier </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian15TaskDescription7getTypeEv">
+<span id="_CPPv3NK4XBot9Cartesian15TaskDescription7getTypeEv"></span><span id="_CPPv2NK4XBot9Cartesian15TaskDescription7getTypeEv"></span><span id="XBot::Cartesian::TaskDescription::getTypeC"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1a6184afd8e1644e72360ea54cdd3e0942"></span><em class="property">virtual</em> <em class="property">const</em> std::string &amp;<code class="descname">getType</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian15TaskDescription7getTypeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getType returns the task type, which is used to find additional modules/plugins implementing addon functionalities </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian15TaskDescription7getSizeEv">
+<span id="_CPPv3NK4XBot9Cartesian15TaskDescription7getSizeEv"></span><span id="_CPPv2NK4XBot9Cartesian15TaskDescription7getSizeEv"></span><span id="XBot::Cartesian::TaskDescription::getSizeC"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1ae04ac8c68bf344146ae505dc1468ad64"></span><em class="property">virtual</em> int <code class="descname">getSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian15TaskDescription7getSizeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getSize returns the task size in terms of involved degrees of freedom. The task weight must respect this size, and the task indices must lie in the range [0, .., size - 1] </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian15TaskDescription18getActivationStateEv">
+<span id="_CPPv3NK4XBot9Cartesian15TaskDescription18getActivationStateEv"></span><span id="_CPPv2NK4XBot9Cartesian15TaskDescription18getActivationStateEv"></span><span id="XBot::Cartesian::TaskDescription::getActivationStateC"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1a592d83093f16c600d28b8ebe26e0da60"></span><em class="property">virtual</em> ActivationState <code class="descname">getActivationState</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian15TaskDescription18getActivationStateEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getActivationState returns an enum specifiying whether or not the task is active </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian15TaskDescription18setActivationStateERK15ActivationState">
+<span id="_CPPv3N4XBot9Cartesian15TaskDescription18setActivationStateERK15ActivationState"></span><span id="_CPPv2N4XBot9Cartesian15TaskDescription18setActivationStateERK15ActivationState"></span><span id="XBot::Cartesian::TaskDescription::setActivationState__ActivationStateCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1aa28497574ced823c6b67be308c136373"></span><em class="property">virtual</em> bool <code class="descname">setActivationState</code><span class="sig-paren">(</span><em class="property">const</em> ActivationState &amp;<em>value</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian15TaskDescription18setActivationStateERK15ActivationState" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setActivationState allows to enable/disable a task </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian15TaskDescription10getLibNameEv">
+<span id="_CPPv3NK4XBot9Cartesian15TaskDescription10getLibNameEv"></span><span id="_CPPv2NK4XBot9Cartesian15TaskDescription10getLibNameEv"></span><span id="XBot::Cartesian::TaskDescription::getLibNameC"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1a534819cbb76b295a48b98bbac0c92714"></span><em class="property">virtual</em> <em class="property">const</em> std::string &amp;<code class="descname">getLibName</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian15TaskDescription10getLibNameEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getLibName returns the library name where task-related plugins can be found </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian15TaskDescription9getWeightEv">
+<span id="_CPPv3NK4XBot9Cartesian15TaskDescription9getWeightEv"></span><span id="_CPPv2NK4XBot9Cartesian15TaskDescription9getWeightEv"></span><span id="XBot::Cartesian::TaskDescription::getWeightC"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1af59e4f8d32ae48a44093617a1ff75946"></span><em class="property">virtual</em> <em class="property">const</em> Eigen::MatrixXd &amp;<code class="descname">getWeight</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian15TaskDescription9getWeightEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getWeight returns the task weight, i.e. a size x size symmetric, positive definite matrix </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian15TaskDescription9setWeightERKN5Eigen8MatrixXdE">
+<span id="_CPPv3N4XBot9Cartesian15TaskDescription9setWeightERKN5Eigen8MatrixXdE"></span><span id="_CPPv2N4XBot9Cartesian15TaskDescription9setWeightERKN5Eigen8MatrixXdE"></span><span id="XBot::Cartesian::TaskDescription::setWeight__Eigen::MatrixXdCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1a147f227c5da898dfecad75a0c831081e"></span><em class="property">virtual</em> bool <code class="descname">setWeight</code><span class="sig-paren">(</span><em class="property">const</em> Eigen::MatrixXd &amp;<em>value</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian15TaskDescription9setWeightERKN5Eigen8MatrixXdE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setWeight allows to set the task weight, i.e. a size x size symmetric, positive definite matrix </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian15TaskDescription10getIndicesEv">
+<span id="_CPPv3NK4XBot9Cartesian15TaskDescription10getIndicesEv"></span><span id="_CPPv2NK4XBot9Cartesian15TaskDescription10getIndicesEv"></span><span id="XBot::Cartesian::TaskDescription::getIndicesC"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1acccfc7195ef4a04ffdf77fa674c7eef0"></span><em class="property">virtual</em> <em class="property">const</em> std::vector&lt;int&gt; &amp;<code class="descname">getIndices</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian15TaskDescription10getIndicesEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getIndices returns the indices of the active task dofs, ranging from 0 to size - 1 </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian15TaskDescription10setIndicesERKNSt6vectorIiEE">
+<span id="_CPPv3N4XBot9Cartesian15TaskDescription10setIndicesERKNSt6vectorIiEE"></span><span id="_CPPv2N4XBot9Cartesian15TaskDescription10setIndicesERKNSt6vectorIiEE"></span><span id="XBot::Cartesian::TaskDescription::setIndices__std::vector:i:CR"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1aafcc9087637f0cb36a2eca63e029977a"></span><em class="property">virtual</em> void <code class="descname">setIndices</code><span class="sig-paren">(</span><em class="property">const</em> std::vector&lt;int&gt; &amp;<em>value</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian15TaskDescription10setIndicesERKNSt6vectorIiEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setIndices allows to set the indices of the active task dofs, as a vector of integers ranging from 0 to size - 1, without repetitions </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian15TaskDescription9getLambdaEv">
+<span id="_CPPv3NK4XBot9Cartesian15TaskDescription9getLambdaEv"></span><span id="_CPPv2NK4XBot9Cartesian15TaskDescription9getLambdaEv"></span><span id="XBot::Cartesian::TaskDescription::getLambdaC"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1a90c23b344993215f83ae60ef0f88c629"></span><em class="property">virtual</em> double <code class="descname">getLambda</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian15TaskDescription9getLambdaEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getLambda returns a generic feedback gain which is used by implementations to tune error feedback level. The lambda gain should respect 0 &lt;= lam &lt;= 1. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian15TaskDescription9setLambdaEd">
+<span id="_CPPv3N4XBot9Cartesian15TaskDescription9setLambdaEd"></span><span id="_CPPv2N4XBot9Cartesian15TaskDescription9setLambdaEd"></span><span id="XBot::Cartesian::TaskDescription::setLambda__double"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1acb9b967002135bf950076d58a6c8a59a"></span><em class="property">virtual</em> void <code class="descname">setLambda</code><span class="sig-paren">(</span>double <em>value</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian15TaskDescription9setLambdaEd" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setLambda allows to set the generic feedback gain which is used by implementations to tune error feedback level. The lambda gain should respect 0 &lt;= lam &lt;= 1. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian15TaskDescription6updateEdd">
+<span id="_CPPv3N4XBot9Cartesian15TaskDescription6updateEdd"></span><span id="_CPPv2N4XBot9Cartesian15TaskDescription6updateEdd"></span><span id="XBot::Cartesian::TaskDescription::update__double.double"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1a8acbe61588368bcf3af7ee66bf90b3d1"></span><em class="property">virtual</em> void <code class="descname">update</code><span class="sig-paren">(</span>double <em>time</em>, double <em>period</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian15TaskDescription6updateEdd" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>update is a loop function which is called at each control iteration </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: is the value of the current controller time </li>
+<li><code class="docutils literal notranslate"><span class="pre">period</span></code>: is the difference between to consecutive time values </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian15TaskDescription5resetEv">
+<span id="_CPPv3N4XBot9Cartesian15TaskDescription5resetEv"></span><span id="_CPPv2N4XBot9Cartesian15TaskDescription5resetEv"></span><span id="XBot::Cartesian::TaskDescription::reset"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1abe533aff1fc3ae17ec1d3afc584431d7"></span><em class="property">virtual</em> void <code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian15TaskDescription5resetEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>reset updates the task references so that they match their actual value </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian15TaskDescription16registerObserverEN12TaskObserver7WeakPtrE">
+<span id="_CPPv3N4XBot9Cartesian15TaskDescription16registerObserverEN12TaskObserver7WeakPtrE"></span><span id="_CPPv2N4XBot9Cartesian15TaskDescription16registerObserverEN12TaskObserver7WeakPtrE"></span><span id="XBot::Cartesian::TaskDescription::registerObserver__TaskObserver::WeakPtr"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1ad8d26c7a05c16ce498b1b71192d10b49"></span><em class="property">virtual</em> void <code class="descname">registerObserver</code><span class="sig-paren">(</span>TaskObserver::WeakPtr <em>obs</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian15TaskDescription16registerObserverEN12TaskObserver7WeakPtrE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>registerObserver adds a TaskObserver to the list of observers It keeps a weak pointer to the observer object, such that its lifetime is not extended </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian15TaskDescription3logEN9MatLogger3PtrEbi">
+<span id="_CPPv3N4XBot9Cartesian15TaskDescription3logEN9MatLogger3PtrEbi"></span><span id="_CPPv2N4XBot9Cartesian15TaskDescription3logEN9MatLogger3PtrEbi"></span><span id="XBot::Cartesian::TaskDescription::log__MatLogger::Ptr.b.i"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1a5cd93d1b41c6c5cd6794687387333801"></span><em class="property">virtual</em> void <code class="descname">log</code><span class="sig-paren">(</span>MatLogger::Ptr <em>logger</em>, bool <em>init_logger</em> = false, int <em>buf_size</em> = 1e5<span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian15TaskDescription3logEN9MatLogger3PtrEbi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>the log function dumps a log of all relevant task quantities to the provided logger. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><code class="docutils literal notranslate"><span class="pre">logger</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">init_logger</span></code>: if true, the user should only pre-allocate the logged variables </li>
+<li><code class="docutils literal notranslate"><span class="pre">buf_size</span></code>: if init_logger is true, this is the buffer size to be pre-allocated </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef container">
+<p class="breathe-sectiondef-title rubric">Public Static Functions</p>
+<dl class="function">
+<dt id="_CPPv4I0EN4XBot9Cartesian15TaskDescription7HasTypeEb8ConstPtr">
+<span id="_CPPv3I0EN4XBot9Cartesian15TaskDescription7HasTypeE8ConstPtr"></span><span id="_CPPv2I0EN4XBot9Cartesian15TaskDescription7HasTypeE8ConstPtr"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1ac31bcc6f44def15d9ad15241440f57aa"></span>template&lt;typename <code class="descname">TaskDerivedType</code>&gt;<br /><em class="property">static</em> bool <code class="descname">HasType</code><span class="sig-paren">(</span>ConstPtr <em>task</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN4XBot9Cartesian15TaskDescription7HasTypeEb8ConstPtr" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>HasType is an utility funcion to check if a given task has a given task type. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef container">
+<p class="breathe-sectiondef-title rubric">Friends</p>
+<dl class="function">
+<dt id="_CPPv4mlN5Eigen3RefIKN5Eigen8MatrixXdEEEN15TaskDescription3PtrE">
+<span id="_CPPv3mlN5Eigen3RefIKN5Eigen8MatrixXdEEEN15TaskDescription3PtrE"></span><span id="_CPPv2mlN5Eigen3RefIKN5Eigen8MatrixXdEEEN15TaskDescription3PtrE"></span><span id="mul-operator__Eigen::Ref:Eigen::MatrixXdC:.TaskDescription::Ptr"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1a6fe64253a6f45452edad24080c62aa87"></span>TaskDescription::Ptr <code class="descname">operator*</code><span class="sig-paren">(</span>Eigen::Ref&lt;<em class="property">const</em> Eigen::MatrixXd&gt; <em>weight</em>, TaskDescription::Ptr <em>task</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4mlN5Eigen3RefIKN5Eigen8MatrixXdEEEN15TaskDescription3PtrE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Apply a weight matrix to a task. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt><dd>The same pointer that was provided as input </dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><code class="docutils literal notranslate"><span class="pre">weight</span></code>: Symmetric positive definite matrix that is applied on the left to the task weight </li>
+<li><code class="docutils literal notranslate"><span class="pre">task</span></code>: Task that we want to modify the weight of </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4rmNSt6vectorIiEEN15TaskDescription3PtrE">
+<span id="_CPPv3rmNSt6vectorIiEEN15TaskDescription3PtrE"></span><span id="_CPPv2rmNSt6vectorIiEEN15TaskDescription3PtrE"></span><span id="mod-operator__std::vector:i:.TaskDescription::Ptr"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1adb3365a8976b65227b672765fcb9c97d"></span>TaskDescription::Ptr <code class="descname">operator%</code><span class="sig-paren">(</span>std::vector&lt;int&gt; <em>indices</em>, TaskDescription::Ptr <em>task</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4rmNSt6vectorIiEEN15TaskDescription3PtrE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Apply a subtask selection to a task. The function also adjusts the task weight matrix. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="cartesian.html" class="btn btn-neutral float-right" title="Cartesian Task API" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../plugins_sot.html" class="btn btn-neutral" title="Implementing OpenSot support for a custom task" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Arturo Laurenzi.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'2.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="../_static/language_data.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

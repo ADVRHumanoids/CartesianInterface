@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="CartesIO 2.0.0 documentation" href="index.html"/>
         <link rel="next" title="Adding a new task/constraint type" href="plugins_task.html"/>
         <link rel="prev" title="Programmatic API (Python)" href="progr_py.html"/> 
@@ -88,12 +91,15 @@
 <li class="toctree-l1"><a class="reference internal" href="rosapi.html">Auto-generated ROS API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progr_cpp.html">Programmatic API (C++)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progr_py.html">Programmatic API (Python)</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">How to expand CartesIO</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">How to expand CartesIO</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="plugins_task.html">Adding a new task/constraint type</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugins_ros.html">Implementing the ROS API for a custom task</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugins_sot.html">Implementing OpenSot support for a custom task</a></li>
 </ul>
 </li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reference/task.html">Task API Reference</a></li>
 </ul>
 
             
@@ -128,7 +134,7 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/plugins.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/plugins.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -142,22 +148,22 @@
 <span id="expand"></span><h1>How to expand CartesIO<a class="headerlink" href="#how-to-expand-cartesio" title="Permalink to this headline">¶</a></h1>
 <p>CartesIO supports only a limited set of tasks and constraints. These are usually enough for
 setting up most control problems; however, special tasks might be needed for implementing more
-&#8220;exotic&#8221; behaviors. For this reason, CastesIO is designed to be <strong>highly customizable</strong> at almost
+“exotic” behaviors. For this reason, CastesIO is designed to be <strong>highly customizable</strong> at almost
 all its architectural layers; the user can implement:</p>
 <blockquote>
 <div><ul class="simple">
 <li>a <strong>new controller</strong>, which replaces the OpenSot-based velocity level inverse kinematics.
 For instance, a custom solver can be implemented from scratch, but remaining compatible with all the
 CartesIO interfaces and utilities. New controllers can then dynamically loaded
-with the <code class="docutils literal"><span class="pre">load_controller</span></code> ROS service.</li>
+with the <code class="docutils literal notranslate"><span class="pre">load_controller</span></code> ROS service.</li>
 <li>A <strong>new task/constraint</strong>, which is added to the library of supported CartesIO APIs. This way, we can
 a programmatic API, and a ROS interface to a new kind of task.</li>
 <li>When a new task/constraint is developed, the <strong>OpenSot support</strong> can be quickly implemented as well,
 in order to have it inside the default OpenSot-based velocity level inverse kinematics controller.</li>
 </ul>
 </div></blockquote>
-<p>The header files in <code class="docutils literal"><span class="pre">&lt;cartesian_interface/sdk/...&gt;</span></code> can be conveniently employed to re-use existing componens
-of the CartesIO framework. For instance, a specialization of a <code class="docutils literal"><span class="pre">Cartesian</span></code> task
+<p>The header files in <code class="docutils literal notranslate"><span class="pre">&lt;cartesian_interface/sdk/...&gt;</span></code> can be conveniently employed to re-use existing componens
+of the CartesIO framework. For instance, a specialization of a <code class="docutils literal notranslate"><span class="pre">Cartesian</span></code> task
 (such as a center-of-mass stabilizer) does not need to re-implement the whole Cartesian task API. All it needs
 to do is to properly inherit from the proper classes.</p>
 <div class="toctree-wrapper compound">
@@ -219,6 +225,7 @@ to do is to properly inherit from the proper classes.</p>
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/language_data.js"></script>
 
   
 

@@ -30,9 +30,12 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="CartesIO 2.0.0 documentation" href="index.html"/>
         <link rel="next" title="Cartesian task" href="tasks/cartesian.html"/>
-        <link rel="prev" title="Quickstart" href="quickstart.html"/> 
+        <link rel="prev" title="Design notes" href="design.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -81,9 +84,11 @@
           
             
             
-                <ul class="current">
+                <p class="caption"><span class="caption-text">Design and usage</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Writing a problem description</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="design.html">Design notes</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Writing a problem description</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#yaml-basic-structure">YAML basic structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#task-common-parameters">Task common parameters</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#type">type</a></li>
@@ -109,8 +114,15 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="rosapi.html">Auto-generated ROS API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="design.html">Design notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progr_cpp.html">Programmatic API (C++)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progr_py.html">Programmatic API (Python)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">How to expand CartesIO</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reference/problem.html">Problem Description API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/trajectory.html">Trajectory Interpolation API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/sdk.html">SDK API Reference</a></li>
 </ul>
 
             
@@ -145,7 +157,7 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/problemdesc.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/problemdesc.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -156,7 +168,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="writing-a-problem-description">
-<h1>Writing a problem description<a class="headerlink" href="#writing-a-problem-description" title="Permalink to this headline">¶</a></h1>
+<span id="problem"></span><h1>Writing a problem description<a class="headerlink" href="#writing-a-problem-description" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="yaml-basic-structure">
 <h2>YAML basic structure<a class="headerlink" href="#yaml-basic-structure" title="Permalink to this headline">¶</a></h2>
 <p>The basic structure of a problem description file is comprised by</p>
@@ -169,7 +181,7 @@ these are declared as textual labels to be defined after.</li>
 defined</li>
 </ul>
 <p>For example, a simple stack for a bimanual, redundant manipulation platform could be:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span class="c1">## stack of tasks definition ##</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span class="c1">## stack of tasks definition ##</span>
 
 <span class="l l-Scalar l-Scalar-Plain">stack</span><span class="p p-Indicator">:</span>
     <span class="p p-Indicator">-</span> <span class="p p-Indicator">[</span><span class="s">&quot;LeftArm&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;RightArm&quot;</span><span class="p p-Indicator">]</span>
@@ -200,19 +212,19 @@ defined</li>
 <div class="section" id="type">
 <h3>type<a class="headerlink" href="#type" title="Permalink to this headline">¶</a></h3>
 <p>is the literal name of the task type; a list of natively-supported
-types is available <a class="reference internal" href="#supportedtasks"><span>here</span></a>, whereas <a class="reference internal" href="plugins.html#expand"><span>this section</span></a>
+types is available <a class="reference internal" href="#supportedtasks"><span class="std std-ref">here</span></a>, whereas <a class="reference internal" href="plugins.html#expand"><span class="std std-ref">this section</span></a>
 contains details on how to create <strong>custom types</strong></p>
 </div>
 <div class="section" id="name">
 <h3>name<a class="headerlink" href="#name" title="Permalink to this headline">¶</a></h3>
 <p>is the name of the task, which will be used to interact with the task itself,
-both from the programmatic API (C++/Python), and from the ROS api (topics, services, ...).
-The <code class="docutils literal"><span class="pre">name</span></code> field is optional, the default depending on the task type.</p>
+both from the programmatic API (C++/Python), and from the ROS api (topics, services, …).
+The <code class="docutils literal notranslate"><span class="pre">name</span></code> field is optional, the default depending on the task type.</p>
 </div>
 <div class="section" id="active">
 <h3>active<a class="headerlink" href="#active" title="Permalink to this headline">¶</a></h3>
 <p>is a boolean specifying whether the task should be active right from creation,
-or not. It defaults to <code class="docutils literal"><span class="pre">true</span></code>.</p>
+or not. It defaults to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
 </div>
 <div class="section" id="lambda">
 <h3>lambda<a class="headerlink" href="#lambda" title="Permalink to this headline">¶</a></h3>
@@ -222,14 +234,14 @@ ranging from 0 to 1. Defaults to 1.0.</p>
 <div class="section" id="weight">
 <h3>weight<a class="headerlink" href="#weight" title="Permalink to this headline">¶</a></h3>
 <p>is used to give different <em>soft priority</em> to the task <em>degrees of freedom</em>, also w.r.t.
-other tasks at the same priority level. It must be either a scalar (e.g. <code class="docutils literal"><span class="pre">weight:</span> <span class="pre">10.0</span></code>) or a vector
-with as many elements as the task size (e.g. <code class="docutils literal"><span class="pre">weight:</span> <span class="pre">[1.,</span> <span class="pre">1.,</span> <span class="pre">1.,</span> <span class="pre">4.,</span> <span class="pre">4.,</span> <span class="pre">4.]</span></code> for a 6D task). Defaults to
+other tasks at the same priority level. It must be either a scalar (e.g. <code class="docutils literal notranslate"><span class="pre">weight:</span> <span class="pre">10.0</span></code>) or a vector
+with as many elements as the task size (e.g. <code class="docutils literal notranslate"><span class="pre">weight:</span> <span class="pre">[1.,</span> <span class="pre">1.,</span> <span class="pre">1.,</span> <span class="pre">4.,</span> <span class="pre">4.,</span> <span class="pre">4.]</span></code> for a 6D task). Defaults to
 the identity.</p>
 </div>
 <div class="section" id="indices">
 <h3>indices<a class="headerlink" href="#indices" title="Permalink to this headline">¶</a></h3>
-<p>extract a subtask from the given vector of indices. For instance, <code class="docutils literal"><span class="pre">indices:</span> <span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">2]</span></code> extracts
-the position task from a <em>Cartesian</em> task. Defaults to <code class="docutils literal"><span class="pre">indices:</span> <span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">...,</span> <span class="pre">size-1]</span></code>)</p>
+<p>extract a subtask from the given vector of indices. For instance, <code class="docutils literal notranslate"><span class="pre">indices:</span> <span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">2]</span></code> extracts
+the position task from a <em>Cartesian</em> task. Defaults to <code class="docutils literal notranslate"><span class="pre">indices:</span> <span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">...,</span> <span class="pre">size-1]</span></code>)</p>
 </div>
 <div class="section" id="disabled-joints">
 <h3>disabled_joints<a class="headerlink" href="#disabled-joints" title="Permalink to this headline">¶</a></h3>
@@ -242,12 +254,12 @@ be enabled</p>
 </div>
 <div class="section" id="lib-name">
 <h3>lib_name<a class="headerlink" href="#lib-name" title="Permalink to this headline">¶</a></h3>
-<p>specifies the library with the definition of the custom task type (see <a class="reference internal" href="plugins.html#expand"><span>this section</span></a>)</p>
+<p>specifies the library with the definition of the custom task type (see <a class="reference internal" href="plugins.html#expand"><span class="std std-ref">this section</span></a>)</p>
 </div>
 </div>
 <div class="section" id="task-definition-example">
 <h2>Task definition example<a class="headerlink" href="#task-definition-example" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-yaml"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">LeftArm</span><span class="p p-Indicator">:</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">LeftArm</span><span class="p p-Indicator">:</span>
     <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">TaskTypeName</span>
     <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">left_arm</span>
     <span class="l l-Scalar l-Scalar-Plain">active</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
@@ -287,7 +299,7 @@ be enabled</p>
         <a href="tasks/cartesian.html" class="btn btn-neutral float-right" title="Cartesian task" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="quickstart.html" class="btn btn-neutral" title="Quickstart" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="design.html" class="btn btn-neutral" title="Design notes" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -327,6 +339,7 @@ be enabled</p>
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/language_data.js"></script>
 
   
 

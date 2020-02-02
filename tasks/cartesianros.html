@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="CartesIO 2.0.0 documentation" href="../index.html"/>
         <link rel="up" title="Auto-generated ROS API" href="../rosapi.html"/>
         <link rel="next" title="Postural task ROS API" href="posturalros.html"/>
@@ -89,7 +92,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../rosapi.html">Auto-generated ROS API</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../rosapi.html#common-task-api">Common task API</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../rosapi.html#supported-tasks-api">Supported tasks API</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="">Cartesian task ROS API</a><ul>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Cartesian task ROS API</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#services">Services</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#topics">Topics</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#actions">Actions</a></li>
@@ -105,6 +108,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../progr_cpp.html">Programmatic API (C++)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../progr_py.html">Programmatic API (Python)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../plugins.html">How to expand CartesIO</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../reference/task.html">Task API Reference</a></li>
 </ul>
 
             
@@ -141,7 +147,7 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/tasks/cartesianros.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/tasks/cartesianros.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -192,13 +198,13 @@
 <td>get_cartesian_task_properties</td>
 </tr>
 <tr class="row-even"><th class="stub">Type</th>
-<td><code class="docutils literal"><span class="pre">cartesian_interface::GetCartesianTaskInfo</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">cartesian_interface::GetCartesianTaskInfo</span></code></td>
 </tr>
 <tr class="row-odd"><th class="stub">Request</th>
-<td>&#8211;</td>
+<td>–</td>
 </tr>
 <tr class="row-even"><th class="stub">Response</th>
-<td><div class="first last highlight-yaml"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">string  base_link</span>
+<td><div class="first last highlight-yaml notranslate"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">string  base_link</span>
 <span class="l l-Scalar l-Scalar-Plain">string  distal_link</span>
 <span class="l l-Scalar l-Scalar-Plain">string  control_mode</span>        <span class="c1"># either &quot;Position&quot; or &quot;Velocity&quot;</span>
 <span class="l l-Scalar l-Scalar-Plain">string  state</span>               <span class="c1"># either &quot;Reaching&quot; or &quot;Online&quot;</span>
@@ -297,6 +303,7 @@
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="../_static/language_data.js"></script>
 
   
 

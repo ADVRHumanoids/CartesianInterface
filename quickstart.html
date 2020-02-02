@@ -30,8 +30,11 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="CartesIO 2.0.0 documentation" href="index.html"/>
-        <link rel="next" title="Writing a problem description" href="problemdesc.html"/>
+        <link rel="next" title="Design notes" href="design.html"/>
         <link rel="prev" title="Welcome to CartesI/O’s documentation!" href="index.html"/> 
 
   
@@ -81,18 +84,27 @@
           
             
             
-                <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="">Quickstart</a><ul>
+                <p class="caption"><span class="caption-text">Design and usage</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#setting-up-the-robot-description">Setting up the robot description</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#setting-up-the-problem-description">Setting up the problem description</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#writing-an-example-launch-file">Writing an example launch file</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#running-the-ros-cartesian-server">Running the ROS Cartesian Server</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#interacting-with-rviz-markers">Interacting with Rviz markers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#get-started-with-the-tutorial">Get started with the tutorial</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="design.html">Design notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problemdesc.html">Writing a problem description</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rosapi.html">Auto-generated ROS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progr_cpp.html">Programmatic API (C++)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progr_py.html">Programmatic API (Python)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">How to expand CartesIO</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reference/problem.html">Problem Description API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/trajectory.html">Trajectory Interpolation API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/sdk.html">SDK API Reference</a></li>
 </ul>
 
             
@@ -127,7 +139,7 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/quickstart.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/quickstart.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -139,20 +151,86 @@
             
   <div class="section" id="quickstart">
 <h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
+<p>Getting started with CartesIO requires only a few setup steps, especially if you start from a
+URDF/SRDF-based description of your robot. If you don’t, please follow the relevant ROS documentation.
+Once this is done, you just need to write a single configuration file to specify what Cartesian control
+problem you actually want to solve.</p>
 <div class="section" id="setting-up-the-robot-description">
 <h2>Setting up the robot description<a class="headerlink" href="#setting-up-the-robot-description" title="Permalink to this headline">¶</a></h2>
+<p>For the robot description, we leverage on the ROS model, which requires you to write:</p>
+<blockquote>
+<div><ul class="simple">
+<li>a <strong>URDF</strong> file with kinematic and dynamic properties of the robot</li>
+<li>a <strong>SRDF</strong> file with semantic information attached to it, such as the division of your robot into separate
+kinematic chains, and the definition of a <em>homing</em> configuration</li>
+</ul>
+</div></blockquote>
+<p>We pose the additional constraint that <em>floating base</em> robots should have their base link connected
+to the <code class="docutils literal notranslate"><span class="pre">world</span></code> frame through a <code class="docutils literal notranslate"><span class="pre">floating</span></code> joint type.</p>
+<p>Moreover, you should list all kinematic chains which make up the robot into a separate <code class="docutils literal notranslate"><span class="pre">chains</span></code> group inside
+the SRDF. You can always refer to the <cite>examples/</cite> subfolder of the CartesIO ROS package,
+which is accessed e.g. by typing <code class="docutils literal notranslate"><span class="pre">roscd</span> <span class="pre">cartesian_interface/examples</span></code></p>
 </div>
 <div class="section" id="setting-up-the-problem-description">
 <h2>Setting up the problem description<a class="headerlink" href="#setting-up-the-problem-description" title="Permalink to this headline">¶</a></h2>
+<p>The problem description is a YAML file defining the control problem, i.e.:</p>
+<blockquote>
+<div><ul class="simple">
+<li>which <strong>tasks</strong> do I want the robot to perform?</li>
+<li>in which <strong>priority</strong> order?</li>
+<li>under what <strong>constraints</strong>?</li>
+</ul>
+</div></blockquote>
+<p>Please follow <a class="reference internal" href="problemdesc.html#problem"><span class="std std-ref">this link</span></a> to understand the basix syntax.</p>
 </div>
 <div class="section" id="writing-an-example-launch-file">
 <h2>Writing an example launch file<a class="headerlink" href="#writing-an-example-launch-file" title="Permalink to this headline">¶</a></h2>
+<p>For your commodity, it is better to wrap all the system setup in a single launch file.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span class="nt">&lt;launch&gt;</span>
+
+    <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;robot_description&quot;</span>
+        <span class="na">textfile=</span><span class="s">&quot;$(find my_urdf_pkg)/my_robot.urdf&quot;</span><span class="nt">/&gt;</span>
+
+    <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;robot_description_semantic&quot;</span>
+        <span class="na">textfile=</span><span class="s">&quot;$(find my_srdf_pkg)/my_robot.srdf&quot;</span><span class="nt">/&gt;</span>
+
+    <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;cartesian/problem_description&quot;</span>
+        <span class="na">textfile=</span><span class="s">&quot;$(find my_cartesio_pkg)/my_robot_stack.yaml&quot;</span><span class="nt">/&gt;</span>
+
+    <span class="nt">&lt;include</span> <span class="na">file=</span><span class="s">&quot;$(find cartesian_interface)/launch/cartesio.launch&quot;</span><span class="nt">&gt;</span>
+        <span class="c">&lt;!-- Control frequency (Hz) --&gt;</span>
+        <span class="nt">&lt;arg</span> <span class="na">name=</span><span class="s">&quot;rate&quot;</span> <span class="na">value=</span><span class="s">&quot;100.0&quot;</span><span class="nt">/&gt;</span>
+
+        <span class="c">&lt;!-- Spawn RviZ interacrive markers --&gt;</span>
+        <span class="nt">&lt;arg</span> <span class="na">name=</span><span class="s">&quot;markers&quot;</span> <span class="na">value=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span>
+
+        <span class="c">&lt;!-- Set to false for fixed base  --&gt;</span>
+        <span class="nt">&lt;arg</span> <span class="na">name=</span><span class="s">&quot;is_model_floating_base&quot;</span> <span class="na">value=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span>
+    <span class="nt">&lt;/include&gt;</span>
+
+<span class="nt">&lt;/launch&gt;</span>
+</pre></div>
 </div>
-<div class="section" id="running-the-ros-cartesian-server">
-<h2>Running the ROS Cartesian Server<a class="headerlink" href="#running-the-ros-cartesian-server" title="Permalink to this headline">¶</a></h2>
+<p>You can immediately start controlling you robot by executing this simple launch file!
+It is now possible to interact with you Cartesian controller directly to the auto-generated
+ROS API (<code class="docutils literal notranslate"><span class="pre">rostopic</span> <span class="pre">list</span></code>, <code class="docutils literal notranslate"><span class="pre">rosservice</span> <span class="pre">list</span></code>), or through our C++/Python Client Library</p>
 </div>
-<div class="section" id="interacting-with-rviz-markers">
-<h2>Interacting with Rviz markers<a class="headerlink" href="#interacting-with-rviz-markers" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="get-started-with-the-tutorial">
+<h2>Get started with the tutorial<a class="headerlink" href="#get-started-with-the-tutorial" title="Permalink to this headline">¶</a></h2>
+<p>For most applications, you will interact with CartesIO through ROS. This can be conveniently
+done either via raw topics, services, and actions (see <a class="reference internal" href="rosapi.html#rosapi"><span class="std std-ref">this page</span></a>), or by using
+a C++/Python clent library. The usage of the Python Client Library is explained with a tutorial
+that we’ve prepared, which will guide you through the available API.</p>
+<dl class="docutils">
+<dt>To run the tutorial:</dt><dd><ul class="simple">
+<li>install the jupyter notebook (e.g. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">notebook</span></code>)</li>
+<li><code class="docutils literal notranslate"><span class="pre">roscd</span> <span class="pre">cartesian_interface/examples/python</span></code></li>
+<li>open a web browser (e.g. chrome, firefox, …)</li>
+<li><code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">notebook</span> <span class="pre">ros_client_example.ipynb</span></code></li>
+<li>the notebook should display inside your browser</li>
+</ul>
+</dd>
+</dl>
 </div>
 </div>
 
@@ -163,7 +241,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="problemdesc.html" class="btn btn-neutral float-right" title="Writing a problem description" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="design.html" class="btn btn-neutral float-right" title="Design notes" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral" title="Welcome to CartesI/O’s documentation!" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -206,6 +284,7 @@
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/language_data.js"></script>
 
   
 
