@@ -108,10 +108,9 @@ Eigen::Affine3d Trajectory::evaluate(double time, Eigen::Vector6d * const vel, E
     interpolated.translation() = (1 - tau)*start.translation() + tau*end.translation();
 
     if(vel) *vel << dtau*(end.translation() - start.translation()), dtau * delta.angle() * delta.axis();
-    if(acc) *acc << ddtau*(end.translation() - start.translation()), 0.0, 0.0, 0.0;
-    
+    if(acc) *acc << ddtau*(end.translation() - start.translation()), ddtau * delta.angle() * delta.axis();
+
     return interpolated;
-    
     
 }
 
