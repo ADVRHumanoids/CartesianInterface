@@ -525,7 +525,11 @@ bool RosImpl::stopVelocityReferenceAsync(const std::string& ee_name)
 bool RosImpl::setVelocityReference(const std::string& end_effector, 
                                    const Eigen::Vector6d& base_vel_ref)
 {
-    return setVelocityReference(end_effector, base_vel_ref);
+    auto task = get_task(end_effector, false);
+
+    task->send_vref(base_vel_ref);
+
+    return true;
 }
 
 bool RosImpl::setVelocityReference(const std::string & end_effector,
