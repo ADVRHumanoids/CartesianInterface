@@ -56,8 +56,12 @@ PYBIND11_MODULE(pyci, m) {
         .def("setDesiredDamping", &RosImpl::setDesiredDamping)
         .def("resetWorld", (bool (RosImpl::*)(const Eigen::Affine3d&)) &RosImpl::resetWorld)
         .def("resetWorld", (bool (RosImpl::*)(const std::string&))     &RosImpl::resetWorld)
-        .def("setVelocityReference", &RosImpl::setVelocityReference)
+        .def("setVelocityReference", (bool (RosImpl::*)(const std::string&,
+                                                        const Eigen::Vector6d&))  &RosImpl::setVelocityReference)
         .def("setVelocityReferenceAsync", &RosImpl::setVelocityReferenceAsync)
+        .def("setVelocityReference", (bool (RosImpl::*)(const std::string&,
+                                                        const Eigen::Vector6d&,
+                                                        const std::string&))  &RosImpl::setVelocityReference)
         .def("stopVelocityReferenceAsync", &RosImpl::stopVelocityReferenceAsync)
         .def("getPoseFromTf", py_get_pose_from_tf);
         

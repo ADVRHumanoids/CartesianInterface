@@ -12,6 +12,7 @@
 #include <cartesian_interface/ReachPoseAction.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <cartesian_interface/TaskInfo.h>
 
 #include <tf/transform_listener.h>
 #include <tf_conversions/tf_eigen.h>
@@ -30,6 +31,8 @@ namespace XBot { namespace Cartesian {
         
         RosImpl(std::string ns = "cartesian");
         virtual ~RosImpl();
+
+        void set_async_mode(bool async);
         
         virtual bool reset();
         virtual const std::string& getBaseLink(const std::string& ee_name) const;
@@ -76,6 +79,10 @@ namespace XBot { namespace Cartesian {
                             
         virtual bool setVelocityReference(const std::string& end_effector, 
                             const Eigen::Vector6d& base_vel_ref);
+
+        bool setVelocityReference(const std::string& end_effector,
+                                  const Eigen::Vector6d& base_vel_ref,
+                                  const std::string& base_frame);
                             
         virtual bool setPoseReferenceRaw(const std::string& end_effector, 
                                 const Eigen::Affine3d& base_T_ref);
@@ -170,6 +177,8 @@ namespace XBot { namespace Cartesian {
             
             static const int VREF_ASYNC_PERIOD = 0.05;
             
+            ros::NodeHandle nh;
+
             ros::Subscriber state_sub;
             ros::Publisher ref_pub;
             ros::Publisher vref_pub;
@@ -179,10 +188,14 @@ namespace XBot { namespace Cartesian {
             
             ros::ServiceClient get_prop_srv;
             ros::ServiceClient set_prop_srv;
+            ros::Subscriber get_prop_sub;
+            cartesian_interface::TaskInfo cached_task_prop;
+            bool async_mode;
             
             std::string distal_link;
             Eigen::Affine3d state;
             
+            void task_properties_callback(const cartesian_interface::TaskInfoConstPtr& msg);
             void state_callback(const geometry_msgs::PoseStampedConstPtr& msg);
             bool valid_state;
             
@@ -193,9 +206,11 @@ namespace XBot { namespace Cartesian {
             RosTask(ros::NodeHandle nh, std::string distal_link);
             bool is_valid() const;
             
+            void set_async_mode(bool async);
             Eigen::Affine3d get_state() const;
             void send_ref(const Eigen::Affine3d& ref);
-            void send_vref(const Eigen::Vector6d& vref);
+            void send_vref(const Eigen::Vector6d& vref,
+                           const std::string& base_frame = "");
             void send_vref_async(const Eigen::Vector6d& vref, double timeout_duration);
             void stop_vref_async();
             void send_waypoints(const Trajectory::WayPointVector& wp, bool incremental = false);

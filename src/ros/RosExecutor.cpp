@@ -172,6 +172,31 @@ void RosExecutor::reset_model_state()
         _model->setJointPosition(qref);
         _model->update();
     }  
+    else if(_nh_priv.hasParam("initialize_from_topic"))
+    {
+        std::string init_joint_topic;
+        _nh_priv.getParam("initialize_from_topic", init_joint_topic);
+
+        auto msg = ros::topic::waitForMessage<sensor_msgs::JointState>(init_joint_topic, ros::Duration(1.0));
+        if(!msg || msg->name.size() == 0)
+        {
+            throw std::runtime_error("Unable to get current joint states from topic " + init_joint_topic);
+        }
+
+        XBot::JointNameMap qref;
+        for(auto j : _model->getEnabledJointNames())
+        {
+                auto it = std::find(msg->name.begin(), msg->name.end(), j);
+                if(it == msg->name.end())
+                {
+                    throw std::runtime_error("Unable to get current joint state for joint '" + j + "'");
+                }
+                int idx = std::distance(msg->name.begin(), it);
+                qref[j] = msg->position.at(idx);
+        }
+        _model->setJointPosition(qref);
+        _model->update();
+    }
     else
     {
         Eigen::VectorXd qhome;

@@ -1,0 +1,5 @@
+string distal_link
+string base_link
+string control_mode # pos/vel/disabled
+string task_state   # reaching/online
+string task_interface   # cartesian/interaction
