@@ -64,16 +64,13 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
         lib_name = task_node["lib_name"].as<std::string>();
     }
 
-    /* Obtain factory name from task type */
-    std::string factory_name = task_type + "TaskDescriptionFactory";
-    
     /* Load task descripton from library */
     TaskDescription::Ptr task_desc;
 
     if(!lib_name.empty())
     {
         task_desc.reset( CallFunction<TaskDescription *>(lib_name,
-                                                         "create_cartesian_interface_task_description",
+                                                         "create_cartesio_" + task_type + "_description",
                                                          task_node,
                                                          model,
                                                          detail::Version CARTESIO_ABI_VERSION

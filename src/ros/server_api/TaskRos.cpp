@@ -194,7 +194,7 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
         try
         {
             ros_adapter = CallFunction<TaskRos*>(task->getLibName(),
-                                                 "create_cartesio_ros_api",
+                                                 "create_cartesio_" + task->getType() + "_ros_api",
                                                  task,
                                                  model,
                                                  detail::Version CARTESIO_ABI_VERSION);
@@ -202,8 +202,15 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
         catch(LibNotFound&)
         {
             fmt::print("Unable to construct TaskRos instance for task '{}': "
-                       "lib '{}' not found for unsupported task type '{}'",
-                       task->getName(), RosApiPluginName(task), task->getType());
+                       "lib '{}' not found for task type '{}' \n",
+                       task->getName(), task->getLibName(), task->getType());
+
+        }
+        catch(SymbolNotFound&)
+        {
+            fmt::print("Unable to construct TaskRos instance for task '{}': "
+                       "factory not found for task type '{}' \n",
+                       task->getName(), task->getType());
 
         }
     }

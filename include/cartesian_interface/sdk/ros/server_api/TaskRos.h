@@ -9,6 +9,7 @@
 #include <cartesian_interface/SetLambda.h>
 #include <cartesian_interface/SetTaskActive.h>
 #include <cartesian_interface/sdk/ros/RosContext.h>
+#include <cartesian_interface/sdk/ros/Plugin.h>
 
 namespace XBot { namespace Cartesian {
 

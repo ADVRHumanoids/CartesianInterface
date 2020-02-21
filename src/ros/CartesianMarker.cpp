@@ -148,7 +148,7 @@ void CartesianMarker::MakeMenu()
 
             _menu_entry_counter++;
 
-            if(_base_link.compare("world_odom") == 0 && (_links.at(i)->name).compare("world") == 0){
+            if(_base_link.compare("world") == 0 && (_links.at(i)->name).compare("world") == 0){
                 _menu_handler.setCheckState(link_entry, interactive_markers::MenuHandler::CHECKED );
                 _base_link_entry_active = link_entry;}
             else if(_base_link.compare(_links.at(i)->name) == 0){
@@ -310,10 +310,6 @@ void CartesianMarker::changeBaseLink(const visualization_msgs::InteractiveMarker
 
     std::string new_base_link;
     _menu_handler.getTitle(entry_id, new_base_link);
-
-    if(new_base_link.compare("world") == 0)
-        new_base_link = "world_odom";
-
 
     if(new_base_link.compare(_base_link) == 0)
         return;

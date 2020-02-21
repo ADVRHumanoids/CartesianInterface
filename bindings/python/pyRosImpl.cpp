@@ -51,6 +51,7 @@ PYBIND11_MODULE(pyci, m) {
             .def("setBaseLink", &CartesianTask::setBaseLink)
             .def("setWayPoints", &CartesianTask::setWayPoints)
             .def("setPoseTarget", &CartesianTask::setPoseTarget)
+            .def("setVelocityReference", &CartesianTask::setVelocityReference)
             .def("setControlMode", &CartesianTask::setControlMode)
             .def("setPoseReference", &CartesianTask::setPoseReference)
             .def("setVelocityLimits", &CartesianTask::setVelocityLimits)

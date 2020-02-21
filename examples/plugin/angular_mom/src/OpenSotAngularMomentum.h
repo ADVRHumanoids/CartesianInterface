@@ -17,7 +17,8 @@ class OpenSotAngularMomentum : public OpenSotTaskAdapter
 public:
 
     OpenSotAngularMomentum(TaskDescription::Ptr task,
-                           ModelInterface::ConstPtr model);
+                           ModelInterface::ConstPtr model,
+                           const ::OpenSoT::OptvarHelper& vars);
 
     virtual TaskPtr constructTask() override;
 

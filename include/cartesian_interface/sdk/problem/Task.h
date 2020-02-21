@@ -3,6 +3,7 @@
 
 #include <XBotInterface/ModelInterface.h>
 #include <cartesian_interface/problem/Task.h>
+#include <cartesian_interface/sdk/problem/Plugin.h>
 
 namespace XBot { namespace Cartesian {
 

@@ -43,4 +43,4 @@ void AngularMomentumRos::on_ref_recv(geometry_msgs::Vector3StampedConstPtr msg)
     _ci_angmom->setReference(ref);
 }
 
-CARTESIO_REGISTER_ROS_API_PLUGIN(AngularMomentumRos)
+CARTESIO_REGISTER_ROS_API_PLUGIN(AngularMomentumRos, AngularMomentum)

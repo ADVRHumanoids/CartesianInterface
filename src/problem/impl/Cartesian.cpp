@@ -496,7 +496,7 @@ void CartesianTaskImpl::apply_otg()
 {
     if(!_otg) return;
     
-    // TBD: also velocity level
+    /* Compute p + q 7d vector */
     Eigen::Quaterniond q_actual(_otg_des.tail<4>());
     Eigen::Quaterniond q_des(_T.linear());
     Eigen::Vector4d q_des_coeffs = q_des.coeffs();
@@ -506,8 +506,13 @@ void CartesianTaskImpl::apply_otg()
     }
     
     _otg_des << _T.translation(), q_des_coeffs;
+
+    /* Compute pdot + qdot 7d vector */
+    EigenVector7d otg_vdes;
+    otg_vdes.setZero();
+    otg_vdes.head<3>() = _vel.head<3>();
     
-    _otg->setReference(_otg_des, EigenVector7d::Zero());
+    _otg->setReference(_otg_des, otg_vdes);
     _otg->update(_otg_ref, _otg_vref);
     
     if(_otg_ref.tail<4>().norm() < 0.01)

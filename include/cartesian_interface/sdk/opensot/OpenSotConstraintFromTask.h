@@ -19,7 +19,8 @@ class OpenSotConstraintFromTaskAdapter :
 public:
 
     OpenSotConstraintFromTaskAdapter(ConstraintDescription::Ptr constr,
-                                     ModelInterface::ConstPtr model);
+                                     ModelInterface::ConstPtr model,
+                                     const OpenSoT::OptvarHelper& vars);
 
     virtual ConstraintPtr constructConstraint() override;
 

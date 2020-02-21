@@ -378,9 +378,6 @@ bool XBot::Cartesian::JoyStick::updateStatus()
 {
 
     std::string link = _ci->getBaseLink(_distal_links[_selected_task]);
-    if(link == "world")
-        link = "world_odom";
-
 
     if(link != _base_links[_selected_task])
     {

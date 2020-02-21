@@ -7,7 +7,8 @@
 using namespace XBot::Cartesian;
 
 OpenSotAngularMomentum::OpenSotAngularMomentum(TaskDescription::Ptr task,
-                                               ModelInterface::ConstPtr model):
+                                               ModelInterface::ConstPtr model,
+                                               const ::OpenSoT::OptvarHelper& vars):
     OpenSotTaskAdapter(task, model)
 {
     _ci_angmom = std::dynamic_pointer_cast<AngularMomentum>(task);
@@ -40,5 +41,5 @@ void OpenSotAngularMomentum::update(double time, double period)
     _sot_angmom->setReference(_ci_angmom->getReference() * period);
 }
 
-CARTESIO_REGISTER_OPENSOT_TASK_PLUGIN(OpenSotAngularMomentum)
+CARTESIO_REGISTER_OPENSOT_TASK_PLUGIN(OpenSotAngularMomentum, AngularMomentum)
 

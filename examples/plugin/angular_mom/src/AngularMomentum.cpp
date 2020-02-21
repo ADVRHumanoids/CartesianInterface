@@ -66,4 +66,4 @@ void XBot::Cartesian::AngularMomentumImpl::log(MatLogger::Ptr logger,
 }
 
 
-CARTESIO_REGISTER_TASK_PLUGIN(AngularMomentumImpl)
+CARTESIO_REGISTER_TASK_PLUGIN(AngularMomentumImpl, AngularMomentum)
