@@ -6,7 +6,8 @@ using namespace XBot::Cartesian;
 RosExecutor::RosExecutor(std::string ns):
     _nh(ns),
     _nh_priv("~"),
-    _logger(MatLogger::getLogger("/tmp/ros_executor_log"))
+    _logger(MatLogger::getLogger("/tmp/ros_executor_log")),
+    _visual_mode(false)
 {
     
     init_ros();
@@ -75,28 +76,30 @@ void RosExecutor::init_load_config()
 
 void RosExecutor::init_load_robot()
 {
-    
     /* Should we run in visual mode? */
-    bool visual_mode = _nh_priv.param("visual_mode", false);
+    _visual_mode = _nh_priv.param("visual_mode", false);
+    
+    try
+    {
+        _robot = XBot::RobotInterface::getRobot(_xbot_cfg_robot);
+    }
+    catch(std::exception& e)
+    {
+        XBot::Logger::warning("Unable to communicate with robot (exception thrown: '%s'), running in visual mode\n", e.what());
+        _robot.reset();
+        _visual_mode = true;
+    }
+
+    if(_robot)
+    {
+        _robot->sense();
+        _robot->setControlMode(XBot::ControlMode::Position());
+    }
+
     
     /* Obtain robot (if connection available) */
-    if(!visual_mode)
+    if(!_visual_mode)
     {
-        try
-        {
-            _robot = XBot::RobotInterface::getRobot(_xbot_cfg_robot);
-        }
-        catch(std::exception& e)
-        {
-            XBot::Logger::warning("Unable to communicate with robot (exception thrown: '%s'), running in visual mode\n", e.what());
-            _robot.reset();
-        }
-        
-        if(_robot)
-        {
-            _robot->sense();
-            _robot->setControlMode(XBot::ControlMode::Position());
-        }
     }
     else
     {
@@ -390,7 +393,7 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
 {
     
     /* Update sensors */
-    if(_robot)
+    if(_robot && !_visual_mode)
     {
         _robot->sense(false);
         _model->syncFrom_no_update(*_robot, XBot::Sync::Sensors, XBot::Sync::Effort);
@@ -427,7 +430,7 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
     _model->setJointVelocity(_qdot);
     _model->update();
     
-    if(_robot)
+    if(_robot && !_visual_mode)
     {
         _robot->setReferenceFrom(*_model, Sync::Position, Sync::Velocity);
         _robot->move();
