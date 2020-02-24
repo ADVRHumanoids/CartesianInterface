@@ -70,6 +70,7 @@ namespace XBot { namespace Cartesian {
         Utils::LoadFrom _options_source;
         
         RobotInterface::Ptr _robot;
+        bool _visual_mode;
         ModelInterface::Ptr _model;
         
         Eigen::VectorXd _q, _qdot, _qddot, _tau, _tau_offset;
