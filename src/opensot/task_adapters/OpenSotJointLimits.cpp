@@ -27,11 +27,14 @@ ConstraintPtr OpenSotJointLimitsAdapter::constructConstraint()
                                               _ci_jlim->getBoundScaling());
 }
 
-bool OpenSotJointLimitsAdapter::initialize()
+bool OpenSotJointLimitsAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 {
-    OpenSotConstraintAdapter::initialize();
+    if(vars.getAllVariables().size() > 0)
+    {
+        throw BadVariables("[OpenSotJointLimitsAdapter] requires default variables definition");
+    }
 
-    return true;
+    return OpenSotConstraintAdapter::initialize(vars);
 }
 
 void OpenSotJointLimitsAdapter::update(double time, double period)

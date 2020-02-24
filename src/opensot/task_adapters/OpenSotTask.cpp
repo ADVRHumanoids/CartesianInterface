@@ -17,16 +17,20 @@
 using namespace XBot::Cartesian;
 
 OpenSotTaskAdapter::OpenSotTaskAdapter(TaskDescription::Ptr task,
-                                       ModelInterface::ConstPtr model,
-                                       const OpenSoT::OptvarHelper& vars):
-    _ci_task(task), _model(model),
-    _vars(vars)
+                                       ModelInterface::ConstPtr model
+                                       ):
+    _vars({}),
+    _model(model),
+    _ci_task(task)
 {
 
 }
 
-bool OpenSotTaskAdapter::initialize()
+bool OpenSotTaskAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 {
+    /* Save variables */
+    _vars = vars;
+
     /* Let derived class construct the task */
     _opensot_task = constructTask();
     _sub_task = _opensot_task;
@@ -83,6 +87,11 @@ bool OpenSotTaskAdapter::initialize()
     return true;
 }
 
+OpenSoT::OptvarHelper::VariableVector OpenSotTaskAdapter::getRequiredVariables() const
+{
+    return {};
+}
+
 void OpenSotTaskAdapter::update(double time, double period)
 {
     _opensot_task->setLambda(_ci_task->getLambda());
@@ -91,6 +100,11 @@ void OpenSotTaskAdapter::update(double time, double period)
 TaskPtr OpenSotTaskAdapter::getOpenSotTask()
 {
     return _sub_task;
+}
+
+TaskDescription::Ptr OpenSotTaskAdapter::getTaskDescription() const
+{
+    return _ci_task;
 }
 
 bool OpenSotTaskAdapter::onWeightChanged()
@@ -117,8 +131,7 @@ bool OpenSotTaskAdapter::onActivationStateChanged()
 }
 
 OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr task,
-                                                         XBot::ModelInterface::ConstPtr model,
-                                                         const OpenSoT::OptvarHelper& vars)
+                                                         XBot::ModelInterface::ConstPtr model)
 {
     OpenSotTaskAdapter * task_adapter = nullptr;
 
@@ -129,7 +142,6 @@ OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr ta
                                                          "create_opensot_" + task->getType() + "_adapter",
                                                          task,
                                                          model,
-                                                         vars,
                                                          detail::Version CARTESIO_ABI_VERSION);
     }
     else if(task->getType() == "Cartesian") /* Otherwise, construct supported tasks */
@@ -158,11 +170,6 @@ OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr ta
 
     Ptr task_shared_ptr(task_adapter);
 
-    if(!task_shared_ptr->initialize())
-    {
-        throw std::runtime_error(fmt::format("Unable to inizialize OpenSotTaskAdapter for task '{}'", task->getName()));
-    }
-
     return task_shared_ptr;
 }
 
@@ -173,17 +180,20 @@ OpenSoT::OptvarHelper OpenSotTaskAdapter::DefaultVars()
 }
 
 OpenSotConstraintAdapter::OpenSotConstraintAdapter(ConstraintDescription::Ptr constr,
-                                                   XBot::ModelInterface::ConstPtr model,
-                                                   const OpenSoT::OptvarHelper& vars):
+                                                   XBot::ModelInterface::ConstPtr model
+                                                   ):
     _ci_constr(constr),
     _model(model),
-    _vars(vars)
+    _vars({})
 {
 
 }
 
-bool OpenSotConstraintAdapter::initialize()
+bool OpenSotConstraintAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 {
+    /* Save variables */
+    _vars = vars;
+
     _opensot_constr = constructConstraint();
 
     if(!_opensot_constr)
@@ -199,6 +209,11 @@ bool OpenSotConstraintAdapter::initialize()
     return true;
 }
 
+OpenSoT::OptvarHelper::VariableVector OpenSotConstraintAdapter::getRequiredVariables() const
+{
+    return {};
+}
+
 void OpenSotConstraintAdapter::update(double time, double period)
 {
 
@@ -209,9 +224,13 @@ ConstraintPtr OpenSotConstraintAdapter::getOpenSotConstraint()
     return _opensot_constr;
 }
 
+ConstraintDescription::Ptr OpenSotConstraintAdapter::getConstraintDescription() const
+{
+    return _ci_constr;
+}
+
 OpenSotConstraintAdapter::Ptr OpenSotConstraintAdapter::MakeInstance(ConstraintDescription::Ptr constr,
-                                                                     XBot::ModelInterface::ConstPtr model,
-                                                                     const OpenSoT::OptvarHelper& vars)
+                                                                     XBot::ModelInterface::ConstPtr model)
 {
     OpenSotConstraintAdapter * constr_adapter = nullptr;
 
@@ -222,12 +241,11 @@ OpenSotConstraintAdapter::Ptr OpenSotConstraintAdapter::MakeInstance(ConstraintD
                                                                  "create_opensot_" + constr->getType() + "_adapter",
                                                                  constr,
                                                                  model,
-                                                                 vars,
                                                                  detail::Version CARTESIO_ABI_VERSION);
     }
     else if(constr->getType() == "ConstraintFromTask")
     {
-        constr_adapter = new OpenSotConstraintFromTaskAdapter(constr, model, vars);
+        constr_adapter = new OpenSotConstraintFromTaskAdapter(constr, model);
     }
     else if(constr->getType() == "JointLimits") /* Otherwise, construct supported tasks */
     {
@@ -246,12 +264,6 @@ OpenSotConstraintAdapter::Ptr OpenSotConstraintAdapter::MakeInstance(ConstraintD
     }
 
     Ptr constr_shared_ptr(constr_adapter);
-
-    if(!constr_shared_ptr->initialize())
-    {
-        throw std::runtime_error(fmt::format("Unable to inizialize OpenSotConstraintAdapter for task '{}'",
-                                             constr->getName()));
-    }
 
     return constr_shared_ptr;
 }

@@ -26,11 +26,21 @@ public:
 
     typedef std::shared_ptr<OpenSotTaskAdapter> Ptr;
 
+
+    OpenSotTaskAdapter(TaskDescription::Ptr task,
+                       ModelInterface::ConstPtr model);
+
+    virtual OpenSoT::OptvarHelper::VariableVector getRequiredVariables() const;
+
+    virtual bool initialize(const OpenSoT::OptvarHelper& vars);
+
     virtual TaskPtr constructTask() = 0;
 
     virtual void update(double time, double period);
 
     TaskPtr getOpenSotTask();
+
+    TaskDescription::Ptr getTaskDescription() const;
 
     virtual bool onWeightChanged() override;
 
@@ -39,21 +49,13 @@ public:
     virtual ~OpenSotTaskAdapter() override = default;
 
     static Ptr MakeInstance(TaskDescription::Ptr task,
-                            ModelInterface::ConstPtr model,
-                            const OpenSoT::OptvarHelper& vars = DefaultVars());
+                            ModelInterface::ConstPtr model);
 
 protected:
 
     static OpenSoT::OptvarHelper DefaultVars();
-
-    OpenSotTaskAdapter(TaskDescription::Ptr task,
-                       ModelInterface::ConstPtr model,
-                       const OpenSoT::OptvarHelper& vars = DefaultVars());
-
-    virtual bool initialize();
-
-    ModelInterface::ConstPtr _model;
     OpenSoT::OptvarHelper _vars;
+    ModelInterface::ConstPtr _model;
     TaskDescription::Ptr _ci_task;
     Context _ctx;
 
@@ -73,27 +75,29 @@ public:
 
     typedef std::shared_ptr<OpenSotConstraintAdapter> Ptr;
 
+    OpenSotConstraintAdapter(ConstraintDescription::Ptr constr,
+                             ModelInterface::ConstPtr model);
+
+    virtual OpenSoT::OptvarHelper::VariableVector getRequiredVariables() const;
+
+    virtual bool initialize(const OpenSoT::OptvarHelper& vars);
+
     virtual ConstraintPtr constructConstraint() = 0;
 
     virtual void update(double time, double period);
 
     ConstraintPtr getOpenSotConstraint();
 
+    ConstraintDescription::Ptr getConstraintDescription() const;
+
     virtual ~OpenSotConstraintAdapter() override = default;
 
     static Ptr MakeInstance(ConstraintDescription::Ptr constr,
-                            ModelInterface::ConstPtr model,
-                            const OpenSoT::OptvarHelper& vars = DefaultVars());
+                            ModelInterface::ConstPtr model);
 
 protected:
 
     static OpenSoT::OptvarHelper DefaultVars();
-
-    OpenSotConstraintAdapter(ConstraintDescription::Ptr constr,
-                             ModelInterface::ConstPtr model,
-                             const OpenSoT::OptvarHelper& vars = DefaultVars());
-
-    virtual bool initialize();
 
     ModelInterface::ConstPtr _model;
     OpenSoT::OptvarHelper _vars;
@@ -104,6 +108,11 @@ private:
 
     ConstraintPtr _opensot_constr;
 
+};
+
+struct BadVariables : std::runtime_error
+{
+    using runtime_error::runtime_error;
 };
 
 } }

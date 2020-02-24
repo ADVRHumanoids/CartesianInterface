@@ -19,12 +19,11 @@ class OpenSotConstraintFromTaskAdapter :
 public:
 
     OpenSotConstraintFromTaskAdapter(ConstraintDescription::Ptr constr,
-                                     ModelInterface::ConstPtr model,
-                                     const OpenSoT::OptvarHelper& vars);
+                                     ModelInterface::ConstPtr model);
 
     virtual ConstraintPtr constructConstraint() override;
 
-    virtual bool initialize() override;
+    virtual bool initialize(const OpenSoT::OptvarHelper& vars) override;
 
     virtual void update(double time, double period) override;
 

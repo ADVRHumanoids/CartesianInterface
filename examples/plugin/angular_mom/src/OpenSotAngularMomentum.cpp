@@ -7,8 +7,7 @@
 using namespace XBot::Cartesian;
 
 OpenSotAngularMomentum::OpenSotAngularMomentum(TaskDescription::Ptr task,
-                                               ModelInterface::ConstPtr model,
-                                               const ::OpenSoT::OptvarHelper& vars):
+                                               ModelInterface::ConstPtr model):
     OpenSotTaskAdapter(task, model)
 {
     _ci_angmom = std::dynamic_pointer_cast<AngularMomentum>(task);
@@ -29,9 +28,14 @@ TaskPtr OpenSotAngularMomentum::constructTask()
     return _sot_angmom;
 }
 
-bool OpenSotAngularMomentum::initialize()
+bool OpenSotAngularMomentum::initialize(const ::OpenSoT::OptvarHelper& vars)
 {
-    return OpenSotTaskAdapter::initialize();
+    if(vars.getAllVariables().size() > 0)
+    {
+        throw BadVariables("[OpenSotAngularMomentum] requires default variables definition");
+    }
+
+    return OpenSotTaskAdapter::initialize(vars);
 }
 
 void OpenSotAngularMomentum::update(double time, double period)

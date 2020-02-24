@@ -4,7 +4,6 @@
 #define CARTESIO_REGISTER_OPENSOT_PLUGIN(FactoryName, ClassName, RetType) \
 extern "C" RetType* FactoryName(::XBot::Cartesian::TaskDescription::Ptr task, \
                                 ::XBot::ModelInterface::ConstPtr model, \
-                                const ::OpenSoT::OptvarHelper& vars, \
                                 ::XBot::Cartesian::detail::Version ci_ver) \
 { \
     ::XBot::Cartesian::detail::Version plugin_ver CARTESIO_ABI_VERSION; \
@@ -26,7 +25,7 @@ extern "C" RetType* FactoryName(::XBot::Cartesian::TaskDescription::Ptr task, \
                 ci_ver.major, ci_ver.minor, ci_ver.patch); \
     } \
 \
-    return new ClassName(task, model, vars); \
+    return new ClassName(task, model); \
 }
 
 #define CARTESIO_REGISTER_OPENSOT_TASK_PLUGIN(ClassName, TaskType) \

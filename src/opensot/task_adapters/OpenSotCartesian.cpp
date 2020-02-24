@@ -28,9 +28,14 @@ TaskPtr OpenSotCartesianAdapter::constructTask()
     return _opensot_cart;
 }
 
-bool OpenSotCartesianAdapter::initialize()
+bool OpenSotCartesianAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 {
-    bool ret = OpenSotTaskAdapter::initialize();
+    if(vars.getAllVariables().size() > 0)
+    {
+        throw BadVariables("[OpenSotCartesianAdapter] requires default variables definition");
+    }
+
+    bool ret = OpenSotTaskAdapter::initialize(vars);
     if(!ret) return false;
 
 

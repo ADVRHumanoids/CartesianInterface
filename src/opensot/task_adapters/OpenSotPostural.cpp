@@ -24,9 +24,17 @@ TaskPtr OpenSotPosturalAdapter::constructTask()
     return _opensot_postural;
 }
 
-bool OpenSotPosturalAdapter::initialize()
+bool OpenSotPosturalAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 {
-    OpenSotTaskAdapter::initialize();
+    if(vars.getAllVariables().size() > 0)
+    {
+        throw BadVariables("[OpenSotPosturalAdapter] requires default variables definition");
+    }
+
+    if(!OpenSotTaskAdapter::initialize(vars))
+    {
+        return false;
+    }
 
     _use_inertia_matrix = _ci_postural->useInertiaMatrixWeight();
 

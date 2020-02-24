@@ -63,7 +63,9 @@ void Trajectory::sort_frames()
     std::sort(_frames.begin(), _frames.end(), [](const WayPoint& w1, const WayPoint& w2){ return w1.time < w2.time; });
 }
 
-Eigen::Affine3d Trajectory::evaluate(double time, Eigen::Vector6d * const vel, Eigen::Vector6d * const acc)
+Eigen::Affine3d Trajectory::evaluate(double time,
+                                     Eigen::Vector6d * const vel,
+                                     Eigen::Vector6d * const acc)
 {
     /* Find relevant segment (first frame after time) */
     auto it = std::find_if(_frames.begin(),
@@ -100,8 +102,17 @@ Eigen::Affine3d Trajectory::evaluate(double time, Eigen::Vector6d * const vel, E
     interpolated.linear() = q_start.slerp(tau, q_end).toRotationMatrix();
     interpolated.translation() = (1 - tau)*start.translation() + tau*end.translation();
     
-    if(vel) vel->setZero();
-    if(acc) acc->setZero();
+    if(vel)
+    {
+        vel->setZero();
+        vel->head<3>() = (- dtau)*start.translation() + dtau*end.translation();
+    }
+
+    if(acc)
+    {
+        acc->setZero();
+        acc->head<3>() = (- ddtau)*start.translation() + ddtau*end.translation();
+    }
     
     return interpolated;
     

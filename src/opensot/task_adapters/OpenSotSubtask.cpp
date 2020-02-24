@@ -33,9 +33,10 @@ TaskPtr OpenSotSubtaskAdapter::constructTask()
                                           indices_list);
 }
 
-bool OpenSotSubtaskAdapter::initialize()
+bool OpenSotSubtaskAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 {
-    return OpenSotTaskAdapter::initialize();
+    return OpenSotTaskAdapter::initialize(vars) &&
+            _task_adapter->initialize(vars);
 }
 
 void OpenSotSubtaskAdapter::update(double time, double period)

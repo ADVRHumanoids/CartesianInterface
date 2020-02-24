@@ -17,12 +17,9 @@ struct LibNotFound : public std::exception
     }
 };
 
-struct SymbolNotFound : public std::exception
+struct SymbolNotFound : public std::runtime_error
 {
-    const char * what() const noexcept override
-    {
-        return dlerror();
-    }
+    using runtime_error::runtime_error;
 };
 
 template <typename RetType, typename... Args>
@@ -53,7 +50,7 @@ RetType CallFunction(std::string lib_name,
         const char * error = dlerror();
         if(error != nullptr)
         {
-            throw SymbolNotFound();
+            throw SymbolNotFound(error);
         }
 
         return function(args...);

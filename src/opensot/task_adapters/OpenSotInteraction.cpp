@@ -60,14 +60,9 @@ TaskPtr OpenSotInteractionAdapter::constructTask()
     return _opensot_adm;
 }
 
-bool OpenSotInteractionAdapter::initialize()
+bool OpenSotInteractionAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 {
-    if(!OpenSotCartesianAdapter::initialize())
-    {
-        return false;
-    }
-
-    return true;
+    return OpenSotCartesianAdapter::initialize(vars);
 }
 
 void OpenSotInteractionAdapter::update(double time, double period)

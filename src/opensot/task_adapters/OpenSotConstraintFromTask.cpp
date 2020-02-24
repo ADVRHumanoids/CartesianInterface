@@ -3,9 +3,8 @@
 using namespace XBot::Cartesian;
 
 OpenSotConstraintFromTaskAdapter::OpenSotConstraintFromTaskAdapter(ConstraintDescription::Ptr constr,
-                                                                   XBot::ModelInterface::ConstPtr model,
-                                                                   const OpenSoT::OptvarHelper& vars):
-    OpenSotConstraintAdapter(constr, model, vars)
+                                                                   XBot::ModelInterface::ConstPtr model):
+    OpenSotConstraintAdapter(constr, model)
 {
     auto constr_from_task = std::dynamic_pointer_cast<ConstraintFromTask>(constr);
 
@@ -19,8 +18,7 @@ OpenSotConstraintFromTaskAdapter::OpenSotConstraintFromTaskAdapter(ConstraintDes
     try
     {
         _task_adapter = OpenSotTaskAdapter::MakeInstance(constr_from_task->getTask(),
-                                                         model,
-                                                         vars);
+                                                         model);
     }
     catch(...)
     {
@@ -35,11 +33,16 @@ ConstraintPtr OpenSotConstraintFromTaskAdapter::constructConstraint()
     return boost::make_shared<OpenSoT::constraints::TaskToConstraint>(_task_adapter->getOpenSotTask());
 }
 
-bool OpenSotConstraintFromTaskAdapter::initialize()
+bool OpenSotConstraintFromTaskAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 {
-    OpenSotConstraintAdapter::initialize();
+    // initialize base class
+    if(!OpenSotConstraintAdapter::initialize(vars))
+    {
+        return false;
+    }
 
-    return true;
+    // initialize underlying task
+    return _task_adapter->initialize(vars);
 }
 
 void OpenSotConstraintFromTaskAdapter::update(double time, double period)

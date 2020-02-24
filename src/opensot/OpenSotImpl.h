@@ -34,17 +34,18 @@ private:
     typedef OpenSoT::tasks::Aggregated::TaskPtr TaskPtr;
     typedef OpenSoT::constraints::Aggregated::ConstraintPtr ConstraintPtr;
     
-    TaskPtr construct_task(TaskDescription::Ptr);
+    void make_task_adapter(TaskDescription::Ptr);
+    void make_constraint_adapter(ConstraintDescription::Ptr constr_desc);
     TaskPtr aggregated_from_stack(AggregatedTask stack);
-    ConstraintPtr constraint_from_description(ConstraintDescription::Ptr constr_desc);
     
     Eigen::VectorXd _qref;
-    Eigen::VectorXd _q, _dq, _ddq;
+    Eigen::VectorXd _x, _q, _dq, _ddq;
     
     std::vector<OpenSotTaskAdapter::Ptr> _task_adapters;
     std::vector<OpenSotConstraintAdapter::Ptr> _constr_adapters;
+    OpenSoT::OptvarHelper _vars;
+    std::map<std::string, OpenSoT::AffineHelper> _vars_map;
 
-    Utils::ForceEstimation::Ptr _force_estimation;
     OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr _solver;
     OpenSoT::AutoStack::Ptr _autostack;
     

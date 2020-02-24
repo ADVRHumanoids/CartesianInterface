@@ -69,61 +69,65 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
 
     if(!lib_name.empty())
     {
-        task_desc.reset( CallFunction<TaskDescription *>(lib_name,
-                                                         "create_cartesio_" + task_type + "_description",
-                                                         task_node,
-                                                         model,
-                                                         detail::Version CARTESIO_ABI_VERSION
-                                                         ) );
-        
-        if(!task_desc)
+        try
         {
-            throw BadTaskDescription("Unable to load task description from lib '" + lib_name + "'");
+            task_desc.reset( CallFunction<TaskDescription *>(lib_name,
+                                                             "create_cartesio_" + task_type + "_description",
+                                                             task_node,
+                                                             model,
+                                                             detail::Version CARTESIO_ABI_VERSION
+                                                             ) );
+
+            return task_desc;
         }
+        catch(SymbolNotFound& e)
+        {
+            fmt::print("Unable to load task description from {}, trying with supported tasks.. \n", lib_name);
+        }
+
     }
+
+    if(task_type == "Cartesian") // TBD ERROR CHECKING
+    {
+        task_desc = std::make_shared<CartesianTaskImpl>(task_node,  model);
+    }
+    else if(task_type == "Interaction")
+    {
+        task_desc = std::make_shared<InteractionTaskImpl>(task_node,  model);
+    }
+    else if(task_type == "Admittance")
+    {
+        task_desc = std::make_shared<AdmittanceTaskImpl>(task_node,  model);
+    }
+    else if(task_type == "Com")
+    {
+        task_desc = std::make_shared<ComTaskImpl>(task_node,  model);
+    }
+    else if(task_type == "Postural")
+    {
+        task_desc = std::make_shared<PosturalTaskImpl>(task_node,  model);
+    }
+    else if(task_type == "JointLimits")
+    {
+        task_desc = std::make_shared<JointLimitsImpl>(task_node,  model);
+    }
+    else if(task_type == "VelocityLimits")
+    {
+        task_desc = std::make_shared<VelocityLimitsImpl>(task_node,  model);
+    }
+    //        else if(task_type == "Gaze")
+    //        {
+    //            task_desc = GazeTask::yaml_parse_gaze(task_node, model);
+    //        }
+    //        else if(task_type == "MinJointVel")
+    //        {
+    //            task_desc = MinJointVelTask::yaml_parse_minjointvel(task_node, model);
+    //        }
     else
     {
-        if(task_type == "Cartesian") // TBD ERROR CHECKING
-        {
-            task_desc = std::make_shared<CartesianTaskImpl>(task_node,  model);
-        }
-        else if(task_type == "Interaction")
-        {
-            task_desc = std::make_shared<InteractionTaskImpl>(task_node,  model);
-        }
-        else if(task_type == "Admittance")
-        {
-            task_desc = std::make_shared<AdmittanceTaskImpl>(task_node,  model);
-        }
-        else if(task_type == "Com")
-        {
-            task_desc = std::make_shared<ComTaskImpl>(task_node,  model);
-        }
-        else if(task_type == "Postural")
-        {
-            task_desc = std::make_shared<PosturalTaskImpl>(task_node,  model);
-        }
-        else if(task_type == "JointLimits")
-        {
-            task_desc = std::make_shared<JointLimitsImpl>(task_node,  model);
-        }
-        else if(task_type == "VelocityLimits")
-        {
-            task_desc = std::make_shared<VelocityLimitsImpl>(task_node,  model);
-        }
-        //        else if(task_type == "Gaze")
-        //        {
-        //            task_desc = GazeTask::yaml_parse_gaze(task_node, model);
-        //        }
-        //        else if(task_type == "MinJointVel")
-        //        {
-        //            task_desc = MinJointVelTask::yaml_parse_minjointvel(task_node, model);
-        //        }
-        else
-        {
-            throw BadTaskDescription("Unsupported task type '" + task_type + "', maybe you forgot to specify the 'lib_name' field");
-        }
+        throw BadTaskDescription("Unsupported task type '" + task_type + "', maybe you forgot to specify the 'lib_name' field");
     }
+
     
     return task_desc;
 }

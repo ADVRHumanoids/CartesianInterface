@@ -27,11 +27,14 @@ ConstraintPtr OpenSotVelocityLimitsAdapter::constructConstraint()
     return _opensot_vlim;
 }
 
-bool OpenSotVelocityLimitsAdapter::initialize()
+bool OpenSotVelocityLimitsAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 {
-    OpenSotConstraintAdapter::initialize();
+    if(vars.getAllVariables().size() > 0)
+    {
+        throw BadVariables("[OpenSotVelocityLimitsAdapter] requires default variables definition");
+    }
 
-    return true;
+    return OpenSotConstraintAdapter::initialize(vars);
 }
 
 void OpenSotVelocityLimitsAdapter::update(double time, double period)

@@ -12,6 +12,8 @@
 
 #include "opensot/OpenSotTask.h"
 
+#include "fmt/format.h"
+
 using namespace XBot::Cartesian;
 
 
@@ -23,74 +25,74 @@ extern "C" CartesianInterface* create_instance(XBot::ModelInterface::Ptr model,
 
 namespace
 {
-    OpenSoT::solvers::solver_back_ends backend_from_string(std::string back_end_string)
+OpenSoT::solvers::solver_back_ends backend_from_string(std::string back_end_string)
+{
+    if(back_end_string == "qpoases")
     {
-        if(back_end_string == "qpoases")
-        {
-            return OpenSoT::solvers::solver_back_ends::qpOASES;
-        }
-        else if(back_end_string == "osqp")
-        {
-            return OpenSoT::solvers::solver_back_ends::OSQP;
-        }
-        else if(back_end_string == "eiquadprog")
-        {
-            return OpenSoT::solvers::solver_back_ends::eiQuadProg;
-        }
-        else if(back_end_string == "odys")
-        {
-            return OpenSoT::solvers::solver_back_ends::ODYS;
-        }
-        else
-        {
-            throw std::runtime_error("Invalid back end '" + back_end_string + "'");
-        }
+        return OpenSoT::solvers::solver_back_ends::qpOASES;
     }
-
-    OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_string(std::string front_end_string,
-                                                                                      OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::Stack& stack_of_tasks,
-                                                                                      OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::ConstraintPtr bounds,
-                                                                                      const double eps_regularisation,
-                                                                                      const OpenSoT::solvers::solver_back_ends be_solver,
-                                                                                      YAML::Node options)
+    else if(back_end_string == "osqp")
     {
-        if(front_end_string == "ihqp")
-        {
-            return boost::make_shared<OpenSoT::solvers::iHQP>(stack_of_tasks,
-                                                              bounds,
-                                                              eps_regularisation,
-                                                              be_solver);
-        }
-        else if(front_end_string == "ehqp")
-        {
-            return boost::make_shared<OpenSoT::solvers::eHQP>(stack_of_tasks);
-        }
-        else if(front_end_string == "nhqp")
-        {
-            auto frontend = boost::make_shared<OpenSoT::solvers::nHQP>(stack_of_tasks,
-                                                                       bounds,
-                                                                       eps_regularisation,
-                                                                       be_solver);
-            if(options && options["nhqp_min_sv_ratio"])
-            {
-                if(options["nhqp_min_sv_ratio"].IsScalar())
-                {
-                    frontend->setMinSingularValueRatio(options["nhqp_min_sv_ratio"].as<double>());
-                }
+        return OpenSoT::solvers::solver_back_ends::OSQP;
+    }
+    else if(back_end_string == "eiquadprog")
+    {
+        return OpenSoT::solvers::solver_back_ends::eiQuadProg;
+    }
+    else if(back_end_string == "odys")
+    {
+        return OpenSoT::solvers::solver_back_ends::ODYS;
+    }
+    else
+    {
+        throw std::runtime_error("Invalid back end '" + back_end_string + "'");
+    }
+}
 
-                if(options["nhqp_min_sv_ratio"].IsSequence())
-                {
-                    frontend->setMinSingularValueRatio(options["nhqp_min_sv_ratio"].as<std::vector<double>>());
-                }
+OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_string(std::string front_end_string,
+                                                                                  OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::Stack& stack_of_tasks,
+                                                                                  OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::ConstraintPtr bounds,
+                                                                                  const double eps_regularisation,
+                                                                                  const OpenSoT::solvers::solver_back_ends be_solver,
+                                                                                  YAML::Node options)
+{
+    if(front_end_string == "ihqp")
+    {
+        return boost::make_shared<OpenSoT::solvers::iHQP>(stack_of_tasks,
+                                                          bounds,
+                                                          eps_regularisation,
+                                                          be_solver);
+    }
+    else if(front_end_string == "ehqp")
+    {
+        return boost::make_shared<OpenSoT::solvers::eHQP>(stack_of_tasks);
+    }
+    else if(front_end_string == "nhqp")
+    {
+        auto frontend = boost::make_shared<OpenSoT::solvers::nHQP>(stack_of_tasks,
+                                                                   bounds,
+                                                                   eps_regularisation,
+                                                                   be_solver);
+        if(options && options["nhqp_min_sv_ratio"])
+        {
+            if(options["nhqp_min_sv_ratio"].IsScalar())
+            {
+                frontend->setMinSingularValueRatio(options["nhqp_min_sv_ratio"].as<double>());
             }
 
-            return frontend;
+            if(options["nhqp_min_sv_ratio"].IsSequence())
+            {
+                frontend->setMinSingularValueRatio(options["nhqp_min_sv_ratio"].as<std::vector<double>>());
+            }
         }
-        else
-        {
-            throw std::runtime_error("Invalid front end '" + front_end_string + "'");
-        }
+
+        return frontend;
     }
+    else
+    {
+        throw std::runtime_error("Invalid front end '" + front_end_string + "'");
+    }
+}
 }
 
 
@@ -100,13 +102,10 @@ OpenSoT::tasks::Aggregated::TaskPtr OpenSotImpl::aggregated_from_stack(Aggregate
 
     for(TaskDescription::Ptr task_desc : stack)
     {
-        auto task = construct_task(task_desc);
+        auto it = *std::find_if(_task_adapters.begin(), _task_adapters.end(),
+                                [task_desc](auto t){ return t->getTaskDescription() == task_desc; });
         
-        if(task)
-        {
-            tasks_list.push_back(task);
-        }
-        
+        tasks_list.push_back(it->getOpenSotTask());
     }
 
     /* Return Aggregated */
@@ -114,66 +113,125 @@ OpenSoT::tasks::Aggregated::TaskPtr OpenSotImpl::aggregated_from_stack(Aggregate
     {
         return boost::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _q.size());
     }
+    else if(tasks_list.empty())
+    {
+        throw std::runtime_error("Empty stack found");
+    }
     else
     {
         return tasks_list.front();
     }
 }
 
-OpenSotImpl::TaskPtr OpenSotImpl::construct_task(TaskDescription::Ptr task_desc)
+void OpenSotImpl::make_task_adapter(TaskDescription::Ptr task_desc)
 {
-    OpenSotImpl::TaskPtr opensot_task;
-
     try
     {
         auto adapter = OpenSotTaskAdapter::MakeInstance(task_desc, _model);
         _task_adapters.push_back(adapter);
-
-        opensot_task = adapter->getOpenSotTask();
     }
     catch(std::runtime_error& e)
     {
         Logger::error("[open_sot] construct_task failed with error '%s' \n", e.what());
     }
-
-    return opensot_task;
-
 }
 
 
 
-OpenSoT::Constraint< Eigen::MatrixXd, Eigen::VectorXd >::ConstraintPtr OpenSotImpl::constraint_from_description(ConstraintDescription::Ptr constr_desc)
+void OpenSotImpl::make_constraint_adapter(ConstraintDescription::Ptr constr_desc)
 {
-    OpenSotImpl::ConstraintPtr opensot_constraint;
-
     try
     {
         auto adapter = OpenSotConstraintAdapter::MakeInstance(constr_desc, _model);
         _constr_adapters.push_back(adapter);
-
-        opensot_constraint = adapter->getOpenSotConstraint();
     }
     catch(std::runtime_error& e)
     {
         Logger::error("[open_sot] constraint_from_description failed with error '%s' \n", e.what());
     }
-
-    return opensot_constraint;
-
 }
 
 
 OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
                          ProblemDescription ik_problem):
     CartesianInterfaceImpl(model, ik_problem),
-    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_opensot_log"))
+    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_opensot_log")),
+    _vars({})
 {
     _model->getJointPosition(_q);
     _dq.setZero(_q.size());
     _ddq = _dq;
 
+    /* Make adapters for all tasks and constraints */
+    for(int i = 0; i < ik_problem.getNumTasks(); i++)
+    {
+        for(auto task : ik_problem.getTask(i))
+        {
+            make_task_adapter(task);
+        }
+    }
+
+    for(auto constr : ik_problem.getBounds())
+    {
+        make_constraint_adapter(constr);
+    }
+
+    /* Get required variable list */
+    std::map<std::string, int> vars_map;
+
+    // lambda to process one task or constr
+    auto parse_task = [&vars_map](auto t)
+    {
+        for(auto v : t->getRequiredVariables())
+        {
+            if(vars_map.count(v.first) > 0 &&
+                    vars_map.at(v.first) != v.second)
+            {
+                throw BadVariables(fmt::format("Conflicting size for var '{}': {} vs {}",
+                                               v.first, v.second, vars_map.at(v.first)));
+            }
+
+            fmt::print("[OpenSot] Found variable '{}', size = {} \n",
+                       v.first, v.second);
+
+            vars_map[v.first] = v.second;
+        }
+    };
+
+    for(auto t : _task_adapters)
+    {
+        parse_task(t);
+    }
+    for(auto c : _constr_adapters)
+    {
+        parse_task(c);
+    }
+
+    // copy to vector and create optvar helper
+    OpenSoT::OptvarHelper::VariableVector vars;
+    std::copy(vars_map.begin(), vars_map.end(), std::back_inserter(vars));
+    _vars = OpenSoT::OptvarHelper(vars);
+    _x.setZero(_vars.getSize());
+
+    // fill variable map
+    for(auto p : vars_map)
+    {
+        _vars_map[p.first] = _vars.getVariable(p.first);
+    }
+
+    /* Initialize all tasks and constraints (TBD error checking) */
+    for(auto t : _task_adapters)
+    {
+        t->initialize(_vars);
+    }
+    for(auto c : _constr_adapters)
+    {
+        c->initialize(_vars);
+    }
+
+
     /* Parse stack #0 and create autostack */
-    auto stack_0 = aggregated_from_stack(ik_problem.getTask(0));
+    auto stack_0 = aggregated_from_stack(ik_problem.getTask(static_cast<int>(0)));
     _autostack = boost::make_shared<OpenSoT::AutoStack>(stack_0);
 
     /* Parse remaining stacks  */
@@ -185,13 +243,18 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     /* Parse constraints */
     for(auto constr : ik_problem.getBounds())
     {
-        auto constr_ptr = constraint_from_description(constr);
+        auto constr_adapter = *std::find_if(_constr_adapters.begin(), _constr_adapters.end(),
+                                         [constr](auto c){ return c->getConstraintDescription() == constr; });
+
+        auto constr_ptr = constr_adapter->getOpenSotConstraint();
 
         if(constr_ptr)
         {
             _autostack << constr_ptr;
         }
     }
+
+    /* Set regularization task */
     
     /* Parse solver configs (if any) */
     using BackEnd = OpenSoT::solvers::solver_back_ends;
@@ -222,12 +285,12 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
 
     /* Create solver */
     _solver = ::frontend_from_string(front_end_string,
-                                   _autostack->getStack(),
-                                   _autostack->getBounds(),
-                                   eps_regularization,
-                                   solver_backend,
-                                   get_config()
-                                   );
+                                     _autostack->getStack(),
+                                     _autostack->getBounds(),
+                                     eps_regularization,
+                                     solver_backend,
+                                     get_config()
+                                     );
     
 }
 
@@ -238,6 +301,10 @@ bool OpenSotImpl::update(double time, double period)
     CartesianInterfaceImpl::update(time, period);
 
     _model->getJointPosition(_q);
+    if(_vars.getSize() == 0)
+    {
+        _x = _q;
+    }
     
     /* Update all plugin-based tasks and constraints */
     for(auto t : _task_adapters)
@@ -250,30 +317,33 @@ bool OpenSotImpl::update(double time, double period)
         c->update(time, period);
     }
 
-    /* Force estimation */
-    if(_force_estimation)
-    {
-        _force_estimation->update();
-        _force_estimation->log(_logger);
-    }
-    
     /* Update tasks and solve */
-    _autostack->update(_q);
+    _autostack->update(_x);
     _autostack->log(_logger);
 
-    if(!_solver->solve(_dq))
+    if(!_solver->solve(_x))
     {
-        _dq.setZero(_dq.size());
+        _x.setZero(_x.size());
         XBot::Logger::error("OpenSot: unable to solve\n");
         success = false;
     }
 
     /* Set solution to model */
-    _dq /= period;
-    _model->setJointVelocity(_dq);
-    _model->setJointAcceleration(_ddq);
+    if(_vars.getSize() == 0)
+    {
+        _dq = _x;
+        _dq /= period;
+        _model->setJointVelocity(_dq);
+    }
+    else if(_vars_map.count("qddot"))
+    {
+        _vars_map.at("qddot").getValue(_x, _ddq);
+        _model->setJointAcceleration(_ddq);
+    }
 
     _logger->add("q", _q);
+    _logger->add("dq", _dq);
+    _logger->add("ddq", _ddq);
 
     return success;
 

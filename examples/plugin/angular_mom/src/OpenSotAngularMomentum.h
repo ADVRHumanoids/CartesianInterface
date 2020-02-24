@@ -17,12 +17,11 @@ class OpenSotAngularMomentum : public OpenSotTaskAdapter
 public:
 
     OpenSotAngularMomentum(TaskDescription::Ptr task,
-                           ModelInterface::ConstPtr model,
-                           const ::OpenSoT::OptvarHelper& vars);
+                           ModelInterface::ConstPtr model);
 
     virtual TaskPtr constructTask() override;
 
-    virtual bool initialize() override;
+    virtual bool initialize(const OpenSoT::OptvarHelper& vars) override;
 
     virtual void update(double time, double period) override;
 

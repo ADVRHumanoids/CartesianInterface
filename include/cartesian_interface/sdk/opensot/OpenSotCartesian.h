@@ -24,7 +24,7 @@ public:
 
     virtual TaskPtr constructTask() override;
 
-    virtual bool initialize() override;
+    virtual bool initialize(const OpenSoT::OptvarHelper& vars) override;
 
     virtual void update(double time, double period) override;
 

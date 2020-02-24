@@ -23,9 +23,14 @@ TaskPtr OpenSotComAdapter::constructTask()
     return _opensot_com;
 }
 
-bool OpenSotComAdapter::initialize()
+bool OpenSotComAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 {
-    bool ret = OpenSotTaskAdapter::initialize();
+    if(vars.getAllVariables().size() > 0)
+    {
+        throw BadVariables("[OpenSotComAdapter] requires default variables definition");
+    }
+
+    bool ret = OpenSotTaskAdapter::initialize(vars);
     if(!ret) return false;
 
 
