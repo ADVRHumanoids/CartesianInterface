@@ -43,6 +43,10 @@ public:
 
     void setLambda(double value) override;
 
+    double getLambda2() const override;
+
+    bool setLambda2(double value) override;
+
     const std::vector<std::string> & getDisabledJoints() const override;
 
     void setDisabledJoints(const std::vector<std::string> & value) override;
@@ -97,7 +101,7 @@ private:
 
     mutable ros::ServiceClient _task_prop_cli;
     ros::ServiceClient _set_weight_cli;
-    ros::ServiceClient _set_lambda_cli;
+    ros::ServiceClient _set_lambda_cli, _set_lambda2_cli;
     ros::ServiceClient _activate_cli;
     ros::Subscriber _task_changed_sub;
 

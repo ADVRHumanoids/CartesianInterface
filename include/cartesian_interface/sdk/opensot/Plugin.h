@@ -1,8 +1,8 @@
 #ifndef PLUGIN_H
 #define PLUGIN_H
 
-#define CARTESIO_REGISTER_OPENSOT_PLUGIN(FactoryName, ClassName, RetType) \
-extern "C" RetType* FactoryName(::XBot::Cartesian::TaskDescription::Ptr task, \
+#define CARTESIO_REGISTER_OPENSOT_PLUGIN(FactoryName, ArgType, ClassName, RetType) \
+extern "C" RetType* FactoryName(::XBot::Cartesian::ArgType::Ptr task, \
                                 ::XBot::ModelInterface::ConstPtr model, \
                                 ::XBot::Cartesian::detail::Version ci_ver) \
 { \
@@ -30,11 +30,13 @@ extern "C" RetType* FactoryName(::XBot::Cartesian::TaskDescription::Ptr task, \
 
 #define CARTESIO_REGISTER_OPENSOT_TASK_PLUGIN(ClassName, TaskType) \
     CARTESIO_REGISTER_OPENSOT_PLUGIN(create_opensot_##TaskType##_adapter, \
+                                     TaskDescription, \
                                      ClassName, \
                                      ::XBot::Cartesian::OpenSotTaskAdapter)
 
 #define CARTESIO_REGISTER_OPENSOT_CONSTR_PLUGIN(ClassName, TaskType) \
     CARTESIO_REGISTER_OPENSOT_PLUGIN(create_opensot_##TaskType##_adapter, \
+                                     ConstraintDescription, \
                                      ClassName,  \
                                      ::XBot::Cartesian::OpenSotConstraintAdapter)
 

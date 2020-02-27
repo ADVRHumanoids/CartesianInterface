@@ -40,10 +40,20 @@ bool ProblemDescription::validate(bool verbose) const
 {
     bool ret = true;
 
+    std::set<std::string> names;
+
     for(auto& aggr : _stack)
     {
         for(auto& t : aggr)
         {
+            if(names.count(t->getName()) > 0)
+            {
+                fmt::print("duplicated task/constraint with name '{}' \n", t->getName());
+                return false;
+            }
+
+            names.insert(t->getName());
+
             bool valid = t->validate();
             ret = ret && valid;
             if(!valid && verbose)
@@ -55,6 +65,14 @@ bool ProblemDescription::validate(bool verbose) const
 
     for(auto& c : _bounds)
     {
+        if(names.count(c->getName()) > 0)
+        {
+            fmt::print("duplicated task/constraint with name '{}' \n", c->getName());
+            return false;
+        }
+
+        names.insert(c->getName());
+
         bool valid = c->validate();
         ret = ret && valid;
         if(!valid && verbose)
@@ -193,6 +211,22 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
 
         }
     }
-    
+
+
+
+    /* Parse regularization task */
+
+
+    YAML::Node regularization = yaml_node["regularization"];
+
+    if(regularization)
+    {
+        for(auto task : regularization)
+        {
+            auto task_desc = factory.makeTask(task.as<std::string>());
+
+            _regularisation.push_back(task_desc);
+        }
+    }
     
 }

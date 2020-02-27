@@ -125,7 +125,7 @@ VelocityLimitsImpl::VelocityLimitsImpl(YAML::Node yaml,
         _bound_scaling = yaml["bound_scaling"].as<double>();
     }
 
-    if(yaml["limits"])
+    if(yaml["limits"] && yaml["limits"].IsMap())
     {
         for(auto lim : yaml["limits"])
         {
@@ -156,6 +156,11 @@ VelocityLimitsImpl::VelocityLimitsImpl(YAML::Node yaml,
             _qdot_max[idx] = lim_value;
 
         }
+    }
+
+    if(yaml["limits"] && yaml["limits"].IsScalar())
+    {
+        _qdot_max.setConstant(_model->getJointNum(), yaml["limits"].as<double>());
     }
 
 }

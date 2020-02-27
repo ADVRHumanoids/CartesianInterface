@@ -70,7 +70,24 @@ ProblemDescription construct_problem(ros::NodeHandle nh)
 
     }
 
-    return ProblemDescription(tasks);
+    ProblemDescription ik_pb(tasks);
+
+    attempts = 100;
+    while(attempts-- && !ik_pb.validate())
+    {
+        if(attempts % 10 == 0) fmt::print("Waiting for all tasks to become valid... \n");
+
+        auto queue = static_cast<ros::CallbackQueue*>(nh.getCallbackQueue());
+        queue->callAvailable();
+        usleep(0.1 * 1e6);
+    }
+
+    if(attempts == 0)
+    {
+        ik_pb.validate(true);
+    }
+
+    return ik_pb;
 
 }
 
@@ -131,20 +148,6 @@ RosClient::RosClient(std::string ns):
                            ::construct_problem(nh()))
 {
     _load_ctrl_srv = nh().serviceClient<LoadController>("load_controller");
-
-    int attempts = 100;
-    while(attempts-- && !getIkProblem().validate())
-    {
-        if(attempts % 10 == 0) fmt::print("Waiting for all tasks to become valid... \n");
-
-        callAvailable();
-        usleep(0.1 * 1e6);
-    }
-
-    if(!getIkProblem().validate(true))
-    {
-        throw std::runtime_error("Invalid problem");
-    }
 }
 
 void RosClient::set_async_mode(bool async)

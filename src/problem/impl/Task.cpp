@@ -77,6 +77,8 @@ TaskDescription::Ptr XBot::Cartesian::operator%(std::vector<int> indices, TaskDe
     return task;
 }
 
+
+
 TaskDescriptionImpl::TaskDescriptionImpl(std::string type,
                                  std::string name,
                                  int size,
@@ -146,7 +148,7 @@ TaskDescriptionImpl::TaskDescriptionImpl(YAML::Node task_node,
     }
     else
     {
-        _lambda2 = 0.;
+        _lambda2 = -1.0;
     }
 
     if(task_node["indices"])
@@ -274,7 +276,7 @@ TaskDescriptionImpl::TaskDescriptionImpl():
     _activ_state(ActivationState::Enabled),
     _size(-1),
     _lambda(1.0),
-    _lambda2(0.0),
+    _lambda2(-1.0),
     _time(0.)
 {
 
@@ -333,6 +335,17 @@ double TaskDescriptionImpl::getLambda() const
 void TaskDescriptionImpl::setLambda(double value)
 {
     _lambda = value;
+}
+
+double TaskDescriptionImpl::getLambda2() const
+{
+    return _lambda2;
+}
+
+bool TaskDescriptionImpl::setLambda2(double value)
+{
+    _lambda2 = value;
+    return true;
 }
 
 const std::vector<std::string>& TaskDescriptionImpl::getDisabledJoints() const

@@ -21,6 +21,11 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model,
     _solver_options(ik_problem.getSolverOptions()),
     _ik_problem(ik_problem)
 {
+    /* Validate ik problem */
+    if(!ik_problem.validate())
+    {
+        throw std::runtime_error("Invalid ik problem (see above)");
+    }
 
     /* Parse tasks */
     for(int i = 0; i < ik_problem.getNumTasks(); i++)

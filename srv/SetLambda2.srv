@@ -1,0 +1,5 @@
+float32 lambda2
+bool auto_lambda2
+---
+bool success
+string message

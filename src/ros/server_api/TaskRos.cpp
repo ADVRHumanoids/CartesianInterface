@@ -23,6 +23,9 @@ TaskRos::TaskRos(TaskDescription::Ptr task,
     _set_lambda_srv = _ctx.nh().advertiseService(task_name + "/set_lambda",
                                                  &TaskRos::set_lambda_cb, this);
 
+    _set_lambda2_srv = _ctx.nh().advertiseService(task_name + "/set_lambda2",
+                                                  &TaskRos::set_lambda2_cb, this);
+
     _set_weight_srv = _ctx.nh().advertiseService(task_name + "/set_weight",
                                                  &TaskRos::set_weight_cb, this);
 
@@ -57,6 +60,8 @@ bool TaskRos::get_task_info_cb(cartesian_interface::GetTaskInfoRequest & req,
 
     res.lambda = _task->getLambda();
 
+    res.lambda2 = _task->getLambda2();
+
     res.indices.assign(_task->getIndices().begin(),
                        _task->getIndices().end());
 
@@ -87,6 +92,36 @@ bool TaskRos::set_lambda_cb(cartesian_interface::SetLambdaRequest & req,
 
     res.message = fmt::format("Unable to set lambda = {} to task '{}': value not in range [0, 1]",
                               req.lambda, _task->getName());
+    res.success = false;
+
+    return true;
+}
+
+bool TaskRos::set_lambda2_cb(cartesian_interface::SetLambda2Request& req, cartesian_interface::SetLambda2Response& res)
+{
+    if(req.auto_lambda2)
+    {
+        _task->setLambda2(-1);
+        res.message = fmt::format("Successfully set lambda2 = {} to task '{}'",
+                                  -1, _task->getName());
+        res.success = true;
+
+        return true;
+    }
+
+    if(req.lambda2 >= 0.0 && req.lambda2 <= 1.0)
+    {
+        _task->setLambda2(req.lambda2);
+        res.message = fmt::format("Successfully set lambda2 = {} to task '{}'",
+                                  req.lambda2, _task->getName());
+        res.success = true;
+
+        return true;
+    }
+
+
+    res.message = fmt::format("Unable to set lambda2 = {} to task '{}': value not in range [0, 1]",
+                              req.lambda2, _task->getName());
     res.success = false;
 
     return true;

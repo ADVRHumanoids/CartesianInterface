@@ -69,6 +69,12 @@ lambda
 is the value of the feedback gain for position tracking, as a floating point number
 ranging from 0 to 1. Defaults to 1.0.
 
+lambda2
+^^^^^^^
+is the value of the feedback gain for velocity tracking (generally used by second-order controllerd),
+as a floating point number ranging from 0 to 1. Defaults to -1, which means that the provided value
+shound not be used. A reasonable default is therefore computed based on the value of ``łambda``.
+
 weight
 ^^^^^^
 is used to give different *soft priority* to the task *degrees of freedom*, also w.r.t.

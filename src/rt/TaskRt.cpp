@@ -78,6 +78,20 @@ void TaskRt::setLambda(double value)
     _cb_queue.push(cb);
 }
 
+double TaskRt::getLambda2() const
+{
+    return _cli_data._lambda2;
+}
+
+bool TaskRt::setLambda2(double value)
+{
+    auto cb = std::bind(&TaskDescription::setLambda2,
+                        pl::_1, value);
+
+    _cb_queue.push(cb);
+    return true;
+}
+
 const std::vector<std::string> & TaskRt::getDisabledJoints() const
 {
     return _cli_data._disabled_joints;
@@ -139,6 +153,7 @@ void TaskRt::sendState(bool send)
     _rt_data._size = _task_impl->getSize();
     _rt_data._type = _task_impl->getType();
     _rt_data._lambda = _task_impl->getLambda();
+    _rt_data._lambda2 = _task_impl->getLambda2();
     _rt_data._weight = _task_impl->getWeight();
     _rt_data._indices = _task_impl->getIndices();
     _rt_data._activ_state = _task_impl->getActivationState();

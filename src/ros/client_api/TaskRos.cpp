@@ -2,6 +2,7 @@
 #include "fmt/format.h"
 
 #include <cartesian_interface/SetLambda.h>
+#include <cartesian_interface/SetLambda2.h>
 #include <cartesian_interface/SetWeight.h>
 #include <cartesian_interface/SetTaskActive.h>
 
@@ -25,6 +26,7 @@ TaskRos::TaskRos(std::string name,
     }
 
     _set_lambda_cli = _nh.serviceClient<cartesian_interface::SetLambda>(name + "/set_lambda");
+    _set_lambda2_cli = _nh.serviceClient<cartesian_interface::SetLambda2>(name + "/set_lambda2");
     _set_weight_cli = _nh.serviceClient<cartesian_interface::SetWeight>(name + "/set_weight");
     _activate_cli = _nh.serviceClient<cartesian_interface::SetTaskActive>(name + "/set_active");
     _task_changed_sub = _nh.subscribe(name + "/task_changed_event", 10,
@@ -144,6 +146,35 @@ void TaskRos::setLambda(double value)
 
 }
 
+double TaskRos::getLambda2() const
+{
+    auto res = get_task_info();
+
+    return res.lambda2;
+}
+
+bool TaskRos::setLambda2(double value)
+{
+    cartesian_interface::SetLambda2 srv;
+    srv.request.lambda2 = value;
+    srv.request.auto_lambda2 = value == -1;
+
+    if(!_set_lambda2_cli.call(srv))
+    {
+        throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                             _set_lambda2_cli.getService()));
+    }
+
+    if(!srv.response.success)
+    {
+        throw std::runtime_error(fmt::format("Service '{}' returned false: {}",
+                                             _set_lambda2_cli.getService(),
+                                             srv.response.message));
+    }
+
+    ROS_INFO("%s", srv.response.message.c_str());
+}
+
 const std::vector<std::string> & TaskRos::getDisabledJoints() const
 {
     throw std::runtime_error(fmt::format("Unsupported function '{}'",
@@ -228,6 +259,7 @@ cartesian_interface::GetTaskInfoResponse TaskRos::get_task_info() const
         res.size = _info.size;
         res.type = _info.type;
         res.lambda = _info.lambda;
+        res.lambda2 = _info.lambda2;
         res.weight = _info.weight;
         res.indices = _info.indices;
         res.disabled_joints = _info.disabled_joints;

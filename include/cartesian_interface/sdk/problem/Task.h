@@ -45,6 +45,9 @@ public:
     virtual double getLambda() const override;
     virtual void setLambda(double value) override;
 
+    virtual double getLambda2() const override;
+    virtual bool setLambda2(double value) override;
+
     virtual const std::vector<std::string>& getDisabledJoints() const override;
     virtual void setDisabledJoints(const std::vector<std::string>& value) override;
 

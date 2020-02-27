@@ -8,7 +8,7 @@ PosturalTaskImpl::PosturalTaskImpl(ModelInterface::ConstPtr model, int ndof):
     TaskDescriptionImpl("Postural", "Postural", ndof, model),
     _use_inertia_matrix(false)
 {
-
+    reset();
 }
 
 PosturalTaskImpl::PosturalTaskImpl(YAML::Node task_node,
@@ -47,6 +47,7 @@ PosturalTaskImpl::PosturalTaskImpl(YAML::Node task_node,
         _use_inertia_matrix = true;
     }
 
+    reset();
 }
 
 bool PosturalTaskImpl::useInertiaMatrixWeight() const

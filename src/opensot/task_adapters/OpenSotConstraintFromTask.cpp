@@ -35,14 +35,9 @@ ConstraintPtr OpenSotConstraintFromTaskAdapter::constructConstraint()
 
 bool OpenSotConstraintFromTaskAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 {
-    // initialize base class
-    if(!OpenSotConstraintAdapter::initialize(vars))
-    {
-        return false;
-    }
-
-    // initialize underlying task
-    return _task_adapter->initialize(vars);
+    // initialize underlying task and then base class
+    return _task_adapter->initialize(vars) &&
+            OpenSotConstraintAdapter::initialize(vars);
 }
 
 void OpenSotConstraintFromTaskAdapter::update(double time, double period)

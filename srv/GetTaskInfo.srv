@@ -2,6 +2,7 @@
 string name
 string[] type
 float32 lambda
+float32 lambda2
 string activation_state
 float32[] weight
 uint32[] indices

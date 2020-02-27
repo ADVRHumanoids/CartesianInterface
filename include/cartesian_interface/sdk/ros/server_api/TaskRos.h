@@ -7,6 +7,7 @@
 #include <cartesian_interface/GetTaskInfo.h>
 #include <cartesian_interface/SetWeight.h>
 #include <cartesian_interface/SetLambda.h>
+#include <cartesian_interface/SetLambda2.h>
 #include <cartesian_interface/SetTaskActive.h>
 #include <cartesian_interface/sdk/ros/RosContext.h>
 #include <cartesian_interface/sdk/ros/Plugin.h>
@@ -60,6 +61,9 @@ private:
     bool set_lambda_cb(cartesian_interface::SetLambdaRequest& req,
                        cartesian_interface::SetLambdaResponse& res);
 
+    bool set_lambda2_cb(cartesian_interface::SetLambda2Request& req,
+                        cartesian_interface::SetLambda2Response& res);
+
     bool set_weight_cb(cartesian_interface::SetWeightRequest& req,
                        cartesian_interface::SetWeightResponse& res);
 
@@ -69,7 +73,7 @@ private:
 
     std::list<std::string> _type_hierarchy;
 
-    ros::ServiceServer _get_task_info_srv, _set_lambda_srv, _set_weight_srv;
+    ros::ServiceServer _get_task_info_srv, _set_lambda_srv, _set_lambda2_srv, _set_weight_srv;
     ros::ServiceServer _set_active_srv;
 
     ros::Publisher _task_changed_pub;

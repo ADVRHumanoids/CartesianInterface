@@ -50,27 +50,26 @@ OpenSoT::solvers::solver_back_ends backend_from_string(std::string back_end_stri
 }
 
 OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_string(std::string front_end_string,
-                                                                                  OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::Stack& stack_of_tasks,
-                                                                                  OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::ConstraintPtr bounds,
+                                                                                  OpenSoT::AutoStack& as,
                                                                                   const double eps_regularisation,
                                                                                   const OpenSoT::solvers::solver_back_ends be_solver,
                                                                                   YAML::Node options)
 {
     if(front_end_string == "ihqp")
     {
-        return boost::make_shared<OpenSoT::solvers::iHQP>(stack_of_tasks,
-                                                          bounds,
+        return boost::make_shared<OpenSoT::solvers::iHQP>(as,
                                                           eps_regularisation,
                                                           be_solver);
     }
     else if(front_end_string == "ehqp")
     {
-        return boost::make_shared<OpenSoT::solvers::eHQP>(stack_of_tasks);
+        return boost::make_shared<OpenSoT::solvers::eHQP>(as.getStack());
     }
     else if(front_end_string == "nhqp")
     {
-        auto frontend = boost::make_shared<OpenSoT::solvers::nHQP>(stack_of_tasks,
-                                                                   bounds,
+        auto frontend = boost::make_shared<OpenSoT::solvers::nHQP>(as.getStack(),
+                                                                   as.getBounds(),
+                                                                   as.getRegularisationTask(),
                                                                    eps_regularisation,
                                                                    be_solver);
         if(options && options["nhqp_min_sv_ratio"])
@@ -84,6 +83,11 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
             {
                 frontend->setMinSingularValueRatio(options["nhqp_min_sv_ratio"].as<std::vector<double>>());
             }
+        }
+
+        if(options && options["nhqp_min_task_scaling_factor"])
+        {
+            frontend->setMinTaskScalingFactor(options["nhqp_min_task_scaling_factor"].as<double>());
         }
 
         return frontend;
@@ -171,6 +175,11 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
         }
     }
 
+    for(auto task : ik_problem.getRegularizationTask())
+    {
+        make_task_adapter(task);
+    }
+
     for(auto constr : ik_problem.getBounds())
     {
         make_constraint_adapter(constr);
@@ -255,6 +264,12 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     }
 
     /* Set regularization task */
+    if(ik_problem.getRegularizationTask().size() > 0)
+    {
+        auto reg_task = aggregated_from_stack(ik_problem.getRegularizationTask());
+        _autostack->setRegularisationTask(reg_task);
+    }
+
     
     /* Parse solver configs (if any) */
     using BackEnd = OpenSoT::solvers::solver_back_ends;
@@ -285,8 +300,7 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
 
     /* Create solver */
     _solver = ::frontend_from_string(front_end_string,
-                                     _autostack->getStack(),
-                                     _autostack->getBounds(),
+                                     *_autostack,
                                      eps_regularization,
                                      solver_backend,
                                      get_config()
@@ -301,6 +315,7 @@ bool OpenSotImpl::update(double time, double period)
     CartesianInterfaceImpl::update(time, period);
 
     _model->getJointPosition(_q);
+    _model->getJointVelocity(_dq);
     if(_vars.getSize() == 0)
     {
         _x = _q;
@@ -320,6 +335,7 @@ bool OpenSotImpl::update(double time, double period)
     /* Update tasks and solve */
     _autostack->update(_x);
     _autostack->log(_logger);
+    _solver->log(_logger);
 
     if(!_solver->solve(_x))
     {

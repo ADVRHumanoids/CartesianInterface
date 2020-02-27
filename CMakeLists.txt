@@ -65,6 +65,7 @@ add_service_files(
     GetCartesianTaskInfo.srv
     SetWeight.srv
     SetLambda.srv
+    SetLambda2.srv
     SetBaseLink.srv
     SetControlMode.srv
     SetSafetyLimits.srv

@@ -3,7 +3,7 @@
 
 // create_cartesian_interface_task_description
 #define CARTESIO_REGISTER_TASK_PLUGIN(ClassName, TaskType) \
-extern "C" TaskDescription* create_cartesio_##TaskType##_description(YAML::Node task_node, \
+extern "C" ::XBot::Cartesian::TaskDescription* create_cartesio_##TaskType##_description(YAML::Node task_node, \
                                                                      ::XBot::ModelInterface::ConstPtr model, \
                                                                      ::XBot::Cartesian::detail::Version ci_ver) \
 { \

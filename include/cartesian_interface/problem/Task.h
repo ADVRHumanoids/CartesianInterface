@@ -125,6 +125,18 @@ public:
      */
     virtual void setLambda(double value) = 0;
 
+    /**
+     * @brief getLambda2 returns a generic *velocity* feedback gain which is used by implementations
+     * to tune the velocity feedback level. The lambda2 gain should respect 0 <= lam2 <= 1.
+     */
+    virtual double getLambda2() const = 0;
+
+    /**
+     * @brief setLambda2 allows to set the generic feedback gain which is used by implementations
+     * to tune error feedback level. The lambda2 gain should respect 0 <= lam2 <= 1.
+     */
+    virtual bool setLambda2(double value) = 0;
+
 
     virtual const std::vector<std::string>& getDisabledJoints() const = 0;
     virtual void setDisabledJoints(const std::vector<std::string>& value) = 0;

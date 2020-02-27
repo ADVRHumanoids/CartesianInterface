@@ -82,7 +82,8 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
         }
         catch(SymbolNotFound& e)
         {
-            fmt::print("Unable to load task description from {}, trying with supported tasks.. \n", lib_name);
+            fmt::print("Unable to load task description from '{}' for task '{}', "
+                       "trying with supported tasks.. \n", lib_name, task_type);
         }
 
     }

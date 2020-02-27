@@ -30,11 +30,13 @@ PYBIND11_MODULE(pyci, m) {
             .def("getName", &TaskDescription::getName)
             .def("getType", &TaskDescription::getType)
             .def("getLambda", &TaskDescription::getLambda)
+            .def("getLambda2", &TaskDescription::getLambda2)
             .def("getWeight", &TaskDescription::getWeight)
             .def("getSize", &TaskDescription::getSize)
             .def("getIndices", &TaskDescription::getIndices)
             .def("getActivationState", &TaskDescription::getActivationState)
             .def("setLambda", &TaskDescription::setLambda)
+            .def("setLambda2", &TaskDescription::setLambda2)
             .def("setWeight", &TaskDescription::setWeight)
             .def("setActivationState", &TaskDescription::setActivationState);
 

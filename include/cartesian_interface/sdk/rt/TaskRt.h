@@ -28,6 +28,8 @@ public:
     void setIndices(const std::vector<int> & value) override;
     double getLambda() const override;
     void setLambda(double value) override;
+    double getLambda2() const override;
+    bool setLambda2(double value) override;
     const std::vector<std::string> & getDisabledJoints() const override;
     void setDisabledJoints(const std::vector<std::string> & value) override;
     void update(double time, double period) override;
