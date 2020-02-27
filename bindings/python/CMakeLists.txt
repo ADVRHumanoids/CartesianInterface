@@ -27,6 +27,9 @@ if(${pybind11_FOUND})
             
     install(FILES pyci_all.py
             DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
+
+    install(PROGRAMS interactive_client.py
+            DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
             
 else()
     message(STATUS "-----------------------------------pybind not found")
