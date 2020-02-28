@@ -95,6 +95,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#name">name</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#active">active</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#lambda">lambda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lambda2">lambda2</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#weight">weight</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#indices">indices</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#disabled-joints">disabled_joints</a></li>
@@ -106,7 +107,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#supported-task-types">Supported task types</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="tasks/cartesian.html">Cartesian task</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tasks/postural.html">Postural task</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tasks/limits.html">Joint limits and velocity limits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tasks/limits.html">JointLimits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tasks/limits.html#velocitylimits">VelocityLimits</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#splitting-tasks-into-subtasks">Splitting tasks into subtasks</a></li>
@@ -231,6 +233,12 @@ or not. It defaults to <code class="docutils literal notranslate"><span class="p
 <p>is the value of the feedback gain for position tracking, as a floating point number
 ranging from 0 to 1. Defaults to 1.0.</p>
 </div>
+<div class="section" id="lambda2">
+<h3>lambda2<a class="headerlink" href="#lambda2" title="Permalink to this headline">¶</a></h3>
+<p>is the value of the feedback gain for velocity tracking (generally used by second-order controllerd),
+as a floating point number ranging from 0 to 1. Defaults to -1, which means that the provided value
+shound not be used. A reasonable default is therefore computed based on the value of <code class="docutils literal notranslate"><span class="pre">łambda</span></code>.</p>
+</div>
 <div class="section" id="weight">
 <h3>weight<a class="headerlink" href="#weight" title="Permalink to this headline">¶</a></h3>
 <p>is used to give different <em>soft priority</em> to the task <em>degrees of freedom</em>, also w.r.t.
@@ -277,15 +285,50 @@ be enabled</p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tasks/cartesian.html">Cartesian task</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tasks/postural.html">Postural task</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tasks/limits.html">Joint limits and velocity limits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks/limits.html">JointLimits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks/limits.html#velocitylimits">VelocityLimits</a></li>
 </ul>
 </div>
 </div>
 <div class="section" id="splitting-tasks-into-subtasks">
 <h2>Splitting tasks into subtasks<a class="headerlink" href="#splitting-tasks-into-subtasks" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">indices</span></code> field is used to select a subtask from a given task. Sometimes,
+the user wants to <strong>split</strong> a unique “base” class into multiple subtasks, usually
+to assign different priorities to them. In this case, it is necessary that, for instance,
+sending references to the “base” task will affect all subtasks.</p>
+<p>CartesIO offers the <code class="docutils literal notranslate"><span class="pre">Subtask</span></code> type in order to address this need, as in the following example:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">ComTask</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="s">&quot;Com&quot;</span>
+    <span class="l l-Scalar l-Scalar-Plain">weight</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
+    <span class="l l-Scalar l-Scalar-Plain">lambda</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0.05</span>
+
+<span class="l l-Scalar l-Scalar-Plain">ComXY</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="s">&quot;Subtask&quot;</span>
+    <span class="l l-Scalar l-Scalar-Plain">task</span><span class="p p-Indicator">:</span> <span class="s">&quot;ComTask&quot;</span>
+    <span class="l l-Scalar l-Scalar-Plain">indices</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span> <span class="nv">1</span><span class="p p-Indicator">]</span>
+
+<span class="l l-Scalar l-Scalar-Plain">ComZ</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="s">&quot;Subtask&quot;</span>
+    <span class="l l-Scalar l-Scalar-Plain">task</span><span class="p p-Indicator">:</span> <span class="s">&quot;ComTask&quot;</span>
+    <span class="l l-Scalar l-Scalar-Plain">indices</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[</span><span class="nv">2</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+<p>It is then possible to use the task API to (for instance) enable/disable single subtasks,
+or change their weight. The same can of course be done on the “base” task. An example using
+the Python API would be:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span class="n">com</span> <span class="o">=</span> <span class="n">cli</span><span class="o">.</span><span class="n">getTask</span><span class="p">(</span><span class="s1">&#39;ComTask&#39;</span><span class="p">)</span>
+<span class="n">com_xy</span> <span class="o">=</span> <span class="n">cli</span><span class="o">.</span><span class="n">getTask</span><span class="p">(</span><span class="s1">&#39;ComXY&#39;</span><span class="p">)</span>
+<span class="n">com_z</span> <span class="o">=</span> <span class="n">cli</span><span class="o">.</span><span class="n">getTask</span><span class="p">(</span><span class="s1">&#39;ComZ&#39;</span><span class="p">)</span>
+
+<span class="n">com_z</span><span class="o">.</span><span class="n">setActivationState</span><span class="p">(</span><span class="n">pyci</span><span class="o">.</span><span class="n">ActivationState</span><span class="o">.</span><span class="n">Disabled</span><span class="p">)</span> <span class="c1"># disable only z dof</span>
+<span class="n">com_xy</span><span class="o">.</span><span class="n">setWeight</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">)</span> <span class="c1"># set weight only for xy</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="specifying-tasks-as-constraints">
 <h2>Specifying tasks as constraints<a class="headerlink" href="#specifying-tasks-as-constraints" title="Permalink to this headline">¶</a></h2>
+<p>It is possible to turn tasks into constraints by simply listing them inside the
+<code class="docutils literal notranslate"><span class="pre">constraints</span></code> field.</p>
 </div>
 </div>
 

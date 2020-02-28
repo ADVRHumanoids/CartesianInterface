@@ -84,17 +84,30 @@
           
             
             
-                <ul class="current">
+                <p class="caption"><span class="caption-text">Design and usage</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="design.html">Design notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problemdesc.html">Writing a problem description</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rosapi.html">Auto-generated ROS API</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Programmatic API (C++)</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Programmatic API (C++)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#a-minimal-example-ros-client">A minimal example (ROS client)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#a-minimal-example-solver">A minimal example (Solver)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#part-i-setup">Part I: setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#part-ii-control-loop">Part II: control loop</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-compile">How to compile</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="progr_py.html">Programmatic API (Python)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">How to expand CartesIO</a></li>
 </ul>
+<p class="caption"><span class="caption-text">API reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="reference/task.html">Task API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/problem.html">Problem Description API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/trajectory.html">Trajectory Interpolation API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/sdk.html">SDK API Reference</a></li>
 </ul>
 
             
@@ -141,6 +154,223 @@
             
   <div class="section" id="programmatic-api-c">
 <h1>Programmatic API (C++)<a class="headerlink" href="#programmatic-api-c" title="Permalink to this headline">¶</a></h1>
+<p>From C++ code, it is possible to</p>
+<blockquote>
+<div><ul class="simple">
+<li>create an instance of the <code class="docutils literal notranslate"><span class="pre">RosClient</span></code> class in order to interact with a remotely running
+instance of CartesIO</li>
+<li>create an instance of the <code class="docutils literal notranslate"><span class="pre">CartesianInterfaceImpl</span></code> class in order to actually set up and
+solve an IK problem, or..</li>
+</ul>
+</div></blockquote>
+<p>Once one of these objects is created, their API is essentially shared.
+You can check a reference (doxygen generated) of the C++ API by following
+<a class="reference internal" href="reference/problem.html#cppref"><span class="std std-ref">this link</span></a>.</p>
+<div class="section" id="a-minimal-example-ros-client">
+<h2>A minimal example (ROS client)<a class="headerlink" href="#a-minimal-example-ros-client" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span class="cp">#include</span> <span class="cpf">&lt;cartesian_interface/ros/RosClient.h&gt;</span><span class="cp"></span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">XBot</span><span class="o">::</span><span class="n">Cartesian</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span> <span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">RosClient</span> <span class="n">cli</span><span class="p">;</span>
+    <span class="k">auto</span> <span class="n">task</span> <span class="o">=</span> <span class="n">cli</span><span class="p">.</span><span class="n">getTask</span><span class="p">(</span><span class="s">&quot;MyTask&quot;</span><span class="p">);</span>
+
+    <span class="c1">// ..use task</span>
+    <span class="n">task</span><span class="o">-&gt;</span><span class="n">setLambda</span><span class="p">(</span><span class="mf">0.5</span><span class="p">);</span>
+
+    <span class="c1">// ..convert to Cartesian task</span>
+    <span class="k">auto</span> <span class="n">task_cartesian</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">dynamic_pointer_cast</span><span class="o">&lt;</span><span class="n">CartesianTask</span><span class="o">&gt;</span><span class="p">(</span><span class="n">task</span><span class="p">);</span>
+
+    <span class="k">if</span><span class="p">(</span><span class="n">task_cartesian</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">Eigen</span><span class="o">::</span><span class="n">Affine3d</span> <span class="n">Ttgt</span><span class="p">;</span>
+        <span class="kt">double</span> <span class="n">time</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">;</span>
+
+        <span class="c1">// fill Ttgt...</span>
+
+        <span class="c1">// command reaching motion</span>
+        <span class="n">task</span><span class="o">-&gt;</span><span class="n">setPoseTarget</span><span class="p">(</span><span class="n">Ttgt</span><span class="p">,</span> <span class="n">time</span><span class="p">);</span>
+
+        <span class="c1">// wait until motion completed</span>
+        <span class="n">task</span><span class="o">-&gt;</span><span class="n">waitReachCompleted</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="a-minimal-example-solver">
+<h2>A minimal example (Solver)<a class="headerlink" href="#a-minimal-example-solver" title="Permalink to this headline">¶</a></h2>
+<p>An example of embedding the actual solver is way more complex, due mainly to the
+setup code needed.</p>
+<div class="section" id="part-i-setup">
+<h3>Part I: setup<a class="headerlink" href="#part-i-setup" title="Permalink to this headline">¶</a></h3>
+<p>We here retrieve the minimal configuration file set, which is composed of</p>
+<blockquote>
+<div><ul class="simple">
+<li>a URDF file (for this example, we assume it to be available at <cite>URDF_PATH</cite>)</li>
+<li>an SRDF file (<cite>SRDF_PATH</cite>)</li>
+<li>a YAML file with the ik problem description (<cite>IK_PB_PATH</cite>)</li>
+</ul>
+</div></blockquote>
+<p>Based on this, we create all required classes, which include:</p>
+<blockquote>
+<div><ul class="simple">
+<li>an <code class="docutils literal notranslate"><span class="pre">XBot::ModelInterface</span></code> object to hold the kinematic/dynamic model of the system</li>
+<li>the <code class="docutils literal notranslate"><span class="pre">XBot::Cartesian::ProblemDescription</span></code> object which describes the ik problem</li>
+<li>the <code class="docutils literal notranslate"><span class="pre">XBot::Cartesian::CartesianInterfaceImpl</span></code> object which is the actual solver</li>
+</ul>
+</div></blockquote>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span class="cp">#include</span> <span class="cpf">&lt;cartesian_interface/CartesianInterfaceImpl.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;thread&gt;</span><span class="cp"></span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">XBot</span><span class="o">::</span><span class="n">Cartesian</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// an option structure which is needed to make a model</span>
+    <span class="n">XBot</span><span class="o">::</span><span class="n">ConfigOptions</span> <span class="n">xbot_cfg</span><span class="p">;</span>
+
+    <span class="c1">// set the urdf and srdf path..</span>
+    <span class="n">xbot_cfg</span><span class="p">.</span><span class="n">set_urdf_path</span><span class="p">(</span><span class="n">URDF_PATH</span><span class="p">);</span>
+    <span class="n">xbot_cfg</span><span class="p">.</span><span class="n">set_srdf_path</span><span class="p">(</span><span class="n">SRDF_PATH</span><span class="p">);</span>
+
+    <span class="c1">// the following call is needed to generate some default joint IDs</span>
+    <span class="n">xbot_cfg</span><span class="p">.</span><span class="n">generate_jidmap</span><span class="p">();</span>
+
+    <span class="c1">// some additional parameters..</span>
+    <span class="n">xbot_cfg</span><span class="p">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="s">&quot;is_model_floating_base&quot;</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
+    <span class="n">xbot_cfg</span><span class="p">.</span><span class="n">set_parameter</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;model_type&quot;</span><span class="p">,</span> <span class="s">&quot;RBDL&quot;</span><span class="p">);</span>
+
+    <span class="c1">// and we can make the model class</span>
+    <span class="k">auto</span> <span class="n">model</span> <span class="o">=</span> <span class="n">XBot</span><span class="o">::</span><span class="n">ModelInterface</span><span class="o">::</span><span class="n">getModel</span><span class="p">(</span><span class="n">xbot_cfg</span><span class="p">);</span>
+
+    <span class="c1">// initialize to a homing configuration</span>
+    <span class="n">Eigen</span><span class="o">::</span><span class="n">VectorXd</span> <span class="n">qhome</span><span class="p">;</span>
+    <span class="n">model</span><span class="o">-&gt;</span><span class="n">getRobotState</span><span class="p">(</span><span class="s">&quot;home&quot;</span><span class="p">,</span> <span class="n">qhome</span><span class="p">);</span>
+    <span class="n">model</span><span class="o">-&gt;</span><span class="n">setJointPosition</span><span class="p">(</span><span class="n">qhome</span><span class="p">);</span>
+    <span class="n">model</span><span class="o">-&gt;</span><span class="n">update</span><span class="p">();</span>
+
+    <span class="c1">// before constructing the problem description, let us build a</span>
+    <span class="c1">// context object which stores some information, such as</span>
+    <span class="c1">// the control period</span>
+    <span class="k">const</span> <span class="kt">double</span> <span class="n">dt</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">;</span>
+    <span class="k">auto</span> <span class="n">ctx</span> <span class="o">=</span> <span class="n">Context</span><span class="o">::</span><span class="n">MakeContext</span><span class="p">(</span><span class="n">dt</span><span class="p">);</span>
+
+    <span class="c1">// load the ik problem given a yaml file</span>
+    <span class="k">auto</span> <span class="n">ik_pb_yaml</span> <span class="o">=</span> <span class="n">YAML</span><span class="o">::</span><span class="n">LoadFile</span><span class="p">(</span><span class="n">IK_PB_PATH</span><span class="p">);</span>
+    <span class="n">ProblemDescription</span> <span class="n">ik_pb</span><span class="p">(</span><span class="n">ik_pb_yaml</span><span class="p">,</span> <span class="n">model</span><span class="p">);</span>
+
+    <span class="c1">// we are finally ready to make the CartesIO solver &quot;OpenSot&quot;</span>
+    <span class="k">auto</span> <span class="n">solver</span> <span class="o">=</span> <span class="n">CartesianInterfaceImpl</span><span class="o">::</span><span class="n">MakeInstance</span><span class="p">(</span><span class="s">&quot;OpenSot&quot;</span><span class="p">,</span>
+                                                       <span class="n">model</span><span class="p">,</span>
+                                                       <span class="n">ik_pb</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="part-ii-control-loop">
+<h3>Part II: control loop<a class="headerlink" href="#part-ii-control-loop" title="Permalink to this headline">¶</a></h3>
+<p>We here implement a simplistic finite state machine to command the <code class="docutils literal notranslate"><span class="pre">left_hand</span></code>
+Cartesian task to a target pose, and then exit. At all iterations, it is necessary to:</p>
+<blockquote>
+<div><ul class="simple">
+<li>call <code class="docutils literal notranslate"><span class="pre">CartesianInterface::update()</span></code> to compute the ik, which will set the optimized
+motion (in terms of joint velocity or acceleration) to the model</li>
+<li>integrate such motion to update the joint state</li>
+</ul>
+</div></blockquote>
+<p>Upon succesfull exit, some <cite>.mat</cite> files will be available for inspection, as they are
+auto-generated by CartesIO.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span class="kt">int</span> <span class="n">current_state</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// hand-crafted finite state machine!</span>
+<span class="kt">double</span> <span class="n">time</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="n">Eigen</span><span class="o">::</span><span class="n">VectorXd</span> <span class="n">q</span><span class="p">,</span> <span class="n">qdot</span><span class="p">,</span> <span class="n">qddot</span><span class="p">;</span>
+<span class="k">while</span><span class="p">(</span><span class="nb">true</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">current_state</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="c1">// here we command a reaching motion</span>
+    <span class="p">{</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Commanding left hand forward 0.3m in 3.0 secs&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+        <span class="n">larm_cartesian</span><span class="o">-&gt;</span><span class="n">getPoseReference</span><span class="p">(</span><span class="n">Tref</span><span class="p">);</span>
+        <span class="n">Tref</span><span class="p">.</span><span class="n">translation</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.3</span><span class="p">;</span>
+        <span class="kt">double</span> <span class="n">target_time</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">;</span>
+        <span class="n">larm_cartesian</span><span class="o">-&gt;</span><span class="n">setPoseTarget</span><span class="p">(</span><span class="n">Tref</span><span class="p">,</span> <span class="n">target_time</span><span class="p">);</span>
+
+        <span class="n">current_state</span><span class="o">++</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span><span class="p">(</span><span class="n">current_state</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="c1">// here we check that the reaching started</span>
+    <span class="p">{</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">larm_cartesian</span><span class="o">-&gt;</span><span class="n">getTaskState</span><span class="p">()</span> <span class="o">==</span> <span class="n">State</span><span class="o">::</span><span class="n">Reaching</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Motion started!&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+            <span class="n">current_state</span><span class="o">++</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span><span class="p">(</span><span class="n">current_state</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="c1">// here we wait for it to be completed</span>
+    <span class="p">{</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">larm_cartesian</span><span class="o">-&gt;</span><span class="n">getTaskState</span><span class="p">()</span> <span class="o">==</span> <span class="n">State</span><span class="o">::</span><span class="n">Online</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Eigen</span><span class="o">::</span><span class="n">Affine3d</span> <span class="n">T</span><span class="p">;</span>
+            <span class="n">larm_cartesian</span><span class="o">-&gt;</span><span class="n">getCurrentPose</span><span class="p">(</span><span class="n">T</span><span class="p">);</span>
+
+            <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Motion completed, final error is &quot;</span> <span class="o">&lt;&lt;</span>
+                          <span class="p">(</span><span class="n">T</span><span class="p">.</span><span class="n">inverse</span><span class="p">()</span><span class="o">*</span><span class="n">Tref</span><span class="p">).</span><span class="n">translation</span><span class="p">().</span><span class="n">norm</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+            <span class="n">current_state</span><span class="o">++</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span><span class="p">(</span><span class="n">current_state</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span> <span class="c1">// here we wait the robot to come to a stop</span>
+    <span class="p">{</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;qdot norm is &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">qdot</span><span class="p">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">qdot</span><span class="p">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">1e-3</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Robot came to a stop, press ENTER to exit.. </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">cin</span><span class="p">.</span><span class="n">ignore</span><span class="p">();</span>
+            <span class="n">current_state</span><span class="o">++</span><span class="p">;</span>
+        <span class="p">}</span>
+
+    <span class="p">}</span>
+
+    <span class="k">if</span><span class="p">(</span><span class="n">current_state</span> <span class="o">==</span> <span class="mi">4</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+
+    <span class="c1">// update and integrate model state</span>
+    <span class="n">solver</span><span class="o">-&gt;</span><span class="n">update</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">dt</span><span class="p">);</span>
+
+    <span class="n">model</span><span class="o">-&gt;</span><span class="n">getJointPosition</span><span class="p">(</span><span class="n">q</span><span class="p">);</span>
+    <span class="n">model</span><span class="o">-&gt;</span><span class="n">getJointVelocity</span><span class="p">(</span><span class="n">qdot</span><span class="p">);</span>
+    <span class="n">model</span><span class="o">-&gt;</span><span class="n">getJointAcceleration</span><span class="p">(</span><span class="n">qddot</span><span class="p">);</span>
+
+    <span class="n">q</span> <span class="o">+=</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">qdot</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">std</span><span class="o">::</span><span class="n">pow</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">qddot</span><span class="p">;</span>
+    <span class="n">qdot</span> <span class="o">+=</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">qddot</span><span class="p">;</span>
+
+    <span class="n">model</span><span class="o">-&gt;</span><span class="n">setJointPosition</span><span class="p">(</span><span class="n">q</span><span class="p">);</span>
+    <span class="n">model</span><span class="o">-&gt;</span><span class="n">setJointVelocity</span><span class="p">(</span><span class="n">qdot</span><span class="p">);</span>
+    <span class="n">model</span><span class="o">-&gt;</span><span class="n">update</span><span class="p">();</span>
+
+
+    <span class="c1">// roughly loop at 100 Hz</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">this_thread</span><span class="o">::</span><span class="n">sleep_for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">duration</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="n">dt</span><span class="p">));</span>
+    <span class="n">time</span> <span class="o">+=</span> <span class="n">dt</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="how-to-compile">
+<h2>How to compile<a class="headerlink" href="#how-to-compile" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span class="nb">find_package</span><span class="p">(</span><span class="s">cartesian_interface</span> <span class="s">REQUIRED</span><span class="p">)</span>
+
+<span class="nb">include_directories</span><span class="p">(</span><span class="o">${</span><span class="nv">cartesian_interface_INCLUDE_DIRS</span><span class="o">}</span><span class="p">)</span>
+
+<span class="nb">add_executable</span><span class="p">(</span><span class="s">cartesio_solver</span> <span class="s">cartesio_solver.cpp</span><span class="p">)</span>
+
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">cartesio_solver</span> <span class="o">${</span><span class="nv">cartesian_interface_LIBRARIES</span><span class="o">}</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 
 

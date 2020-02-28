@@ -34,8 +34,9 @@
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="CartesIO 2.0.0 documentation" href="../index.html"/>
+        <link rel="up" title="Problem Description API Reference" href="problem.html"/>
         <link rel="next" title="Cartesian Task API" href="cartesian.html"/>
-        <link rel="prev" title="Implementing OpenSot support for a custom task" href="../plugins_sot.html"/> 
+        <link rel="prev" title="Problem Description API Reference" href="problem.html"/> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -84,7 +85,7 @@
           
             
             
-                <p class="caption"><span class="caption-text">DESIGN AND USAGE</span></p>
+                <p class="caption"><span class="caption-text">Design and usage</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../design.html">Design notes</a></li>
@@ -94,10 +95,16 @@
 <li class="toctree-l1"><a class="reference internal" href="../progr_py.html">Programmatic API (Python)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../plugins.html">How to expand CartesIO</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API REFERENCE</span></p>
+<p class="caption"><span class="caption-text">API reference</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Generic Task API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cartesian.html">Cartesian Task API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="problem.html">Problem Description API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Generic Task API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cartesian.html">Cartesian Task API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="postural.html">Postural Task API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="trajectory.html">Trajectory Interpolation API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdk.html">SDK API Reference</a></li>
 </ul>
 
             
@@ -128,6 +135,8 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../index.html">Docs</a> &raquo;</li>
       
+          <li><a href="problem.html">Problem Description API Reference</a> &raquo;</li>
+      
     <li>Generic Task API</li>
       <li class="wy-breadcrumbs-aside">
         
@@ -148,7 +157,7 @@
 <dt id="_CPPv4N4XBot9Cartesian15TaskDescriptionE">
 <span id="_CPPv3N4XBot9Cartesian15TaskDescriptionE"></span><span id="_CPPv2N4XBot9Cartesian15TaskDescriptionE"></span><span id="XBot::Cartesian::TaskDescription"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription"></span><em class="property">class </em><code class="descname">TaskDescription</code><a class="headerlink" href="#_CPPv4N4XBot9Cartesian15TaskDescriptionE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Base class for task descriptions, which contains properties that are shared among all tasks. </p>
-<p>Subclassed by <a class="reference internal" href="cartesian.html#classXBot_1_1Cartesian_1_1CartesianTask"><span class="std std-ref">XBot::Cartesian::CartesianTask</span></a>, XBot::Cartesian::ClientApi::TaskRos, XBot::Cartesian::ConstraintDescription, XBot::Cartesian::MinJointVelTask, XBot::Cartesian::PosturalTask, XBot::Cartesian::Subtask, XBot::Cartesian::TaskDescriptionImpl, XBot::Cartesian::TaskRt</p>
+<p>Subclassed by <a class="reference internal" href="cartesian.html#classXBot_1_1Cartesian_1_1CartesianTask"><span class="std std-ref">XBot::Cartesian::CartesianTask</span></a>, XBot::Cartesian::ClientApi::TaskRos, XBot::Cartesian::ConstraintDescription, XBot::Cartesian::MinJointVelTask, <a class="reference internal" href="postural.html#structXBot_1_1Cartesian_1_1PosturalTask"><span class="std std-ref">XBot::Cartesian::PosturalTask</span></a>, XBot::Cartesian::Subtask, XBot::Cartesian::TaskDescriptionImpl, XBot::Cartesian::TaskRt</p>
 <div class="breathe-sectiondef container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="function">
@@ -231,6 +240,18 @@
 <dt id="_CPPv4N4XBot9Cartesian15TaskDescription9setLambdaEd">
 <span id="_CPPv3N4XBot9Cartesian15TaskDescription9setLambdaEd"></span><span id="_CPPv2N4XBot9Cartesian15TaskDescription9setLambdaEd"></span><span id="XBot::Cartesian::TaskDescription::setLambda__double"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1acb9b967002135bf950076d58a6c8a59a"></span><em class="property">virtual</em> void <code class="descname">setLambda</code><span class="sig-paren">(</span>double <em>value</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian15TaskDescription9setLambdaEd" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>setLambda allows to set the generic feedback gain which is used by implementations to tune error feedback level. The lambda gain should respect 0 &lt;= lam &lt;= 1. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian15TaskDescription10getLambda2Ev">
+<span id="_CPPv3NK4XBot9Cartesian15TaskDescription10getLambda2Ev"></span><span id="_CPPv2NK4XBot9Cartesian15TaskDescription10getLambda2Ev"></span><span id="XBot::Cartesian::TaskDescription::getLambda2C"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1a31e9f5c559f66fad23906033bf8ab953"></span><em class="property">virtual</em> double <code class="descname">getLambda2</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian15TaskDescription10getLambda2Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getLambda2 returns a generic <em>velocity</em> feedback gain which is used by implementations to tune the velocity feedback level. The lambda2 gain should respect 0 &lt;= lam2 &lt;= 1. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian15TaskDescription10setLambda2Ed">
+<span id="_CPPv3N4XBot9Cartesian15TaskDescription10setLambda2Ed"></span><span id="_CPPv2N4XBot9Cartesian15TaskDescription10setLambda2Ed"></span><span id="XBot::Cartesian::TaskDescription::setLambda2__double"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1a3b9d9de0f729999d1e3ba964089221c5"></span><em class="property">virtual</em> bool <code class="descname">setLambda2</code><span class="sig-paren">(</span>double <em>value</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian15TaskDescription10setLambda2Ed" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setLambda2 allows to set the generic feedback gain which is used by implementations to tune error feedback level. The lambda2 gain should respect 0 &lt;= lam2 &lt;= 1. </p>
 </dd></dl>
 
 <dl class="function">
@@ -322,7 +343,7 @@
         <a href="cartesian.html" class="btn btn-neutral float-right" title="Cartesian Task API" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../plugins_sot.html" class="btn btn-neutral" title="Implementing OpenSot support for a custom task" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="problem.html" class="btn btn-neutral" title="Problem Description API Reference" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

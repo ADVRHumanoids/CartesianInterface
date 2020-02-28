@@ -85,7 +85,8 @@
           
             
             
-                <ul class="current">
+                <p class="caption"><span class="caption-text">Design and usage</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../design.html">Design notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../problemdesc.html">Writing a problem description</a></li>
@@ -109,8 +110,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../progr_py.html">Programmatic API (Python)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../plugins.html">How to expand CartesIO</a></li>
 </ul>
+<p class="caption"><span class="caption-text">API reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../reference/task.html">Task API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/problem.html">Problem Description API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/trajectory.html">Trajectory Interpolation API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/sdk.html">SDK API Reference</a></li>
 </ul>
 
             
@@ -162,30 +166,30 @@
 <p>Contents:</p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#services" id="id2">Services</a><ul>
-<li><a class="reference internal" href="#get-cartesian-task-properties" id="id3">get_cartesian_task_properties</a></li>
-<li><a class="reference internal" href="#set-base-link" id="id4">set_base_link</a></li>
-<li><a class="reference internal" href="#set-control-mode" id="id5">set_control_mode</a></li>
-<li><a class="reference internal" href="#set-safety-limits" id="id6">set_safety_limits</a></li>
+<li><a class="reference internal" href="#services" id="id6">Services</a><ul>
+<li><a class="reference internal" href="#get-cartesian-task-properties" id="id7">get_cartesian_task_properties</a></li>
+<li><a class="reference internal" href="#set-base-link" id="id8">set_base_link</a></li>
+<li><a class="reference internal" href="#set-control-mode" id="id9">set_control_mode</a></li>
+<li><a class="reference internal" href="#set-safety-limits" id="id10">set_safety_limits</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#topics" id="id7">Topics</a><ul>
-<li><a class="reference internal" href="#reference" id="id8">reference</a></li>
-<li><a class="reference internal" href="#velocity-reference" id="id9">velocity_reference</a></li>
-<li><a class="reference internal" href="#current-reference" id="id10">current_reference</a></li>
-<li><a class="reference internal" href="#current-velocity-reference" id="id11">current_velocity_reference</a></li>
+<li><a class="reference internal" href="#topics" id="id11">Topics</a><ul>
+<li><a class="reference internal" href="#reference-input" id="id12">reference (input)</a></li>
+<li><a class="reference internal" href="#velocity-reference-input" id="id13">velocity_reference (input)</a></li>
+<li><a class="reference internal" href="#current-reference-output" id="id14">current_reference (output)</a></li>
+<li><a class="reference internal" href="#current-velocity-reference-output" id="id15">current_velocity_reference (output)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#actions" id="id12">Actions</a><ul>
-<li><a class="reference internal" href="#reach" id="id13">reach</a></li>
+<li><a class="reference internal" href="#actions" id="id16">Actions</a><ul>
+<li><a class="reference internal" href="#reach" id="id17">reach</a></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="section" id="services">
-<h2><a class="toc-backref" href="#id2">Services</a><a class="headerlink" href="#services" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id6">Services</a><a class="headerlink" href="#services" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="get-cartesian-task-properties">
-<h3><a class="toc-backref" href="#id3">get_cartesian_task_properties</a><a class="headerlink" href="#get-cartesian-task-properties" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id7">get_cartesian_task_properties</a><a class="headerlink" href="#get-cartesian-task-properties" title="Permalink to this headline">¶</a></h3>
 <p>Returns all cartesian task-specific properties.</p>
 <table border="1" class="docutils" id="id1">
 <caption><span class="caption-text">Service description</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
@@ -221,34 +225,182 @@
 </table>
 </div>
 <div class="section" id="set-base-link">
-<h3><a class="toc-backref" href="#id4">set_base_link</a><a class="headerlink" href="#set-base-link" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id8">set_base_link</a><a class="headerlink" href="#set-base-link" title="Permalink to this headline">¶</a></h3>
+<p>Allows to set the task base link.</p>
+<table border="1" class="docutils" id="id2">
+<caption><span class="caption-text">Service description</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="21%" />
+<col width="79%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><th class="stub">Name</th>
+<td>set_base_link</td>
+</tr>
+<tr class="row-even"><th class="stub">Type</th>
+<td><code class="docutils literal notranslate"><span class="pre">cartesian_interface::SetBaseLink</span></code></td>
+</tr>
+<tr class="row-odd"><th class="stub">Request</th>
+<td><div class="first last highlight-yaml notranslate"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">string base_link</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><th class="stub">Response</th>
+<td><div class="first last highlight-yaml notranslate"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">bool success</span>
+<span class="l l-Scalar l-Scalar-Plain">string message</span>
+</pre></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section" id="set-control-mode">
-<h3><a class="toc-backref" href="#id5">set_control_mode</a><a class="headerlink" href="#set-control-mode" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id9">set_control_mode</a><a class="headerlink" href="#set-control-mode" title="Permalink to this headline">¶</a></h3>
+<p>Allows to set the task control mode.</p>
+<table border="1" class="docutils" id="id3">
+<caption><span class="caption-text">Service description</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="21%" />
+<col width="79%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><th class="stub">Name</th>
+<td>set_base_link</td>
+</tr>
+<tr class="row-even"><th class="stub">Type</th>
+<td><code class="docutils literal notranslate"><span class="pre">cartesian_interface::SetControlMode</span></code></td>
+</tr>
+<tr class="row-odd"><th class="stub">Request</th>
+<td><div class="first last highlight-yaml notranslate"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">string control_mode</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><th class="stub">Response</th>
+<td><div class="first last highlight-yaml notranslate"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">bool success</span>
+<span class="l l-Scalar l-Scalar-Plain">string message</span>
+</pre></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The <code class="docutils literal notranslate"><span class="pre">control_mode</span></code> field is a case-insensitive string which can take the following values:
+<em>position</em>, or <em>velocity</em>.</p>
 </div>
 <div class="section" id="set-safety-limits">
-<h3><a class="toc-backref" href="#id6">set_safety_limits</a><a class="headerlink" href="#set-safety-limits" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id10">set_safety_limits</a><a class="headerlink" href="#set-safety-limits" title="Permalink to this headline">¶</a></h3>
+<p>Allows to set the task safety limits which are applied to reference signals,
+in terms of maximum velocity and acceleration for both
+the linear and angular component of the task.</p>
+<table border="1" class="docutils" id="id4">
+<caption><span class="caption-text">Service description</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="21%" />
+<col width="79%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><th class="stub">Name</th>
+<td>set_base_link</td>
+</tr>
+<tr class="row-even"><th class="stub">Type</th>
+<td><code class="docutils literal notranslate"><span class="pre">cartesian_interface::SetSafetyLimits</span></code></td>
+</tr>
+<tr class="row-odd"><th class="stub">Request</th>
+<td><div class="first last highlight-yaml notranslate"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">float32 max_vel_lin</span>
+<span class="l l-Scalar l-Scalar-Plain">float32 max_vel_ang</span>
+<span class="l l-Scalar l-Scalar-Plain">float32 max_acc_lin</span>
+<span class="l l-Scalar l-Scalar-Plain">float32 max_acc_ang</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><th class="stub">Response</th>
+<td><div class="first last highlight-yaml notranslate"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">bool success</span>
+<span class="l l-Scalar l-Scalar-Plain">string message</span>
+</pre></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Only values which are greater than zero are actually taken into consideration. Non-positive values
+are discarded.</p>
 </div>
 </div>
 <div class="section" id="topics">
-<h2><a class="toc-backref" href="#id7">Topics</a><a class="headerlink" href="#topics" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="reference">
-<h3><a class="toc-backref" href="#id8">reference</a><a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h3>
+<h2><a class="toc-backref" href="#id11">Topics</a><a class="headerlink" href="#topics" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="reference-input">
+<h3><a class="toc-backref" href="#id12">reference (input)</a><a class="headerlink" href="#reference-input" title="Permalink to this headline">¶</a></h3>
+<p>Input topic for user-provided Cartesian references. Type: <code class="docutils literal notranslate"><span class="pre">geometry_msgs/PoseStamped</span></code>.</p>
 </div>
-<div class="section" id="velocity-reference">
-<h3><a class="toc-backref" href="#id9">velocity_reference</a><a class="headerlink" href="#velocity-reference" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="velocity-reference-input">
+<h3><a class="toc-backref" href="#id13">velocity_reference (input)</a><a class="headerlink" href="#velocity-reference-input" title="Permalink to this headline">¶</a></h3>
+<p>Input topic for user-provided Cartesian velocity references. Type: <code class="docutils literal notranslate"><span class="pre">geometry_msgs/TwistStamped</span></code>.</p>
 </div>
-<div class="section" id="current-reference">
-<h3><a class="toc-backref" href="#id10">current_reference</a><a class="headerlink" href="#current-reference" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="current-reference-output">
+<h3><a class="toc-backref" href="#id14">current_reference (output)</a><a class="headerlink" href="#current-reference-output" title="Permalink to this headline">¶</a></h3>
+<p>Output topic containing the most recent Cartesian reference tracked by the controller.
+Type: <code class="docutils literal notranslate"><span class="pre">geometry_msgs/PoseStamped</span></code>.</p>
 </div>
-<div class="section" id="current-velocity-reference">
-<h3><a class="toc-backref" href="#id11">current_velocity_reference</a><a class="headerlink" href="#current-velocity-reference" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="current-velocity-reference-output">
+<h3><a class="toc-backref" href="#id15">current_velocity_reference (output)</a><a class="headerlink" href="#current-velocity-reference-output" title="Permalink to this headline">¶</a></h3>
+<p>Output topic containing the most recent Cartesian velocity reference tracked by the controller.
+Type: <code class="docutils literal notranslate"><span class="pre">geometry_msgs/TwistStamped</span></code>.</p>
 </div>
 </div>
 <div class="section" id="actions">
-<h2><a class="toc-backref" href="#id12">Actions</a><a class="headerlink" href="#actions" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id16">Actions</a><a class="headerlink" href="#actions" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="reach">
-<h3><a class="toc-backref" href="#id13">reach</a><a class="headerlink" href="#reach" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id17">reach</a><a class="headerlink" href="#reach" title="Permalink to this headline">¶</a></h3>
+<p>This action allows to command a reaching motion to a final frame in a given time, possibly
+passing through user-defined waypoints.</p>
+<table border="1" class="docutils" id="id5">
+<caption><span class="caption-text">Action description</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="21%" />
+<col width="79%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><th class="stub">Name</th>
+<td>reach</td>
+</tr>
+<tr class="row-even"><th class="stub">Type</th>
+<td><code class="docutils literal notranslate"><span class="pre">cartesian_interface::ReachPoseAction</span></code></td>
+</tr>
+<tr class="row-odd"><th class="stub">Goal</th>
+<td><div class="first highlight-yaml notranslate"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">geometry_msgs/Pose[] frames</span>
+<span class="l l-Scalar l-Scalar-Plain">float32[] time</span>
+<span class="l l-Scalar l-Scalar-Plain">bool incremental</span>
+</pre></div>
+</div>
+<div class="last line-block">
+<div class="line">This field allows to specify waypoints along with their respective times</div>
+<div class="line">(absolute, w.r.t. trajectory start). The incremental flag, if set to <code class="docutils literal notranslate"><span class="pre">true</span></code>,</div>
+<div class="line">allows to specify waypoints w.r.t. the starting pose of the robot.</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><th class="stub">Feedback</th>
+<td><div class="first last highlight-yaml notranslate"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">geometry_msgs/PoseStamped current_reference</span>
+<span class="l l-Scalar l-Scalar-Plain">geometry_msgs/PoseStamped current_pose</span>
+<span class="l l-Scalar l-Scalar-Plain">int32 current_segment_id</span> <span class="c1"># waypoint currently being processed</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><th class="stub">Result</th>
+<td><div class="first last highlight-yaml notranslate"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">geometry_msgs/Pose final_frame</span>
+<span class="l l-Scalar l-Scalar-Plain">float32 position_error_norm</span>
+<span class="l l-Scalar l-Scalar-Plain">float32 orientation_error_angle</span>
+</pre></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>

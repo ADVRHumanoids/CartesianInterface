@@ -1,3 +1,5 @@
+.. _cppref:
+
 Problem Description API Reference
 =================================
 
@@ -13,3 +15,4 @@ tasks. These are abstract classes which are inherited by:
 
    task
    cartesian
+   postural

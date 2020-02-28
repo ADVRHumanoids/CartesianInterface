@@ -35,7 +35,7 @@
         <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="CartesIO 2.0.0 documentation" href="../index.html"/>
         <link rel="up" title="Writing a problem description" href="../problemdesc.html"/>
-        <link rel="next" title="Joint limits and velocity limits" href="limits.html"/>
+        <link rel="next" title="JointLimits" href="limits.html"/>
         <link rel="prev" title="Cartesian task" href="cartesian.html"/> 
 
   
@@ -85,7 +85,8 @@
           
             
             
-                <ul class="current">
+                <p class="caption"><span class="caption-text">Design and usage</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../design.html">Design notes</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../problemdesc.html">Writing a problem description</a><ul class="current">
@@ -94,8 +95,12 @@
 <li class="toctree-l2"><a class="reference internal" href="../problemdesc.html#task-definition-example">Task definition example</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../problemdesc.html#supported-task-types">Supported task types</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="cartesian.html">Cartesian task</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Postural task</a></li>
-<li class="toctree-l3"><a class="reference internal" href="limits.html">Joint limits and velocity limits</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Postural task</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="limits.html">JointLimits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="limits.html#velocitylimits">VelocityLimits</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../problemdesc.html#splitting-tasks-into-subtasks">Splitting tasks into subtasks</a></li>
@@ -107,8 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../progr_py.html">Programmatic API (Python)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../plugins.html">How to expand CartesIO</a></li>
 </ul>
+<p class="caption"><span class="caption-text">API reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../reference/task.html">Task API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/problem.html">Problem Description API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/trajectory.html">Trajectory Interpolation API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/sdk.html">SDK API Reference</a></li>
 </ul>
 
             
@@ -157,6 +165,25 @@
             
   <div class="section" id="postural-task">
 <h1>Postural task<a class="headerlink" href="#postural-task" title="Permalink to this headline">¶</a></h1>
+<p>The postural task has two peculiarities w.r.t. a generic <em>Task</em>. First, subtasks of a Postural task
+are not specified with the <code class="docutils literal notranslate"><span class="pre">indices</span></code> field, but only through the <code class="docutils literal notranslate"><span class="pre">enabled_joints</span></code> or
+<code class="docutils literal notranslate"><span class="pre">disabled_joint</span></code> fields. Second, the <code class="docutils literal notranslate"><span class="pre">weight</span></code> field can be expressed as a <strong>map</strong> between
+<strong>joint_name</strong> and <strong>weight value</strong>-</p>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span class="l l-Scalar l-Scalar-Plain">MyPostural</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Postural</span>
+    <span class="l l-Scalar l-Scalar-Plain">lambda</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0.01</span>
+    <span class="l l-Scalar l-Scalar-Plain">weight</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">joint1</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
+        <span class="l l-Scalar l-Scalar-Plain">joint2</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
+        <span class="c1"># all missing joints will be given weight equal 1.0</span>
+    <span class="l l-Scalar l-Scalar-Plain">disabled_joints</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">joint3</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">joint4</span>
+</pre></div>
+</div>
+</div>
 </div>
 
 
@@ -166,7 +193,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="limits.html" class="btn btn-neutral float-right" title="Joint limits and velocity limits" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="limits.html" class="btn btn-neutral float-right" title="JointLimits" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="cartesian.html" class="btn btn-neutral" title="Cartesian task" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>

@@ -164,7 +164,9 @@ You must implement:</p>
 base class implementation will perform all generic task operations such as setting the lambda, weight,
 indices, active joint mask, …</li>
 <li>an optional <code class="docutils literal notranslate"><span class="pre">update</span></code> override to customize the control loop. The base class method will update lambda
-weight.</li>
+weight</li>
+<li>an optional <code class="docutils literal notranslate"><span class="pre">setRequiredVariables</span></code> override to specify custom optimization variables.
+The default is that optimization is carried out over joint position increments.</li>
 </ul>
 </div></blockquote>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span class="cp">#ifndef OPENSOTANGULARMOMENTUM_H</span>
@@ -189,7 +191,7 @@ weight.</li>
 
     <span class="k">virtual</span> <span class="n">TaskPtr</span> <span class="nf">constructTask</span><span class="p">()</span> <span class="k">override</span><span class="p">;</span>
 
-    <span class="k">virtual</span> <span class="kt">bool</span> <span class="nf">initialize</span><span class="p">()</span> <span class="k">override</span><span class="p">;</span>
+    <span class="k">virtual</span> <span class="kt">bool</span> <span class="nf">initialize</span><span class="p">(</span><span class="k">const</span> <span class="n">OpenSoT</span><span class="o">::</span><span class="n">OptvarHelper</span><span class="o">&amp;</span> <span class="n">vars</span><span class="p">)</span> <span class="k">override</span><span class="p">;</span>
 
     <span class="k">virtual</span> <span class="kt">void</span> <span class="nf">update</span><span class="p">(</span><span class="kt">double</span> <span class="n">time</span><span class="p">,</span> <span class="kt">double</span> <span class="n">period</span><span class="p">)</span> <span class="k">override</span><span class="p">;</span>
 
@@ -234,8 +236,13 @@ weight.</li>
     <span class="k">return</span> <span class="n">_sot_angmom</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="kt">bool</span> <span class="n">OpenSotAngularMomentum</span><span class="o">::</span><span class="n">initialize</span><span class="p">()</span>
+<span class="kt">bool</span> <span class="n">OpenSotAngularMomentum</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="k">const</span> <span class="n">OpenSoT</span><span class="o">::</span><span class="n">OptvarHelper</span><span class="o">&amp;</span> <span class="n">vars</span><span class="p">)</span>
 <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">vars</span><span class="p">.</span><span class="n">getAllVariables</span><span class="p">().</span><span class="n">size</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">throw</span> <span class="n">BadVariables</span><span class="p">(</span><span class="s">&quot;[OpenSotAngularMomentum] requires default variables definition&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+
     <span class="k">return</span> <span class="n">OpenSotTaskAdapter</span><span class="o">::</span><span class="n">initialize</span><span class="p">();</span>
 <span class="p">}</span>
 

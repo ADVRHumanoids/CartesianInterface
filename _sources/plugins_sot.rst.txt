@@ -10,7 +10,9 @@ You must implement:
    base class implementation will perform all generic task operations such as setting the lambda, weight,
    indices, active joint mask, ...
  - an optional ``update`` override to customize the control loop. The base class method will update lambda
-   weight.
+   weight
+ - an optional ``setRequiredVariables`` override to specify custom optimization variables.
+   The default is that optimization is carried out over joint position increments.
 
 .. code-block:: c++
 
@@ -36,7 +38,7 @@ You must implement:
 
         virtual TaskPtr constructTask() override;
 
-        virtual bool initialize() override;
+        virtual bool initialize(const OpenSoT::OptvarHelper& vars) override;
 
         virtual void update(double time, double period) override;
 
@@ -83,8 +85,13 @@ You must implement:
         return _sot_angmom;
     }
 
-    bool OpenSotAngularMomentum::initialize()
+    bool OpenSotAngularMomentum::initialize(const OpenSoT::OptvarHelper& vars)
     {
+        if(vars.getAllVariables().size() > 0)
+        {
+            throw BadVariables("[OpenSotAngularMomentum] requires default variables definition");
+        }
+
         return OpenSotTaskAdapter::initialize();
     }
 

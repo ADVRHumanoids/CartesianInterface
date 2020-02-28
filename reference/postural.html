@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>&lt;no title&gt; &mdash; CartesIO 2.0.0 documentation</title>
+  <title>Postural Task API &mdash; CartesIO 2.0.0 documentation</title>
   
 
   
@@ -33,7 +33,10 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="CartesIO 2.0.0 documentation" href="../index.html"/> 
+    <link rel="top" title="CartesIO 2.0.0 documentation" href="../index.html"/>
+        <link rel="up" title="Problem Description API Reference" href="problem.html"/>
+        <link rel="next" title="Trajectory Interpolation API Reference" href="trajectory.html"/>
+        <link rel="prev" title="Cartesian Task API" href="cartesian.html"/> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -82,7 +85,8 @@
           
             
             
-                <ul>
+                <p class="caption"><span class="caption-text">Design and usage</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../design.html">Design notes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../problemdesc.html">Writing a problem description</a></li>
@@ -91,8 +95,16 @@
 <li class="toctree-l1"><a class="reference internal" href="../progr_py.html">Programmatic API (Python)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../plugins.html">How to expand CartesIO</a></li>
 </ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="task.html">Task API Reference</a></li>
+<p class="caption"><span class="caption-text">API reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="problem.html">Problem Description API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="task.html">Generic Task API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cartesian.html">Cartesian Task API</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Postural Task API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="trajectory.html">Trajectory Interpolation API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdk.html">SDK API Reference</a></li>
 </ul>
 
             
@@ -123,7 +135,9 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../index.html">Docs</a> &raquo;</li>
       
-    <li>&lt;no title&gt;</li>
+          <li><a href="problem.html">Problem Description API Reference</a> &raquo;</li>
+      
+    <li>Postural Task API</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -137,11 +151,72 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  
+  <div class="section" id="postural-task-api">
+<h1>Postural Task API<a class="headerlink" href="#postural-task-api" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="_CPPv4N4XBot9Cartesian12PosturalTaskE">
+<span id="_CPPv3N4XBot9Cartesian12PosturalTaskE"></span><span id="_CPPv2N4XBot9Cartesian12PosturalTaskE"></span><span id="XBot::Cartesian::PosturalTask"></span><span class="target" id="structXBot_1_1Cartesian_1_1PosturalTask"></span><em class="property">struct </em><code class="descname">PosturalTask</code> : <em class="property">public</em> <em class="property">virtual</em> XBot::Cartesian::<a class="reference internal" href="task.html#_CPPv4N4XBot9Cartesian15TaskDescriptionE" title="XBot::Cartesian::TaskDescription">TaskDescription</a><a class="headerlink" href="#_CPPv4N4XBot9Cartesian12PosturalTaskE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Description of a postural (i.e. joint space) task. </p>
+<p>Subclassed by XBot::Cartesian::ClientApi::PosturalRos, XBot::Cartesian::PosturalTaskImpl</p>
+<div class="breathe-sectiondef container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian12PosturalTask19getReferencePostureERN5Eigen8VectorXdE">
+<span id="_CPPv3NK4XBot9Cartesian12PosturalTask19getReferencePostureERN5Eigen8VectorXdE"></span><span id="_CPPv2NK4XBot9Cartesian12PosturalTask19getReferencePostureERN5Eigen8VectorXdE"></span><span id="XBot::Cartesian::PosturalTask::getReferencePosture__Eigen::VectorXdRC"></span><span class="target" id="structXBot_1_1Cartesian_1_1PosturalTask_1a7b31116d64316c1c9a01af4f03f8e7d2"></span><em class="property">virtual</em> void <code class="descname">getReferencePosture</code><span class="sig-paren">(</span>Eigen::VectorXd &amp;<em>qref</em><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian12PosturalTask19getReferencePostureERN5Eigen8VectorXdE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getReferencePosture </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><code class="docutils literal notranslate"><span class="pre">qref</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian12PosturalTask19getReferencePostureER12JointNameMap">
+<span id="_CPPv3NK4XBot9Cartesian12PosturalTask19getReferencePostureER12JointNameMap"></span><span id="_CPPv2NK4XBot9Cartesian12PosturalTask19getReferencePostureER12JointNameMap"></span><span id="XBot::Cartesian::PosturalTask::getReferencePosture__JointNameMapRC"></span><span class="target" id="structXBot_1_1Cartesian_1_1PosturalTask_1a1247decf110f9083c1f79fa09370e04a"></span><em class="property">virtual</em> void <code class="descname">getReferencePosture</code><span class="sig-paren">(</span>JointNameMap &amp;<em>qref</em><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian12PosturalTask19getReferencePostureER12JointNameMap" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getReferencePosture </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><code class="docutils literal notranslate"><span class="pre">qref</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian12PosturalTask19setReferencePostureERK12JointNameMap">
+<span id="_CPPv3N4XBot9Cartesian12PosturalTask19setReferencePostureERK12JointNameMap"></span><span id="_CPPv2N4XBot9Cartesian12PosturalTask19setReferencePostureERK12JointNameMap"></span><span id="XBot::Cartesian::PosturalTask::setReferencePosture__JointNameMapCR"></span><span class="target" id="structXBot_1_1Cartesian_1_1PosturalTask_1a37992f6482b7debc0336a2869378dd87"></span><em class="property">virtual</em> void <code class="descname">setReferencePosture</code><span class="sig-paren">(</span><em class="property">const</em> JointNameMap &amp;<em>qref</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian12PosturalTask19setReferencePostureERK12JointNameMap" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setReferencePosture </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><code class="docutils literal notranslate"><span class="pre">qref</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
 
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="trajectory.html" class="btn btn-neutral float-right" title="Trajectory Interpolation API Reference" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="cartesian.html" class="btn btn-neutral" title="Cartesian Task API" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

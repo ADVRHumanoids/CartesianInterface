@@ -50,6 +50,7 @@ Returns all task properties.
             string name
             string[] type
             float32 lambda
+            float32 lambda2
             string activation_state
             float32[] weight
             uint32[] indices
@@ -94,8 +95,8 @@ Activates/deactivates the task. Returns a success flag and a status message.
             string message
 
 
-set_lambda
-^^^^^^^^^^
+set_lambda and set_lambda2
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 Sets the task lambda value. Returns a success flag and a status message.
 
 .. list-table:: Service description
