@@ -16,11 +16,23 @@ namespace XBot { namespace Cartesian {
         typedef std::shared_ptr<const PosturalTask> ConstPtr;
 
         virtual bool useInertiaMatrixWeight() const = 0;
-        
+
+        /**
+         * @brief getReferencePosture
+         * @param qref
+         */
         virtual void getReferencePosture(Eigen::VectorXd& qref) const = 0;
 
+        /**
+         * @brief getReferencePosture
+         * @param qref
+         */
         virtual void getReferencePosture(JointNameMap& qref) const = 0;
 
+        /**
+         * @brief setReferencePosture
+         * @param qref
+         */
         virtual void setReferencePosture(const JointNameMap& qref) = 0;
 
     };

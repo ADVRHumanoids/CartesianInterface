@@ -19,6 +19,8 @@ class ClientApi::PosturalRos : virtual public PosturalTask,
 
 public:
 
+    CARTESIO_DECLARE_SMART_PTR(PosturalRos)
+
     PosturalRos(std::string name,
                 ros::NodeHandle nh);
 

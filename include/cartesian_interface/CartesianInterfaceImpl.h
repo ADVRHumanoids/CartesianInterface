@@ -37,11 +37,14 @@ class CartesianInterfaceImpl : public CartesianInterface
 public:
     
     /* Typedefs for shared pointers */
-    typedef std::shared_ptr<CartesianInterfaceImpl> Ptr;
-    typedef std::shared_ptr<const CartesianInterfaceImpl> ConstPtr;
+    CARTESIO_DECLARE_SMART_PTR(CartesianInterfaceImpl)
     
     CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
                            ProblemDescription ik_problem);
+
+    static Ptr MakeInstance(std::string solver_name,
+                            XBot::ModelInterface::Ptr model,
+                            ProblemDescription ik_problem);
     
     void syncFrom(CartesianInterfaceImpl::ConstPtr other);
     

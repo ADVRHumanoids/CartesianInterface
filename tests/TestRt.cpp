@@ -53,15 +53,7 @@ class TestRt: public ::testing::Test
         ProblemDescription ik_problem(ik_yaml, model);
 
         std::string impl_name = "OpenSot";
-        std::string path_to_shared_lib = XBot::Utils::FindLib("libCartesian" + impl_name + ".so", "LD_LIBRARY_PATH");
-        if (path_to_shared_lib == "")
-        {
-            throw std::runtime_error("libCartesian" + impl_name + ".so must be listed inside LD_LIBRARY_PATH");
-        }
-
-        ci_rt.reset( CallFunction<CartesianInterfaceImpl*>(path_to_shared_lib,
-                                                           "create_instance",
-                                                           model, ik_problem) );
+        ci_rt = CartesianInterfaceImpl::MakeInstance(impl_name, model, ik_problem);
 
 
         auto model_lf = XBot::ModelInterface::getModel(opt);

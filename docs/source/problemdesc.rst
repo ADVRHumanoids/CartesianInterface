@@ -128,7 +128,47 @@ Supported task types
 
 Splitting tasks into subtasks
 -----------------------------
+The ``indices`` field is used to select a subtask from a given task. Sometimes,
+the user wants to **split** a unique "base" class into multiple subtasks, usually
+to assign different priorities to them. In this case, it is necessary that, for instance,
+sending references to the "base" task will affect all subtasks.
+
+CartesIO offers the ``Subtask`` type in order to address this need, as in the following example:
+
+.. code-block:: yaml
+
+    ComTask:
+        type: "Com"
+        weight: 10
+        lambda: 0.05
+
+    ComXY:
+        type: "Subtask"
+        task: "ComTask"
+        indices: [0, 1]
+
+    ComZ:
+        type: "Subtask"
+        task: "ComTask"
+        indices: [2]
+
+It is then possible to use the task API to (for instance) enable/disable single subtasks,
+or change their weight. The same can of course be done on the "base" task. An example using
+the Python API would be:
+
+.. code-block:: python
+
+    com = cli.getTask('ComTask')
+    com_xy = cli.getTask('ComXY')
+    com_z = cli.getTask('ComZ')
+
+    com_z.setActivationState(pyci.ActivationState.Disabled) # disable only z dof
+    com_xy.setWeight(np.eye(2) * 100.0) # set weight only for xy
+
 
 
 Specifying tasks as constraints
 -------------------------------
+It is possible to turn tasks into constraints by simply listing them inside the
+``constraints`` field.
+

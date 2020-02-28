@@ -7,6 +7,10 @@
 
 #include <cartesian_interface/problem/Subtask.h>
 
+#include "fmt/format.h"
+
+#include "utils/DynamicLoading.h"
+
 using namespace XBot::Cartesian;
 
 namespace {
@@ -69,6 +73,19 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model,
 
     init_log_tasks();
 
+}
+
+CartesianInterfaceImpl::Ptr CartesianInterfaceImpl::MakeInstance(std::string solver_name,
+                                                                 XBot::ModelInterface::Ptr model,
+                                                                 ProblemDescription ik_problem)
+{
+    auto ci = CallFunction<CartesianInterfaceImpl *>("libCartesianInterfaceSolver" + solver_name + ".so",
+                                     "create_cartesio_" + solver_name + "_solver",
+                                     model, ik_problem,
+                                     detail::Version CARTESIO_ABI_VERSION
+                                     );
+
+    return Ptr(ci);
 }
 
 void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task_desc)

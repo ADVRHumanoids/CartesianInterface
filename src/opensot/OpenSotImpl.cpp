@@ -1,4 +1,5 @@
 #include "OpenSotImpl.h"
+#include <cartesian_interface/sdk/SolverPlugin.h>
 
 #include <cartesian_interface/problem/ProblemDescription.h>
 #include <cartesian_interface/problem/Task.h>
@@ -16,12 +17,7 @@
 
 using namespace XBot::Cartesian;
 
-
-extern "C" CartesianInterface* create_instance(XBot::ModelInterface::Ptr model,
-                                               ProblemDescription pb)
-{
-    return new OpenSotImpl(model, pb);
-}
+CARTESIO_REGISTER_SOLVER_PLUGIN(OpenSotImpl, OpenSot)
 
 namespace
 {

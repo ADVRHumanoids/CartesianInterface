@@ -64,7 +64,7 @@ if ( Xenomai_FOUND )
 endif()
 
 # linking
-target_link_libraries(${PROJECT_NAME} ${XCM_LIBRARIES} CartesianOpenSot)
+target_link_libraries(${PROJECT_NAME} ${XCM_LIBRARIES})
 
 #install
 
@@ -75,8 +75,7 @@ install(DIRECTORY include/
 )
 
 
-install(TARGETS CartesianPlugin CartesianPlugin
-    EXPORT CartesianOpenSot
+install(TARGETS CartesianPlugin
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

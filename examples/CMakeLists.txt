@@ -1,4 +1,5 @@
 add_subdirectory(plugin)
+add_subdirectory(cpp)
 
 install(DIRECTORY configs/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/examples/configs

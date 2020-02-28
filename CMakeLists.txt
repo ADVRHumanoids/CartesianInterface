@@ -196,12 +196,12 @@ install(TARGETS CartesianInterface CartesianInterface
 
 
 # libCartesianOpenSot
-add_library(CartesianOpenSot SHARED src/opensot/OpenSotImpl.cpp)
-target_link_libraries(CartesianOpenSot PUBLIC ${OpenSoT_LIBRARIES}
+add_library(CartesianInterfaceSolverOpenSot SHARED src/opensot/OpenSotImpl.cpp)
+target_link_libraries(CartesianInterfaceSolverOpenSot PUBLIC ${OpenSoT_LIBRARIES}
     CartesianInterface
     PRIVATE fmt::fmt-header-only
     )
-install(TARGETS CartesianOpenSot CartesianOpenSot
+install(TARGETS CartesianInterfaceSolverOpenSot
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

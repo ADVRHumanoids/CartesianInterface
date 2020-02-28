@@ -64,6 +64,8 @@ You can immediately start controlling you robot by executing this simple launch 
 It is now possible to interact with you Cartesian controller directly to the auto-generated
 ROS API (``rostopic list``, ``rosservice list``), or through our C++/Python Client Library
 
+.. _Tutorial:
+
 Get started with the tutorial
 -----------------------------
 For most applications, you will interact with CartesIO through ROS. This can be conveniently
@@ -78,4 +80,17 @@ To run the tutorial:
  - ``jupyter notebook ros_client_example.ipynb``
  - the notebook should display inside your browser
 
+The tutorial notebook will look like in the following static document:
 
+.. raw:: html
+
+    <iframe src="_static/tutorial_nb.html" height="480px" width="100%"></iframe>
+
+
+And will enable you to easily control the IIT-HHCM Coman robot!
+
+.. figure:: tutorial_rviz.png
+    :width: 90%
+    :align: center
+
+    Visualization of the IK solution in Rviz, with interactive markers.

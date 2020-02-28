@@ -2,6 +2,7 @@
 
 
 #include "ros/client_api/CartesianRos.h"
+#include "ros/client_api/PosturalRos.h"
 
 PYBIND11_MODULE(pyci, m) {
     
@@ -61,16 +62,26 @@ PYBIND11_MODULE(pyci, m) {
             .def("getPoseReference", py_task_get_pose_reference)
             .def("abort", &CartesianTask::abort);
 
+    py::class_<PosturalTask,
+            TaskDescription,
+            PosturalTask::Ptr>(m, "PosturalTask", py::multiple_inheritance())
+            .def("setReferencePosture",  &PosturalTask::setReferencePosture)
+            .def("getReferencePostureMap",  py_postural_get_reference_map);
+
     py::class_<ClientApi::CartesianRos,
             CartesianTask,
             ClientApi::CartesianRos::Ptr>(m, "CartesianTaskRos", py::multiple_inheritance())
             .def("waitReachCompleted", &ClientApi::CartesianRos::waitReachCompleted);
 
+    py::class_<ClientApi::PosturalRos,
+            PosturalTask,
+            ClientApi::PosturalRos::Ptr>(m, "PosturalRos", py::multiple_inheritance());
+
     
     py::class_<RosClient>(m, "CartesianInterfaceRos")
             .def(py::init<std::string>(), py::arg("namespace") = "cartesian")
             .def("__repr__", ci_repr)
-            .def("getTask", &RosClient::getTask)
+            .def("getTask", &RosClient::getTask, py::return_value_policy::reference_internal)
             .def("update", &RosClient::update, py::arg("time") = 0, py::arg("period") = 0)
             .def("getTaskList", &RosClient::getTaskList)
             .def("reset", (bool (RosClient::*)(void)) &RosClient::reset)

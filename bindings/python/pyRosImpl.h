@@ -35,6 +35,20 @@ auto py_task_get_pose_reference(const CartesianTask& r)
 
 }
 
+auto py_postural_get_reference_map(const PosturalTask& p)
+{
+    XBot::JointNameMap m;
+    p.getReferencePosture(m);
+    return m;
+}
+
+auto py_postural_get_reference(const PosturalTask& p)
+{
+    Eigen::VectorXd q;
+    p.getReferencePosture(q);
+    return q;
+}
+
 auto py_task_get_vel_lims(const CartesianTask& t)
 {
     double l, a;

@@ -38,6 +38,12 @@ ProblemDescription::ProblemDescription(Stack stack):
 
 bool ProblemDescription::validate(bool verbose) const
 {
+    if(_stack.empty())
+    {
+        fmt::print("Empty problem description \n");
+        return false;
+    }
+
     bool ret = true;
 
     std::set<std::string> names;

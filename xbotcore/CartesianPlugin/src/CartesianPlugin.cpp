@@ -72,14 +72,7 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
     XBot::Logger::info("Implementation name: %s \n", impl_name.c_str());
 
 
-    std::string path_to_shared_lib = XBot::Utils::FindLib("libCartesian" + impl_name + ".so", "LD_LIBRARY_PATH");
-    if (path_to_shared_lib == "") {
-        throw std::runtime_error("libCartesian" + impl_name + ".so must be listed inside LD_LIBRARY_PATH");
-    }
-    
-    _ci.reset( CallFunction<CartesianInterfaceImpl*>(path_to_shared_lib,
-                                                       "create_instance",
-                                                       _model, ik_problem) );
+    _ci = CartesianInterfaceImpl::MakeInstance(impl_name, _model, ik_problem);
     _ci->enableOtg(0.001);
     _ci->update(0,0);
     
