@@ -1,3 +1,5 @@
+.. _quickstart:
+
 Quickstart
 ==========
 Getting started with CartesIO requires only a few setup steps, especially if you start from a
@@ -86,6 +88,8 @@ The tutorial notebook will look like in the following static document:
 
     <iframe src="_static/tutorial_nb.html" height="480px" width="100%"></iframe>
 
+|
+|
 
 And will enable you to easily control the IIT-HHCM Coman robot!
 

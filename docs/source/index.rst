@@ -5,18 +5,42 @@
 
 Welcome to CartesI/O's documentation!
 =====================================
-General description
+A novel Cartesian control framework with a focus on online
+control of multi-chained, hyper-redundant floating-base
+robots!
 
 Features
 --------
-It is an awesome library that will allow you to easily control your robot.
+.. image:: features.png
+    :width: 90%
+    :align: center
+
+|
+|
+
+- **multiple task** specification
+- ability to enforce soft **priorities** as well as hard priorities
+  between tasks
+- ability to specify **constraints** in the task execution
+- small computation time (suitable for **online execution**)
+- possibility to execute inside a **real-time** thread in order
+  to reduce delays and jitter
+- ease of configuration and use, **quick setup** time and
+  ready to use control tools
+- parametrized with **standard** description formats (e.g.
+  URDF) in order to support multiple platforms
+- handling of floating base robots
+- heavily **customizable** through plugins, at almost all layers
 
 How to install
 --------------
-TBD
+Because CartesIO 2.0 is still in the works, it can only be compiled from source.
+This option is though only available to IIT-HHCM fellows and employees.
+Pre-build binaries will be shipped soon!
 
 Contents
 --------
+Start from :ref:`here<quickstart>`!
 
 .. toctree::
    :maxdepth: 2
