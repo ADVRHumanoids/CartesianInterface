@@ -39,7 +39,9 @@ PYBIND11_MODULE(pyci, m) {
             .def("setLambda", &TaskDescription::setLambda)
             .def("setLambda2", &TaskDescription::setLambda2)
             .def("setWeight", &TaskDescription::setWeight)
-            .def("setActivationState", &TaskDescription::setActivationState);
+            .def("setActivationState", &TaskDescription::setActivationState)
+            .def("disable", [](TaskDescription& t){ t.setActivationState(ActivationState::Disabled); })
+            .def("enable", [](TaskDescription& t){ t.setActivationState(ActivationState::Enabled); });
 
     py::class_<CartesianTask,
             TaskDescription,

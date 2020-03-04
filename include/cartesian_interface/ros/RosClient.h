@@ -26,7 +26,7 @@ private:
 };
 
 class RosClient : public CartesianInterfaceImpl,
-                  private virtual RosInitializer
+        private virtual RosInitializer
 {
 
 public:
@@ -43,8 +43,8 @@ public:
                               const Eigen::Vector6d& base_vel_ref,
                               const std::string& base_frame);
 
-    //        virtual bool resetWorld(const Eigen::Affine3d& w_T_new_world);
-    //        bool resetWorld(const std::string& ee_name);
+    virtual bool resetWorld(const Eigen::Affine3d& w_T_new_world);
+    bool resetWorld(const std::string& ee_name);
 
     bool setWayPoints(const std::string& end_effector,
                       const Trajectory::WayPointVector& way_points,

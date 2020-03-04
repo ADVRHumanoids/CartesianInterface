@@ -5,6 +5,7 @@
 #include <sensor_msgs/JointState.h>
 #include <geometry_msgs/WrenchStamped.h>
 #include <tf_conversions/tf_eigen.h>
+#include <eigen_conversions/eigen_msg.h>
 #include <std_srvs/Trigger.h>
 
 #include "fmt/format.h"
@@ -808,47 +809,47 @@ bool RosClient::waitReachCompleted(const std::string & ee_name, double timeout_s
 //    }
 //}
 
-//namespace
-//{
-//    bool call_reset_world_service(ros::NodeHandle& nh,
-//                                  const Eigen::Affine3d& w_T_new_world,
-//                                  const std::string& ee_name)
-//    {
-//        auto client = nh.serviceClient<cartesian_interface::ResetWorld>("reset_world");
-//        if(!client.waitForExistence(ros::Duration(3.0)))
-//        {
-//            throw std::runtime_error("unable to reset world, service unavailable");
-//        }
+namespace
+{
+    bool call_reset_world_service(ros::NodeHandle& nh,
+                                  const Eigen::Affine3d& w_T_new_world,
+                                  const std::string& ee_name)
+    {
+        auto client = nh.serviceClient<cartesian_interface::ResetWorld>("reset_world");
+        if(!client.waitForExistence(ros::Duration(3.0)))
+        {
+            throw std::runtime_error("unable to reset world, service unavailable");
+        }
 
-//        cartesian_interface::ResetWorld srv;
-//        tf::poseEigenToMsg(w_T_new_world, srv.request.new_world);
-//        srv.request.from_link = ee_name;
+        cartesian_interface::ResetWorld srv;
+        tf::poseEigenToMsg(w_T_new_world, srv.request.new_world);
+        srv.request.from_link = ee_name;
 
-//        if(!client.call(srv))
-//        {
-//            throw std::runtime_error("unable to reset world, service call failed");
-//        }
+        if(!client.call(srv))
+        {
+            throw std::runtime_error("unable to reset world, service call failed");
+        }
 
-//        ROS_INFO("%s", srv.response.message.c_str());
+        ROS_INFO("%s", srv.response.message.c_str());
 
-//        if(!srv.response.success)
-//        {
-//            throw std::runtime_error("unable to reset world, service responded with an error");
-//        }
+        if(!srv.response.success)
+        {
+            throw std::runtime_error("unable to reset world, service responded with an error");
+        }
 
-//        return true;
-//    }
-//}
+        return true;
+    }
+}
 
-//bool RosClient::resetWorld(const Eigen::Affine3d& w_T_new_world)
-//{
-//    return ::call_reset_world_service(_nh, w_T_new_world, "");
-//}
+bool RosClient::resetWorld(const Eigen::Affine3d& w_T_new_world)
+{
+    return ::call_reset_world_service(nh(), w_T_new_world, "");
+}
 
-//bool XBot::Cartesian::RosClient::resetWorld(const std::string& ee_name)
-//{
-//    return ::call_reset_world_service(_nh, Eigen::Affine3d::Identity(), ee_name);
-//}
+bool XBot::Cartesian::RosClient::resetWorld(const std::string& ee_name)
+{
+    return ::call_reset_world_service(nh(), Eigen::Affine3d::Identity(), ee_name);
+}
 
 
 //void RosClient::setAccelerationLimits(const std::string& ee_name, double max_acc_lin, double max_acc_ang)
