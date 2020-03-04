@@ -26,6 +26,8 @@ public:
 
     const std::vector<int>& getSubtaskIndices() const override;
 
+    void reset() override;
+
 private:
 
     static std::string gen_subtask_name(TaskDescriptionImpl::Ptr task,
