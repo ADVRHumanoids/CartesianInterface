@@ -48,7 +48,7 @@ Topics
 
 solution
 ^^^^^^^^
-The current solver solution, as a ``sensor_msgs/JointState` message.
+The current solver solution, as a ``sensor_msgs/JointState`` message.
 
 tf
 ^^
