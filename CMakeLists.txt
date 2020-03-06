@@ -115,6 +115,7 @@ set(CartesianInterface_SRC
         src/problem/TaskImpl.cpp
         src/problem/ConstraintImpl.cpp
         src/utils/ForceEstimation.cpp
+        src/utils/TorqueEstimation.cpp
         src/problem/MinJointVel.cpp
     )
 

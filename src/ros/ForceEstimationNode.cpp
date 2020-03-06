@@ -77,7 +77,7 @@ int main(int argc, char ** argv)
 //         model->setFloatingBaseState(imu);
         model->update();
         model->getJointEffort(tau);
-        tau += tau_offset;
+//         tau += tau_offset;
         model->setJointEffort(tau);
         
         f_est.update(rate);
