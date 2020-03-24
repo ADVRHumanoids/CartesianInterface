@@ -20,6 +20,7 @@
 #ifndef __XBOT_CARTESIAN_PROBLEM_DESC_H__
 #define __XBOT_CARTESIAN_PROBLEM_DESC_H__
 
+#include <cartesian_interface/Context.h>
 #include <cartesian_interface/problem/Constraint.h>
 
 namespace XBot { namespace Cartesian {
@@ -67,12 +68,12 @@ namespace XBot { namespace Cartesian {
          * @brief Construct from a YAML description of the IK problem. The required YAML
          * formatting is described at 
          * 
-         * https://github.com/ADVRHumanoids/CartesianInterface/wiki/Get-started%21#writing-an-ik-problem-for-your-robot
+         * https://advrhumanoids.github.io/CartesianInterface/problemdesc.html
          * 
          * @param yaml_node YAML node containing a problem_description node
          * @param model Model of the robot to be controlled (used to retrieve information like the dof number)
          */
-        ProblemDescription(YAML::Node yaml_node, ModelInterface::ConstPtr model);
+        ProblemDescription(YAML::Node yaml_node, Context::ConstPtr context);
         
         /**
          * @brief Adds one constraint to the IK problem

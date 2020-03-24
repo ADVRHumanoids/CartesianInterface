@@ -18,6 +18,7 @@
 #include <cartesian_interface/ros/RosServerClass.h>
 #include <cartesian_interface/problem/ProblemDescription.h>
 #include <cartesian_interface/LoadController.h>
+#include <cartesian_interface/ResetVirtualJoints.h>
 #include <cartesian_interface/utils/LoadConfig.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 
@@ -34,6 +35,9 @@ namespace XBot { namespace Cartesian {
         
         void spin();
         void spin_once();
+
+        CartesianInterfaceImpl& solver();
+        const ModelInterface& model();
         
         ~RosExecutor();
         
@@ -88,7 +92,7 @@ namespace XBot { namespace Cartesian {
         ros::Timer _loop_timer;
         double _time, _period;
         
-        MatLogger::Ptr _logger;
+        MatLogger2::Ptr _logger;
         
         
         

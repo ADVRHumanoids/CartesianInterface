@@ -28,7 +28,7 @@ public:
 
 
     OpenSotTaskAdapter(TaskDescription::Ptr task,
-                       ModelInterface::ConstPtr model);
+                       Context::ConstPtr context);
 
     virtual OpenSoT::OptvarHelper::VariableVector getRequiredVariables() const;
 
@@ -49,7 +49,7 @@ public:
     virtual ~OpenSotTaskAdapter() override = default;
 
     static Ptr MakeInstance(TaskDescription::Ptr task,
-                            ModelInterface::ConstPtr model);
+                            Context::ConstPtr context);
 
 protected:
 
@@ -57,7 +57,7 @@ protected:
     OpenSoT::OptvarHelper _vars;
     ModelInterface::ConstPtr _model;
     TaskDescription::Ptr _ci_task;
-    Context _ctx;
+    Context::ConstPtr _ctx;
 
 private:
 
@@ -76,7 +76,7 @@ public:
     typedef std::shared_ptr<OpenSotConstraintAdapter> Ptr;
 
     OpenSotConstraintAdapter(ConstraintDescription::Ptr constr,
-                             ModelInterface::ConstPtr model);
+                             Context::ConstPtr context);
 
     virtual OpenSoT::OptvarHelper::VariableVector getRequiredVariables() const;
 
@@ -93,7 +93,7 @@ public:
     virtual ~OpenSotConstraintAdapter() override = default;
 
     static Ptr MakeInstance(ConstraintDescription::Ptr constr,
-                            ModelInterface::ConstPtr model);
+                            Context::ConstPtr context);
 
 protected:
 
@@ -102,7 +102,7 @@ protected:
     ModelInterface::ConstPtr _model;
     OpenSoT::OptvarHelper _vars;
     ConstraintDescription::Ptr _ci_constr;
-    Context _ctx;
+    Context::ConstPtr _ctx;
 
 private:
 

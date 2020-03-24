@@ -23,18 +23,18 @@ public:
     /* Constructors */
     CartesianTaskImpl() = default;
 
-    CartesianTaskImpl(ModelInterface::ConstPtr model,
+    CartesianTaskImpl(Context::ConstPtr context,
                       std::string name,
                       std::string distal_link,
                       std::string base_link = "world");
 
-    CartesianTaskImpl(ModelInterface::ConstPtr model,
+    CartesianTaskImpl(Context::ConstPtr context,
                       std::string name,
                       std::string type,
                       std::string distal_link,
                       std::string base_link);
 
-    CartesianTaskImpl(YAML::Node node, ModelInterface::ConstPtr model);
+    CartesianTaskImpl(YAML::Node node, Context::ConstPtr context);
 
     virtual bool validate() override;
 
@@ -101,7 +101,7 @@ public:
 
     void reset() override;
 
-    virtual void log(MatLogger::Ptr logger,
+    virtual void log(MatLogger2::Ptr logger,
                      bool init_logger = false,
                      int buf_size = 1e5) override;
 
@@ -152,8 +152,6 @@ private:
 
     Trajectory::Ptr _trajectory;
     Reflexxes::Utils::TrajectoryGenerator::Ptr _otg;
-
-    Context _ctx;
 
 
 };

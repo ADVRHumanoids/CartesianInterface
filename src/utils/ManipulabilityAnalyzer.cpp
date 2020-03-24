@@ -15,9 +15,13 @@ ManipulabilityAnalyzer::ManipulabilityAnalyzer(XBot::ModelInterface::ConstPtr mo
                                                std::string tf_prefix):
     _model(model),
     _ik_problem(ik_problem),
-    _logger(XBot::MatLogger::getLogger("/tmp/manipulability_analyzer_log")),
     _nhpriv("~")
 {
+    MatLogger2::Options logger_opt;
+    logger_opt.default_buffer_size = 1e5;
+    _logger = MatLogger2::MakeLogger("/tmp/manipulability_analyzer_log", logger_opt);
+    _logger->set_buffer_mode(VariableBuffer::Mode::circular_buffer);
+
     _tf_prefix_slash = tf_prefix == "" ? "" : tf_prefix + "/";
     
     double master_scale_pos = _nhpriv.param("global_scale/linear", 1.0);

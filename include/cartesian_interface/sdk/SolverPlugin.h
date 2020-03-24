@@ -3,8 +3,8 @@
 
 #define CARTESIO_REGISTER_SOLVER_PLUGIN(ClassName, SolverName) \
 extern "C" ::XBot::Cartesian::CartesianInterfaceImpl* \
-    create_cartesio_##SolverName##_solver(::XBot::ModelInterface::Ptr model, \
-                                ::XBot::Cartesian::ProblemDescription ik_pb, \
+    create_cartesio_##SolverName##_solver(::XBot::Cartesian::ProblemDescription ik_pb, \
+                                ::XBot::Cartesian::Context::Ptr context, \
                                 ::XBot::Cartesian::detail::Version ci_ver) \
 { \
     ::XBot::Cartesian::detail::Version plugin_ver CARTESIO_ABI_VERSION; \
@@ -26,7 +26,7 @@ extern "C" ::XBot::Cartesian::CartesianInterfaceImpl* \
                 ci_ver.major, ci_ver.minor, ci_ver.patch); \
     } \
 \
-    return new ClassName(model, ik_pb); \
+    return new ClassName(ik_pb, context); \
 }
 
 

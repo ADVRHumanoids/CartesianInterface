@@ -21,8 +21,12 @@ int main(int argc, char **argv)
     auto xbot_cfg = Utils::LoadOptions(Utils::LoadFrom::PARAM);
     
     _model = XBot::ModelInterface::getModel(xbot_cfg);
+
+    auto ctx = std::make_shared<Context>(
+                std::make_shared<Parameters>(0.01),
+                _model);
     
-    ProblemDescription ik_problem(problem_yaml, _model);
+    ProblemDescription ik_problem(problem_yaml, ctx);
     
     auto solution_sub = nh.subscribe<sensor_msgs::JointState>("solution", 1, solution_callback);
     

@@ -3,8 +3,8 @@
 using namespace XBot::Cartesian;
 
 OpenSotConstraintFromTaskAdapter::OpenSotConstraintFromTaskAdapter(ConstraintDescription::Ptr constr,
-                                                                   XBot::ModelInterface::ConstPtr model):
-    OpenSotConstraintAdapter(constr, model)
+                                                                   Context::ConstPtr context):
+    OpenSotConstraintAdapter(constr, context)
 {
     auto constr_from_task = std::dynamic_pointer_cast<ConstraintFromTask>(constr);
 
@@ -18,7 +18,7 @@ OpenSotConstraintFromTaskAdapter::OpenSotConstraintFromTaskAdapter(ConstraintDes
     try
     {
         _task_adapter = OpenSotTaskAdapter::MakeInstance(constr_from_task->getTask(),
-                                                         model);
+                                                         context);
     }
     catch(...)
     {

@@ -54,7 +54,7 @@ void TaskRos::reset()
 
 }
 
-void TaskRos::log(XBot::MatLogger::Ptr logger, bool init_logger, int buf_size)
+void TaskRos::log(XBot::MatLogger2::Ptr logger, bool init_logger, int buf_size)
 {
 
 }

@@ -11,6 +11,7 @@ find_package(XCM QUIET)
 find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
 find_package(alglib QUIET)
+find_package(matlogger2 REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp
     std_msgs
@@ -63,6 +64,7 @@ add_service_files(
     SetJoystickTaskMaxSpeed.srv
     SetJoystickTaskBaseFrame.srv
     GetCartesianTaskInfo.srv
+    ResetVirtualJoints.srv
     SetWeight.srv
     SetLambda.srv
     SetLambda2.srv
@@ -174,15 +176,20 @@ add_library(CartesianInterface SHARED
     ${CartesianInterfaceROS_SRC}
     ${Trajectory_SRC}
     ${CartesianInterfaceSOT_SRC}
+
     )
 
-target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
+target_link_libraries(CartesianInterface
+    PUBLIC
     ${XBotInterface_LIBRARIES}
+    ${OpenSoT_LIBRARIES}
     ${catkin_LIBRARIES}
     yaml-cpp
     ${ReflexxesTypeII_LIBRARIES}
     ${alglib_LIBRARIES}
-    PRIVATE fmt::fmt-header-only
+    PRIVATE
+    fmt::fmt-header-only
+    matlogger2::matlogger2
     )
 
 add_dependencies(CartesianInterface ${${PROJECT_NAME}_EXPORTED_TARGETS})
@@ -196,10 +203,15 @@ install(TARGETS CartesianInterface CartesianInterface
 
 
 # libCartesianOpenSot
-add_library(CartesianInterfaceSolverOpenSot SHARED src/opensot/OpenSotImpl.cpp)
-target_link_libraries(CartesianInterfaceSolverOpenSot PUBLIC ${OpenSoT_LIBRARIES}
+add_library(CartesianInterfaceSolverOpenSot SHARED
+    src/opensot/OpenSotImpl.cpp)
+
+target_link_libraries(CartesianInterfaceSolverOpenSot PUBLIC
+    ${OpenSoT_LIBRARIES}
     CartesianInterface
-    PRIVATE fmt::fmt-header-only
+    PRIVATE
+    fmt::fmt-header-only
+    matlogger2::matlogger2
     )
 install(TARGETS CartesianInterfaceSolverOpenSot
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -270,7 +282,7 @@ install(TARGETS force_estimation_node force_estimation_node
 
 # TorqueFeedforward executable
 add_executable(torque_feedforward_node src/ros/TorqueFeedforward.cpp)
-target_link_libraries(torque_feedforward_node CartesianInterface)
+target_link_libraries(torque_feedforward_node ${OpenSoT_LIBRARIES} CartesianInterface)
 install(TARGETS torque_feedforward_node torque_feedforward_node
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

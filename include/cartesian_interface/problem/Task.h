@@ -4,7 +4,7 @@
 #include <XBotInterface/ModelInterface.h>
 #include <cartesian_interface/Enum.h>
 #include <cartesian_interface/Macro.h>
-
+#include <matlogger2/matlogger2.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -168,7 +168,7 @@ public:
      * @param init_logger: if true, the user should only pre-allocate the logged variables
      * @param buf_size: if init_logger is true, this is the buffer size to be pre-allocated
      */
-    virtual void log(MatLogger::Ptr logger,
+    virtual void log(MatLogger2::Ptr logger,
                      bool init_logger = false,
                      int buf_size = 1e5) = 0;
 

@@ -4,6 +4,7 @@
 #include <XBotInterface/ModelInterface.h>
 #include <algorithm>
 #include <cartesian_interface/Macro.h>
+#include <matlogger2/matlogger2.h>
 
 namespace XBot { namespace Cartesian { namespace Utils {
 
@@ -42,13 +43,17 @@ public:
     */
     void update();
 
-    void log(MatLogger::Ptr logger) const;
+    void log(MatLogger2::Ptr logger) const;
 
+protected:
+
+    ModelInterface::ConstPtr _model;
 
 private:
 
     void compute_A_b();
     void solve();
+    virtual void compute_residual(Eigen::VectorXd& res);
 
     struct TaskInfo
     {
@@ -58,7 +63,6 @@ private:
 
     };
 
-    ModelInterface::ConstPtr _model;
 
     Eigen::MatrixXd _Jtot;
     Eigen::MatrixXd _A;
@@ -70,8 +74,36 @@ private:
     std::set<int> _meas_idx;
     int _ndofs;
 
-    Eigen::JacobiSVD<Eigen::MatrixXd> _svd;
+    Eigen::BDCSVD<Eigen::MatrixXd> _svd;
 
+};
+
+class ForceEstimationMomentumBased : public ForceEstimation
+{
+
+public:
+
+    CARTESIO_DECLARE_SMART_PTR(ForceEstimationMomentumBased);
+
+    static constexpr double DEFAULT_OBS_BW = 4.0;
+
+    ForceEstimationMomentumBased(ModelInterface::ConstPtr model,
+                                 double rate,
+                                 double svd_threshold = DEFAULT_SVD_THRESHOLD,
+                                 double obs_bw = DEFAULT_OBS_BW);
+
+    bool getResiduals(Eigen::VectorXd &res) const;
+
+private:
+
+    void compute_residual(Eigen::VectorXd& res) override;
+    void init_momentum_obs();
+
+    double _rate, _k_obs;
+
+    Eigen::VectorXd _y, _tau, _g, _b, _sol;
+    Eigen::VectorXd _p0, _p1, _p2, _q, _qdot, _q_old, _h, _coriolis, _y_static;
+    Eigen::MatrixXd _M, _M_old, _Mdot;
 };
 
 

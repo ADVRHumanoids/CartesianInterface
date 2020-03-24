@@ -19,7 +19,7 @@ class ServerApi::PosturalRos : public ServerApi::TaskRos
 public:
 
     PosturalRos(PosturalTask::Ptr task,
-                 ModelInterface::ConstPtr model);
+                RosContext::Ptr context);
 
     virtual void run(ros::Time time) override;
 

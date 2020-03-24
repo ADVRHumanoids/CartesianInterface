@@ -96,15 +96,7 @@ void ForceEstimation::compute_A_b()
         }
     }
     
-    _model->getJointEffort(_tau);
-    _model->computeGravityCompensation(_g);
-    
-    /* Check for torque spikes */
-    const double MAX_ALLOWED_TORQUE = 300.0;
-    if((_tau.array().abs() < MAX_ALLOWED_TORQUE).all())
-    {
-        _y = _g - _tau;
-    }
+    compute_residual(_y);
     
     int idx = 0;
     for(int i : _meas_idx)
@@ -120,6 +112,19 @@ void ForceEstimation::solve()
 {
     _svd.compute(_A, Eigen::ComputeThinU|Eigen::ComputeThinV);
     _sol = _svd.solve(_b);
+}
+
+void ForceEstimation::compute_residual(Eigen::VectorXd& res)
+{
+    _model->getJointEffort(_tau);
+    _model->computeGravityCompensation(_g);
+
+    /* Check for torque spikes */
+    const double MAX_ALLOWED_TORQUE = 300.0;
+    if((_tau.array().abs() < MAX_ALLOWED_TORQUE).all())
+    {
+        res = _g - _tau;
+    }
 }
 
 
@@ -152,7 +157,7 @@ void ForceEstimation::update()
     }
 }
 
-void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger::Ptr logger) const
+void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger2::Ptr logger) const
 {
     for(const TaskInfo& t : _tasks)
     {
@@ -172,4 +177,58 @@ void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger::Ptr logger) const
     logger->add("fest_b", _b);
     logger->add("fest_tau", _tau);
     logger->add("fest_g", _g);
+}
+
+
+ForceEstimationMomentumBased::ForceEstimationMomentumBased(XBot::ModelInterface::ConstPtr model,
+                                                           double rate,
+                                                           double svd_threshold,
+                                                           double obs_bw):
+    ForceEstimation(model, svd_threshold),
+    _k_obs(2.0 * M_PI * obs_bw)
+{
+    init_momentum_obs();
+}
+
+bool ForceEstimationMomentumBased::getResiduals(Eigen::VectorXd& res) const
+{
+    res = _y;
+    return true;
+}
+
+void ForceEstimationMomentumBased::compute_residual(Eigen::VectorXd& res)
+{
+    _model->getJointVelocity(_qdot);
+    _model->getJointEffort(_tau);
+    _model->computeGravityCompensation(_g);
+
+    /* Observer */
+    _model->getInertiaMatrix(_M);
+    _p1 = _M * _qdot;
+
+    _Mdot = (_M - _M_old) * _rate;
+    _M_old = _M;
+    _model->computeNonlinearTerm(_h);
+    _model->computeGravityCompensation(_g);
+    _coriolis = _h - _g;
+    _p2 += (_tau + (_Mdot * _qdot - _coriolis) - _g + _y) / _rate;
+
+    _y = _k_obs*(_p1 - _p2 - _p0);
+}
+
+void ForceEstimationMomentumBased::init_momentum_obs()
+{
+    _p1.setZero(_model->getJointNum());
+    _p2.setZero(_model->getJointNum());
+    _y.setZero(_model->getJointNum());
+    _coriolis.setZero(_model->getJointNum());
+    _h.setZero(_model->getJointNum());
+
+    _model->getInertiaMatrix(_M);
+    _model->getJointPosition(_q);
+    _model->getJointVelocity(_qdot);
+    _p0 = _M * _qdot;
+
+    _M_old = _M;
+    _q_old = _q;
 }

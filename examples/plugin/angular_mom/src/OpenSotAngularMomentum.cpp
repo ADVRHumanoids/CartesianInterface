@@ -7,8 +7,8 @@
 using namespace XBot::Cartesian;
 
 OpenSotAngularMomentum::OpenSotAngularMomentum(TaskDescription::Ptr task,
-                                               ModelInterface::ConstPtr model):
-    OpenSotTaskAdapter(task, model)
+                                               Context::ConstPtr context):
+    OpenSotTaskAdapter(task, context)
 {
     _ci_angmom = std::dynamic_pointer_cast<AngularMomentum>(task);
 

@@ -86,7 +86,27 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
             frontend->setMinTaskScalingFactor(options["nhqp_min_task_scaling_factor"].as<double>());
         }
 
-        return frontend;
+        if(options && options["nhqp_regularize_A"])
+        {
+            frontend->enableRegularizeA(options["nhqp_regularize_A"].as<bool>());
+        }
+
+        if(options && options["nhqp_regularize_b"] && options["nhqp_lambda_max"])
+        {
+            frontend->enableRegularizeb(options["nhqp_regularize_b"].as<bool>(),
+                    options["nhqp_lambda_max"].as<double>());
+        }
+        else if(options && options["nhqp_regularize_b"])
+        {
+            frontend->enableRegularizeb(options["nhqp_regularize_b"].as<bool>());
+        }
+
+        if(options && options["nhqp_unconstrained"])
+        {
+            frontend->setUnconstrained(options["nhqp_unconstrained"].as<bool>());
+        }
+
+        return std::move(frontend);
     }
     else
     {
@@ -127,7 +147,7 @@ void OpenSotImpl::make_task_adapter(TaskDescription::Ptr task_desc)
 {
     try
     {
-        auto adapter = OpenSotTaskAdapter::MakeInstance(task_desc, _model);
+        auto adapter = OpenSotTaskAdapter::MakeInstance(task_desc, getContext());
         _task_adapters.push_back(adapter);
     }
     catch(std::runtime_error& e)
@@ -142,7 +162,7 @@ void OpenSotImpl::make_constraint_adapter(ConstraintDescription::Ptr constr_desc
 {
     try
     {
-        auto adapter = OpenSotConstraintAdapter::MakeInstance(constr_desc, _model);
+        auto adapter = OpenSotConstraintAdapter::MakeInstance(constr_desc, getContext());
         _constr_adapters.push_back(adapter);
     }
     catch(std::runtime_error& e)
@@ -152,11 +172,12 @@ void OpenSotImpl::make_constraint_adapter(ConstraintDescription::Ptr constr_desc
 }
 
 
-OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
-                         ProblemDescription ik_problem):
-    CartesianInterfaceImpl(model, ik_problem),
-    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_opensot_log")),
-    _vars({})
+OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
+                         Context::Ptr context):
+    CartesianInterfaceImpl(ik_problem, context),
+    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_opensot_log_" + std::to_string(rand()))),
+    _vars({}),
+    _force_space_references(false)
 {
     _model->getJointPosition(_q);
     _dq.setZero(_q.size());
@@ -262,6 +283,7 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     /* Set regularization task */
     if(ik_problem.getRegularizationTask().size() > 0)
     {
+        Logger::info(Logger::Severity::HIGH, "OpenSot: regularization task found \n");
         auto reg_task = aggregated_from_stack(ik_problem.getRegularizationTask());
         _autostack->setRegularisationTask(reg_task);
     }
@@ -290,6 +312,11 @@ OpenSotImpl::OpenSotImpl(XBot::ModelInterface::Ptr model,
     {
         eps_regularization = get_config()["regularization"].as<double>();
         eps_regularization *= 1e12;
+    }
+
+    if(has_config() && get_config()["force_space_references"])
+    {
+        _force_space_references = get_config()["force_space_references"].as<bool>();
     }
     
     Logger::info(Logger::Severity::HIGH, "OpenSot: regularization value is %.1e\n", eps_regularization);
@@ -328,6 +355,13 @@ bool OpenSotImpl::update(double time, double period)
         c->update(time, period);
     }
 
+    /* Trying force space tasks */
+    if(_force_space_references)
+    {
+        _model->getInertiaInverse(_js_inertia_inv);
+        dynamic_cast<OpenSoT::solvers::nHQP&>(*_solver).setInertiaMatrixInverse(_js_inertia_inv);
+    }
+
     /* Update tasks and solve */
     _autostack->update(_x);
     _autostack->log(_logger);
@@ -351,6 +385,10 @@ bool OpenSotImpl::update(double time, double period)
     {
         _vars_map.at("qddot").getValue(_x, _ddq);
         _model->setJointAcceleration(_ddq);
+    }
+    else
+    {
+        throw std::runtime_error("Variables are expected to either be empty or contain 'qddot'")    ;
     }
 
     _logger->add("q", _q);

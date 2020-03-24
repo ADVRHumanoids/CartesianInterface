@@ -37,18 +37,17 @@ RosServerClass::Options::Options():
 }
 
 
-RosServerClass::RosServerClass(CartesianInterface::Ptr intfc,
-                               ModelInterface::ConstPtr model,
+RosServerClass::RosServerClass(CartesianInterfaceImpl::Ptr intfc,
                                Options opt):
     _ci(intfc),
-    _model(model),
+    _model(intfc->getModel()),
     _opt(opt),
     _nh(opt.ros_namespace)
 {
     _tf_prefix = _opt.tf_prefix;
     _nh.setCallbackQueue(&_cbk_queue);
 
-    _ros_ctx = RosContext::MakeContext(_nh, _tf_prefix);
+    _ros_ctx = std::make_shared<RosContext>(_nh, _tf_prefix, intfc->getContext());
     _tf_prefix_slash = _ros_ctx->tf_prefix_slash();
 
 
@@ -715,7 +714,7 @@ void RosServerClass::init_load_ros_task_api()
     {
         auto t = _ci->getTask(tname);
 
-        auto task_ros = ServerApi::TaskRos::MakeInstance(t, _model);
+        auto task_ros = ServerApi::TaskRos::MakeInstance(t, _ros_ctx);
 
         _ros_tasks.push_back(task_ros);
     }

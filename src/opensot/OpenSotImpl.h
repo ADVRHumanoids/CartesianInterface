@@ -17,8 +17,8 @@ class OpenSotImpl : public CartesianInterfaceImpl
     
 public:
     
-    OpenSotImpl(ModelInterface::Ptr model,
-                ProblemDescription ik_problem);
+    OpenSotImpl(ProblemDescription ik_problem,
+                Context::Ptr context);
 
     virtual bool update(double time, double period) override;
 
@@ -48,6 +48,8 @@ private:
 
     OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr _solver;
     OpenSoT::AutoStack::Ptr _autostack;
+    Eigen::MatrixXd _js_inertia_inv;
+    bool _force_space_references;
     
     XBot::MatLogger::Ptr _logger;
 

@@ -4,8 +4,8 @@ using namespace XBot::Cartesian;
 
 
 OpenSotPosturalAdapter::OpenSotPosturalAdapter(TaskDescription::Ptr task,
-                                               XBot::ModelInterface::ConstPtr model):
-    OpenSotTaskAdapter(task, model),
+                                               Context::ConstPtr context):
+    OpenSotTaskAdapter(task, context),
     _use_inertia_matrix(false)
 {
     _ci_postural = std::dynamic_pointer_cast<PosturalTask>(task);

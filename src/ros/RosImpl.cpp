@@ -145,8 +145,7 @@ void RosInitializer::callAvailable()
 
 RosClient::RosClient(std::string ns):
     RosInitializer(ns),
-    CartesianInterfaceImpl(XBot::ModelInterface::Ptr(),
-                           ::construct_problem(nh()))
+    CartesianInterfaceImpl(::construct_problem(nh()))
 {
     _load_ctrl_srv = nh().serviceClient<LoadController>("load_controller");
 }

@@ -17,14 +17,16 @@ namespace {
 const double DEFAULT_TTL = 0.1;
 }
 
-CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model,
-                                               ProblemDescription ik_problem):
-    _model(model),
-    _current_time(0.0),
-    _logger(XBot::MatLogger::getLogger("/tmp/xbot_cartesian_logger_" + std::to_string(rand()))),
-    _solver_options(ik_problem.getSolverOptions()),
-    _ik_problem(ik_problem)
+CartesianInterfaceImpl::CartesianInterfaceImpl(ProblemDescription ik_problem):
+    _ik_problem(ik_problem),
+    _solver_options(ik_problem.getSolverOptions())
 {
+    /* Create logger */
+    MatLogger2::Options logger_opt;
+    logger_opt.default_buffer_size = 1e5;
+    _logger = MatLogger2::MakeLogger("/tmp/cartesio_logger", logger_opt);
+    _logger->set_buffer_mode(VariableBuffer::Mode::circular_buffer);
+
     /* Validate ik problem */
     if(!ik_problem.validate())
     {
@@ -72,16 +74,25 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(XBot::ModelInterface::Ptr model,
     reset(0.0);
 
     init_log_tasks();
+}
 
+
+CartesianInterfaceImpl::CartesianInterfaceImpl(ProblemDescription ik_problem,
+                                               Context::Ptr context):
+    CartesianInterfaceImpl(ik_problem)
+{
+    _ctx = context;
+   _model = context->model();
+   _current_time = 0.0;
 }
 
 CartesianInterfaceImpl::Ptr CartesianInterfaceImpl::MakeInstance(std::string solver_name,
-                                                                 XBot::ModelInterface::Ptr model,
-                                                                 ProblemDescription ik_problem)
+                                                                 ProblemDescription ik_problem,
+                                                                 Context::Ptr context)
 {
     auto ci = CallFunction<CartesianInterfaceImpl *>("libCartesianInterfaceSolver" + solver_name + ".so",
                                      "create_cartesio_" + solver_name + "_solver",
-                                     model, ik_problem,
+                                     ik_problem, context,
                                      detail::Version CARTESIO_ABI_VERSION
                                      );
 
@@ -431,7 +442,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::init_log_tasks()
         task.log(_logger, true, BUF_SIZE);
     }
     
-    _logger->createScalarVariable("ci_time", 1, BUF_SIZE);
+    _logger->create("ci_time", 1, 1, BUF_SIZE);
 }
 
 bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_com_ref)
@@ -579,6 +590,16 @@ XBot::ModelInterface::Ptr CartesianInterfaceImpl::getModel() const
 const ProblemDescription &XBot::Cartesian::CartesianInterfaceImpl::getIkProblem() const
 {
     return _ik_problem;
+}
+
+Context::Ptr CartesianInterfaceImpl::getContext()
+{
+    return _ctx;
+}
+
+Context::ConstPtr CartesianInterfaceImpl::getContext() const
+{
+    return _ctx;
 }
 
 bool CartesianInterfaceImpl::getComPositionReference(Eigen::Vector3d& w_com_ref,
@@ -829,9 +850,9 @@ bool XBot::Cartesian::CartesianInterfaceImpl::getDesiredInteraction(const std::s
 
 CartesianInterfaceImpl::~CartesianInterfaceImpl()
 {
-    _logger->flush();
     Logger::success(Logger::Severity::HIGH, "Cleanly exiting from CartesI/O\n");
 }
+
 
 namespace XBot { namespace Cartesian {
 
@@ -896,6 +917,7 @@ ActivationState StringToEnum<ActivationState>(const std::string& value)
 
     throw std::invalid_argument("Invalid control type '" + value + "'");
 }
+
 
 } }
 

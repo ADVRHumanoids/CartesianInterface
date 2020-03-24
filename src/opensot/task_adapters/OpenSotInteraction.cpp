@@ -5,8 +5,8 @@ using namespace XBot::Cartesian;
 Utils::ForceEstimation::WeakPtr OpenSotInteractionAdapter::_fest_weak;
 
 OpenSotInteractionAdapter::OpenSotInteractionAdapter(TaskDescription::Ptr task,
-                                                     XBot::ModelInterface::ConstPtr model):
-    OpenSotCartesianAdapter(task, model),
+                                                     Context::ConstPtr context):
+    OpenSotCartesianAdapter(task, context),
     _fest_upd(false)
 {
     _ci_adm = std::dynamic_pointer_cast<AdmittanceTask>(task);

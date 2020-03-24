@@ -27,7 +27,10 @@
 #include <cartesian_interface/problem/Cartesian.h>
 #include <cartesian_interface/problem/Com.h>
 #include <cartesian_interface/problem/Postural.h>
+#include <cartesian_interface/Context.h>
 #include <ReflexxesTypeII/Wrappers/TrajectoryGenerator.h>
+
+#include <matlogger2/matlogger2.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -38,18 +41,18 @@ public:
     
     /* Typedefs for shared pointers */
     CARTESIO_DECLARE_SMART_PTR(CartesianInterfaceImpl)
-    
-    CartesianInterfaceImpl(XBot::ModelInterface::Ptr model, 
-                           ProblemDescription ik_problem);
+
+    CartesianInterfaceImpl(ProblemDescription ik_problem,
+                           Context::Ptr context);
 
     static Ptr MakeInstance(std::string solver_name,
-                            XBot::ModelInterface::Ptr model,
-                            ProblemDescription ik_problem);
-    
-    void syncFrom(CartesianInterfaceImpl::ConstPtr other);
+                            ProblemDescription ik_problem,
+                            Context::Ptr context);
     
     ModelInterface::Ptr getModel() const;
     const ProblemDescription& getIkProblem() const;
+    Context::Ptr getContext();
+    Context::ConstPtr getContext() const;
     
     virtual const std::vector<std::string>& getTaskList() const;
     virtual const std::string& getBaseLink(const std::string& ee_name) const;
@@ -148,6 +151,8 @@ public:
     ~CartesianInterfaceImpl();
     
 protected:
+
+    CartesianInterfaceImpl(ProblemDescription ik_problem);
     
     double get_current_time() const;
     
@@ -164,6 +169,7 @@ private:
     void log_tasks();
     void init_log_tasks();
     
+    Context::Ptr _ctx;
    
     std::vector<std::string> _task_list;
     
@@ -178,7 +184,7 @@ private:
     
     double _current_time;
     
-    XBot::MatLogger::Ptr _logger;
+    XBot::MatLogger2::Ptr _logger;
     
     YAML::Node _solver_options;
     

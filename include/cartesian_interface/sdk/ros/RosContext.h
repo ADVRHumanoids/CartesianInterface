@@ -6,8 +6,6 @@
 
 namespace XBot { namespace Cartesian {
 
-class RosContextImpl;
-
 class RosContext
 {
 
@@ -15,20 +13,21 @@ public:
 
     CARTESIO_DECLARE_SMART_PTR(RosContext)
 
-    RosContext();
+    RosContext(ros::NodeHandle nh,
+               std::string tf_prefix,
+               Context::ConstPtr ci_context);
 
     ros::NodeHandle& nh();
     const std::string& tf_prefix() const;
     const std::string& tf_prefix_slash() const;
-
-    static Ptr MakeContext(ros::NodeHandle nh,
-                           std::string tf_prefix);
+    Context::ConstPtr ci_context() const;
 
 private:
 
-    static std::weak_ptr<RosContextImpl> _weak_impl;
-
-    std::shared_ptr<RosContextImpl> _impl;
+    ros::NodeHandle _nh;
+    std::string _tf_prefix;
+    std::string _tf_prefix_slash;
+    Context::ConstPtr _ci_ctx;
 
 };
 

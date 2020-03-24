@@ -27,14 +27,14 @@ public:
     CARTESIO_DECLARE_SMART_PTR(TaskRos)
 
     TaskRos(TaskDescription::Ptr task,
-            ModelInterface::ConstPtr model);
+            RosContext::Ptr context);
 
     virtual void run(ros::Time time);
 
     bool onActivationStateChanged() override;
 
     static Ptr MakeInstance(TaskDescription::Ptr task,
-                            ModelInterface::ConstPtr model);
+                            RosContext::Ptr context);
 
 protected:
 
@@ -46,9 +46,9 @@ protected:
 
     const std::string task_name;
 
-    RosContext _ctx;
+    RosContext::Ptr _ctx;
     TaskDescription::Ptr _task;
-    XBot::ModelInterface::ConstPtr _model;
+    ModelInterface::ConstPtr _model;
 
 private:
 

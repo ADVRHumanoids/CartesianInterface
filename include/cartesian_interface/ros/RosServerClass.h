@@ -20,8 +20,8 @@
 
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 
-#include "ros/RosContext.h"
-#include "ros/server_api/TaskRos.h"
+#include <cartesian_interface/sdk/ros/RosContext.h>
+#include <cartesian_interface/sdk/ros/server_api/TaskRos.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -35,8 +35,7 @@ namespace XBot { namespace Cartesian {
 
     public:
 
-        typedef std::shared_ptr<RosServerClass> Ptr;
-        typedef std::shared_ptr<const RosServerClass> ConstPtr;
+        CARTESIO_DECLARE_SMART_PTR(RosServerClass)
         
         struct Options
         {
@@ -46,8 +45,7 @@ namespace XBot { namespace Cartesian {
             Options();
         };
 
-        RosServerClass(CartesianInterface::Ptr intfc,
-                       ModelInterface::ConstPtr model, 
+        RosServerClass(CartesianInterfaceImpl::Ptr intfc,
                        Options opt = Options()
                       );
 

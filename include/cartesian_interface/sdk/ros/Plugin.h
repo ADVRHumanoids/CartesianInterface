@@ -4,7 +4,7 @@
 #define CARTESIO_REGISTER_ROS_API_PLUGIN(ClassName, TaskType) \
 extern "C" ::XBot::Cartesian::ServerApi::TaskRos * \
     create_cartesio_##TaskType##_ros_api(::XBot::Cartesian::TaskDescription::Ptr task, \
-                                ::XBot::ModelInterface::ConstPtr model, \
+                                ::XBot::Cartesian::RosContext::Ptr context, \
                                 ::XBot::Cartesian::detail::Version ci_ver) \
 { \
     ::XBot::Cartesian::detail::Version plugin_ver CARTESIO_ABI_VERSION; \
@@ -26,7 +26,7 @@ extern "C" ::XBot::Cartesian::ServerApi::TaskRos * \
                 ci_ver.major, ci_ver.minor, ci_ver.patch); \
     } \
 \
-    return new ClassName(task, model); \
+    return new ClassName(task, context); \
 }
 
 

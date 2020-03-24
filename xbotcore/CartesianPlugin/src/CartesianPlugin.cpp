@@ -57,11 +57,21 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
      * the current date/time is always appended to the provided filename,
      * so that logs do not overwrite each other. */
 
-    _logger = XBot::MatLogger::getLogger("/tmp/CartesianPlugin_log");
+    /* Create logger */
+    MatLogger2::Options logger_opt;
+    logger_opt.default_buffer_size = 1e5;
+    _logger = MatLogger2::MakeLogger("/tmp/CartesianPlugin_log", logger_opt);
+    _logger->set_buffer_mode(VariableBuffer::Mode::circular_buffer);
+
 
     /* Construct CI objects */
     YAML::Node config = YAML::LoadFile(handle->getPathToConfigFile());
-    ProblemDescription ik_problem(config["CartesianInterface"]["problem_description"], _model);
+
+    auto ctx = std::make_shared<Context>(
+                std::make_shared<Parameters>(.001),
+                _model);
+
+    ProblemDescription ik_problem(config["CartesianInterface"]["problem_description"], ctx);
     
     if(!config["CartesianInterface"]["solver"])
     {
@@ -72,8 +82,8 @@ bool CartesianPlugin::init_control_plugin(XBot::Handle::Ptr handle)
     XBot::Logger::info("Implementation name: %s \n", impl_name.c_str());
 
 
-    _ci = CartesianInterfaceImpl::MakeInstance(impl_name, _model, ik_problem);
-    _ci->enableOtg(0.001);
+    _ci = CartesianInterfaceImpl::MakeInstance(impl_name, ik_problem, ctx);
+    _ci->enableOtg(ctx->params()->getControlPeriod());
     _ci->update(0,0);
     
     /* Helper for RT <-> nRT communication */
@@ -177,7 +187,7 @@ bool CartesianPlugin::close()
      * It can be used to do some clean-up, or to save logging data to disk. */
 
     /* Save logged data to disk */
-    _logger->flush();
+    _logger.reset();
 
     return true;
 }

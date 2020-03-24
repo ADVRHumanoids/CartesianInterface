@@ -31,6 +31,8 @@ class RosClient : public CartesianInterfaceImpl,
 
 public:
 
+    CARTESIO_DECLARE_SMART_PTR(RosClient)
+
     friend std::ostream& operator<<(std::ostream& os, const RosClient& r);
 
     RosClient(std::string ns = "cartesian");

@@ -29,7 +29,7 @@ public:
 
     void reset() override;
 
-    void log(MatLogger::Ptr logger, bool init_logger, int buf_size) override;
+    void log(MatLogger2::Ptr logger, bool init_logger, int buf_size) override;
 
     const Eigen::MatrixXd & getWeight() const override;
 

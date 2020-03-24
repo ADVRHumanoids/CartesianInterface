@@ -37,7 +37,7 @@ public:
     ActivationState getActivationState() const override;
     bool setActivationState(const ActivationState & value) override;
     void registerObserver(TaskObserver::WeakPtr obs) override;
-    void log(MatLogger::Ptr logger, bool init_logger, int buf_size) override;
+    void log(MatLogger2::Ptr logger, bool init_logger, int buf_size) override;
 
     virtual void callAvailable();
     virtual void sendState(bool send = true);

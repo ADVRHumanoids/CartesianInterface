@@ -3,8 +3,8 @@
 using namespace XBot::Cartesian;
 
 OpenSotComAdapter::OpenSotComAdapter(TaskDescription::Ptr task,
-                                     XBot::ModelInterface::ConstPtr model):
-    OpenSotTaskAdapter(task, model)
+                                     Context::ConstPtr context):
+    OpenSotTaskAdapter(task, context)
 {
     _ci_com = std::dynamic_pointer_cast<ComTask>(task);
 
@@ -52,7 +52,7 @@ void OpenSotComAdapter::update(double time, double period)
     Eigen::Affine3d Tref;
     Eigen::Vector6d vref;
     _ci_com->getPoseReference(Tref, &vref);
-    _opensot_com->setReference(Tref.translation(), vref.head<3>()*_ctx.getControlPeriod());
+    _opensot_com->setReference(Tref.translation(), vref.head<3>()*_ctx->params()->getControlPeriod());
 }
 
 bool OpenSotComAdapter::onBaseLinkChanged()

@@ -6,9 +6,9 @@ using namespace XBot::Cartesian;
 
 
 AngularMomentumImpl::AngularMomentumImpl(YAML::Node task_node,
-                                         XBot::ModelInterface::ConstPtr model):
+                                         Context::ConstPtr context):
     TaskDescriptionImpl(task_node,
-                        model,
+                        context,
                         "AngularMomentum",
                         3),
     _lref(0,0,0),
@@ -49,7 +49,7 @@ void XBot::Cartesian::AngularMomentumImpl::reset()
     _lref.setZero();
 }
 
-void XBot::Cartesian::AngularMomentumImpl::log(MatLogger::Ptr logger,
+void XBot::Cartesian::AngularMomentumImpl::log(MatLogger2::Ptr logger,
                                                bool init_logger,
                                                int buf_size)
 {
@@ -58,7 +58,7 @@ void XBot::Cartesian::AngularMomentumImpl::log(MatLogger::Ptr logger,
 
     if(init_logger)
     {
-        logger->createVectorVariable(getName() + "_ref", 3, 1, buf_size);
+        logger->create(getName() + "_ref", 3, 1, buf_size);
         return;
     }
 

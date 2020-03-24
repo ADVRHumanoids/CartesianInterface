@@ -14,24 +14,24 @@ Eigen::VectorXd JointLimitsImpl::getQmax() const
     return 0.5*(_qmin + _qmax) + 0.5*(_qmax - _qmin)*_bound_scaling;
 }
 
-JointLimitsImpl::JointLimitsImpl(XBot::ModelInterface::ConstPtr model):
+JointLimitsImpl::JointLimitsImpl(Context::ConstPtr context):
     TaskDescriptionImpl("JointLimits",
                         "JointLimits",
-                        model->getJointNum(),
-                        model),
+                        context->model()->getJointNum(),
+                        context),
     _bound_scaling(1.0)
 {
-    model->getJointLimits(_qmin, _qmax);
+   _model->getJointLimits(_qmin, _qmax);
 }
 
-JointLimitsImpl::JointLimitsImpl(YAML::Node yaml, XBot::ModelInterface::ConstPtr model):
+JointLimitsImpl::JointLimitsImpl(YAML::Node yaml, Context::ConstPtr context):
     TaskDescriptionImpl(yaml,
-                        model,
+                        context,
                         "JointLimits",
-                        model->getJointNum()),
+                        context->model()->getJointNum()),
     _bound_scaling(1.0)
 {
-    model->getJointLimits(_qmin, _qmax);
+    _model->getJointLimits(_qmin, _qmax);
 
     if(yaml["bound_scaling"])
     {
@@ -45,7 +45,7 @@ JointLimitsImpl::JointLimitsImpl(YAML::Node yaml, XBot::ModelInterface::ConstPtr
             auto jname = lim.first.as<std::string>();
             auto lim_value = lim.second.as<std::pair<double, double>>();
 
-            if(!model->hasJoint(jname))
+            if(!_model->hasJoint(jname))
             {
                 throw std::invalid_argument(fmt::format("Invalid joint '{}' in joint limits", jname));
             }
@@ -57,7 +57,7 @@ JointLimitsImpl::JointLimitsImpl(YAML::Node yaml, XBot::ModelInterface::ConstPtr
                                                         jname, lim_value.first, lim_value.second));
             }
 
-            int idx = model->getDofIndex(jname);
+            int idx = _model->getDofIndex(jname);
 
             if(lim_value.first < _qmin[idx] || lim_value.second > _qmax[idx])
             {
@@ -100,25 +100,25 @@ void XBot::Cartesian::JointLimitsImpl::reset()
 {
 }
 
-VelocityLimitsImpl::VelocityLimitsImpl(XBot::ModelInterface::ConstPtr model):
+VelocityLimitsImpl::VelocityLimitsImpl(Context::ConstPtr context):
     TaskDescriptionImpl("VelocityLimits",
                         "VelocityLimits",
-                        model->getJointNum(),
-                        model),
+                        context->model()->getJointNum(),
+                        context),
     _bound_scaling(1.0)
 {
-    model->getVelocityLimits(_qdot_max);
+    _model->getVelocityLimits(_qdot_max);
 }
 
 VelocityLimitsImpl::VelocityLimitsImpl(YAML::Node yaml,
-                                       XBot::ModelInterface::ConstPtr model):
+                                       Context::ConstPtr context):
     TaskDescriptionImpl(yaml,
-                        model,
+                        context,
                         "VelocityLimits",
-                        model->getJointNum()),
+                        context->model()->getJointNum()),
     _bound_scaling(1.0)
 {
-    model->getVelocityLimits(_qdot_max);
+    _model->getVelocityLimits(_qdot_max);
 
     if(yaml["bound_scaling"])
     {
@@ -132,7 +132,7 @@ VelocityLimitsImpl::VelocityLimitsImpl(YAML::Node yaml,
             auto jname = lim.first.as<std::string>();
             auto lim_value = lim.second.as<double>();
 
-            if(!model->hasJoint(jname))
+            if(!_model->hasJoint(jname))
             {
                 throw std::invalid_argument(fmt::format("Invalid joint '{}' in joint limits", jname));
             }
@@ -144,7 +144,7 @@ VelocityLimitsImpl::VelocityLimitsImpl(YAML::Node yaml,
                                                         jname, lim_value));
             }
 
-            int idx = model->getDofIndex(jname);
+            int idx = _model->getDofIndex(jname);
 
             if(lim_value > _qdot_max[idx])
             {

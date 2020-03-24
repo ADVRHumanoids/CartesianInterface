@@ -20,6 +20,41 @@ Contents:
 
 .. contents:: :local:
 
+Solver API
+==========
+The following services and topics are available to monitor and customize the solver state.
+
+Services
+--------
+
+get_task_list
+^^^^^^^^^^^^^
+Returns the list of all defined tasks, with their names and types.
+
+reset
+^^^^^
+Resets the solver state to the robot state (if available) or to the homing state.
+
+reset_world
+^^^^^^^^^^^
+TBD
+
+load_controller
+^^^^^^^^^^^^^^^
+TBD
+
+Topics
+------
+
+solution
+^^^^^^^^
+The current solver solution, as a ``sensor_msgs/JointState`` message.
+
+tf
+^^
+Current solution TF tree. Tf messages are published with a TF prefix (default is ``ci/``),
+to avoid conflicts with other robot state publishers.
+
 
 Common task API
 ===============

@@ -124,7 +124,7 @@ const YAML::Node& XBot::Cartesian::ProblemDescription::getSolverOptions() const
 }
 
 
-ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::ConstPtr model)
+ProblemDescription::ProblemDescription(YAML::Node yaml_node, Context::ConstPtr context)
 {
     if(!yaml_node["stack"])
     {
@@ -138,45 +138,11 @@ ProblemDescription::ProblemDescription(YAML::Node yaml_node, ModelInterface::Con
         Logger::success("Solver options node found\n");
     }
 
-    //    YAML::Node regularization = yaml_node["regularization"];
-
-    //    if(regularization)
-    //    {
-    //        for(auto task : regularization)
-    //        {
-    //            std::string task_name = task.as<std::string>();
-
-    //            if(!yaml_node[task_name])
-    //            {
-    //                throw std::runtime_error("problem description parsing failed: node '" + task_name + "' undefined");
-    //            }
-
-    //            if(!yaml_node[task_name]["type"])
-    //            {
-    //                throw std::runtime_error("problem description parsing failed: missing type for '" + task_name + "'");
-    //            }
-
-    //            std::string lib_name = "";
-
-    //            if(yaml_node[task_name]["lib_name"])
-    //            {
-    //                lib_name = yaml_node[task_name]["lib_name"].as<std::string>();
-    //            }
-
-    //            auto task_desc = MakeTaskDescription(yaml_node[task_name],
-    //                                                 model,
-    //                                                 lib_name);
-
-    //            _regularisation.push_back(task_desc);
-    //        }
-    //    }
-
-
     /* Parse stack */
 
     YAML::Node stack = yaml_node["stack"];
 
-    TaskFactory factory(yaml_node, model);
+    TaskFactory factory(yaml_node, context);
 
     for(auto stack_level : stack)
     {

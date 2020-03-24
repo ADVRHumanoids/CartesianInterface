@@ -20,7 +20,7 @@ class OpenSotVelocityLimitsAdapter :
 public:
 
     OpenSotVelocityLimitsAdapter(ConstraintDescription::Ptr constr,
-                              ModelInterface::ConstPtr model);
+                              Context::ConstPtr context);
 
     virtual ConstraintPtr constructConstraint() override;
 

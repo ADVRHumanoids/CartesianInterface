@@ -4,8 +4,10 @@
 using namespace XBot::Cartesian;
 
 InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
-                                         XBot::ModelInterface::ConstPtr model):
-    CartesianTaskImpl(task_node, model)
+                                         Context::ConstPtr context):
+    CartesianTaskImpl(task_node, context),
+    _ref_timeout(-1),
+    _fref(Eigen::Vector6d::Zero())
 {
     std::vector<double> stiffness, damping, inertia, fmin, fmax;
 
@@ -46,6 +48,10 @@ InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
             throw std::runtime_error("'inertia' field for interaction tasks requires six values");
         }
         _m = Eigen::Vector6d::Map(inertia.data()).asDiagonal();
+    }
+    else
+    {
+        _m.setIdentity();
     }
 
     _fmin.setConstant(-1000.0);
@@ -167,16 +173,18 @@ void XBot::Cartesian::InteractionTaskImpl::update(double time, double period)
 }
 
 
-void XBot::Cartesian::InteractionTaskImpl::log(MatLogger::Ptr logger,
+void XBot::Cartesian::InteractionTaskImpl::log(MatLogger2::Ptr logger,
                                                bool init_logger,
                                                int buf_size)
 {
+    CartesianTaskImpl::log(logger, init_logger, buf_size);
+
     if(init_logger)
     {
-        logger->createVectorVariable(getName() + "_fref", 6, 1, buf_size);
-        logger->createVectorVariable(getName() + "_k", 6, 1, buf_size);
-        logger->createVectorVariable(getName() + "_d", 6, 1, buf_size);
-        logger->createVectorVariable(getName() + "_m", 6, 1, buf_size);
+        logger->create(getName() + "_fref", 6, 1, buf_size);
+        logger->create(getName() + "_k", 6, 6, buf_size);
+        logger->create(getName() + "_d", 6, 6, buf_size);
+        logger->create(getName() + "_m", 6, 6, buf_size);
 
         return;
     }
@@ -190,8 +198,8 @@ void XBot::Cartesian::InteractionTaskImpl::log(MatLogger::Ptr logger,
 
 
 AdmittanceTaskImpl::AdmittanceTaskImpl(YAML::Node task_node,
-                                       XBot::ModelInterface::ConstPtr model):
-    InteractionTaskImpl(task_node, model)
+                                       Context::ConstPtr context):
+    InteractionTaskImpl(task_node, context)
 {
     _dz.setZero();
 

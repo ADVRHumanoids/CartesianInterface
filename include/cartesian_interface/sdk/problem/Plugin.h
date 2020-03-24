@@ -4,7 +4,7 @@
 // create_cartesian_interface_task_description
 #define CARTESIO_REGISTER_TASK_PLUGIN(ClassName, TaskType) \
 extern "C" ::XBot::Cartesian::TaskDescription* create_cartesio_##TaskType##_description(YAML::Node task_node, \
-                                                                     ::XBot::ModelInterface::ConstPtr model, \
+                                                                     ::XBot::Cartesian::Context::ConstPtr context, \
                                                                      ::XBot::Cartesian::detail::Version ci_ver) \
 { \
     ::XBot::Cartesian::detail::Version plugin_ver CARTESIO_ABI_VERSION; \
@@ -26,7 +26,7 @@ extern "C" ::XBot::Cartesian::TaskDescription* create_cartesio_##TaskType##_desc
                 ci_ver.major, ci_ver.minor, ci_ver.patch); \
     } \
 \
-    return new ClassName(task_node, model); \
+    return new ClassName(task_node, context); \
 }
 
 #endif // PLUGIN_H

@@ -9,21 +9,21 @@ const double DEFAULT_REACH_THRESHOLD = 1e-6;
 }
 
 
-CartesianTaskImpl::CartesianTaskImpl(ModelInterface::ConstPtr model,
+CartesianTaskImpl::CartesianTaskImpl(Context::ConstPtr context,
                                      std::string name,
                                      std::string distal_link,
                                      std::string base_link):
-    CartesianTaskImpl(model, name, "Cartesian", distal_link, base_link)
+    CartesianTaskImpl(context, name, "Cartesian", distal_link, base_link)
 {
 
 }
 
-CartesianTaskImpl::CartesianTaskImpl(XBot::ModelInterface::ConstPtr model,
+CartesianTaskImpl::CartesianTaskImpl(Context::ConstPtr context,
                                      std::string name,
                                      std::string type,
                                      std::string distal_link,
                                      std::string base_link):
-    TaskDescriptionImpl(type, name, 6, model),
+    TaskDescriptionImpl(type, name, 6, context),
     _distal_link(distal_link),
     _base_link(base_link),
     _orientation_gain(1.0),
@@ -71,8 +71,8 @@ int get_size(YAML::Node task_node)
 
 }
 
-CartesianTaskImpl::CartesianTaskImpl(YAML::Node task_node, ModelInterface::ConstPtr model):
-    TaskDescriptionImpl(task_node, model, ::get_name(task_node), ::get_size(task_node)),
+CartesianTaskImpl::CartesianTaskImpl(YAML::Node task_node, Context::ConstPtr context):
+    TaskDescriptionImpl(task_node, context, ::get_name(task_node), ::get_size(task_node)),
     _ctrl_mode(ControlType::Position),
     _state(State::Online),
     _vref_time_to_live(-1.0),
@@ -436,18 +436,18 @@ void CartesianTaskImpl::reset()
     reset_otg();
 }
 
-void CartesianTaskImpl::log(MatLogger::Ptr logger, bool init_logger, int buf_size)
+void CartesianTaskImpl::log(MatLogger2::Ptr logger, bool init_logger, int buf_size)
 {
     TaskDescriptionImpl::log(logger, init_logger, buf_size);
 
     if(init_logger)
     {
-        logger->createVectorVariable(getName() + "_pos",     3, 1, buf_size);
-        logger->createVectorVariable(getName() + "_pos_otg", 3, 1, buf_size);
-        logger->createVectorVariable(getName() + "_vel",     6, 1, buf_size);
-        logger->createVectorVariable(getName() + "_rot",     4, 1, buf_size);
-        logger->createVectorVariable(getName() + "_rot_otg", 4, 1, buf_size);
-        logger->createScalarVariable(getName() + "_state",      1, buf_size);
+        logger->create(getName() + "_pos",     3, 1, buf_size);
+        logger->create(getName() + "_pos_otg", 3, 1, buf_size);
+        logger->create(getName() + "_vel",     6, 1, buf_size);
+        logger->create(getName() + "_rot",     4, 1, buf_size);
+        logger->create(getName() + "_rot_otg", 4, 1, buf_size);
+        logger->create(getName() + "_state",   1, 1, buf_size);
         return;
     }
 
@@ -604,7 +604,7 @@ bool CartesianTaskObserver::onSafetyLimitsChanged()
 void CartesianTaskImpl::enableOnlineTrajectoryGeneration()
 {
     _otg = std::make_shared<Reflexxes::Utils::TrajectoryGenerator>(7, // 3 + 4
-                                                                   _ctx.getControlPeriod(),
+                                                                   _ctx->params()->getControlPeriod(),
                                                                    EigenVector7d::Zero());
     reset_otg();
     setVelocityLimits(1.0, 1.0);

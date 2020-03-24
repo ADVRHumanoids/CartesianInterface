@@ -135,7 +135,7 @@ void TaskRt::registerObserver(TaskObserver::WeakPtr obs)
 {
 }
 
-void TaskRt::log(XBot::MatLogger::Ptr logger, bool init_logger, int buf_size)
+void TaskRt::log(XBot::MatLogger2::Ptr logger, bool init_logger, int buf_size)
 {
 }
 

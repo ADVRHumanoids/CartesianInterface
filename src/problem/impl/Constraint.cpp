@@ -7,7 +7,7 @@ ConstraintFromTaskImpl::ConstraintFromTaskImpl(TaskDescriptionImpl::Ptr arg_task
     TaskDescriptionImpl("ConstraintFromTask",
                           arg_task->getName(),
                           arg_task->getSize(),
-                          arg_task->getModel()),
+                          arg_task->getContext()),
     _task(arg_task)
 {
 
@@ -55,7 +55,7 @@ void XBot::Cartesian::ConstraintFromTaskImpl::reset()
     _task->reset();
 }
 
-void XBot::Cartesian::ConstraintFromTaskImpl::log(MatLogger::Ptr logger, bool init_logger, int buf_size)
+void XBot::Cartesian::ConstraintFromTaskImpl::log(MatLogger2::Ptr logger, bool init_logger, int buf_size)
 {
     _task->log(logger, init_logger, buf_size);
 }

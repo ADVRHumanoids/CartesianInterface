@@ -6,6 +6,24 @@
 namespace py = pybind11;
 using namespace XBot::Cartesian;
 
+CartesianInterfaceImpl::Ptr make_ci(std::string solver_name,
+                                    std::string problem,
+                                    XBot::ModelInterface::Ptr model,
+                                    double dt)
+{
+    auto ctx = std::make_shared<Context>(
+                std::make_shared<Parameters>(dt),
+                model
+            );
+
+    auto ik_pb_yaml = YAML::Load(problem);
+
+    ProblemDescription ik_pb(ik_pb_yaml, ctx);
+
+    return CartesianInterfaceImpl::MakeInstance(solver_name, ik_pb, ctx);
+
+}
+
 std::string waypoint_repr(const Trajectory::WayPoint& w)
 {
     Eigen::IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
@@ -86,20 +104,20 @@ auto py_get_interaction_reference(const RosClient& r, const std::string& ee)
 }
 
 auto py_send_waypoints(RosClient& r,
-                       const std::string& ee, 
+                       const std::string& ee,
                        const std::vector<Trajectory::WayPoint>& wpv,
                        bool incremental = false
-                      )
+        )
 {
     return r.setWayPoints(ee, wpv, incremental);
 }
-    
+
 auto py_send_target_pose(RosClient& r,
                          const std::string& ee,
-                         const Eigen::Affine3d& T, 
+                         const Eigen::Affine3d& T,
                          double time,
                          bool incremental
-                        )
+                         )
 {
     Trajectory::WayPoint wp;
     wp.time = time;

@@ -19,7 +19,7 @@ namespace XBot { namespace Cartesian {
         bool validate() override;
         void update(double time, double period) override;
         void reset() override;
-        void log(MatLogger::Ptr logger, bool init_logger, int buf_size) override;
+        void log(MatLogger2::Ptr logger, bool init_logger, int buf_size) override;
 
         TaskDescription::Ptr getTask() override;
 

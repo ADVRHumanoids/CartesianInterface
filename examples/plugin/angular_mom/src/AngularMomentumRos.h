@@ -24,7 +24,7 @@ public:
     CARTESIO_DECLARE_SMART_PTR(AngularMomentumRos)
 
     AngularMomentumRos(TaskDescription::Ptr task,
-                       ModelInterface::ConstPtr model);
+                       RosContext::Ptr ros_context);
 
     void run(ros::Time time) override;
 

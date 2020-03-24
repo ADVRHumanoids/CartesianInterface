@@ -16,7 +16,7 @@ namespace XBot { namespace Cartesian {
 
 std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
                                                      std::string task_name,
-                                                     ModelInterface::ConstPtr model
+                                                     Context::ConstPtr context
                                                      )
 {
     /* Get task node */
@@ -74,7 +74,7 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
             task_desc.reset( CallFunction<TaskDescription *>(lib_name,
                                                              "create_cartesio_" + task_type + "_description",
                                                              task_node,
-                                                             model,
+                                                             context,
                                                              detail::Version CARTESIO_ABI_VERSION
                                                              ) );
 
@@ -90,31 +90,31 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
 
     if(task_type == "Cartesian") // TBD ERROR CHECKING
     {
-        task_desc = std::make_shared<CartesianTaskImpl>(task_node,  model);
+        task_desc = std::make_shared<CartesianTaskImpl>(task_node,  context);
     }
     else if(task_type == "Interaction")
     {
-        task_desc = std::make_shared<InteractionTaskImpl>(task_node,  model);
+        task_desc = std::make_shared<InteractionTaskImpl>(task_node,  context);
     }
     else if(task_type == "Admittance")
     {
-        task_desc = std::make_shared<AdmittanceTaskImpl>(task_node,  model);
+        task_desc = std::make_shared<AdmittanceTaskImpl>(task_node,  context);
     }
     else if(task_type == "Com")
     {
-        task_desc = std::make_shared<ComTaskImpl>(task_node,  model);
+        task_desc = std::make_shared<ComTaskImpl>(task_node,  context);
     }
     else if(task_type == "Postural")
     {
-        task_desc = std::make_shared<PosturalTaskImpl>(task_node,  model);
+        task_desc = std::make_shared<PosturalTaskImpl>(task_node,  context);
     }
     else if(task_type == "JointLimits")
     {
-        task_desc = std::make_shared<JointLimitsImpl>(task_node,  model);
+        task_desc = std::make_shared<JointLimitsImpl>(task_node,  context);
     }
     else if(task_type == "VelocityLimits")
     {
-        task_desc = std::make_shared<VelocityLimitsImpl>(task_node,  model);
+        task_desc = std::make_shared<VelocityLimitsImpl>(task_node,  context);
     }
     //        else if(task_type == "Gaze")
     //        {
@@ -141,8 +141,8 @@ BadTaskDescription::BadTaskDescription(std::string what):
 
 
 TaskFactory::TaskFactory(YAML::Node prob_desc,
-                         ModelInterface::ConstPtr model):
-    _model(model),
+                         Context::ConstPtr context):
+    _context(context),
     _prob_desc(prob_desc)
 {
 
@@ -156,7 +156,7 @@ TaskDescription::Ptr TaskFactory::makeTask(std::string task_name)
     {
         task_desc = MakeTaskDescription(_prob_desc,
                                         task_name,
-                                        _model);
+                                        _context);
     }
     catch(TaskIsSubtask& e) // handle case where we got a subtask of another task
     {
@@ -165,7 +165,7 @@ TaskDescription::Ptr TaskFactory::makeTask(std::string task_name)
 
             auto real_task = MakeTaskDescription(_prob_desc,
                                                  e.real_task_name,
-                                                 _model);
+                                                 _context);
 
             _subtask_map[e.real_task_name] = real_task;
         }

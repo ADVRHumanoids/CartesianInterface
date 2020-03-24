@@ -48,16 +48,18 @@ class TestRt: public ::testing::Test
 
         YAML::Node ik_yaml = YAML::LoadFile(path_to_cfg + "centauro_test_stack.yaml");
 
-        auto ctx = Context::MakeContext(0.001);
+        auto ctx = std::make_shared<Context>(
+                    std::make_shared<Parameters>(.001),
+                    model);
 
-        ProblemDescription ik_problem(ik_yaml, model);
+        ProblemDescription ik_problem(ik_yaml, ctx);
 
         std::string impl_name = "OpenSot";
-        ci_rt = CartesianInterfaceImpl::MakeInstance(impl_name, model, ik_problem);
+        ci_rt = CartesianInterfaceImpl::MakeInstance(impl_name, ik_problem, ctx);
 
 
         auto model_lf = XBot::ModelInterface::getModel(opt);
-        ci_lf = std::make_shared<LockfreeBufferImpl>(ci_rt.get(), model_lf);
+        ci_lf = std::make_shared<LockfreeBufferImpl>(ci_rt.get(), ctx);
 
     }
 

@@ -3,8 +3,8 @@
 using namespace XBot::Cartesian;
 
 OpenSotJointLimitsAdapter::OpenSotJointLimitsAdapter(ConstraintDescription::Ptr constr,
-                                                     XBot::ModelInterface::ConstPtr model):
-    OpenSotConstraintAdapter (constr, model)
+                                                     Context::ConstPtr context):
+    OpenSotConstraintAdapter (constr, context)
 {
     _ci_jlim = std::dynamic_pointer_cast<JointLimits>(constr);
 

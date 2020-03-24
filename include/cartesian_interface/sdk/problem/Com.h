@@ -15,9 +15,9 @@ namespace XBot { namespace Cartesian {
         
         CARTESIO_DECLARE_SMART_PTR(ComTaskImpl)
         
-        ComTaskImpl(ModelInterface::ConstPtr model);
+        ComTaskImpl(Context::ConstPtr context);
         
-        ComTaskImpl(YAML::Node node, ModelInterface::ConstPtr model);
+        ComTaskImpl(YAML::Node node, Context::ConstPtr context);
     };
     
 } }

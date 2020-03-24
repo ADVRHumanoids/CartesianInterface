@@ -4,6 +4,7 @@
 #include <XBotInterface/ModelInterface.h>
 #include <cartesian_interface/problem/Task.h>
 #include <cartesian_interface/sdk/problem/Plugin.h>
+#include <cartesian_interface/Context.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -20,9 +21,9 @@ public:
     TaskDescriptionImpl(std::string type,
                     std::string name,
                     int size,
-                    ModelInterface::ConstPtr model);
+                    Context::ConstPtr context);
 
-    TaskDescriptionImpl(YAML::Node node, ModelInterface::ConstPtr model,
+    TaskDescriptionImpl(YAML::Node node, Context::ConstPtr context,
                     std::string name, int size);
 
 
@@ -59,16 +60,18 @@ public:
 
     void registerObserver(TaskObserver::WeakPtr obs) override;
 
-    virtual void log(MatLogger::Ptr logger,
+    virtual void log(MatLogger2::Ptr logger,
                      bool init_logger = false,
                      int buf_size = 1e5) override;
 
     ModelInterface::ConstPtr getModel() const;
+    Context::ConstPtr getContext() const;
 
     virtual ~TaskDescriptionImpl() override = default;
 
 protected:
 
+    Context::ConstPtr _ctx;
     ModelInterface::ConstPtr _model;
 
     void setLibName(std::string lib_name);

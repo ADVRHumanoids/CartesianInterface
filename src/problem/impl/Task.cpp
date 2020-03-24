@@ -82,13 +82,14 @@ TaskDescription::Ptr XBot::Cartesian::operator%(std::vector<int> indices, TaskDe
 TaskDescriptionImpl::TaskDescriptionImpl(std::string type,
                                  std::string name,
                                  int size,
-                                 XBot::ModelInterface::ConstPtr model):
+                                 Context::ConstPtr context):
     TaskDescriptionImpl()
 {
     _type = type;
     _name = name;
     _size = size;
-    _model = model;
+    _model = context->model();
+    _ctx = context;
 
     _weight.setIdentity(_size, _size);
 
@@ -99,13 +100,13 @@ TaskDescriptionImpl::TaskDescriptionImpl(std::string type,
 }
 
 TaskDescriptionImpl::TaskDescriptionImpl(YAML::Node task_node,
-                                 XBot::ModelInterface::ConstPtr model,
+                                 Context::ConstPtr context,
                                  std::string name,
                                  int size):
     TaskDescriptionImpl(task_node["type"].as<std::string>(),
                     name,
                     size,
-                    model)
+                    context)
 {
     if(task_node["name"])
     {
@@ -163,7 +164,7 @@ TaskDescriptionImpl::TaskDescriptionImpl(YAML::Node task_node,
         {
             std::string jstr = jnode.as<std::string>();
 
-            if(!model->hasJoint(jstr))
+            if(!_model->hasJoint(jstr))
             {
                 throw std::runtime_error("Undefined joint '" + jstr + "' listed among disabled joints");
             }
@@ -180,13 +181,13 @@ TaskDescriptionImpl::TaskDescriptionImpl(YAML::Node task_node,
             throw std::runtime_error("Cannot specify both 'enabled_joints' and 'disabled_joints'");
         }
 
-        _disabled_joints = model->getEnabledJointNames();
+        _disabled_joints = _model->getEnabledJointNames();
 
         for(auto jnode : task_node["enabled_joints"])
         {
             std::string jstr = jnode.as<std::string>();
 
-            if(!model->hasJoint(jstr))
+            if(!_model->hasJoint(jstr))
             {
                 throw std::runtime_error("Undefined joint '" + jstr + "' listed among enabled joints");
             }
@@ -246,11 +247,11 @@ void TaskDescriptionImpl::registerObserver(std::weak_ptr<TaskObserver> obs)
     _observers.push_back(obs);
 }
 
-void TaskDescriptionImpl::log(MatLogger::Ptr logger, bool init_logger, int buf_size)
+void TaskDescriptionImpl::log(MatLogger2::Ptr logger, bool init_logger, int buf_size)
 {
     if(init_logger)
     {
-        logger->createScalarVariable(getName() + "_active", 1, buf_size);
+        logger->create(getName() + "_active", 1, 1, buf_size);
         return;
     }
 
@@ -260,6 +261,11 @@ void TaskDescriptionImpl::log(MatLogger::Ptr logger, bool init_logger, int buf_s
 XBot::ModelInterface::ConstPtr TaskDescriptionImpl::getModel() const
 {
     return _model;
+}
+
+Context::ConstPtr TaskDescriptionImpl::getContext() const
+{
+    return _ctx;
 }
 
 void TaskDescriptionImpl::setLibName(std::string __lib_name)

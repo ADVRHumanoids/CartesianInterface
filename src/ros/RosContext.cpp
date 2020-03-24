@@ -4,72 +4,35 @@
 
 using namespace XBot::Cartesian;
 
-class XBot::Cartesian::RosContextImpl
+
+RosContext::RosContext(ros::NodeHandle nh,
+                       std::string tf_prefix,
+                       Context::ConstPtr ci_context):
+    _nh(nh),
+    _tf_prefix(tf_prefix),
+    _tf_prefix_slash(tf_prefix == "" ? "" : (tf_prefix + "/")),
+    _ci_ctx(ci_context)
 {
-
-public:
-
-    ros::NodeHandle nh;
-    std::string tf_prefix;
-    std::string tf_prefix_slash;
-
-    RosContextImpl();
-
-    ~RosContextImpl()
-    {
-    }
-};
-
-std::weak_ptr<RosContextImpl> RosContext::_weak_impl;
-
-
-RosContext::RosContext()
-{
-    if(auto ptr = _weak_impl.lock())
-    {
-        _impl = ptr;
-    }
-    else
-    {
-        throw ContextEmpty();
-    }
-}
-
-RosContext::Ptr RosContext::MakeContext(ros::NodeHandle nh,
-                                        std::string tf_prefix)
-{
-    if(auto ptr = _weak_impl.lock())
-    {
-        throw ContextRedefinition();
-    }
-
-    auto instance = std::make_shared<RosContextImpl>();
-    instance->nh = nh;
-    instance->tf_prefix = tf_prefix;
-    instance->tf_prefix_slash = tf_prefix == "" ? "" : (tf_prefix + "/");
-
-    _weak_impl = instance;
-
-    return std::make_shared<RosContext>();
 }
 
 
 ros::NodeHandle & RosContext::nh()
 {
-    return _impl->nh;
+    return _nh;
 }
 
 const std::string & RosContext::tf_prefix() const
 {
-   return _impl->tf_prefix;
+   return _tf_prefix;
 }
 
 const std::string & RosContext::tf_prefix_slash() const
 {
-    return _impl->tf_prefix_slash;
+    return _tf_prefix_slash;
 }
 
-RosContextImpl::RosContextImpl()
+Context::ConstPtr RosContext::ci_context() const
 {
-
+    return _ci_ctx;
 }
+

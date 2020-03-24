@@ -62,7 +62,7 @@ class ServerApi::CartesianRos : public ServerApi::TaskRos,
 public:
 
     CartesianRos(CartesianTask::Ptr task,
-                 ModelInterface::ConstPtr model);
+                 RosContext::Ptr context);
 
     bool onBaseLinkChanged() override;
     bool onControlModeChanged() override;

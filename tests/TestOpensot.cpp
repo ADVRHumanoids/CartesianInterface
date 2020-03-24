@@ -67,12 +67,14 @@ protected:
 
         YAML::Node ik_yaml = YAML::LoadFile(path_to_cfg + "centauro_test_stack.yaml");
 
-        auto ctx = Context::MakeContext(0.001);
+        auto ctx = std::make_shared<Context>(
+                    std::make_shared<Parameters>(.001),
+                    model);
 
-        ProblemDescription ik_problem(ik_yaml, model);
+        ProblemDescription ik_problem(ik_yaml, ctx);
 
         std::string impl_name = "OpenSot";
-        ci = CartesianInterfaceImpl::MakeInstance(impl_name, model, ik_problem);
+        ci = CartesianInterfaceImpl::MakeInstance(impl_name, ik_problem, ctx);
 
     }
 
@@ -151,7 +153,7 @@ TEST_F(TestOpensot, checkNoInitialMotion)
     ci->getModel()->getJointPosition(q0);
 
     double time = 0;
-    double dt = Context().getControlPeriod();
+    double dt = ci->getContext()->params()->getControlPeriod();
 
     while(time < 1.0)
     {
@@ -179,7 +181,7 @@ TEST_F(TestOpensot, checkMotion)
     ci->getModel()->getJointPosition(q0);
 
     double time = 0;
-    double dt = Context().getControlPeriod();
+    double dt = ci->getContext()->params()->getControlPeriod();
 
     Eigen::Affine3d Tref;
     ci->getCurrentPose("arm1_8", Tref);

@@ -49,7 +49,7 @@ void XBot::Cartesian::AngularMomentumImpl::reset()
     _lref.setZero();
 }
 
-void XBot::Cartesian::AngularMomentumImpl::log(MatLogger::Ptr logger,
+void XBot::Cartesian::AngularMomentumImpl::log(MatLogger2::Ptr logger,
                                                bool init_logger,
                                                int buf_size)
 {

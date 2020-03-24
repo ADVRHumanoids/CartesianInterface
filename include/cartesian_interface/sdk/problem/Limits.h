@@ -14,8 +14,8 @@ namespace XBot { namespace Cartesian {
 
         CARTESIO_DECLARE_SMART_PTR(JointLimitsImpl)
 
-        JointLimitsImpl(ModelInterface::ConstPtr model);
-        JointLimitsImpl(YAML::Node yaml, ModelInterface::ConstPtr model);
+        JointLimitsImpl(Context::ConstPtr context);
+        JointLimitsImpl(YAML::Node yaml, Context::ConstPtr context);
 
         bool setBoundScaling(double value) override;
         double getBoundScaling() const override;
@@ -44,8 +44,8 @@ namespace XBot { namespace Cartesian {
 
         CARTESIO_DECLARE_SMART_PTR(VelocityLimitsImpl)
 
-        VelocityLimitsImpl(ModelInterface::ConstPtr model);
-        VelocityLimitsImpl(YAML::Node yaml, ModelInterface::ConstPtr model);
+        VelocityLimitsImpl(Context::ConstPtr context);
+        VelocityLimitsImpl(YAML::Node yaml, Context::ConstPtr context);
 
         Eigen::VectorXd getQdotMax() const override;
 

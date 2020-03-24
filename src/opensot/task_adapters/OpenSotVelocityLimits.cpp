@@ -3,8 +3,8 @@
 using namespace XBot::Cartesian;
 
 OpenSotVelocityLimitsAdapter::OpenSotVelocityLimitsAdapter(ConstraintDescription::Ptr constr,
-                                                     XBot::ModelInterface::ConstPtr model):
-    OpenSotConstraintAdapter (constr, model)
+                                                     Context::ConstPtr context):
+    OpenSotConstraintAdapter (constr, context)
 {
     _ci_vlim = std::dynamic_pointer_cast<VelocityLimits>(constr);
 
@@ -22,7 +22,7 @@ ConstraintPtr OpenSotVelocityLimitsAdapter::constructConstraint()
     _model->getJointPosition(q);
 
     _opensot_vlim = boost::make_shared<VelocityLimitsSoT>(_ci_vlim->getQdotMax(),
-                                                 _ctx.getControlPeriod());
+                                                 _ctx->params()->getControlPeriod());
 
     return _opensot_vlim;
 }

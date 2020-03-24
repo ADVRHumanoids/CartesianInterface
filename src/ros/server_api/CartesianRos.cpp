@@ -35,8 +35,8 @@ geometry_msgs::Pose get_normalized_pose(const geometry_msgs::Pose& pose)
 }
 
 CartesianRos::CartesianRos(CartesianTask::Ptr cart_task,
-                           ModelInterface::ConstPtr model):
-    TaskRos(cart_task, model)
+                           RosContext::Ptr context):
+    TaskRos(cart_task, context)
 {
     registerType("Cartesian");
 
@@ -47,30 +47,30 @@ CartesianRos::CartesianRos(CartesianTask::Ptr cart_task,
         throw std::runtime_error("Provided task does not have expected type 'CartesianTask'");
     }
 
-    _reach_action_manager.reset(new ReachActionManager(_ctx.nh(), task_name, _cart));
+    _reach_action_manager.reset(new ReachActionManager(_ctx->nh(), task_name, _cart));
 
-    _pose_ref_pub = _ctx.nh().advertise<geometry_msgs::PoseStamped>(_task->getName() + "/current_reference", 1);
+    _pose_ref_pub = _ctx->nh().advertise<geometry_msgs::PoseStamped>(_task->getName() + "/current_reference", 1);
 
-    _vel_ref_pub = _ctx.nh().advertise<geometry_msgs::TwistStamped>(_task->getName() + "/current_velocity_reference", 1);
+    _vel_ref_pub = _ctx->nh().advertise<geometry_msgs::TwistStamped>(_task->getName() + "/current_velocity_reference", 1);
 
-    _pose_ref_sub = _ctx.nh().subscribe(_task->getName() + "/reference", 1,
+    _pose_ref_sub = _ctx->nh().subscribe(_task->getName() + "/reference", 1,
                                         &CartesianRos::online_position_reference_cb,
                                         this);
 
-    _vel_ref_sub = _ctx.nh().subscribe(_task->getName() + "/velocity_reference", 1,
+    _vel_ref_sub = _ctx->nh().subscribe(_task->getName() + "/velocity_reference", 1,
                                        &CartesianRos::online_velocity_reference_cb,
                                        this);
 
-    _set_base_link_srv = _ctx.nh().advertiseService(_task->getName() + "/set_base_link",
+    _set_base_link_srv = _ctx->nh().advertiseService(_task->getName() + "/set_base_link",
                                                     &CartesianRos::set_base_link_cb, this);
 
-    _set_ctrl_srv = _ctx.nh().advertiseService(_task->getName() + "/set_control_mode",
+    _set_ctrl_srv = _ctx->nh().advertiseService(_task->getName() + "/set_control_mode",
                                                &CartesianRos::set_control_mode_cb, this);
 
-    _set_safety_srv = _ctx.nh().advertiseService(_task->getName() + "/set_safety_limits",
+    _set_safety_srv = _ctx->nh().advertiseService(_task->getName() + "/set_safety_limits",
                                                  &CartesianRos::set_safety_lims_cb, this);
 
-    _get_info_srv = _ctx.nh().advertiseService(_task->getName() + "/get_cartesian_task_properties",
+    _get_info_srv = _ctx->nh().advertiseService(_task->getName() + "/get_cartesian_task_properties",
                                                &CartesianRos::get_task_info_cb, this);
 
 }
@@ -90,7 +90,7 @@ void CartesianRos::publish_ref(ros::Time time)
     geometry_msgs::PoseStamped pose_msg;
 
     pose_msg.header.stamp = time;
-    pose_msg.header.frame_id = _ctx.tf_prefix_slash() + _cart->getBaseLink();
+    pose_msg.header.frame_id = _ctx->tf_prefix_slash() + _cart->getBaseLink();
 
     Eigen::Affine3d base_T_ee;
     Eigen::Vector6d vel;

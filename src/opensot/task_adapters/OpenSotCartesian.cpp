@@ -3,8 +3,8 @@
 using namespace XBot::Cartesian;
 
 OpenSotCartesianAdapter::OpenSotCartesianAdapter(TaskDescription::Ptr task,
-                                                 XBot::ModelInterface::ConstPtr model):
-    OpenSotTaskAdapter(task, model),
+                                                 Context::ConstPtr context):
+    OpenSotTaskAdapter(task, context),
     _old_lambda(0.0)
 {
     _ci_cart = std::dynamic_pointer_cast<CartesianTask>(task);
@@ -60,7 +60,7 @@ void OpenSotCartesianAdapter::update(double time, double period)
     Eigen::Affine3d Tref;
     Eigen::Vector6d vref;
     _ci_cart->getPoseReference(Tref, &vref);
-    _opensot_cart->setReference(Tref, vref*_ctx.getControlPeriod());
+    _opensot_cart->setReference(Tref, vref*_ctx->params()->getControlPeriod());
 }
 
 bool OpenSotCartesianAdapter::onBaseLinkChanged()

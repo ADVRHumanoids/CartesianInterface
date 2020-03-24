@@ -4,16 +4,16 @@
 
 using namespace XBot::Cartesian;
 
-PosturalTaskImpl::PosturalTaskImpl(ModelInterface::ConstPtr model, int ndof):
-    TaskDescriptionImpl("Postural", "Postural", ndof, model),
+PosturalTaskImpl::PosturalTaskImpl(Context::ConstPtr context, int ndof):
+    TaskDescriptionImpl("Postural", "Postural", ndof, context),
     _use_inertia_matrix(false)
 {
     reset();
 }
 
 PosturalTaskImpl::PosturalTaskImpl(YAML::Node task_node,
-                           ModelInterface::ConstPtr model):
-    TaskDescriptionImpl(task_node, model, "Postural", model->getJointNum()),
+                                   Context::ConstPtr context):
+    TaskDescriptionImpl(task_node, context, "Postural", context->model()->getJointNum()),
     _use_inertia_matrix(false)
 {
     Eigen::MatrixXd weight;
@@ -23,13 +23,13 @@ PosturalTaskImpl::PosturalTaskImpl(YAML::Node task_node,
     {
         for(const auto& pair : task_node["weight"])
         {
-            if(!model->hasJoint(pair.first.as<std::string>()))
+            if(!_model->hasJoint(pair.first.as<std::string>()))
             {
                 std::string err = "Joint " + pair.first.as<std::string>() + " is undefined";
                 throw std::invalid_argument(err);
             }
 
-            int idx = model->getDofIndex(pair.first.as<std::string>());
+            int idx = _model->getDofIndex(pair.first.as<std::string>());
             weight(idx, idx) = pair.second.as<double>();
 
         }

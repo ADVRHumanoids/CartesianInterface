@@ -17,11 +17,12 @@
 using namespace XBot::Cartesian;
 
 OpenSotTaskAdapter::OpenSotTaskAdapter(TaskDescription::Ptr task,
-                                       ModelInterface::ConstPtr model
+                                       Context::ConstPtr context
                                        ):
     _vars({}),
-    _model(model),
-    _ci_task(task)
+    _model(context->model()),
+    _ci_task(task),
+    _ctx(context)
 {
 
 }
@@ -131,7 +132,7 @@ bool OpenSotTaskAdapter::onActivationStateChanged()
 }
 
 OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr task,
-                                                         XBot::ModelInterface::ConstPtr model)
+                                                         Context::ConstPtr context)
 {
     OpenSotTaskAdapter * task_adapter = nullptr;
 
@@ -141,24 +142,24 @@ OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr ta
         task_adapter = CallFunction<OpenSotTaskAdapter*>(task->getLibName(),
                                                          "create_opensot_" + task->getType() + "_adapter",
                                                          task,
-                                                         model,
+                                                         context,
                                                          detail::Version CARTESIO_ABI_VERSION);
     }
     else if(task->getType() == "Cartesian") /* Otherwise, construct supported tasks */
     {
-        task_adapter = new OpenSotCartesianAdapter(task, model);
+        task_adapter = new OpenSotCartesianAdapter(task, context);
     }
     else if(task->getType() == "Postural")
     {
-        task_adapter = new OpenSotPosturalAdapter(task, model);
+        task_adapter = new OpenSotPosturalAdapter(task, context);
     }
     else if(task->getType() == "Com")
     {
-        task_adapter = new OpenSotComAdapter(task, model);
+        task_adapter = new OpenSotComAdapter(task, context);
     }
     else if(task->getType() == "Subtask") /* Otherwise, construct supported tasks */
     {
-        task_adapter = new OpenSotSubtaskAdapter(task, model);
+        task_adapter = new OpenSotSubtaskAdapter(task, context);
     }
     else
     {
@@ -180,11 +181,12 @@ OpenSoT::OptvarHelper OpenSotTaskAdapter::DefaultVars()
 }
 
 OpenSotConstraintAdapter::OpenSotConstraintAdapter(ConstraintDescription::Ptr constr,
-                                                   XBot::ModelInterface::ConstPtr model
+                                                   Context::ConstPtr context
                                                    ):
     _ci_constr(constr),
-    _model(model),
-    _vars({})
+    _model(context->model()),
+    _vars({}),
+    _ctx(context)
 {
 
 }
@@ -230,7 +232,7 @@ ConstraintDescription::Ptr OpenSotConstraintAdapter::getConstraintDescription() 
 }
 
 OpenSotConstraintAdapter::Ptr OpenSotConstraintAdapter::MakeInstance(ConstraintDescription::Ptr constr,
-                                                                     XBot::ModelInterface::ConstPtr model)
+                                                                     Context::ConstPtr context)
 {
     OpenSotConstraintAdapter * constr_adapter = nullptr;
 
@@ -240,20 +242,20 @@ OpenSotConstraintAdapter::Ptr OpenSotConstraintAdapter::MakeInstance(ConstraintD
         constr_adapter = CallFunction<OpenSotConstraintAdapter*>(constr->getLibName(),
                                                                  "create_opensot_" + constr->getType() + "_adapter",
                                                                  constr,
-                                                                 model,
+                                                                 context,
                                                                  detail::Version CARTESIO_ABI_VERSION);
     }
     else if(constr->getType() == "ConstraintFromTask")
     {
-        constr_adapter = new OpenSotConstraintFromTaskAdapter(constr, model);
+        constr_adapter = new OpenSotConstraintFromTaskAdapter(constr, context);
     }
     else if(constr->getType() == "JointLimits") /* Otherwise, construct supported tasks */
     {
-        constr_adapter = new OpenSotJointLimitsAdapter(constr, model);
+        constr_adapter = new OpenSotJointLimitsAdapter(constr, context);
     }
     else if(constr->getType() == "VelocityLimits")
     {
-        constr_adapter = new OpenSotVelocityLimitsAdapter(constr, model);
+        constr_adapter = new OpenSotVelocityLimitsAdapter(constr, context);
     }
     else
     {

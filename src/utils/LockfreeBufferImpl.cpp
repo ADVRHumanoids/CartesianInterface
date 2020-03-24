@@ -20,11 +20,11 @@ ProblemDescription create_ik_prob(CartesianInterface * ci)
 }
 
 LockfreeBufferImpl::LockfreeBufferImpl(CartesianInterfaceImpl * ci,
-                                       ModelInterface::Ptr model):
-    CartesianInterfaceImpl(model, create_ik_prob(ci)),
-    _model(model),
-    _q_tmp(model->getJointNum()),
-    _q_tmp_read(model->getJointNum())
+                                       Context::Ptr context):
+    CartesianInterfaceImpl(create_ik_prob(ci), context),
+    _model(context->model()),
+    _q_tmp(context->model()->getJointNum()),
+    _q_tmp_read(context->model()->getJointNum())
 {
     _model_state_queue.reset(_q_tmp);
 

@@ -3,6 +3,7 @@
 
 #include <cartesian_interface/problem/Task.h>
 #include <cartesian_interface/problem/Constraint.h>
+#include <cartesian_interface/Context.h>
 
 #include <cstdio>
 #include <dlfcn.h>
@@ -15,25 +16,25 @@ class TaskFactory
 public:
 
     TaskFactory(YAML::Node prob_desc,
-                ModelInterface::ConstPtr model);
+                Context::ConstPtr context);
 
     TaskDescription::Ptr makeTask(std::string task_name);
 
 private:
 
     YAML::Node _prob_desc;
-    ModelInterface::ConstPtr _model;
+    Context::ConstPtr _context;
     std::map<std::string, TaskDescription::Ptr> _subtask_map;
 };
 
 std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
                                                      std::string task_name,
-                                                     ModelInterface::ConstPtr model
+                                                     Context::ConstPtr context
                                                      );
 
 std::shared_ptr<ConstraintDescription> MakeConstraintDescription(YAML::Node constr_node,
                                                                  ModelInterface::ConstPtr model,
-                                                                 std::string lib_name
+                                                                 Context::ConstPtr context
                                                                  );
 
 struct BadTaskDescription : public std::runtime_error

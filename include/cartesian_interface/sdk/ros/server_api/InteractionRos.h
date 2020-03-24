@@ -20,7 +20,7 @@ class ServerApi::InteractionRos : public ServerApi::CartesianRos
 public:
 
     InteractionRos(InteractionTask::Ptr task,
-                   ModelInterface::ConstPtr model);
+                   RosContext::Ptr context);
 
     virtual void run(ros::Time time) override;
 

@@ -19,7 +19,9 @@ class OpenSotSubtaskAdapter :
 public:
 
     OpenSotSubtaskAdapter(TaskDescription::Ptr task,
-                          ModelInterface::ConstPtr model);
+                          Context::ConstPtr context);
+
+    OpenSoT::OptvarHelper::VariableVector getRequiredVariables() const override;
 
     virtual TaskPtr constructTask() override;
 
@@ -34,7 +36,6 @@ private:
     SubtaskSoT::Ptr _sot_subtask;
     Subtask::Ptr _ci_subtask;
     OpenSotTaskAdapter::Ptr _task_adapter;
-
 };
 
 } }

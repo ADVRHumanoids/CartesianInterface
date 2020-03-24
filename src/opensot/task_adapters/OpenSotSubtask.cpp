@@ -3,8 +3,8 @@
 using namespace XBot::Cartesian;
 
 OpenSotSubtaskAdapter::OpenSotSubtaskAdapter(TaskDescription::Ptr task,
-                                             XBot::ModelInterface::ConstPtr model):
-    OpenSotTaskAdapter(task, model)
+                                             Context::ConstPtr context):
+    OpenSotTaskAdapter(task, context)
 {
     _ci_subtask = std::dynamic_pointer_cast<Subtask>(task);
 
@@ -14,7 +14,7 @@ OpenSotSubtaskAdapter::OpenSotSubtaskAdapter(TaskDescription::Ptr task,
     try
     {
         _task_adapter = OpenSotTaskAdapter::MakeInstance(_ci_subtask->getTask(),
-                                                         model);
+                                                         context);
     }
     catch(...)
     {
@@ -42,4 +42,10 @@ bool OpenSotSubtaskAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 void OpenSotSubtaskAdapter::update(double time, double period)
 {
     return _task_adapter->update(time, period);
+}
+
+
+OpenSoT::OptvarHelper::VariableVector OpenSotSubtaskAdapter::getRequiredVariables() const
+{
+    return _task_adapter->getRequiredVariables();
 }

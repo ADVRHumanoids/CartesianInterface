@@ -3,6 +3,9 @@
 
 #include "ros/client_api/CartesianRos.h"
 #include "ros/client_api/PosturalRos.h"
+#include "problem/Cartesian.h"
+#include "problem/Postural.h"
+#include "problem/Interaction.h"
 
 PYBIND11_MODULE(pyci, m) {
     
@@ -70,6 +73,10 @@ PYBIND11_MODULE(pyci, m) {
             .def("setReferencePosture",  &PosturalTask::setReferencePosture)
             .def("getReferencePostureMap",  py_postural_get_reference_map);
 
+    py::class_<InteractionTask,
+            CartesianTask,
+            InteractionTask::Ptr>(m, "InteractionTask", py::multiple_inheritance());
+
     py::class_<ClientApi::CartesianRos,
             CartesianTask,
             ClientApi::CartesianRos::Ptr>(m, "CartesianTaskRos", py::multiple_inheritance())
@@ -79,14 +86,32 @@ PYBIND11_MODULE(pyci, m) {
             PosturalTask,
             ClientApi::PosturalRos::Ptr>(m, "PosturalRos", py::multiple_inheritance());
 
-    
-    py::class_<RosClient>(m, "CartesianInterfaceRos")
+    py::class_<CartesianTaskImpl,
+            CartesianTask,
+            CartesianTaskImpl::Ptr>(m, "CartesianTaskImpl", py::multiple_inheritance());
+
+    py::class_<PosturalTaskImpl,
+            PosturalTask,
+            PosturalTaskImpl::Ptr>(m, "PosturalTaskImpl", py::multiple_inheritance());
+
+    py::class_<InteractionTaskImpl,
+            CartesianTaskImpl, InteractionTask,
+            InteractionTaskImpl::Ptr>(m, "InteractionTaskImpl", py::multiple_inheritance());
+
+    py::class_<CartesianInterfaceImpl,
+            CartesianInterfaceImpl::Ptr>(m, "CartesianInterface")
+            .def_static("MakeInstance", make_ci)
+            .def("getTask", &CartesianInterfaceImpl::getTask, py::return_value_policy::reference_internal)
+            .def("update", &CartesianInterfaceImpl::update)
+            .def("getTaskList", &CartesianInterfaceImpl::getTaskList)
+            .def("reset", (bool (CartesianInterfaceImpl::*)(void)) &CartesianInterfaceImpl::reset);
+
+    py::class_<RosClient,
+            CartesianInterfaceImpl,
+            RosClient::Ptr>(m, "CartesianInterfaceRos")
             .def(py::init<std::string>(), py::arg("namespace") = "cartesian")
             .def("__repr__", ci_repr)
-            .def("getTask", &RosClient::getTask, py::return_value_policy::reference_internal)
             .def("update", &RosClient::update, py::arg("time") = 0, py::arg("period") = 0)
-            .def("getTaskList", &RosClient::getTaskList)
-            .def("reset", (bool (RosClient::*)(void)) &RosClient::reset)
             .def("getControlMode", &RosClient::getControlMode)
             .def("setControlMode", &RosClient::setControlMode)
             .def("getBaseLink", &RosClient::getBaseLink)

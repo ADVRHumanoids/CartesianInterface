@@ -12,27 +12,28 @@ using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ServerApi;
 
 TaskRos::TaskRos(TaskDescription::Ptr task,
-                 ModelInterface::ConstPtr model):
+                 RosContext::Ptr context):
     _task(task),
     task_name(task->getName()),
-    _model(model)
+    _model(context->ci_context()->model()),
+    _ctx(context)
 {
-    _get_task_info_srv = _ctx.nh().advertiseService(task_name + "/get_task_properties",
+    _get_task_info_srv = _ctx->nh().advertiseService(task_name + "/get_task_properties",
                                                     &TaskRos::get_task_info_cb, this);
 
-    _set_lambda_srv = _ctx.nh().advertiseService(task_name + "/set_lambda",
+    _set_lambda_srv = _ctx->nh().advertiseService(task_name + "/set_lambda",
                                                  &TaskRos::set_lambda_cb, this);
 
-    _set_lambda2_srv = _ctx.nh().advertiseService(task_name + "/set_lambda2",
+    _set_lambda2_srv = _ctx->nh().advertiseService(task_name + "/set_lambda2",
                                                   &TaskRos::set_lambda2_cb, this);
 
-    _set_weight_srv = _ctx.nh().advertiseService(task_name + "/set_weight",
+    _set_weight_srv = _ctx->nh().advertiseService(task_name + "/set_weight",
                                                  &TaskRos::set_weight_cb, this);
 
-    _set_active_srv = _ctx.nh().advertiseService(task_name + "/set_active",
+    _set_active_srv = _ctx->nh().advertiseService(task_name + "/set_active",
                                                  &TaskRos::set_active_cb, this);
 
-    _task_changed_pub = _ctx.nh().advertise<std_msgs::String>(task_name + "/task_changed_event", 10);
+    _task_changed_pub = _ctx->nh().advertise<std_msgs::String>(task_name + "/task_changed_event", 10);
 
     _type_hierarchy.push_back("Task");
 }
@@ -207,22 +208,22 @@ const char * RosApiNotFound::what() const noexcept
 
 
 TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
-                                   ModelInterface::ConstPtr model)
+                                   RosContext::Ptr context)
 {
     TaskRos * ros_adapter = nullptr;
 
     /* Try all supported dynamic casts, from the most derived to the least derived class */
     if(auto inter = std::dynamic_pointer_cast<InteractionTask>(task))
     {
-        ros_adapter = new InteractionRos(inter, model);
+        ros_adapter = new InteractionRos(inter, context);
     }
     else if(auto cart = std::dynamic_pointer_cast<CartesianTask>(task))
     {
-        ros_adapter = new CartesianRos(cart, model);
+        ros_adapter = new CartesianRos(cart, context);
     }
     else if(auto post = std::dynamic_pointer_cast<PosturalTask>(task))
     {
-        ros_adapter = new PosturalRos(post, model);
+        ros_adapter = new PosturalRos(post, context);
     }
     else if(!task->getLibName().empty()) /* Otherwise, construct plugin, or fallback to generic Task interface */
     {
@@ -231,7 +232,7 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
             ros_adapter = CallFunction<TaskRos*>(task->getLibName(),
                                                  "create_cartesio_" + task->getType() + "_ros_api",
                                                  task,
-                                                 model,
+                                                 context,
                                                  detail::Version CARTESIO_ABI_VERSION);
         }
         catch(LibNotFound&)
@@ -250,7 +251,7 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
         }
     }
 
-    if(!ros_adapter) ros_adapter = new TaskRos(task, model);
+    if(!ros_adapter) ros_adapter = new TaskRos(task, context);
 
     Ptr rosapi_shared_ptr(ros_adapter);
 

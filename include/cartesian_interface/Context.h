@@ -4,11 +4,29 @@
 #include <memory>
 #include <stdexcept>
 #include <cartesian_interface/Macro.h>
+#include <XBotInterface/ModelInterface.h>
 
 namespace XBot { namespace Cartesian {
 
-class ContextImpl;
+class ProblemDescription;
 
+class Parameters
+{
+
+public:
+
+    CARTESIO_DECLARE_SMART_PTR(Parameters)
+
+    Parameters(double dt);
+
+    double getControlPeriod() const;
+
+private:
+
+    double _dt;
+
+
+};
 
 class Context
 {
@@ -17,39 +35,21 @@ public:
 
     CARTESIO_DECLARE_SMART_PTR(Context)
 
-    Context();
+    Context(Parameters::Ptr params,
+            ModelInterface::Ptr model);
 
-    double getControlPeriod() const;
+    Parameters::Ptr params();
+    Parameters::ConstPtr params() const;
 
-    ~Context();
+    ModelInterface::Ptr model();
+    ModelInterface::ConstPtr model() const;
 
-    static Ptr MakeContext(double control_period);
-
-private:
-
-    static std::weak_ptr<ContextImpl> _weak_impl;
-    std::shared_ptr<ContextImpl> _impl;
-
-};
-
-struct ContextEmpty : public std::exception
-{
-    const char * what() const noexcept override;
-};
-
-struct ContextInvalid : public std::exception
-{
-    ContextInvalid(std::string reason);
-    const char * what() const noexcept override;
 
 private:
 
-    std::string _reason;
-};
+    Parameters::Ptr _params;
+    ModelInterface::Ptr _model;
 
-struct ContextRedefinition : public std::exception
-{
-    const char * what() const noexcept override;
 };
 
 

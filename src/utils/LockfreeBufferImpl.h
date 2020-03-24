@@ -13,7 +13,7 @@ namespace XBot { namespace Cartesian {
         
         typedef std::shared_ptr<LockfreeBufferImpl> Ptr;
         
-        LockfreeBufferImpl(CartesianInterfaceImpl * ci, ModelInterface::Ptr model);
+        LockfreeBufferImpl(CartesianInterfaceImpl * ci, Context::Ptr context);
         
         void callAvailable(CartesianInterface * ci);
         

@@ -6,10 +6,16 @@ using namespace XBot::Cartesian;
 RosExecutor::RosExecutor(std::string ns):
     _nh(ns),
     _nh_priv("~"),
-    _logger(MatLogger::getLogger("/tmp/ros_executor_log")),
     _visual_mode(false)
 {
     
+    /* Create logger */
+    MatLogger2::Options logger_opt;
+    logger_opt.default_buffer_size = 1e5;
+    _logger = MatLogger2::MakeLogger("/tmp/ros_executor_log", logger_opt);
+    _logger->set_buffer_mode(VariableBuffer::Mode::circular_buffer);
+
+
     init_ros();
     
     init_load_config();
@@ -69,8 +75,6 @@ void RosExecutor::init_load_config()
     }
 
     _period = 1.0 / _nh_priv.param("rate", 100.0);
-
-    _ctx = Context::MakeContext(_period);
 
 }
 
@@ -152,6 +156,12 @@ void RosExecutor::init_load_model()
     
     /* Initialize to home or to current robot state */
     reset_model_state();
+
+    /* Context for CI */
+    _ctx = std::make_shared<Context>(
+                std::make_shared<Parameters>(_period),
+                _model);
+
 }
 
 void RosExecutor::reset_model_state()
@@ -233,17 +243,8 @@ void RosExecutor::init_load_world_frame()
 CartesianInterfaceImpl::Ptr RosExecutor::load_controller(std::string impl_name, 
                                                    ProblemDescription ik_problem)
 {
-    CartesianInterfaceImpl::Ptr impl;
-    
-    std::string path_to_shared_lib = XBot::Utils::FindLib("libCartesian" + impl_name + ".so", "LD_LIBRARY_PATH");
-    if (path_to_shared_lib == "") 
-    {
-        throw std::runtime_error("libCartesian" + impl_name + ".so must be listed inside LD_LIBRARY_PATH");
-    }
-    
-    impl = SoLib::getFactoryWithArgs<CartesianInterfaceImpl>(path_to_shared_lib, 
-                                                             impl_name + "Impl", 
-                                                             _model, ik_problem);
+    auto impl = CartesianInterfaceImpl::MakeInstance(impl_name,
+                                                     ik_problem, _ctx);
     
     if(!impl)
     {
@@ -270,7 +271,7 @@ bool RosExecutor::loader_callback(cartesian_interface::LoadControllerRequest& re
     if(!req.problem_description_string.empty()) // first look if problem was passed as string
     {
         ik_prob = ProblemDescription(YAML::Load(req.problem_description_string), 
-                                     _model);
+                                     _ctx);
         res.message += "Problem description taken from string -- ";
     }
     else if(!req.problem_description_name.empty()) // then, look if it was passed by name 
@@ -278,7 +279,7 @@ bool RosExecutor::loader_callback(cartesian_interface::LoadControllerRequest& re
         auto ik_yaml = Utils::LoadProblemDescription(_options_source, 
                                                      req.problem_description_name);
         
-        ik_prob = ProblemDescription(ik_yaml, _model);
+        ik_prob = ProblemDescription(ik_yaml, _ctx);
         
         res.message += "Problem description taken by name -- ";
     }
@@ -286,7 +287,7 @@ bool RosExecutor::loader_callback(cartesian_interface::LoadControllerRequest& re
     {
         auto ik_yaml = Utils::LoadProblemDescription(_options_source);
         
-        ik_prob = ProblemDescription(ik_yaml, _model);
+        ik_prob = ProblemDescription(ik_yaml, _ctx);
         
         res.message += "Default problem description will be used -- ";
     }
@@ -357,7 +358,7 @@ void RosExecutor::load_ros_api()
     opt.ros_namespace = _nh.getNamespace();
     _xbot_cfg.get_parameter("tf_prefix", opt.tf_prefix);
     _ros_api.reset();
-    _ros_api = std::make_shared<RosServerClass>(_current_impl, _model, opt);
+    _ros_api = std::make_shared<RosServerClass>(_current_impl, opt);
 }
 
 void RosExecutor::init_create_loop_timer()
@@ -387,6 +388,16 @@ void RosExecutor::spin()
                  "%s: started looping @%.1f Hz\n", ros::this_node::getName().c_str(), 1./_period);
     
     ros::spin();
+}
+
+CartesianInterfaceImpl& RosExecutor::solver()
+{
+    return *_current_impl;
+}
+
+const XBot::ModelInterface& RosExecutor::model()
+{
+    return *_model;
 }
 
 void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
@@ -484,10 +495,7 @@ void RosExecutor::world_frame_to_param()
 
 RosExecutor::~RosExecutor()
 {
-
     world_frame_to_param();
-    
-    _logger->flush();
 }
 
 

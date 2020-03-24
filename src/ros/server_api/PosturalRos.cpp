@@ -4,15 +4,15 @@ using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ServerApi;
 
 PosturalRos::PosturalRos(PosturalTask::Ptr task,
-                         XBot::ModelInterface::ConstPtr model):
-    TaskRos(task, model),
+                         RosContext::Ptr context):
+    TaskRos(task, context),
     _postural(task)
 {
     registerType("Postural");
 
-    _current_ref_pub = _ctx.nh().advertise<sensor_msgs::JointState>(task->getName() + "/current_reference", 1);
+    _current_ref_pub = _ctx->nh().advertise<sensor_msgs::JointState>(task->getName() + "/current_reference", 1);
 
-    _ref_sub = _ctx.nh().subscribe(task->getName() + "/reference", 1,
+    _ref_sub = _ctx->nh().subscribe(task->getName() + "/reference", 1,
                                    &PosturalRos::on_ref_recv, this);
 }
 

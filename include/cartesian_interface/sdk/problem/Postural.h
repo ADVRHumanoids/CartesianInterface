@@ -15,7 +15,7 @@ namespace XBot { namespace Cartesian {
             public virtual PosturalTask
     {
         
-
+        CARTESIO_DECLARE_SMART_PTR(PosturalTaskImpl)
 
         
         /**
@@ -23,9 +23,9 @@ namespace XBot { namespace Cartesian {
          * 
          * @param ndof The number of robot dofs (including 6 virtual joints)
          */
-        PosturalTaskImpl(ModelInterface::ConstPtr model, int ndof);
+        PosturalTaskImpl(Context::ConstPtr context, int ndof);
 
-        PosturalTaskImpl(YAML::Node node, ModelInterface::ConstPtr model);
+        PosturalTaskImpl(YAML::Node node, Context::ConstPtr contextl);
 
         /**
          * @brief use_inertia_matrix if true the postural task is weighted with the inertia matrix.

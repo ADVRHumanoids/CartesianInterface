@@ -53,7 +53,10 @@ inline XBot::Cartesian::Utils::SyncFromIO::SyncFromIO(XBot::Handle::Ptr handle,
     auto ros_model = ModelInterface::getModel(handle->getPathToConfigFile());
     
     /* Lockfree buffer for wait-free communication between RT <-> NRT */
-    _ci_buf = std::make_shared<LockfreeBufferImpl>(ci.get(), ros_model);
+    auto ctx = std::make_shared<Context>(
+                std::make_shared<Parameters>(*ci->getContext()->params()),
+                ros_model);
+    _ci_buf = std::make_shared<LockfreeBufferImpl>(ci.get(), ctx);
     _ci_buf->pushState(ci.get(), model.get());
     _ci_buf->updateState();
     
@@ -61,7 +64,7 @@ inline XBot::Cartesian::Utils::SyncFromIO::SyncFromIO(XBot::Handle::Ptr handle,
     RosServerClass::Options opt;
     opt.tf_prefix = tf_prefix;
     opt.ros_namespace = ros_namespace;
-    auto ci_ros = std::make_shared<RosServerClass>(_ci_buf, ros_model, opt);
+    auto ci_ros = std::make_shared<RosServerClass>(_ci_buf, opt);
     
     /* Initialize required variables in shared memory */
     auto shmem = handle->getSharedMemory();

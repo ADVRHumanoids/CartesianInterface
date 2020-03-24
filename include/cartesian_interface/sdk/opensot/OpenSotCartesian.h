@@ -20,7 +20,7 @@ class OpenSotCartesianAdapter :
 public:
 
     OpenSotCartesianAdapter(TaskDescription::Ptr task,
-                            ModelInterface::ConstPtr model);
+                            Context::ConstPtr context);
 
     virtual TaskPtr constructTask() override;
 

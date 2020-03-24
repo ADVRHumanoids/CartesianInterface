@@ -13,22 +13,24 @@ class InteractionTaskImpl : public virtual InteractionTask,
 
 public:
 
-    InteractionTaskImpl(ModelInterface::ConstPtr model,
+    CARTESIO_DECLARE_SMART_PTR(InteractionTaskImpl)
+
+    InteractionTaskImpl(Context::ConstPtr context,
                         std::string name,
                         std::string distal_link,
                         std::string base_link = "world");
 
-    InteractionTaskImpl(ModelInterface::ConstPtr model,
+    InteractionTaskImpl(Context::ConstPtr context,
                         std::string name,
                         std::string type,
                         std::string distal_link,
                         std::string base_link);
 
     InteractionTaskImpl(YAML::Node node,
-                        ModelInterface::ConstPtr model);
+                        Context::ConstPtr context);
 
     void update(double time, double period) override;
-    void log(MatLogger::Ptr logger, bool init_logger, int buf_size) override;
+    void log(MatLogger2::Ptr logger, bool init_logger, int buf_size) override;
 
     const Eigen::Matrix6d& getStiffness() const override;
     const Eigen::Matrix6d& getDamping() const override;
@@ -61,7 +63,7 @@ class AdmittanceTaskImpl : public virtual AdmittanceTask,
 public:
 
     AdmittanceTaskImpl(YAML::Node node,
-                       ModelInterface::ConstPtr model);
+                       Context::ConstPtr context);
 
     const Eigen::Vector6d& getForceDeadzone() const override;
     const std::vector<std::string>& getForceEstimationChains() const override;

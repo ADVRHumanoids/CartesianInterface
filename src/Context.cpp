@@ -3,70 +3,46 @@
 
 using namespace XBot::Cartesian;
 
-class XBot::Cartesian::ContextImpl
+
+
+Parameters::Parameters(double dt):
+    _dt(dt)
 {
 
-public:
+}
 
-    double control_period;
-};
-
-std::weak_ptr<ContextImpl> Context::_weak_impl;
-
-Context::Context()
+double Parameters::getControlPeriod() const
 {
-    if(auto ptr = _weak_impl.lock())
+    return _dt;
+}
+
+Context::Context(Parameters::Ptr params,
+                 ModelInterface::Ptr model):
+    _params(params),
+    _model(model)
+{
+    if(!model)
     {
-        _impl = ptr;
-    }
-    else
-    {
-        throw ContextEmpty();
+        throw std::invalid_argument("Model is nullptr");
     }
 }
 
-double Context::getControlPeriod() const
+Parameters::Ptr Context::params()
 {
-    return _impl->control_period;
+    return _params;
 }
 
-Context::~Context()
+Parameters::ConstPtr Context::params() const
 {
+    return _params;
 }
 
-Context::Ptr Context::MakeContext(double control_period)
+XBot::ModelInterface::Ptr Context::model()
 {
-    if(auto ptr = _weak_impl.lock())
-    {
-        throw ContextRedefinition();
-    }
-
-    auto instance = std::make_shared<ContextImpl>();
-    instance->control_period = control_period;
-
-    _weak_impl = instance;
-
-    return std::make_shared<Context>();
+    return _model;
 }
 
-ContextInvalid::ContextInvalid(std::string reason):
-    _reason(reason)
+XBot::ModelInterface::ConstPtr Context::model() const
 {
-
+    return _model;
 }
-
-const char * ContextInvalid::what() const noexcept
-{
-    return ("Invalid context object: " + _reason).c_str();
-}
-
-const char * ContextRedefinition::what() const noexcept
-{
-    return "Valid context already defined";
-}
-
-const char * ContextEmpty::what() const noexcept
-{
-    return "Context is undefined";
-}
-

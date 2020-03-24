@@ -39,7 +39,7 @@ public:
     /* The task implementation constructor signature must be
      * as follows */
     AngularMomentumImpl(YAML::Node task_node,
-                        ModelInterface::ConstPtr model);
+                        Context::ConstPtr context);
 
     /* Implement the task API */
     Eigen::Vector3d getReference() const override;
@@ -48,7 +48,7 @@ public:
     /* Customize update, reset and log */
     void update(double time, double period) override;
     void reset() override;
-    void log(MatLogger::Ptr logger, bool init_logger, int buf_size) override;
+    void log(MatLogger2::Ptr logger, bool init_logger, int buf_size) override;
 
 private:
 

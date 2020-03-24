@@ -8,13 +8,16 @@
 #include "cartesian_interface/sdk/problem/Interaction.h"
 
 using namespace XBot::Cartesian;
-auto ctx = Context::MakeContext(0.001);
+
 
 TEST(TestCartesian, checkDefault)
 {
 
     auto model = GetTestModel();
-    CartesianTaskImpl t(model, "MyTask", "arm1_8", "pelvis");
+    auto ctx = std::make_shared<Context>(
+                std::make_shared<Parameters>(.001),
+                model);
+    CartesianTaskImpl t(ctx, "MyTask", "arm1_8", "pelvis");
 
     ASSERT_TRUE(t.validate());
 
@@ -64,7 +67,10 @@ TEST(TestCartesian, checkDefaultYaml1)
     auto yaml = YAML::Load(yaml_str);
 
     auto model = GetTestModel();
-    CartesianTaskImpl t(yaml, model);
+    auto ctx = std::make_shared<Context>(
+                std::make_shared<Parameters>(.001),
+                model);
+    CartesianTaskImpl t(yaml, ctx);
 
     ASSERT_EQ(t.getName(), "larm");
     ASSERT_EQ(t.getType(), "Cartesian");
@@ -94,7 +100,10 @@ TEST(TestCartesian, checkDefaultYaml2)
     auto yaml = YAML::Load(yaml_str);
 
     auto model = GetTestModel();
-    CartesianTaskImpl t(yaml, model);
+    auto ctx = std::make_shared<Context>(
+                std::make_shared<Parameters>(.001),
+                model);
+    CartesianTaskImpl t(yaml, ctx);
 
     ASSERT_EQ(t.getName(), "larm");
     ASSERT_EQ(t.getType(), "Cartesian");
@@ -127,7 +136,10 @@ TEST(TestCartesian, checkAdmittance)
     auto yaml = YAML::Load(yaml_str);
 
     auto model = GetTestModel();
-    AdmittanceTaskImpl t(yaml, model);
+    auto ctx = std::make_shared<Context>(
+                std::make_shared<Parameters>(.001),
+                model);
+    AdmittanceTaskImpl t(yaml, ctx);
 
     Eigen::Vector6d vec;
     vec << 10, 10, 10, 3, 3, 3;
@@ -168,7 +180,10 @@ TEST(TestCartesian, checkObserver)
     auto yaml = YAML::Load(yaml_str);
 
     auto model = GetTestModel();
-    CartesianTaskImpl t(yaml, model);
+    auto ctx = std::make_shared<Context>(
+                std::make_shared<Parameters>(.001),
+                model);
+    CartesianTaskImpl t(yaml, ctx);
 
 
     struct Obs : CartesianTaskObserver

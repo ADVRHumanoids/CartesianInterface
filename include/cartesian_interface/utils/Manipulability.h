@@ -27,7 +27,6 @@ public:
 
     ~ManipulabilityAnalyzer()
     {
-        _logger->flush();
     }
     
     void compute();
@@ -47,7 +46,7 @@ private:
     bool compute_task_matrix(CartesianTask::Ptr task, Eigen::MatrixXd& A, Eigen::Affine3d& T);
     void publish();
     
-    XBot::MatLogger::Ptr _logger;
+    XBot::MatLogger2::Ptr _logger;
     
     ModelInterface::ConstPtr _model;
     ProblemDescription _ik_problem;

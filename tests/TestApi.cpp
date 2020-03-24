@@ -67,11 +67,13 @@ protected:
          
          YAML::Node ik_yaml = YAML::LoadFile(path_to_cfg + "centauro_test_stack.yaml");
 
-         auto ctx = Context::MakeContext(0.001);
+         auto ctx = std::make_shared<Context>(
+                     std::make_shared<Parameters>(.01),
+                     model);
          
-         ProblemDescription ik_problem(ik_yaml, model);
+         ProblemDescription ik_problem(ik_yaml, ctx);
          
-         ci = std::make_shared<CartesianInterfaceImpl>(model, ik_problem);
+         ci = std::make_shared<CartesianInterfaceImpl>(ik_problem, ctx);
          
      }
 
@@ -378,8 +380,7 @@ TEST_F(TestApi, checkWaypoints)
 
 TEST_F(TestApi, checkLimits)
 {
-    Context ctx;
-    const double dt = ctx.getControlPeriod();
+    const double dt = ci->getContext()->params()->getControlPeriod();
     
     
     auto logger = XBot::MatLogger::getLogger("/tmp/checkLimits_logger");

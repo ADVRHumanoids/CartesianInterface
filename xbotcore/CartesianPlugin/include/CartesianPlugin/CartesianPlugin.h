@@ -65,7 +65,7 @@ private:
 
     Eigen::VectorXd _q, _qdot, _k, _d;
 
-    XBot::MatLogger::Ptr _logger;
+    XBot::MatLogger2::Ptr _logger;
 
 };
 

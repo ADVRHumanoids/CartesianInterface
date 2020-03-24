@@ -69,7 +69,7 @@ or from ``ConstraintDescription`` if it's a constraint.
         /* Customize update, reset and log */
         void update(double time, double period) override;
         void reset() override;
-        void log(MatLogger::Ptr logger, bool init_logger, int buf_size) override;
+        void log(MatLogger2::Ptr logger, bool init_logger, int buf_size) override;
 
     private:
 
@@ -162,7 +162,7 @@ if the user stops providing references, the desired value drops to zero automati
         _lref.setZero();
     }
 
-    void XBot::Cartesian::AngularMomentumImpl::log(MatLogger::Ptr logger,
+    void XBot::Cartesian::AngularMomentumImpl::log(MatLogger2::Ptr logger,
                                                    bool init_logger,
                                                    int buf_size)
     {

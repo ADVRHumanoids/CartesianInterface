@@ -44,22 +44,16 @@ class TestRos: public ::testing::Test
 
         YAML::Node ik_yaml = YAML::LoadFile(path_to_cfg + "centauro_test_stack.yaml");
 
-        auto ctx = Context::MakeContext(0.001);
+        auto ctx = std::make_shared<Context>(
+                    std::make_shared<Parameters>(.001),
+                    model);
 
-        ProblemDescription ik_problem(ik_yaml, model);
+        ProblemDescription ik_problem(ik_yaml, ctx);
 
-        std::string impl_name = "OpenSot";
-        std::string path_to_shared_lib = XBot::Utils::FindLib("libCartesian" + impl_name + ".so", "LD_LIBRARY_PATH");
-        if (path_to_shared_lib == "")
-        {
-            throw std::runtime_error("libCartesian" + impl_name + ".so must be listed inside LD_LIBRARY_PATH");
-        }
+        ci = CartesianInterfaceImpl::MakeInstance("OpenSot",
+                                                  ik_problem, ctx);
 
-        ci.reset( CallFunction<CartesianInterfaceImpl*>(path_to_shared_lib,
-                                                        "create_instance",
-                                                        model, ik_problem) );
-
-        _ctx = RosContext::MakeContext(ros::NodeHandle("cartesian"), "ci");
+        _ros_ctx = std::make_shared<RosContext>(ros::NodeHandle("cartesian"), "ci", ctx);
     }
 
     void TearDown() override
@@ -68,10 +62,10 @@ class TestRos: public ::testing::Test
     }
 
     std::unique_ptr<Process> _roscore;
-    RosContext::Ptr _ctx;
 
 protected:
 
+    RosContext::Ptr _ros_ctx;
     CartesianInterfaceImpl::Ptr ci;
 };
 
@@ -80,7 +74,7 @@ TEST_F(TestRos, check1)
     auto larm = std::dynamic_pointer_cast<CartesianTask>(ci->getTask("arm1_8"));
     ASSERT_TRUE(bool(larm));
 
-    auto larm_ros_srv = ServerApi::TaskRos::MakeInstance(larm, ci->getModel());
+    auto larm_ros_srv = ServerApi::TaskRos::MakeInstance(larm, _ros_ctx);
 
     larm_ros_srv.reset();
 
