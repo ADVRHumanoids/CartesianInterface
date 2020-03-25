@@ -65,7 +65,7 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
     {
         auto frontend = boost::make_shared<OpenSoT::solvers::nHQP>(as.getStack(),
                                                                    as.getBounds(),
-                                                                   as.getRegularisationTask(),
+                                                                   //as.getRegularisationTask(),
                                                                    eps_regularisation,
                                                                    be_solver);
         if(options && options["nhqp_min_sv_ratio"])
