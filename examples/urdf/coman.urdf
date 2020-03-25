@@ -919,7 +919,7 @@ and to define the end effectors of the robot -->
       <origin rpy="3.14159265359 0 1.570796326795" xyz="0 0 0.0718"/>
       <material name="dark_grey"/>
       <geometry name="LForearm_visual">
-        <mesh filename="package://cartesian_interface/examples/mesh/coman/Forearm0.STL" scale="0.1 0.1 0.1"/>
+        <mesh filename="package://cartesian_interface/examples/mesh/coman/Forearm0.STL" scale="1.0 1.0 1.0"/>
       </geometry>
     </visual>
     <collision>
@@ -986,7 +986,7 @@ and to define the end effectors of the robot -->
       <origin rpy="3.14159265359 0 1.570796326795" xyz="0 0 0.0718"/>
       <material name="dark_grey"/>
       <geometry name="RForearm_visual">
-        <mesh filename="package://cartesian_interface/examples/mesh/coman/Forearm0.STL" scale="0.1 0.1 0.1"/>
+        <mesh filename="package://cartesian_interface/examples/mesh/coman/Forearm0.STL" scale="1.0 1.0 1.0"/>
       </geometry>
     </visual>
     <collision>
@@ -1134,10 +1134,10 @@ and to define the end effectors of the robot -->
       <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
     </inertial>
     <visual>
-      <origin rpy="-1.5707963268 0 3.14159265359" xyz="0.007 0.01 -0.04"/>
+      <origin rpy="0 0 3.14159265359" xyz="0 0.01 -0.04"/>
       <material name="dark_grey"/>
       <geometry name="RSoftHand_visual">
-        <mesh filename="package://cartesian_interface/examples/mesh/coman/SoftHandOpen.STL" scale="0.1 0.1 0.1"/>
+        <mesh filename="package://cartesian_interface/examples/mesh/coman/SoftHandOpen.STL" scale="1E-3 1E-3 1E-3"/>
       </geometry>
     </visual>
     <collision>
@@ -1154,10 +1154,10 @@ and to define the end effectors of the robot -->
       <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
     </inertial>
     <visual>
-      <origin rpy="-1.5707963268 0 0" xyz="0.007 -0.01 -0.04"/>
+      <origin rpy="0 0 0" xyz="0.007 -0.01 -0.04"/>
       <material name="dark_grey"/>
       <geometry name="LSoftHand_visual">
-        <mesh filename="package://cartesian_interface/examples/mesh/coman/SoftHandOpen.STL" scale="-0.1 0.1 0.1"/>
+        <mesh filename="package://cartesian_interface/examples/mesh/coman/SoftHandOpen.STL" scale="-1E-3 1E-3 1E-3"/>
       </geometry>
     </visual>
     <collision>
