@@ -64,7 +64,6 @@ add_service_files(
     SetJoystickTaskMaxSpeed.srv
     SetJoystickTaskBaseFrame.srv
     GetCartesianTaskInfo.srv
-    ResetVirtualJoints.srv
     SetWeight.srv
     SetLambda.srv
     SetLambda2.srv
