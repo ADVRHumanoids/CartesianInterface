@@ -81,31 +81,6 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
             }
         }
 
-        if(options && options["nhqp_min_task_scaling_factor"])
-        {
-            frontend->setMinTaskScalingFactor(options["nhqp_min_task_scaling_factor"].as<double>());
-        }
-
-        if(options && options["nhqp_regularize_A"])
-        {
-            frontend->enableRegularizeA(options["nhqp_regularize_A"].as<bool>());
-        }
-
-        if(options && options["nhqp_regularize_b"] && options["nhqp_lambda_max"])
-        {
-            frontend->enableRegularizeb(options["nhqp_regularize_b"].as<bool>(),
-                    options["nhqp_lambda_max"].as<double>());
-        }
-        else if(options && options["nhqp_regularize_b"])
-        {
-            frontend->enableRegularizeb(options["nhqp_regularize_b"].as<bool>());
-        }
-
-        if(options && options["nhqp_unconstrained"])
-        {
-            frontend->setUnconstrained(options["nhqp_unconstrained"].as<bool>());
-        }
-
         return std::move(frontend);
     }
     else
@@ -353,13 +328,6 @@ bool OpenSotImpl::update(double time, double period)
     for(auto c : _constr_adapters)
     {
         c->update(time, period);
-    }
-
-    /* Trying force space tasks */
-    if(_force_space_references)
-    {
-        _model->getInertiaInverse(_js_inertia_inv);
-        dynamic_cast<OpenSoT::solvers::nHQP&>(*_solver).setInertiaMatrixInverse(_js_inertia_inv);
     }
 
     /* Update tasks and solve */

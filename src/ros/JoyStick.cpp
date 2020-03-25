@@ -1,5 +1,4 @@
 #include <cartesian_interface/joystick/JoyStick.h>
-#include <cartesian_interface/SetTaskInfo.h>
 #include <cartesian_interface/GetTaskInfo.h>
 #include <tf_conversions/tf_eigen.h>
 #include <geometry_msgs/Transform.h>
@@ -252,7 +251,6 @@ void JoyStick::setVelocityCtrl()
 {
     auto ctrl_mode = _ci->getControlMode(_distal_links.at(_selected_task));
 
-    cartesian_interface::SetTaskInfo srv;
     if(ctrl_mode == ControlType::Velocity)
     {
         _ci->setControlMode(_distal_links.at(_selected_task), ControlType::Position);
