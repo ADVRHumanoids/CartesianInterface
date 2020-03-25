@@ -18,7 +18,6 @@
 #include <cartesian_interface/ros/RosServerClass.h>
 #include <cartesian_interface/problem/ProblemDescription.h>
 #include <cartesian_interface/LoadController.h>
-#include <cartesian_interface/ResetVirtualJoints.h>
 #include <cartesian_interface/utils/LoadConfig.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 
