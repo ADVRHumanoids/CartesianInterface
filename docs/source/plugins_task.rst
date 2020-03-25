@@ -60,7 +60,7 @@ or from ``ConstraintDescription`` if it's a constraint.
         /* The task implementation constructor signature must be
          * as follows */
         AngularMomentumImpl(YAML::Node task_node,
-                            ModelInterface::ConstPtr model);
+                            Context::ConstPtr context);
 
         /* Implement the task API */
         Eigen::Vector3d getReference() const override;
@@ -108,9 +108,9 @@ The base class will do the same jobs for all *common Task parameters*.
 
 
     AngularMomentumImpl::AngularMomentumImpl(YAML::Node task_node,
-                                             XBot::ModelInterface::ConstPtr model):
+                                             Context::ConstPtr context):
         TaskDescriptionImpl(task_node,
-                            model,
+                            context,
                             "AngularMomentum",
                             3),
         _lref(0,0,0),
@@ -171,7 +171,7 @@ if the user stops providing references, the desired value drops to zero automati
 
         if(init_logger)
         {
-            logger->createVectorVariable(getName() + "_ref", 3, 1, buf_size);
+            logger->create(getName() + "_ref", 3, 1, buf_size);
             return;
         }
 
@@ -183,7 +183,7 @@ if the user stops providing references, the desired value drops to zero automati
 
 .. code-block:: c++
 
-    CARTESIO_REGISTER_TASK_PLUGIN(AngularMomentumImpl)
+    CARTESIO_REGISTER_TASK_PLUGIN(AngularMomentumImpl, AngularMomentum)
 
 
 

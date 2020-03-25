@@ -103,16 +103,19 @@ Based on this, we create all required classes, which include:
         // context object which stores some information, such as
         // the control period
         const double dt = 0.01;
-        auto ctx = Context::MakeContext(dt);
+        auto ctx = std::make_shared<Context>(
+                    std::make_shared<Parameters>(dt),
+                    model
+                );
 
         // load the ik problem given a yaml file
         auto ik_pb_yaml = YAML::LoadFile(IK_PB_PATH);
-        ProblemDescription ik_pb(ik_pb_yaml, model);
+        ProblemDescription ik_pb(ik_pb_yaml, ctx);
 
         // we are finally ready to make the CartesIO solver "OpenSot"
         auto solver = CartesianInterfaceImpl::MakeInstance("OpenSot",
-                                                           model,
-                                                           ik_pb);
+                                                           ik_pb, ctx
+                                                           );
 
 Part II: control loop
 ^^^^^^^^^^^^^^^^^^^^^

@@ -55,7 +55,7 @@ PYBIND11_MODULE(pyci, m) {
             .def("getControlMode", &CartesianTask::getControlMode)
             .def("getCurrentSegmentId", &CartesianTask::getCurrentSegmentId)
             .def("getVelocityLimits", py_task_get_vel_lims)
-            .def("getAccekerationLimits", py_task_get_acc_lims)
+            .def("getAccelerationLimits", py_task_get_acc_lims)
             .def("setBaseLink", &CartesianTask::setBaseLink)
             .def("setWayPoints", &CartesianTask::setWayPoints)
             .def("setPoseTarget", &CartesianTask::setPoseTarget)

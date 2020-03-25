@@ -32,7 +32,7 @@ Easy!
         CARTESIO_DECLARE_SMART_PTR(AngularMomentumRos)
 
         AngularMomentumRos(TaskDescription::Ptr task,
-                           ModelInterface::ConstPtr model);
+                           RosContext::Ptr ros_context);
 
         void run(ros::Time time) override;
 
@@ -65,8 +65,8 @@ Easy!
     using namespace XBot::Cartesian::ServerApi;
 
     AngularMomentumRos::AngularMomentumRos(TaskDescription::Ptr task,
-                                           XBot::ModelInterface::ConstPtr model):
-        TaskRos(task, model)
+                                           RosContext::Ptr ros_context):
+        TaskRos(task, ros_context)
     {
         /* Type cast to the required type, and throw on failure */
         _ci_angmom = std::dynamic_pointer_cast<AngularMomentum>(task);
@@ -74,10 +74,10 @@ Easy!
                                                  "does not have expected type 'AngularMomentum'");
 
         /* Open topics */
-        _ref_sub = _ctx.nh().subscribe(task->getName() + "/reference", 1,
+        _ref_sub = _ctx->nh().subscribe(task->getName() + "/reference", 1,
                                        &AngularMomentumRos::on_ref_recv, this);
 
-        _cur_ref_pub = _ctx.nh().advertise<geometry_msgs::Vector3Stamped>(task->getName() + "/current_reference",
+        _cur_ref_pub = _ctx->nh().advertise<geometry_msgs::Vector3Stamped>(task->getName() + "/current_reference",
                                                                       1);
         /* Register type name */
         registerType("AngularMomentum");
@@ -102,5 +102,5 @@ Easy!
         _ci_angmom->setReference(ref);
     }
 
-    CARTESIO_REGISTER_ROS_API_PLUGIN(AngularMomentumRos)
+    CARTESIO_REGISTER_ROS_API_PLUGIN(AngularMomentumRos, AngularMomentum)
 
