@@ -256,16 +256,19 @@ setup code needed.</p>
     <span class="c1">// context object which stores some information, such as</span>
     <span class="c1">// the control period</span>
     <span class="k">const</span> <span class="kt">double</span> <span class="n">dt</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">;</span>
-    <span class="k">auto</span> <span class="n">ctx</span> <span class="o">=</span> <span class="n">Context</span><span class="o">::</span><span class="n">MakeContext</span><span class="p">(</span><span class="n">dt</span><span class="p">);</span>
+    <span class="k">auto</span> <span class="n">ctx</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">Context</span><span class="o">&gt;</span><span class="p">(</span>
+                <span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">Parameters</span><span class="o">&gt;</span><span class="p">(</span><span class="n">dt</span><span class="p">),</span>
+                <span class="n">model</span>
+            <span class="p">);</span>
 
     <span class="c1">// load the ik problem given a yaml file</span>
     <span class="k">auto</span> <span class="n">ik_pb_yaml</span> <span class="o">=</span> <span class="n">YAML</span><span class="o">::</span><span class="n">LoadFile</span><span class="p">(</span><span class="n">IK_PB_PATH</span><span class="p">);</span>
-    <span class="n">ProblemDescription</span> <span class="n">ik_pb</span><span class="p">(</span><span class="n">ik_pb_yaml</span><span class="p">,</span> <span class="n">model</span><span class="p">);</span>
+    <span class="n">ProblemDescription</span> <span class="n">ik_pb</span><span class="p">(</span><span class="n">ik_pb_yaml</span><span class="p">,</span> <span class="n">ctx</span><span class="p">);</span>
 
     <span class="c1">// we are finally ready to make the CartesIO solver &quot;OpenSot&quot;</span>
     <span class="k">auto</span> <span class="n">solver</span> <span class="o">=</span> <span class="n">CartesianInterfaceImpl</span><span class="o">::</span><span class="n">MakeInstance</span><span class="p">(</span><span class="s">&quot;OpenSot&quot;</span><span class="p">,</span>
-                                                       <span class="n">model</span><span class="p">,</span>
-                                                       <span class="n">ik_pb</span><span class="p">);</span>
+                                                       <span class="n">ik_pb</span><span class="p">,</span> <span class="n">ctx</span>
+                                                       <span class="p">);</span>
 </pre></div>
 </div>
 </div>

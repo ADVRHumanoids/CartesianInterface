@@ -76,7 +76,8 @@ a C++/Python clent library. The usage of the Python Client Library is explained 
 that we've prepared, which will guide you through the available API.
 
 To run the tutorial:
- - install the jupyter notebook (e.g. ``pip install notebook``)
+ - install the jupyter notebook (e.g. ``pip install notebook``, possibly with ``--user``
+   if sudo permissions are not available)
  - open a web browser (e.g. chrome, firefox, ...)
  - ``roscd cartesian_interface/examples/python``
  - ``jupyter notebook ros_client_example.ipynb``

@@ -187,7 +187,7 @@ The default is that optimization is carried out over joint position increments.<
 <span class="k">public</span><span class="o">:</span>
 
     <span class="n">OpenSotAngularMomentum</span><span class="p">(</span><span class="n">TaskDescription</span><span class="o">::</span><span class="n">Ptr</span> <span class="n">task</span><span class="p">,</span>
-                           <span class="n">ModelInterface</span><span class="o">::</span><span class="n">ConstPtr</span> <span class="n">model</span><span class="p">);</span>
+                           <span class="n">Context</span><span class="o">::</span><span class="n">ConstPtr</span> <span class="n">context</span><span class="p">);</span>
 
     <span class="k">virtual</span> <span class="n">TaskPtr</span> <span class="nf">constructTask</span><span class="p">()</span> <span class="k">override</span><span class="p">;</span>
 
@@ -215,8 +215,8 @@ The default is that optimization is carried out over joint position increments.<
 <span class="k">using</span> <span class="k">namespace</span> <span class="n">XBot</span><span class="o">::</span><span class="n">Cartesian</span><span class="p">;</span>
 
 <span class="n">OpenSotAngularMomentum</span><span class="o">::</span><span class="n">OpenSotAngularMomentum</span><span class="p">(</span><span class="n">TaskDescription</span><span class="o">::</span><span class="n">Ptr</span> <span class="n">task</span><span class="p">,</span>
-                                               <span class="n">ModelInterface</span><span class="o">::</span><span class="n">ConstPtr</span> <span class="n">model</span><span class="p">)</span><span class="o">:</span>
-    <span class="n">OpenSotTaskAdapter</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+                                               <span class="n">Context</span><span class="o">::</span><span class="n">ConstPtr</span> <span class="n">context</span><span class="p">)</span><span class="o">:</span>
+    <span class="n">OpenSotTaskAdapter</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">_ci_angmom</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">dynamic_pointer_cast</span><span class="o">&lt;</span><span class="n">AngularMomentum</span><span class="o">&gt;</span><span class="p">(</span><span class="n">task</span><span class="p">);</span>
 
@@ -253,7 +253,7 @@ The default is that optimization is carried out over joint position increments.<
     <span class="n">_sot_angmom</span><span class="o">-&gt;</span><span class="n">setReference</span><span class="p">(</span><span class="n">_ci_angmom</span><span class="o">-&gt;</span><span class="n">getReference</span><span class="p">()</span> <span class="o">*</span> <span class="n">period</span><span class="p">);</span>
 <span class="p">}</span>
 
-<span class="n">CARTESIO_REGISTER_OPENSOT_TASK_PLUGIN</span><span class="p">(</span><span class="n">OpenSotAngularMomentum</span><span class="p">)</span>
+<span class="n">CARTESIO_REGISTER_OPENSOT_TASK_PLUGIN</span><span class="p">(</span><span class="n">OpenSotAngularMomentum</span><span class="p">,</span> <span class="n">AngularMomentum</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

@@ -34,7 +34,7 @@ You must implement:
     public:
 
         OpenSotAngularMomentum(TaskDescription::Ptr task,
-                               ModelInterface::ConstPtr model);
+                               Context::ConstPtr context);
 
         virtual TaskPtr constructTask() override;
 
@@ -64,8 +64,8 @@ You must implement:
     using namespace XBot::Cartesian;
 
     OpenSotAngularMomentum::OpenSotAngularMomentum(TaskDescription::Ptr task,
-                                                   ModelInterface::ConstPtr model):
-        OpenSotTaskAdapter(task, model)
+                                                   Context::ConstPtr context):
+        OpenSotTaskAdapter(task, context)
     {
         _ci_angmom = std::dynamic_pointer_cast<AngularMomentum>(task);
 
@@ -102,7 +102,7 @@ You must implement:
         _sot_angmom->setReference(_ci_angmom->getReference() * period);
     }
 
-    CARTESIO_REGISTER_OPENSOT_TASK_PLUGIN(OpenSotAngularMomentum)
+    CARTESIO_REGISTER_OPENSOT_TASK_PLUGIN(OpenSotAngularMomentum, AngularMomentum)
 
 
 

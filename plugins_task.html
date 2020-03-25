@@ -218,7 +218,7 @@ or from <code class="docutils literal notranslate"><span class="pre">ConstraintD
     <span class="cm">/* The task implementation constructor signature must be</span>
 <span class="cm">     * as follows */</span>
     <span class="n">AngularMomentumImpl</span><span class="p">(</span><span class="n">YAML</span><span class="o">::</span><span class="n">Node</span> <span class="n">task_node</span><span class="p">,</span>
-                        <span class="n">ModelInterface</span><span class="o">::</span><span class="n">ConstPtr</span> <span class="n">model</span><span class="p">);</span>
+                        <span class="n">Context</span><span class="o">::</span><span class="n">ConstPtr</span> <span class="n">context</span><span class="p">);</span>
 
     <span class="cm">/* Implement the task API */</span>
     <span class="n">Eigen</span><span class="o">::</span><span class="n">Vector3d</span> <span class="n">getReference</span><span class="p">()</span> <span class="k">const</span> <span class="k">override</span><span class="p">;</span>
@@ -227,7 +227,7 @@ or from <code class="docutils literal notranslate"><span class="pre">ConstraintD
     <span class="cm">/* Customize update, reset and log */</span>
     <span class="kt">void</span> <span class="nf">update</span><span class="p">(</span><span class="kt">double</span> <span class="n">time</span><span class="p">,</span> <span class="kt">double</span> <span class="n">period</span><span class="p">)</span> <span class="k">override</span><span class="p">;</span>
     <span class="kt">void</span> <span class="nf">reset</span><span class="p">()</span> <span class="k">override</span><span class="p">;</span>
-    <span class="kt">void</span> <span class="nf">log</span><span class="p">(</span><span class="n">MatLogger</span><span class="o">::</span><span class="n">Ptr</span> <span class="n">logger</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">init_logger</span><span class="p">,</span> <span class="kt">int</span> <span class="n">buf_size</span><span class="p">)</span> <span class="k">override</span><span class="p">;</span>
+    <span class="kt">void</span> <span class="nf">log</span><span class="p">(</span><span class="n">MatLogger2</span><span class="o">::</span><span class="n">Ptr</span> <span class="n">logger</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">init_logger</span><span class="p">,</span> <span class="kt">int</span> <span class="n">buf_size</span><span class="p">)</span> <span class="k">override</span><span class="p">;</span>
 
 <span class="k">private</span><span class="o">:</span>
 
@@ -264,9 +264,9 @@ The base class will do the same jobs for all <em>common Task parameters</em>.</p
 
 
 <span class="n">AngularMomentumImpl</span><span class="o">::</span><span class="n">AngularMomentumImpl</span><span class="p">(</span><span class="n">YAML</span><span class="o">::</span><span class="n">Node</span> <span class="n">task_node</span><span class="p">,</span>
-                                         <span class="n">XBot</span><span class="o">::</span><span class="n">ModelInterface</span><span class="o">::</span><span class="n">ConstPtr</span> <span class="n">model</span><span class="p">)</span><span class="o">:</span>
+                                         <span class="n">Context</span><span class="o">::</span><span class="n">ConstPtr</span> <span class="n">context</span><span class="p">)</span><span class="o">:</span>
     <span class="n">TaskDescriptionImpl</span><span class="p">(</span><span class="n">task_node</span><span class="p">,</span>
-                        <span class="n">model</span><span class="p">,</span>
+                        <span class="n">context</span><span class="p">,</span>
                         <span class="s">&quot;AngularMomentum&quot;</span><span class="p">,</span>
                         <span class="mi">3</span><span class="p">),</span>
     <span class="n">_lref</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span>
@@ -314,7 +314,7 @@ must call the base class method!</p>
     <span class="n">_lref</span><span class="p">.</span><span class="n">setZero</span><span class="p">();</span>
 <span class="p">}</span>
 
-<span class="kt">void</span> <span class="n">XBot</span><span class="o">::</span><span class="n">Cartesian</span><span class="o">::</span><span class="n">AngularMomentumImpl</span><span class="o">::</span><span class="n">log</span><span class="p">(</span><span class="n">MatLogger</span><span class="o">::</span><span class="n">Ptr</span> <span class="n">logger</span><span class="p">,</span>
+<span class="kt">void</span> <span class="n">XBot</span><span class="o">::</span><span class="n">Cartesian</span><span class="o">::</span><span class="n">AngularMomentumImpl</span><span class="o">::</span><span class="n">log</span><span class="p">(</span><span class="n">MatLogger2</span><span class="o">::</span><span class="n">Ptr</span> <span class="n">logger</span><span class="p">,</span>
                                                <span class="kt">bool</span> <span class="n">init_logger</span><span class="p">,</span>
                                                <span class="kt">int</span> <span class="n">buf_size</span><span class="p">)</span>
 <span class="p">{</span>
@@ -323,7 +323,7 @@ must call the base class method!</p>
 
     <span class="k">if</span><span class="p">(</span><span class="n">init_logger</span><span class="p">)</span>
     <span class="p">{</span>
-        <span class="n">logger</span><span class="o">-&gt;</span><span class="n">createVectorVariable</span><span class="p">(</span><span class="n">getName</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;_ref&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">buf_size</span><span class="p">);</span>
+        <span class="n">logger</span><span class="o">-&gt;</span><span class="n">create</span><span class="p">(</span><span class="n">getName</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;_ref&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">buf_size</span><span class="p">);</span>
         <span class="k">return</span><span class="p">;</span>
     <span class="p">}</span>
 
@@ -334,7 +334,7 @@ must call the base class method!</p>
 </div>
 <div class="section" id="register-the-plugin">
 <h2><a class="toc-backref" href="#id4">(4) Register the plugin</a><a class="headerlink" href="#register-the-plugin" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span class="n">CARTESIO_REGISTER_TASK_PLUGIN</span><span class="p">(</span><span class="n">AngularMomentumImpl</span><span class="p">)</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span class="n">CARTESIO_REGISTER_TASK_PLUGIN</span><span class="p">(</span><span class="n">AngularMomentumImpl</span><span class="p">,</span> <span class="n">AngularMomentum</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
