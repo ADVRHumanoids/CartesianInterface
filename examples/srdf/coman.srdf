@@ -118,18 +118,18 @@
         <joint name="LForearmPlate" value="0.0"/>
         <joint name="LWrj1" value="0.0"/>
         <joint name="LWrj2" value="-0.0"/>
-        <joint name="RHipLat" value="0.06"/>
+        <joint name="RHipLat" value="0.0"/>
         <joint name="RHipYaw" value="0.0"/>
         <joint name="RHipSag" value="-0.45"/>
         <joint name="RKneeSag" value="0.90"/>
         <joint name="RAnkSag" value="-0.45"/>
-        <joint name="RAnkLat" value="-0.06"/>
-        <joint name="LHipLat" value="-0.06"/>
+        <joint name="RAnkLat" value="-0.0"/>
+        <joint name="LHipLat" value="-0.0"/>
         <joint name="LHipYaw" value="0.0"/>
         <joint name="LHipSag" value="-0.45"/>
         <joint name="LKneeSag" value="0.90"/>
         <joint name="LAnkSag" value="-0.45"/>
-        <joint name="LAnkLat" value="0.06"/>
+        <joint name="LAnkLat" value="0.0"/>
   </group_state>
   
   
