@@ -152,6 +152,7 @@
             
   <div class="section" id="porting-code-from-v1-x">
 <h1>Porting code from v1.x<a class="headerlink" href="#porting-code-from-v1-x" title="Permalink to this headline">¶</a></h1>
+<p>Some of the differences w.r.t. version 1.x are summarized hereafter.</p>
 <div class="section" id="general-design">
 <h2>General design<a class="headerlink" href="#general-design" title="Permalink to this headline">¶</a></h2>
 <ul>
@@ -160,15 +161,15 @@ a global <code class="docutils literal notranslate"><span class="pre">CartesianI
 backward compatibility. A task object is obtained by name with the <code class="docutils literal notranslate"><span class="pre">getTask()</span></code> method,
 and is then dynamically casted with <code class="docutils literal notranslate"><span class="pre">std::dynamic_pointer_cast</span></code>.</p>
 </li>
-<li><dl class="first docutils">
-<dt>The most part of the implementation has been moved to task-specific classes implementing</dt><dd><ul class="simple">
+<li><p class="first">The most part of the implementation has been moved to task-specific classes implementing</p>
+<blockquote>
+<div><ul class="simple">
 <li>reference management (e.g. time-out, filtering, trajectory generation, …)</li>
 <li>ROS API</li>
-<li>Translation into OpenSoT tasks/constraints</li>
+<li>translation into OpenSoT tasks/constraints</li>
 <li>…</li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </li>
 <li><p class="first">A <code class="docutils literal notranslate"><span class="pre">Subtask</span></code> task type has been introduced to distribute parts of a task over different
 priorities</p>
@@ -211,6 +212,7 @@ its <code class="docutils literal notranslate"><span class="pre">extern</span> <
 </div>
 <div class="section" id="python">
 <h2>Python<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h2>
+<p>TBD</p>
 </div>
 </div>
 
