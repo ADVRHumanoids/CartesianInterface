@@ -1,0 +1,286 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Porting code from v1.x &mdash; CartesIO 2.0.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="CartesIO 2.0.0 documentation" href="index.html"/>
+        <link rel="next" title="Problem Description API Reference" href="reference/problem.html"/>
+        <link rel="prev" title="Implementing OpenSot support for a custom task" href="plugins_sot.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> CartesIO
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">Design and usage</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design.html">Design notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problemdesc.html">Writing a problem description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rosapi.html">Auto-generated ROS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progr_cpp.html">Programmatic API (C++)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progr_py.html">Programmatic API (Python)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">How to expand CartesIO</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Porting code from v1.x</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#general-design">General design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ros">ROS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#c">C++</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#python">Python</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">API reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reference/problem.html">Problem Description API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/trajectory.html">Trajectory Interpolation API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/sdk.html">SDK API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">CartesIO</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Porting code from v1.x</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/porting.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="porting-code-from-v1-x">
+<h1>Porting code from v1.x<a class="headerlink" href="#porting-code-from-v1-x" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="general-design">
+<h2>General design<a class="headerlink" href="#general-design" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">Almost all functionalities of CartesIO are now provided <strong>task-wise</strong>, rather than from
+a global <code class="docutils literal notranslate"><span class="pre">CartesianInterface</span></code> object as before. The old API has been preserved for
+backward compatibility. A task object is obtained by name with the <code class="docutils literal notranslate"><span class="pre">getTask()</span></code> method,
+and is then dynamically casted with <code class="docutils literal notranslate"><span class="pre">std::dynamic_pointer_cast</span></code>.</p>
+</li>
+<li><dl class="first docutils">
+<dt>The most part of the implementation has been moved to task-specific classes implementing</dt><dd><ul class="simple">
+<li>reference management (e.g. time-out, filtering, trajectory generation, …)</li>
+<li>ROS API</li>
+<li>Translation into OpenSoT tasks/constraints</li>
+<li>…</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p class="first">A <code class="docutils literal notranslate"><span class="pre">Subtask</span></code> task type has been introduced to distribute parts of a task over different
+priorities</p>
+</li>
+<li><p class="first">Richer API</p>
+</li>
+<li><p class="first">The <code class="docutils literal notranslate"><span class="pre">ControlMode</span></code> property which could task values among <code class="docutils literal notranslate"><span class="pre">Position</span></code>, <code class="docutils literal notranslate"><span class="pre">Velocity</span></code>, <code class="docutils literal notranslate"><span class="pre">Disabled</span></code>
+is now splitted into</p>
+<blockquote>
+<div><ul class="simple">
+<li>an <code class="docutils literal notranslate"><span class="pre">ActivationState</span></code> which is defined for all tasks, and can be either <code class="docutils literal notranslate"><span class="pre">Enabled</span></code> or
+<code class="docutils literal notranslate"><span class="pre">Disabled</span></code></li>
+<li>a <code class="docutils literal notranslate"><span class="pre">ControlMode</span></code> which is defined for Cartesian tasks only, and can be either <code class="docutils literal notranslate"><span class="pre">Position</span></code> or
+<code class="docutils literal notranslate"><span class="pre">Velocity</span></code></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div>
+<div class="section" id="ros">
+<h2>ROS<a class="headerlink" href="#ros" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">task_name/state</span></code> topic has been renamed to <code class="docutils literal notranslate"><span class="pre">task_name/current_reference</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">world_odom</span></code> TF frame has been removed, and the standard <code class="docutils literal notranslate"><span class="pre">world</span></code> is used instead</li>
+</ul>
+</div>
+<div class="section" id="c">
+<h2>C++<a class="headerlink" href="#c" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>The ROS Client has been renamed, from <code class="docutils literal notranslate"><span class="pre">RosImpl</span></code> to <code class="docutils literal notranslate"><span class="pre">RosClient</span></code>. The same applies to
+the header file name.</li>
+<li>A new <code class="docutils literal notranslate"><span class="pre">Context</span></code> object has been introduced to gather together a struct of <code class="docutils literal notranslate"><span class="pre">Parameters</span></code>
+(among which the control rate), and the <code class="docutils literal notranslate"><span class="pre">ModelInterface</span></code></li>
+<li>Almost all constructors which would take a <code class="docutils literal notranslate"><span class="pre">ModelInterface</span></code> an input, now take a
+<code class="docutils literal notranslate"><span class="pre">Context</span></code> shared pointer</li>
+<li>Implementations of <code class="docutils literal notranslate"><span class="pre">CartesianInterfaceImpl</span></code> are now created with the static factory
+<code class="docutils literal notranslate"><span class="pre">::MakeInstance</span></code>, rather than manually looking for the shared object and invoking
+its <code class="docutils literal notranslate"><span class="pre">extern</span> <span class="pre">&quot;C&quot;</span></code> factory method by name</li>
+</ul>
+</div>
+<div class="section" id="python">
+<h2>Python<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="reference/problem.html" class="btn btn-neutral float-right" title="Problem Description API Reference" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="plugins_sot.html" class="btn btn-neutral" title="Implementing OpenSot support for a custom task" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Arturo Laurenzi.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'2.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/language_data.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

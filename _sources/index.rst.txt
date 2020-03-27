@@ -69,6 +69,7 @@ Start from :ref:`here<quickstart>`!
    progr_cpp
    progr_py
    plugins
+   porting
 
 
 .. toctree::
