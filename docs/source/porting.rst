@@ -10,6 +10,7 @@ General design
   backward compatibility. A task object is obtained by name with the ``getTask()`` method,
   and is then dynamically casted with ``std::dynamic_pointer_cast``.
 - The most part of the implementation has been moved to task-specific classes implementing
+
     - reference management (e.g. time-out, filtering, trajectory generation, ...)
     - ROS API
     - translation into OpenSoT tasks/constraints
@@ -19,10 +20,11 @@ General design
 - Richer API
 - The ``ControlMode`` property which could task values among ``Position``, ``Velocity``, ``Disabled``
   is now splitted into
-   - an ``ActivationState`` which is defined for all tasks, and can be either ``Enabled`` or
-     ``Disabled``
-   - a ``ControlMode`` which is defined for Cartesian tasks only, and can be either ``Position`` or
-     ``Velocity``
+
+    - an ``ActivationState`` which is defined for all tasks, and can be either ``Enabled`` or
+      ``Disabled``
+    - a ``ControlMode`` which is defined for Cartesian tasks only, and can be either ``Position`` or
+      ``Velocity``
 
 
 ROS
@@ -49,3 +51,5 @@ C++
 
 Python
 ------
+
+TBD
