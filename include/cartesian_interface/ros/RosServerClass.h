@@ -41,6 +41,7 @@ namespace XBot { namespace Cartesian {
         {
             std::string tf_prefix;
             std::string ros_namespace;
+            bool publish_tf;
             
             Options();
         };
@@ -65,68 +66,20 @@ namespace XBot { namespace Cartesian {
         typedef Utils::RobotStatePublisher RsPub;
 
 
-//        void init_reach_pose_action_servers();
         void init_state_broadcasting();
-//        void init_online_pos_topics();
-//        void init_online_vel_topics();
-//        void init_interaction_topics();
-//        void init_interaction_srvs();
-//        void init_task_info_services();
         void init_reset_service();
         void init_rspub();
-//        void init_task_info_setters();
         void init_task_list_service();
-//        void init_postural_task_topics_and_services();
-//        void init_update_param_services();
         void init_reset_world_service();
         void init_heartbeat_pub();
         void init_load_ros_task_api();
-
-//        void manage_reach_actions();
-//        void publish_task_info();
-//        void publish_posture_state(ros::Time time);
-//        void publish_state(ros::Time time);
         void publish_solution(ros::Time time);
         void publish_ref_tf(ros::Time time);
         void publish_world_tf(ros::Time time);
 
-//        void online_position_reference_cb(const geometry_msgs::PoseStampedConstPtr& msg,
-//                                          const std::string& ee_name);
-        
-//        void online_impedance_reference_cb(const cartesian_interface::Impedance6ConstPtr& msg,
-//                                             const std::string& ee_name);
-        
-//        void online_force_reference_cb(const geometry_msgs::WrenchStampedConstPtr& msg,
-//                                             const std::string& ee_name);
-        
-//        void online_posture_reference_cb(const sensor_msgs::JointStateConstPtr& msg);
-
-//        void online_velocity_reference_cb(const geometry_msgs::TwistStampedConstPtr& msg,
-//                                          const std::string& ee_name);
-
         void heartbeat_cb(const ros::TimerEvent& ev);
-
-//        bool get_task_info_cb(cartesian_interface::GetTaskInfoRequest& req,
-//                            cartesian_interface::GetTaskInfoResponse& res,
-//                            const std::string& ee_name);
-        
-//        bool get_impedance_cb(cartesian_interface::GetImpedanceRequest& req,
-//                            cartesian_interface::GetImpedanceResponse& res,
-//                            const std::string& ee_name);
-        
-//        bool set_task_info_cb(cartesian_interface::SetTaskInfoRequest& req,
-//                            cartesian_interface::SetTaskInfoResponse& res,
-//                            const std::string& ee_name);
-
         bool reset_cb(std_srvs::SetBoolRequest& req,
                       std_srvs::SetBoolResponse& res);
-        
-//        bool reset_params_cb(std_srvs::TriggerRequest& req,
-//                             std_srvs::TriggerResponse& res);
-        
-//        bool reset_posture_cb(std_srvs::TriggerRequest& req,
-//                              std_srvs::TriggerResponse& res);
-        
         bool task_list_cb(cartesian_interface::GetTaskListRequest& req, 
                           cartesian_interface::GetTaskListResponse& res);
         
