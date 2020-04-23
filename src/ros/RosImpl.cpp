@@ -65,6 +65,7 @@ ProblemDescription construct_problem(ros::NodeHandle nh)
 
         auto t = ClientApi::TaskRos::MakeInstance(name,
                                                   srv_info.response.type,
+                                                  srv_info.response.lib_name,
                                                   nh);
 
         tasks.push_back(t);

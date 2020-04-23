@@ -7,3 +7,4 @@ float32 lambda
 float32 lambda2
 string activation_state
 string[] disabled_joints
+string lib_name
