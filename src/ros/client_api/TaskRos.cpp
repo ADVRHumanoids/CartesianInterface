@@ -1,5 +1,6 @@
 #include "ros/client_api/TaskRos.h"
 #include "fmt/format.h"
+#include "utils/DynamicLoading.h"
 
 #include <cartesian_interface/SetLambda.h>
 #include <cartesian_interface/SetLambda2.h>
@@ -230,8 +231,7 @@ int TaskRos::getSize() const
 
 const std::string & TaskRos::getLibName() const
 {
-    throw std::runtime_error(fmt::format("Unsupported function '{}'",
-                                         __PRETTY_FUNCTION__));
+    return get_task_info().lib_name;
 }
 
 void TaskRos::registerObserver(TaskObserver::WeakPtr obs)
@@ -289,13 +289,57 @@ void TaskRos::on_task_changed_ev_recv(std_msgs::StringConstPtr msg)
     notifyTaskChanged(msg->data);
 }
 
+TaskDescription::Ptr LoadFromLib(std::string name,
+                                 std::string type,
+                                 std::string lib_name,
+                                 ros::NodeHandle nh)
+{
+    if(lib_name.empty())
+    {
+        return TaskDescription::Ptr();
+    }
+
+    try
+    {
+        auto task_rawptr = CallFunction<TaskRos*>(lib_name,
+                                                  "create_cartesio_" + type + "_ros_client_api",
+                                                  name,
+                                                  nh,
+                                                  detail::Version CARTESIO_ABI_VERSION);
+
+        return TaskDescription::Ptr(task_rawptr);
+    }
+    catch(LibNotFound&)
+    {
+        fmt::print("Unable to construct TaskRos instance for task '{}': "
+                   "lib '{}' not found for task type '{}' \n",
+                   name, lib_name, type);
+
+    }
+    catch(SymbolNotFound&)
+    {
+        fmt::print("Unable to construct TaskRos instance for task '{}': "
+                   "factory not found for task type '{}' \n",
+                   name, type);
+
+    }
+
+    return nullptr;
+}
+
 TaskDescription::Ptr TaskRos::MakeInstance(std::string name,
                                            std::vector<std::string> type_list,
+                                           std::string lib_name,
                                            ros::NodeHandle nh)
 {
+
     for(auto type : type_list)
     {
-        if(type == "Cartesian")
+        if(auto task = LoadFromLib(name, type, lib_name, nh))
+        {
+            return task;
+        }
+        else if(type == "Cartesian")
         {
             return std::make_shared<CartesianRos>(name, nh);
         }
@@ -307,7 +351,12 @@ TaskDescription::Ptr TaskRos::MakeInstance(std::string name,
         {
             return std::make_shared<TaskRos>(name, nh);
         }
+
     }
+
+
+
+    return nullptr;
 
 }
 

@@ -75,6 +75,8 @@ bool TaskRos::get_task_info_cb(cartesian_interface::GetTaskInfoRequest & req,
                          res.size,
                          res.size) = _task->getWeight().cast<float>();
 
+    res.lib_name = _task->getLibName();
+
     return true;
 }
 

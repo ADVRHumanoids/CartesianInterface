@@ -70,6 +70,7 @@ public:
 
     static Ptr MakeInstance(std::string name,
                             std::vector<std::string> type,
+                            std::string lib_name,
                             ros::NodeHandle nh);
 
 protected:
