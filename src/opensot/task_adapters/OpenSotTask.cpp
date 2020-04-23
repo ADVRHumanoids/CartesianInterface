@@ -62,7 +62,7 @@ bool OpenSotTaskAdapter::initialize(const OpenSoT::OptvarHelper& vars)
     _opensot_task->setLambda(_ci_task->getLambda());
 
     // weight
-    _opensot_task->setWeight(_ci_task->getWeight());
+    _opensot_task->setWeight(getOpenSotWeight());
 
     // indices
     if(_ci_task->getIndices().size() != _ci_task->getSize())
@@ -98,6 +98,11 @@ void OpenSotTaskAdapter::update(double time, double period)
     _opensot_task->setLambda(_ci_task->getLambda());
 }
 
+void OpenSotTaskAdapter::processSolution(const Eigen::VectorXd& solution)
+{
+
+}
+
 TaskPtr OpenSotTaskAdapter::getOpenSotTask()
 {
     return _sub_task;
@@ -110,7 +115,7 @@ TaskDescription::Ptr OpenSotTaskAdapter::getTaskDescription() const
 
 bool OpenSotTaskAdapter::onWeightChanged()
 {
-    _opensot_task->setWeight(_ci_task->getWeight());
+    _opensot_task->setWeight(getOpenSotWeight());
     return true;
 }
 
@@ -174,6 +179,11 @@ OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr ta
     return task_shared_ptr;
 }
 
+const Eigen::MatrixXd& OpenSotTaskAdapter::getOpenSotWeight() const
+{
+    return _ci_task->getWeight();
+}
+
 OpenSoT::OptvarHelper OpenSotTaskAdapter::DefaultVars()
 {
     OpenSoT::OptvarHelper vars({});
@@ -217,6 +227,11 @@ OpenSoT::OptvarHelper::VariableVector OpenSotConstraintAdapter::getRequiredVaria
 }
 
 void OpenSotConstraintAdapter::update(double time, double period)
+{
+
+}
+
+void OpenSotConstraintAdapter::processSolution(const Eigen::VectorXd& solution)
 {
 
 }

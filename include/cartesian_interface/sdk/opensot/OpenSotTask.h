@@ -38,6 +38,8 @@ public:
 
     virtual void update(double time, double period);
 
+    virtual void processSolution(const Eigen::VectorXd& solution);
+
     TaskPtr getOpenSotTask();
 
     TaskDescription::Ptr getTaskDescription() const;
@@ -52,6 +54,8 @@ public:
                             Context::ConstPtr context);
 
 protected:
+
+    virtual const Eigen::MatrixXd& getOpenSotWeight() const;
 
     static OpenSoT::OptvarHelper DefaultVars();
     OpenSoT::OptvarHelper _vars;
@@ -85,6 +89,8 @@ public:
     virtual ConstraintPtr constructConstraint() = 0;
 
     virtual void update(double time, double period);
+
+    virtual void processSolution(const Eigen::VectorXd& solution);
 
     ConstraintPtr getOpenSotConstraint();
 
