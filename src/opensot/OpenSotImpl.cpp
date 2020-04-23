@@ -106,7 +106,7 @@ OpenSoT::tasks::Aggregated::TaskPtr OpenSotImpl::aggregated_from_stack(Aggregate
     /* Return Aggregated */
     if(tasks_list.size() > 1)
     {
-        return boost::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _q.size());
+        return boost::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _x.size());
     }
     else if(tasks_list.empty())
     {
@@ -157,6 +157,8 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
     _model->getJointPosition(_q);
     _dq.setZero(_q.size());
     _ddq = _dq;
+    _tau.setZero(_dq.size());
+    _J.setZero(6, _dq.size());
 
     /* Make adapters for all tasks and constraints */
     for(int i = 0; i < ik_problem.getNumTasks(); i++)
@@ -213,6 +215,10 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
     std::copy(vars_map.begin(), vars_map.end(), std::back_inserter(vars));
     _vars = OpenSoT::OptvarHelper(vars);
     _x.setZero(_vars.getSize());
+    if(_x.size() == 0)
+    {
+        _x.setZero(_q.size());
+    }
 
     // fill variable map
     for(auto p : vars_map)
@@ -342,26 +348,62 @@ bool OpenSotImpl::update(double time, double period)
         success = false;
     }
 
+    /* Allow tasks and constraints to read solution */
+    for(auto t : _task_adapters)
+    {
+        t->processSolution(_x);
+    }
+
+    for(auto c : _constr_adapters)
+    {
+        c->processSolution(_x);
+    }
+
     /* Set solution to model */
+    _tau.setZero(_dq.size());
+
     if(_vars.getSize() == 0)
     {
         _dq = _x;
         _dq /= period;
         _model->setJointVelocity(_dq);
     }
-    else if(_vars_map.count("qddot"))
+
+    if(_vars_map.count("qddot"))
     {
         _vars_map.at("qddot").getValue(_x, _ddq);
         _model->setJointAcceleration(_ddq);
     }
-    else
+
+    _model->update();
+    _model->computeInverseDynamics(_tau);
+
+    for(auto& p : _vars_map)
     {
-        throw std::runtime_error("Variables are expected to either be empty or contain 'qddot'")    ;
+        if(p.first.find("force_") != 0)
+        {
+            continue;
+        }
+
+        auto link_name = p.first.substr(6); // removes "force_"
+
+        _model->getJacobian(link_name, _J);
+
+        Eigen::Vector6d f_value;
+        p.second.getValue(_x, f_value);
+
+        _tau.noalias() -= _J.transpose() * f_value;
+
+        _logger->add(p.first, f_value);
+
     }
+
+    _model->setJointEffort(_tau);
 
     _logger->add("q", _q);
     _logger->add("dq", _dq);
     _logger->add("ddq", _ddq);
+    _logger->add("tau", _tau);
 
     return success;
 

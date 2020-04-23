@@ -39,7 +39,8 @@ private:
     TaskPtr aggregated_from_stack(AggregatedTask stack);
     
     Eigen::VectorXd _qref;
-    Eigen::VectorXd _x, _q, _dq, _ddq;
+    Eigen::VectorXd _x, _q, _dq, _ddq, _tau;
+    Eigen::MatrixXd _J;
     
     std::vector<OpenSotTaskAdapter::Ptr> _task_adapters;
     std::vector<OpenSotConstraintAdapter::Ptr> _constr_adapters;
