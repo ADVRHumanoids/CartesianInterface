@@ -178,7 +178,7 @@ void ManipulabilityAnalyzer::publish()
         
         auto marker_pos = ComputeEllipsoidFromQuadraticForm(_tasks[prio],
                                                             _task_poses.at(task_name).translation(),
-                                                            _tf_prefix_slash + "world_odom",
+                                                            _tf_prefix_slash + "world",
                                                             start_idx
                                                             );
         
@@ -188,7 +188,7 @@ void ManipulabilityAnalyzer::publish()
         
         auto marker_rot = ComputeEllipsoidFromQuadraticForm(_tasks[prio],
                                                             _task_poses.at(task_name).translation(),
-                                                            _tf_prefix_slash + "world_odom",
+                                                            _tf_prefix_slash + "world",
                                                             start_idx + 3
                                                             );
         
