@@ -35,7 +35,7 @@
         <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="CartesIO 2.0.0 documentation" href="index.html"/>
         <link rel="up" title="How to expand CartesIO" href="plugins.html"/>
-        <link rel="next" title="Problem Description API Reference" href="reference/problem.html"/>
+        <link rel="next" title="Porting code from v1.x" href="porting.html"/>
         <link rel="prev" title="Implementing the ROS API for a custom task" href="plugins_ros.html"/> 
 
   
@@ -99,6 +99,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Implementing OpenSot support for a custom task</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="porting.html">Porting code from v1.x</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API reference</span></p>
 <ul>
@@ -256,6 +257,12 @@ The default is that optimization is carried out over joint position increments.<
 <span class="n">CARTESIO_REGISTER_OPENSOT_TASK_PLUGIN</span><span class="p">(</span><span class="n">OpenSotAngularMomentum</span><span class="p">,</span> <span class="n">AngularMomentum</span><span class="p">)</span>
 </pre></div>
 </div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All <code class="docutils literal notranslate"><span class="pre">*REGISTER*</span></code> macros take as second argument the task name that will be specified
+by users inside the <code class="docutils literal notranslate"><span class="pre">type</span></code> yaml field. In this case, the OpenSot adapter will
+correspond to a task with <code class="docutils literal notranslate"><span class="pre">type:</span> <span class="pre">AngularMomentum</span></code></p>
+</div>
 </div>
 
 
@@ -265,7 +272,7 @@ The default is that optimization is carried out over joint position increments.<
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="reference/problem.html" class="btn btn-neutral float-right" title="Problem Description API Reference" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="porting.html" class="btn btn-neutral float-right" title="Porting code from v1.x" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="plugins_ros.html" class="btn btn-neutral" title="Implementing the ROS API for a custom task" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>

@@ -99,6 +99,7 @@
 <li class="toctree-l2"><a class="reference internal" href="plugins_sot.html">Implementing OpenSot support for a custom task</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="porting.html">Porting code from v1.x</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API reference</span></p>
 <ul>
@@ -249,6 +250,12 @@
 
 <span class="n">CARTESIO_REGISTER_ROS_API_PLUGIN</span><span class="p">(</span><span class="n">AngularMomentumRos</span><span class="p">,</span> <span class="n">AngularMomentum</span><span class="p">)</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All <code class="docutils literal notranslate"><span class="pre">*REGISTER*</span></code> macros take as second argument the task name that will be specified
+by users inside the <code class="docutils literal notranslate"><span class="pre">type</span></code> yaml field. In this case, the OpenSot adapter will
+correspond to a task with <code class="docutils literal notranslate"><span class="pre">type:</span> <span class="pre">AngularMomentum</span></code></p>
 </div>
 </div>
 

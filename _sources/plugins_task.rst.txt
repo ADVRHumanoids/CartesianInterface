@@ -186,4 +186,9 @@ if the user stops providing references, the desired value drops to zero automati
     CARTESIO_REGISTER_TASK_PLUGIN(AngularMomentumImpl, AngularMomentum)
 
 
+.. note::
+
+    All ``*REGISTER*`` macros take as second argument the task name that will be specified
+    by users inside the ``type`` yaml field. In this case, the OpenSot adapter will
+    correspond to a task with ``type: AngularMomentum``
 
