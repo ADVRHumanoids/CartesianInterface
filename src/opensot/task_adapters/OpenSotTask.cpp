@@ -11,6 +11,7 @@
 #include "opensot/OpenSotPostural.h"
 #include "opensot/OpenSotCom.h"
 #include "opensot/OpenSotSubtask.h"
+#include "opensot/OpenSotAngularMomentum.h"
 
 #include "fmt/format.h"
 
@@ -165,6 +166,10 @@ OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr ta
     else if(task->getType() == "Subtask") /* Otherwise, construct supported tasks */
     {
         task_adapter = new OpenSotSubtaskAdapter(task, context);
+    }
+    else if(task->getType() == "AngularMomentum")
+    {
+        task_adapter = new OpenSotAngularMomentumAdapter(task, context);
     }
     else
     {

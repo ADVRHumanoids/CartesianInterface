@@ -7,6 +7,7 @@
 #include "problem/Com.h"
 #include "problem/Postural.h"
 #include "problem/Limits.h"
+#include "problem/AngularMomentum.h"
 
 #include "problem/Subtask.h"
 
@@ -115,6 +116,10 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
     else if(task_type == "VelocityLimits")
     {
         task_desc = std::make_shared<VelocityLimitsImpl>(task_node,  context);
+    }
+    else if(task_type == "AngularMomentum")
+    {
+        task_desc = std::make_shared<AngularMometumTaskImpl>(task_node,  context);
     }
     //        else if(task_type == "Gaze")
     //        {

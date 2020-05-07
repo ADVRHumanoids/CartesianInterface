@@ -3,11 +3,29 @@ solver_options:
     back_end: "osqp"
 
 stack:
-    - ["LeftFoot", "RightFoot", "ComXY"]
-    - ["LeftArm", "RightArm"]
+    - ["AngularMomentum", "Com"]
+    #- ["LeftFoot", "RightFoot", "ComXY"]
+    #- ["LeftArm", "RightArm"]
+    #- ["LeftArm"]
+    #- ["FloatingBase"]
+    - ["Torso"]
     - ["Postural"]
 
 constraints: ["JointLimits", "VelocityLimits"]
+
+FloatingBase:
+    type: "Cartesian"
+    name: "floating_base"
+    distal_link: "base_link"
+    lambda: 0.01
+
+Torso:
+    type: "Cartesian"
+    name: "torso"
+    distal_link: "torso"
+
+AngularMomentum:
+    type: "AngularMomentum"
 
 LeftFoot:
     type: "Cartesian"
@@ -29,11 +47,12 @@ RightArm:
     type: "Cartesian"
     name: "right_hand"
     distal_link: "RSoftHand"
+    base_link: "base_link"
     lambda: 0.1
     
 Postural:
     type: "Postural"
-    lambda: 0.01
+    lambda: 0.1
     weight:
         VIRTUALJOINT_1: 0.0
         VIRTUALJOINT_2: 0.0
@@ -42,11 +61,11 @@ Postural:
         VIRTUALJOINT_5: 0.0
         VIRTUALJOINT_6: 0.0
 
-ComXY:
+Com:
     type: "Com"
-    lambda: 0.1
-    indices: [0, 1]
-    weight: 10
+    lambda: 0.
+    #indices: [0, 1]
+    #weight: 10
 
 JointLimits:
     type: "JointLimits"
