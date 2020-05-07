@@ -131,6 +131,7 @@ set(CartesianInterface_SRC
     src/utils/ForceEstimation.cpp
     src/utils/RobotStatePublisher.cpp
     #        src/problem/MinJointVel.cpp
+    src/problem/impl/AngularMomentum.cpp
     )
 
 # OpenSot implementation
@@ -144,6 +145,7 @@ set(CartesianInterfaceSOT_SRC
     src/opensot/task_adapters/OpenSotJointLimits.cpp
     src/opensot/task_adapters/OpenSotVelocityLimits.cpp
     src/opensot/task_adapters/OpenSotConstraintFromTask.cpp
+    src/opensot/task_adapters/OpenSotAngularMomentum.cpp
     src/opensot/OpenSotImpl.cpp
     )
 
