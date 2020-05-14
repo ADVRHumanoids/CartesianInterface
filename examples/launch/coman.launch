@@ -13,7 +13,7 @@
         textfile="$(find cartesian_interface)/examples/configs/coman_stack.yaml"/>
     
     <include file="$(find cartesian_interface)/launch/cartesio.launch">
-        <arg name="rate" value="100.0"/>
+        <arg name="rate" value="1000.0"/>
         <arg name="prefix" value="$(arg prefix)"/>
     </include>
 

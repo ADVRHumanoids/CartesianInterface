@@ -4,11 +4,14 @@ solver_options:
 
 stack:
     - ["AngularMomentum", "Com"]
-    #- ["LeftFoot", "RightFoot", "ComXY"]
+    #- ["Com"]
+    #- ["LeftFoot", "RightFoot"]
     #- ["LeftArm", "RightArm"]
     #- ["LeftArm"]
-    #- ["FloatingBase"]
     - ["Torso"]
+    #- ["FloatingBase"]
+    #- ["Torso", "LeftFootLocal", "RightFootLocal", "RightArmLocal", "LeftArmLocal"]
+    #- ["FloatingBase", "LeftFootLocal", "RightFootLocal", "RightArmLocal", "LeftArmLocal"]
     - ["Postural"]
 
 constraints: ["JointLimits", "VelocityLimits"]
@@ -17,7 +20,7 @@ FloatingBase:
     type: "Cartesian"
     name: "floating_base"
     distal_link: "base_link"
-    lambda: 0.01
+    lambda: 0.1
 
 Torso:
     type: "Cartesian"
@@ -26,6 +29,18 @@ Torso:
 
 AngularMomentum:
     type: "AngularMomentum"
+
+LeftFootLocal:
+    type: "Cartesian"
+    name: "left_foot"
+    distal_link: "l_sole"
+    base_link: "base_link"
+
+RightFootLocal:
+    type: "Cartesian"
+    name: "right_foot"
+    distal_link: "r_sole"
+    base_link: "base_link"
 
 LeftFoot:
     type: "Cartesian"
@@ -36,6 +51,18 @@ RightFoot:
     type: "Cartesian"
     name: "right_foot"
     distal_link: "r_sole"
+
+LeftArmLocal:
+    type: "Cartesian"
+    name: "left_hand"
+    distal_link: "LSoftHand"
+    base_link: "torso"
+
+RightArmLocal:
+    type: "Cartesian"
+    name: "right_hand"
+    distal_link: "RSoftHand"
+    base_link: "torso"
 
 LeftArm:
     type: "Cartesian"
@@ -52,7 +79,7 @@ RightArm:
     
 Postural:
     type: "Postural"
-    lambda: 0.1
+    lambda: 1.0
     weight:
         VIRTUALJOINT_1: 0.0
         VIRTUALJOINT_2: 0.0
