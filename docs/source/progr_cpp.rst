@@ -17,35 +17,74 @@ A minimal example (ROS client)
 
 .. code-block:: c++
 
-    #include <cartesian_interface/ros/RosClient.h>
+        #include <cartesian_interface/ros/RosClient.h>
 
-    using namespace XBot::Cartesian;
+        using namespace XBot::Cartesian;
 
-    int main(int argc, char ** argv)
-    {
-        RosClient cli;
-        auto task = cli.getTask("MyTask");
-
-        // ..use task
-        task->setLambda(0.5);
-
-        // ..convert to Cartesian task
-        auto task_cartesian = std::dynamic_pointer_cast<CartesianTask>(task);
-
-        if(task_cartesian)
+        int main(int argc, char ** argv)
         {
-            Eigen::Affine3d Ttgt;
-            double time = 5.0;
+            RosClient cli;
+            auto task = cli.getTask("arm1_8");
 
-            // fill Ttgt...
+            // ..use task
+            task->setLambda(0.5);
 
-            // command reaching motion
-            task->setPoseTarget(Ttgt, time);
+            // ..convert to Cartesian task
+            auto task_cartesian = std::dynamic_pointer_cast<CartesianTask>(task);
 
-            // wait until motion completed
-            task->waitReachCompleted();
+            // if conversion was successful...
+            if(task_cartesian)
+            {
+                Eigen::Affine3d Ttgt;
+                double time = 5.0;
+
+                // fill Ttgt...
+                task_cartesian->getPoseReference(Ttgt);
+                Ttgt.translation().x() += 0.2;
+
+                // command reaching motion
+                task_cartesian->setPoseTarget(Ttgt, time);
+
+                // sleep time
+                const double sleep_dt = 0.1;
+
+                // wait until motion started
+                while(task_cartesian->getTaskState() == State::Online)
+                {
+                    cli.update(0, 0);
+                    ros::Duration(sleep_dt).sleep();
+                }
+
+                std::cout << "Motion started" << std::endl;
+
+                // wait until motion completed
+                while(task_cartesian->getTaskState() == State::Reaching)
+                {
+                    cli.update(0, 0);
+                    ros::Duration(sleep_dt).sleep();
+                }
+
+                std::cout << "Motion completed" << std::endl;
+            }
         }
-    }
+
+A minimal `CMakeLists.txt` to compile the snippet above is the following
+
+
+.. code-block:: cmake
+
+        cmake_minimum_required(VERSION 3.5)
+
+        project(cartesio_example_test)
+        find_package(catkin REQUIRED COMPONENTS cartesian_interface)
+
+        add_compile_options(-std=c++11)
+
+        include_directories(${catkin_INCLUDE_DIRS})
+
+        add_executable(exampleros exampleros.cpp)
+        target_link_libraries(exampleros ${catkin_LIBRARIES})
+
 
 
 A minimal example (Solver)
