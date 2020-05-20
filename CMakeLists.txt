@@ -104,7 +104,7 @@ generate_messages(
 catkin_package(
     INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIRS}
     LIBRARIES CartesianInterface
-    #  CATKIN_DEPENDS other_catkin_pkg
+    CATKIN_DEPENDS tf
     DEPENDS XBotInterface yaml-cpp
     CFG_EXTRAS ${PROJECT_NAME}-extras.cmake
     )
