@@ -13,7 +13,10 @@ PosturalTaskImpl::PosturalTaskImpl(Context::ConstPtr context, int ndof):
 
 PosturalTaskImpl::PosturalTaskImpl(YAML::Node task_node,
                                    Context::ConstPtr context):
-    TaskDescriptionImpl(task_node, context, "Postural", context->model()->getJointNum()),
+    TaskDescriptionImpl(task_node,
+                        context,
+                        "Postural",
+                        context->model()->getJointNum()),
     _use_inertia_matrix(false)
 {
     Eigen::MatrixXd weight;

@@ -89,10 +89,11 @@ or from ``ConstraintDescription`` if it's a constraint.
 
 The constructor signature must match the following one: every task is constructed by CartesIO
 in a uniform way, with the relevant YAML node from the problem description file, and a const
-share pointer to the model. You must call the ``TaskDescriptionImpl`` constructor specifying
+share pointer to a context object.
+You must call the ``TaskDescriptionImpl`` constructor additionally specifying
 
- - the task name
- - the task size
+ - the task name (a specific name, different for all instances, e.g. "visual_servo_left_hand")
+ - the task size (this will set the weight and indices size)
 
 The constructor is also the place where you parse custom parameters from the given YAML.
 The base class will do the same jobs for all *common Task parameters*.
@@ -186,4 +187,9 @@ if the user stops providing references, the desired value drops to zero automati
     CARTESIO_REGISTER_TASK_PLUGIN(AngularMomentumImpl, AngularMomentum)
 
 
+.. note::
+
+    All ``*REGISTER*`` macros take as second argument the task name that will be specified
+    by users inside the ``type`` yaml field. In this case, the OpenSot adapter will
+    correspond to a task with ``type: AngularMomentum``
 

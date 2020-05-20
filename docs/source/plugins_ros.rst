@@ -104,3 +104,10 @@ Easy!
 
     CARTESIO_REGISTER_ROS_API_PLUGIN(AngularMomentumRos, AngularMomentum)
 
+
+
+.. note::
+
+    All ``*REGISTER*`` macros take as second argument the task name that will be specified
+    by users inside the ``type`` yaml field. In this case, the OpenSot adapter will
+    correspond to a task with ``type: AngularMomentum``
