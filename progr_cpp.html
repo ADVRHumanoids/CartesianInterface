@@ -102,6 +102,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="progr_py.html">Programmatic API (Python)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">How to expand CartesIO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="porting.html">Porting code from v1.x</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API reference</span></p>
 <ul>
@@ -175,7 +176,7 @@ You can check a reference (doxygen generated) of the C++ API by following
 <span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span> <span class="n">argv</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">RosClient</span> <span class="n">cli</span><span class="p">;</span>
-    <span class="k">auto</span> <span class="n">task</span> <span class="o">=</span> <span class="n">cli</span><span class="p">.</span><span class="n">getTask</span><span class="p">(</span><span class="s">&quot;MyTask&quot;</span><span class="p">);</span>
+    <span class="k">auto</span> <span class="n">task</span> <span class="o">=</span> <span class="n">cli</span><span class="p">.</span><span class="n">getTask</span><span class="p">(</span><span class="s">&quot;arm1_8&quot;</span><span class="p">);</span>
 
     <span class="c1">// ..use task</span>
     <span class="n">task</span><span class="o">-&gt;</span><span class="n">setLambda</span><span class="p">(</span><span class="mf">0.5</span><span class="p">);</span>
@@ -183,20 +184,55 @@ You can check a reference (doxygen generated) of the C++ API by following
     <span class="c1">// ..convert to Cartesian task</span>
     <span class="k">auto</span> <span class="n">task_cartesian</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">dynamic_pointer_cast</span><span class="o">&lt;</span><span class="n">CartesianTask</span><span class="o">&gt;</span><span class="p">(</span><span class="n">task</span><span class="p">);</span>
 
+    <span class="c1">// if conversion was successful...</span>
     <span class="k">if</span><span class="p">(</span><span class="n">task_cartesian</span><span class="p">)</span>
     <span class="p">{</span>
         <span class="n">Eigen</span><span class="o">::</span><span class="n">Affine3d</span> <span class="n">Ttgt</span><span class="p">;</span>
         <span class="kt">double</span> <span class="n">time</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">;</span>
 
         <span class="c1">// fill Ttgt...</span>
+        <span class="n">task_cartesian</span><span class="o">-&gt;</span><span class="n">getPoseReference</span><span class="p">(</span><span class="n">Ttgt</span><span class="p">);</span>
+        <span class="n">Ttgt</span><span class="p">.</span><span class="n">translation</span><span class="p">().</span><span class="n">x</span><span class="p">()</span> <span class="o">+=</span> <span class="mf">0.2</span><span class="p">;</span>
 
         <span class="c1">// command reaching motion</span>
-        <span class="n">task</span><span class="o">-&gt;</span><span class="n">setPoseTarget</span><span class="p">(</span><span class="n">Ttgt</span><span class="p">,</span> <span class="n">time</span><span class="p">);</span>
+        <span class="n">task_cartesian</span><span class="o">-&gt;</span><span class="n">setPoseTarget</span><span class="p">(</span><span class="n">Ttgt</span><span class="p">,</span> <span class="n">time</span><span class="p">);</span>
+
+        <span class="c1">// sleep time</span>
+        <span class="k">const</span> <span class="kt">double</span> <span class="n">sleep_dt</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">;</span>
+
+        <span class="c1">// wait until motion started</span>
+        <span class="k">while</span><span class="p">(</span><span class="n">task_cartesian</span><span class="o">-&gt;</span><span class="n">getTaskState</span><span class="p">()</span> <span class="o">==</span> <span class="n">State</span><span class="o">::</span><span class="n">Online</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">cli</span><span class="p">.</span><span class="n">update</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+            <span class="n">ros</span><span class="o">::</span><span class="n">Duration</span><span class="p">(</span><span class="n">sleep_dt</span><span class="p">).</span><span class="n">sleep</span><span class="p">();</span>
+        <span class="p">}</span>
+
+        <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Motion started&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 
         <span class="c1">// wait until motion completed</span>
-        <span class="n">task</span><span class="o">-&gt;</span><span class="n">waitReachCompleted</span><span class="p">();</span>
+        <span class="k">while</span><span class="p">(</span><span class="n">task_cartesian</span><span class="o">-&gt;</span><span class="n">getTaskState</span><span class="p">()</span> <span class="o">==</span> <span class="n">State</span><span class="o">::</span><span class="n">Reaching</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">cli</span><span class="p">.</span><span class="n">update</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+            <span class="n">ros</span><span class="o">::</span><span class="n">Duration</span><span class="p">(</span><span class="n">sleep_dt</span><span class="p">).</span><span class="n">sleep</span><span class="p">();</span>
+        <span class="p">}</span>
+
+        <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Motion completed&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
     <span class="p">}</span>
 <span class="p">}</span>
+</pre></div>
+</div>
+<p>A minimal <cite>CMakeLists.txt</cite> to compile the snippet above is the following</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span> <span class="s">3.5</span><span class="p">)</span>
+
+<span class="nb">project</span><span class="p">(</span><span class="s">cartesio_example_test</span><span class="p">)</span>
+<span class="nb">find_package</span><span class="p">(</span><span class="s">catkin</span> <span class="s">REQUIRED</span> <span class="s">COMPONENTS</span> <span class="s">cartesian_interface</span><span class="p">)</span>
+
+<span class="nb">add_compile_options</span><span class="p">(</span><span class="s">-std=c++11</span><span class="p">)</span>
+
+<span class="nb">include_directories</span><span class="p">(</span><span class="o">${</span><span class="nv">catkin_INCLUDE_DIRS</span><span class="o">}</span><span class="p">)</span>
+
+<span class="nb">add_executable</span><span class="p">(</span><span class="s">exampleros</span> <span class="s">exampleros.cpp</span><span class="p">)</span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">exampleros</span> <span class="o">${</span><span class="nv">catkin_LIBRARIES</span><span class="o">}</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
