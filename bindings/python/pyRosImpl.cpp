@@ -104,7 +104,7 @@ PYBIND11_MODULE(pyci, m) {
             .def("getTask", &CartesianInterfaceImpl::getTask, py::return_value_policy::reference_internal)
             .def("update", &CartesianInterfaceImpl::update)
             .def("getTaskList", &CartesianInterfaceImpl::getTaskList)
-            .def("reset", (bool (CartesianInterfaceImpl::*)(void)) &CartesianInterfaceImpl::reset);
+            .def("reset", (bool (CartesianInterfaceImpl::*)(double)) &CartesianInterfaceImpl::reset);
 
     py::class_<RosClient,
             CartesianInterfaceImpl,
