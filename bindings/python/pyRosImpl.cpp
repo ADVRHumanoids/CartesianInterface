@@ -7,6 +7,8 @@
 #include "problem/Postural.h"
 #include "problem/Interaction.h"
 
+#include <cartesian_interface/utils/RobotStatePublisher.h>
+
 PYBIND11_MODULE(pyci, m) {
     
     /* Create binding for ControlType enum */
@@ -154,6 +156,17 @@ PYBIND11_MODULE(pyci, m) {
                                                               const std::string&))  &RosClient::setVelocityReference)
             //        .def("stopVelocityReferenceAsync", &RosClient::stopVelocityReferenceAsync)
             .def("getPoseFromTf", py_get_pose_from_tf);
+
+
+    /* Robot state pub util */
+    py::class_<Utils::RobotStatePublisher>(m, "RobotStatePublisher")
+        .def(py::init<XBot::ModelInterface::ConstPtr>())
+        .def("publishTransforms",
+             [](Utils::RobotStatePublisher& r, std::string pref)
+             {
+                 r.publishTransforms(ros::Time::now(), pref);
+             })
+        ;
 
     
 }
