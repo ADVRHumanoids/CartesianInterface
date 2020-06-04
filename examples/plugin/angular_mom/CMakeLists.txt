@@ -8,8 +8,7 @@ add_library(CartesioAngularMomentumAddon SHARED
 
 target_link_libraries(CartesioAngularMomentumAddon PRIVATE
     ${OpenSoT_LIBRARIES}
-    CartesianInterface
-    fmt::fmt-header-only)
+    CartesianInterface)
 
 install(TARGETS CartesioAngularMomentumAddon CartesioAngularMomentumAddon
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

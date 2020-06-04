@@ -404,6 +404,7 @@ bool CartesianInterfaceImpl::reset(double time)
 
 bool CartesianInterfaceImpl::update(double time, double period)
 {
+
     _current_time = time;
     
     for(auto& pair : _task_map)

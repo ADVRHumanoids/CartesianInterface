@@ -45,17 +45,17 @@ add_dependencies(TestOpensot GTest-ext CartesianInterface)
 add_test(NAME TestOpensot COMMAND TestOpensot)
 
 add_executable(TestRosClient TestRosClient.cpp)
-target_link_libraries(TestRosClient ${TestLibs} fmt::fmt-header-only)
+target_link_libraries(TestRosClient ${TestLibs})
 add_dependencies(TestRosClient GTest-ext CartesianInterface)
 add_test(NAME TestRosClient COMMAND TestRosClient)
 
 add_executable(TestRt TestRt.cpp)
-target_link_libraries(TestRt dl ${TestLibs} fmt::fmt-header-only)
+target_link_libraries(TestRt dl ${TestLibs})
 add_dependencies(TestRt GTest-ext CartesianInterface)
 add_test(NAME TestRt COMMAND TestRt)
 
 add_executable(TestRos TestRos.cpp)
-target_link_libraries(TestRos ${TestLibs} dl fmt::fmt-header-only)
+target_link_libraries(TestRos ${TestLibs} dl)
 add_dependencies(TestRos GTest-ext CartesianInterface )
 add_test(NAME TestRos COMMAND TestRos)
 

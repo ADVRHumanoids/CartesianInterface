@@ -6,9 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-include(MacroInstallLib)
-
-add_subdirectory(external)
 
 find_package(XBotInterface REQUIRED)
 find_package(XCM QUIET)
@@ -28,7 +25,8 @@ find_package(catkin REQUIRED COMPONENTS roscpp
     tf tf_conversions)
 
 include_directories(include
-    include/cartesian_interface/sdk
+    include/${PROJECT_NAME}/external
+    include/${PROJECT_NAME}/sdk
     src
     ${OpenSoT_INCLUDE_DIRS}
     ${XBotInterface_INCLUDE_DIRS}
@@ -102,11 +100,20 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-    INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIRS}
-    LIBRARIES CartesianInterface
-    CATKIN_DEPENDS tf
-    DEPENDS XBotInterface
-    CFG_EXTRAS ${PROJECT_NAME}-extras.cmake
+
+    INCLUDE_DIRS
+
+    LIBRARIES
+    CartesianInterface
+
+    CATKIN_DEPENDS
+    tf
+
+    DEPENDS
+    XBotInterface
+
+    CFG_EXTRAS
+    ${PROJECT_NAME}-extras.cmake
     )
 
 # Interface implementation
@@ -191,7 +198,6 @@ target_link_libraries(CartesianInterface
     ${ReflexxesTypeII_LIBRARIES}
     ${alglib_LIBRARIES}
     PRIVATE
-    fmt::fmt-header-only
     matlogger2::matlogger2
     )
 
@@ -213,7 +219,6 @@ target_link_libraries(CartesianInterfaceSolverOpenSot PUBLIC
     ${OpenSoT_LIBRARIES}
     CartesianInterface
     PRIVATE
-    fmt::fmt-header-only
     matlogger2::matlogger2
     )
 install(TARGETS CartesianInterfaceSolverOpenSot
