@@ -201,6 +201,14 @@ target_link_libraries(CartesianInterface
     matlogger2::matlogger2
     )
 
+target_compile_definitions(CartesianInterface
+    PUBLIC -DFMT_HEADER_ONLY=1)
+
+target_include_directories(CartesianInterface
+    PUBLIC
+    $<INSTALL_INTERFACE:include/${PROJECT_NAME}/external>
+    )
+
 add_dependencies(CartesianInterface ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 install(TARGETS CartesianInterface CartesianInterface
