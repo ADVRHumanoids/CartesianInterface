@@ -6,7 +6,6 @@
 #include <cartesian_interface/Enum.h>
 #include <cartesian_interface/Context.h>
 #include <cartesian_interface/trajectory/Trajectory.h>
-#include <ReflexxesTypeII/Wrappers/TrajectoryGenerator.h>
 
 namespace XBot { namespace Cartesian {
 

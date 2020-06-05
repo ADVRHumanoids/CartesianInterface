@@ -1,4 +1,5 @@
 #include "problem/Cartesian.h"
+#include <ReflexxesTypeII/Wrappers/TrajectoryGenerator.h>
 
 using namespace XBot::Cartesian;
 

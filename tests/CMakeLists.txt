@@ -1,8 +1,4 @@
-cmake_minimum_required(VERSION 2.8.11)
 include(ExternalProject)
-
-project(cartesian_interface_tests C CXX)
-
 
 # compite GTest
 find_package(GTest)

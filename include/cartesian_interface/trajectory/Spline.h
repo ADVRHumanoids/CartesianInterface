@@ -21,7 +21,11 @@
 #define __XBOT_CARTESIAN_TRAJ_SPLINE_H__
 
 #include <cartesian_interface/trajectory/Trajectory.h>
-#include <alglib/interpolation.h>
+
+namespace alglib
+{
+class spline1dinterpolant;
+}
 
 namespace XBot { namespace Cartesian {
     
@@ -37,6 +41,8 @@ namespace XBot { namespace Cartesian {
         virtual Eigen::Affine3d evaluate(double time, 
                                          Eigen::Vector6d * const vel = nullptr, 
                                          Eigen::Vector6d * const acc = nullptr);
+
+        ~Spline();
         
     private:
         
