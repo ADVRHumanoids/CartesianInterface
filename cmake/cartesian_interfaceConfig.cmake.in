@@ -1,0 +1,11 @@
+@PACKAGE_INIT@
+
+set_and_check(@PROJECT_NAME@_TARGETS
+"${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
+
+include(CMakeFindDependencyMacro)
+find_dependency(XBotInterface)
+find_dependency(OpenSoT)
+find_dependency(matlogger2)
+
+include(${@PROJECT_NAME@_TARGETS})

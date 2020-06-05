@@ -1,6 +1,10 @@
 #include <cartesian_interface/trajectory/Spline.h>
+#include <alglib/interpolation.h>
 
-XBot::Cartesian::Spline::Spline():
+using namespace XBot::Cartesian;
+
+
+Spline::Spline():
     _splines_pos(3),
     _splines_rot(4),
     _knots(3),
@@ -20,7 +24,7 @@ XBot::Cartesian::Spline::Spline():
     }
 }
 
-void XBot::Cartesian::Spline::add_knot(double t, const Eigen::Affine3d& T)
+void Spline::add_knot(double t, const Eigen::Affine3d& T)
 {
     _knots.push_back(t);
     
@@ -53,7 +57,7 @@ void XBot::Cartesian::Spline::add_knot(double t, const Eigen::Affine3d& T)
     
 }
 
-void XBot::Cartesian::Spline::clear_all()
+void Spline::clear_all()
 {
     
     _knots.clear();
@@ -70,7 +74,7 @@ void XBot::Cartesian::Spline::clear_all()
 }
 
 
-void XBot::Cartesian::Spline::compute()
+void Spline::compute()
 {
     clear_all();
     
@@ -78,9 +82,9 @@ void XBot::Cartesian::Spline::compute()
     {
         add_knot(wp.time, wp.frame);
     }
-    
-     alglib::real_1d_array tk_alg;
-     tk_alg.attach_to_ptr(_knots.size(), _knots.data());
+
+    alglib::real_1d_array tk_alg;
+    tk_alg.attach_to_ptr(_knots.size(), _knots.data());
     
     for(int i = 0; i < 3; i++)
     {
@@ -100,7 +104,7 @@ void XBot::Cartesian::Spline::compute()
 }
 
 
-Eigen::Affine3d XBot::Cartesian::Spline::evaluate(double time, Eigen::Vector6d * const vel, Eigen::Vector6d * const acc)
+Eigen::Affine3d Spline::evaluate(double time, Eigen::Vector6d * const vel, Eigen::Vector6d * const acc)
 {
     
     if(time <= getWayPoints()[0].time)
@@ -136,3 +140,5 @@ Eigen::Affine3d XBot::Cartesian::Spline::evaluate(double time, Eigen::Vector6d *
     
     return T;
 }
+
+Spline::~Spline() = default;

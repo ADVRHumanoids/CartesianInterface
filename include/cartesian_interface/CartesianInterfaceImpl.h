@@ -28,7 +28,6 @@
 #include <cartesian_interface/problem/Com.h>
 #include <cartesian_interface/problem/Postural.h>
 #include <cartesian_interface/Context.h>
-#include <ReflexxesTypeII/Wrappers/TrajectoryGenerator.h>
 
 #include <matlogger2/matlogger2.h>
 

@@ -1,5 +1,5 @@
-project(cartesian_interface)
 cmake_minimum_required(VERSION 3.0)
+project(cartesian_interface VERSION 2.0.0)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -11,9 +11,9 @@ find_package(XBotInterface REQUIRED)
 find_package(XCM QUIET)
 find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
-find_package(alglib QUIET)
 find_package(matlogger2 REQUIRED)
 find_package(Eigen3 REQUIRED)
+set(CATKIN_BUILD_BINARY_PACKAGE TRUE)
 find_package(catkin REQUIRED COMPONENTS roscpp
     std_msgs
     geometry_msgs
@@ -23,6 +23,11 @@ find_package(catkin REQUIRED COMPONENTS roscpp
     message_generation
     interactive_markers
     tf tf_conversions)
+
+option(CARTESIO_USE_ALGLIB "Support spline trajectories with alglib" OFF)
+if(${CARTESIO_USE_ALGLIB})
+    find_package(alglib QUIET)
+endif()
 
 include_directories(include
     include/${PROJECT_NAME}/external
@@ -100,20 +105,8 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-
-    INCLUDE_DIRS
-
-    LIBRARIES
-    CartesianInterface
-
-    CATKIN_DEPENDS
-    tf
-
-    DEPENDS
-    XBotInterface
-
-    CFG_EXTRAS
-    ${PROJECT_NAME}-extras.cmake
+    SKIP_CMAKE_CONFIG_GENERATION
+    SKIP_PKG_CONFIG_GENERATION
     )
 
 # Interface implementation
@@ -191,13 +184,13 @@ add_library(CartesianInterface SHARED
 
 target_link_libraries(CartesianInterface
     PUBLIC
-    ${XBotInterface_LIBRARIES}
-    ${OpenSoT_LIBRARIES}
+    XBotInterface::XBotInterface
+    OpenSoT::OpenSoT
     ${catkin_LIBRARIES}
     yaml-cpp
+    PRIVATE
     ${ReflexxesTypeII_LIBRARIES}
     ${alglib_LIBRARIES}
-    PRIVATE
     matlogger2::matlogger2
     )
 
@@ -211,7 +204,8 @@ target_include_directories(CartesianInterface
 
 add_dependencies(CartesianInterface ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
-install(TARGETS CartesianInterface CartesianInterface
+install(TARGETS CartesianInterface
+    EXPORT ${PROJECT_NAME}Targets
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -234,21 +228,6 @@ install(TARGETS CartesianInterfaceSolverOpenSot
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
     )
-
-## Addons for libCartesianOpenSot
-
-#find_package(PCL QUIET)
-#if(${PCL_FOUND})
-#    include_directories(${PCL_INCLUDE_DIRS})
-#    add_library(CartesioConvexHullAddon SHARED src/open_sot/ConvexHullAddon.cpp)
-#    target_link_libraries(CartesioConvexHullAddon PRIVATE ${OpenSoT_LIBRARIES}
-#                                                          CartesianInterface
-#                                                          ${PCL_LIBRARIES})
-#    install(TARGETS CartesioConvexHullAddon CartesioConvexHullAddon
-#        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-#endif()
 
 # Cartesian Server executable
 add_executable(ros_server_node src/ros/RosServerNode.cpp)
@@ -314,13 +293,19 @@ install(TARGETS robot_state_publisher robot_state_publisher
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-add_subdirectory(examples)
+option(CARTESIO_COMPILE_EXAMPLES "Compile examples" OFF)
+if(${CARTESIO_COMPILE_EXAMPLES})
+    add_subdirectory(examples)
+endif()
+
 add_subdirectory(bindings/python/)
 
+include(GenerateDeb)
 
-option(COMPILE_XBOT_PLUGIN OFF)
 
-if(${XCM_FOUND} AND ${COMPILE_XBOT_PLUGIN})
+option(CARTESIO_COMPILE_XBOT_PLUGIN "Build plugins for XBotCore" OFF)
+
+if(${XCM_FOUND} AND ${CARTESIO_COMPILE_XBOT_PLUGIN})
     add_subdirectory(xbotcore)
 endif()
 
@@ -338,16 +323,17 @@ install(DIRECTORY launch/
     FILES_MATCHING PATTERN "*.launch"
     )
 
-
-
 install(PROGRAMS src/postural_gui DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+include(ExportCartesianInterface)
+export_cartesian_interface()
 
 #######################
 # Add Testing target  #
 #######################
-option(BUILD_TESTS "Compile CartesianInterface tests" FALSE)
+option(CARTESIO_BUILD_TESTS "Compile CartesianInterface tests" FALSE)
 
-if(BUILD_TESTS)
+if(CARTESIO_BUILD_TESTS)
     enable_testing()
     add_custom_target(test_verbose ${CMAKE_CTEST_COMMAND} -V)
     add_subdirectory(tests)

@@ -7,13 +7,19 @@
 #include <cartesian_interface/Enum.h>
 #include <cartesian_interface/Context.h>
 #include <cartesian_interface/trajectory/Trajectory.h>
-#include <ReflexxesTypeII/Wrappers/TrajectoryGenerator.h>
+
+namespace Reflexxes {
+namespace Utils
+{
+class TrajectoryGenerator;
+}
+}
 
 namespace XBot { namespace Cartesian {
 
 class CartesianTaskImpl :
-        public TaskDescriptionImpl,
-        public virtual CartesianTask
+    public TaskDescriptionImpl,
+    public virtual CartesianTask
 {
 
 public:
@@ -151,7 +157,7 @@ private:
     double _vref_time_to_live;
 
     Trajectory::Ptr _trajectory;
-    Reflexxes::Utils::TrajectoryGenerator::Ptr _otg;
+    std::shared_ptr<Reflexxes::Utils::TrajectoryGenerator> _otg;
 
 
 };
