@@ -22,6 +22,7 @@ mark_as_advanced(GIT_SCM)
 find_file(GITDIR NAMES .git PATHS ${CMAKE_SOURCE_DIR} NO_DEFAULT_PATH)
 if (GIT_SCM AND GITDIR)
     execute_process(
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMAND ${GIT_SCM} log -1 "--pretty=format:%h"
         OUTPUT_VARIABLE GIT_SHA1_SHORT
     )
