@@ -617,8 +617,8 @@ visualization_msgs::Marker CartesianMarker::makeSphere( visualization_msgs::Inte
 
 visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::InteractiveMarker &msg )
 {
-    boost::shared_ptr<const urdf::Link> link = _urdf.getLink(_distal_link);
-    boost::shared_ptr<const urdf::Link> controlled_link = link;
+    auto link = _urdf.getLink(_distal_link);
+    auto controlled_link = link;
 
 #if ROS_VERSION_MINOR <= 12
 #define STATIC_POINTER_CAST boost::static_pointer_cast
