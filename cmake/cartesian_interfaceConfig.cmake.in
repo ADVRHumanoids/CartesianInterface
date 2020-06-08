@@ -9,3 +9,5 @@ find_dependency(OpenSoT)
 find_dependency(matlogger2)
 
 include(${@PROJECT_NAME@_TARGETS})
+
+set(@PROJECT_NAME@_LIBRARIES cartesian_interface::CartesianInterface)
