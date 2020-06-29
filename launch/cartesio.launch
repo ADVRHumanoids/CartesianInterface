@@ -9,6 +9,7 @@
     <arg name="namespace" default="/"/> 
     <arg name="is_model_floating_base" default="true"/>
     <arg name="xbot" default="false"/>
+    <arg name="world_frame_link" default="!"/>
        
     <group ns="$(arg namespace)">
     
@@ -26,6 +27,7 @@
             <param name="use_xbot_config" value="$(arg use_xbot_config)"/>
             <param name="rate" value="$(arg rate)"/>
             <param name="tf_prefix" value="$(arg tf_prefix)"/>
+	    <param if="$(eval arg('world_frame_link') != '!')" name="world_frame_link" value="$(arg world_frame_link)"/>
             
         </node>
 
