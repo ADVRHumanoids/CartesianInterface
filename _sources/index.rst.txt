@@ -35,8 +35,8 @@ Features
 How to install
 --------------
 Binaries are available `at this link <https://github.com/ADVRHumanoids/XBotControl/releases/tag/v2.0-devel>`_. Remember to pick the right version
-for your specific Linux distribution. Currently, 16.04 (Xenial) and 18.04 (Bionic)
-are supported, whereas support for 20.04 (Focal) is still experimental. After e
+for your specific Linux distribution. Currently, Ubuntu 16.04 (Xenial) and 18.04 (Bionic)
+are supported, whereas support for 20.04 (Focal) is still experimental. After
 extracting the archive, run the ``./install`` script (requires sudo permissions).
 To uninstall all packages, an ``./uninstall`` script is provided as well.
 
