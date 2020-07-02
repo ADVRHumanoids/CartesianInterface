@@ -34,9 +34,11 @@ Features
 
 How to install
 --------------
-Because CartesIO 2.0 is still in the works, it can only be compiled from source.
-This option is though only available to IIT-HHCM fellows and employees.
-Pre-build binaries will be shipped soon!
+Binaries are available `at this link <https://github.com/ADVRHumanoids/XBotControl/releases/tag/v2.0-devel>`_. Remember to pick the right version
+for your specific Linux distribution. Currently, 16.04 (Xenial) and 18.04 (Bionic)
+are supported, whereas support for 20.04 (Focal) is still experimental. After e
+extracting the archive, run the ``./install`` script (requires sudo permissions).
+To uninstall all packages, an ``./uninstall`` script is provided as well.
 
 Cite our work
 -------------
