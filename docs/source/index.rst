@@ -40,6 +40,9 @@ are supported, whereas support for 20.04 (Focal) is still experimental. After e
 extracting the archive, run the ``./install`` script (requires sudo permissions).
 To uninstall all packages, an ``./uninstall`` script is provided as well.
 
+To use the software, sourcing the installed environment script is required.
+You can add the line ``source /opt/xbot/setup.sh`` to your ``.bashrc`` file.
+
 Cite our work
 -------------
 ..with the bibtex below!
