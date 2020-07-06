@@ -12,13 +12,14 @@ TorqueEstimation::TorqueEstimation(ModelInterface::ConstPtr model,
     _k_obs(2.0 * M_PI * obs_bw),
     _logger(XBot::MatLogger::getLogger("/tmp/torque_estimation_log"))
 {
+    _period=0.0;
     init_momentum_obs();
     log(_logger);
 }
 
-void TorqueEstimation::update(double rate)
+void TorqueEstimation::update(double period)
 {
-    compute_residuals(rate);
+    compute_residuals(period);
     
     log(_logger);
 }
@@ -45,8 +46,10 @@ bool TorqueEstimation::get_static_residuals(Eigen::VectorXd &static_res) const
     return true;
 }
 
-void TorqueEstimation::compute_residuals(double rate)
+void TorqueEstimation::compute_residuals(double period)
 {
+    _period = period;
+    
     _model->getJointEffort(_tau);
     _model->computeGravityCompensation(_g);
     
@@ -65,13 +68,19 @@ void TorqueEstimation::compute_residuals(double rate)
 	_model->getInertiaMatrix(_M);
 	_p1 = _M * _qdot;
 	
-	_Mdot.noalias() = (_M - _M_old) * rate;
+    /* check to avoid dividing by zero. XbotCore first control loops can return period of zero duration*/
+    if(period > 0){
+        _Mdot.noalias() = (_M - _M_old) / period;
+    }
+    else {
+        _Mdot.setZero();
+    }
 	_M_old.noalias() = _M;
 	_model->computeNonlinearTerm(_h);
 	_model->computeGravityCompensation(_g);
 	_coriolis.noalias() = _h - _g;
 	_model->getJointEffort(_tau);
-	_p2.noalias() += (_tau + (_Mdot * _qdot - _coriolis) - _g + _y) / rate;
+	_p2.noalias() += (_tau + (_Mdot * _qdot - _coriolis) - _g + _y) * period;
 	_y = _k_obs*(_p1 - _p2 - _p0);
     }
     else {

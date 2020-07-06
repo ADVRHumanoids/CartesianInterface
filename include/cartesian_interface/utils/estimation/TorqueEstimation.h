@@ -20,7 +20,7 @@ namespace XBot { namespace Cartesian { namespace Utils {
                         bool momentum_based = false,
                         double obs_bw = DEFAULT_OBS_BW);
         
-        void update(double rate = Utils::TorqueEstimation::DEFAULT_RATE);
+        void update(double period = 1.0/Utils::TorqueEstimation::DEFAULT_RATE);
         
         void log(MatLogger::Ptr logger) const;
 
@@ -33,7 +33,7 @@ namespace XBot { namespace Cartesian { namespace Utils {
         
     private:
         
-        void compute_residuals(double rate);
+        void compute_residuals(double period);
         
         ModelInterface::ConstPtr _model;
         
@@ -46,6 +46,8 @@ namespace XBot { namespace Cartesian { namespace Utils {
         Eigen::MatrixXd _M, _M_old, _Mdot;
         
         XBot::MatLogger::Ptr _logger;
+        
+        double _period;
         
     };   
     
