@@ -21,10 +21,14 @@ OpenSotTaskAdapter::OpenSotTaskAdapter(TaskDescription::Ptr task,
                                        ):
     _vars({}),
     _model(context->model()),
-    _ci_task(task),
+    _ci_task(std::dynamic_pointer_cast<TaskDescriptionImpl>(task)),
     _ctx(context)
 {
-
+    if(!_ci_task)
+    {
+        throw std::runtime_error("invalid task provided: "
+                                 "not a TaskDescriptionImpl");
+    }
 }
 
 bool OpenSotTaskAdapter::initialize(const OpenSoT::OptvarHelper& vars)
@@ -100,7 +104,10 @@ void OpenSotTaskAdapter::update(double time, double period)
 
 void OpenSotTaskAdapter::processSolution(const Eigen::VectorXd& solution)
 {
+    _task_err.noalias() = _opensot_task->getWA()*solution -
+                          _opensot_task->getWb();
 
+    _ci_task->setTaskError(_task_err);
 }
 
 TaskPtr OpenSotTaskAdapter::getOpenSotTask()
@@ -108,7 +115,7 @@ TaskPtr OpenSotTaskAdapter::getOpenSotTask()
     return _sub_task;
 }
 
-TaskDescription::Ptr OpenSotTaskAdapter::getTaskDescription() const
+TaskDescriptionImpl::Ptr OpenSotTaskAdapter::getTaskDescription() const
 {
     return _ci_task;
 }
@@ -198,7 +205,6 @@ OpenSotConstraintAdapter::OpenSotConstraintAdapter(ConstraintDescription::Ptr co
     _vars({}),
     _ctx(context)
 {
-
 }
 
 bool OpenSotConstraintAdapter::initialize(const OpenSoT::OptvarHelper& vars)
@@ -233,7 +239,6 @@ void OpenSotConstraintAdapter::update(double time, double period)
 
 void OpenSotConstraintAdapter::processSolution(const Eigen::VectorXd& solution)
 {
-
 }
 
 ConstraintPtr OpenSotConstraintAdapter::getOpenSotConstraint()

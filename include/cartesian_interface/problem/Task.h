@@ -137,9 +137,25 @@ public:
      */
     virtual bool setLambda2(double value) = 0;
 
-
+    /**
+     * @brief getDisabledJoints returns the list of disabled joints for
+     * this task
+     */
     virtual const std::vector<std::string>& getDisabledJoints() const = 0;
+
+    /**
+     * @brief setDisabledJoints gives a hint to the solver to ignore the
+     * given set of joints in the execution of the current task
+     */
     virtual void setDisabledJoints(const std::vector<std::string>& value) = 0;
+
+    /**
+     * @brief getTaskError returns an implementation-defined metric of
+     * task execution error
+     * @param e is the method output
+     * @return true if the functionality is supported
+     */
+    virtual bool getTaskError(Eigen::VectorXd& e) const;
 
     /**
      * @brief update is a loop function which is called at each control iteration

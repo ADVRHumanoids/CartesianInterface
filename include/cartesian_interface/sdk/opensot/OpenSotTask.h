@@ -1,7 +1,7 @@
 #ifndef OPENSOTTASKADAPTER_H
 #define OPENSOTTASKADAPTER_H
 
-#include <cartesian_interface/problem/Task.h>
+#include <cartesian_interface/sdk/problem/Task.h>
 #include <cartesian_interface/problem/Constraint.h>
 #include <cartesian_interface/CartesianInterface.h>
 #include <cartesian_interface/Context.h>
@@ -42,7 +42,7 @@ public:
 
     TaskPtr getOpenSotTask();
 
-    TaskDescription::Ptr getTaskDescription() const;
+    TaskDescriptionImpl::Ptr getTaskDescription() const;
 
     virtual bool onWeightChanged() override;
 
@@ -60,14 +60,14 @@ protected:
     static OpenSoT::OptvarHelper DefaultVars();
     OpenSoT::OptvarHelper _vars;
     ModelInterface::ConstPtr _model;
-    TaskDescription::Ptr _ci_task;
+    TaskDescriptionImpl::Ptr _ci_task;
     Context::ConstPtr _ctx;
 
 private:
 
-
     TaskPtr _opensot_task;
     TaskPtr _sub_task;
+    Eigen::VectorXd _task_err;
 
 };
 

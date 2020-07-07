@@ -4,6 +4,7 @@
 #include <cartesian_interface/problem/Task.h>
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <cartesian_interface/GetTaskInfo.h>
 #include <cartesian_interface/SetWeight.h>
 #include <cartesian_interface/SetLambda.h>
@@ -76,8 +77,8 @@ private:
     ros::ServiceServer _get_task_info_srv, _set_lambda_srv, _set_lambda2_srv, _set_weight_srv;
     ros::ServiceServer _set_active_srv;
 
-    ros::Publisher _task_changed_pub;
-
+    ros::Publisher _task_changed_pub, _task_err_pub;
+    Eigen::VectorXd _err;
 
 };
 

@@ -12,7 +12,8 @@ namespace XBot { namespace Cartesian {
  * @brief Base class for task descriptions, which contains
  * properties that are shared among all tasks.
  */
-class TaskDescriptionImpl : public virtual TaskDescription {
+class TaskDescriptionImpl : public virtual TaskDescription
+{
 
 public:
 
@@ -57,6 +58,9 @@ public:
 
     virtual ActivationState getActivationState() const override;
     virtual bool setActivationState(const ActivationState& value) override;
+
+    void setTaskError(const Eigen::VectorXd& e);
+    virtual bool getTaskError(Eigen::VectorXd& e) const override;
 
     void registerObserver(TaskObserver::WeakPtr obs) override;
 
@@ -141,6 +145,11 @@ private:
      * contributing to the task.
      */
     std::vector<std::string> _disabled_joints;
+
+    /**
+     * @brief Implementation-specific representation of task error
+     */
+    Eigen::VectorXd _task_error;
 
     std::list<TaskObserver::WeakPtr> _observers;
 
