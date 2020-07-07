@@ -7,6 +7,7 @@
 #include "ros/server_api/InteractionRos.h"
 
 #include <std_msgs/String.h>
+#include <eigen_conversions/eigen_msg.h>
 
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ServerApi;
@@ -18,28 +19,44 @@ TaskRos::TaskRos(TaskDescription::Ptr task,
     _model(context->ci_context()->model()),
     _ctx(context)
 {
-    _get_task_info_srv = _ctx->nh().advertiseService(task_name + "/get_task_properties",
-                                                    &TaskRos::get_task_info_cb, this);
+    _get_task_info_srv = _ctx->nh().advertiseService(
+        task_name + "/get_task_properties",
+        &TaskRos::get_task_info_cb, this);
 
-    _set_lambda_srv = _ctx->nh().advertiseService(task_name + "/set_lambda",
-                                                 &TaskRos::set_lambda_cb, this);
+    _set_lambda_srv = _ctx->nh().advertiseService(
+        task_name + "/set_lambda",
+        &TaskRos::set_lambda_cb, this);
 
-    _set_lambda2_srv = _ctx->nh().advertiseService(task_name + "/set_lambda2",
-                                                  &TaskRos::set_lambda2_cb, this);
+    _set_lambda2_srv = _ctx->nh().advertiseService(
+        task_name + "/set_lambda2",
+        &TaskRos::set_lambda2_cb, this);
 
-    _set_weight_srv = _ctx->nh().advertiseService(task_name + "/set_weight",
-                                                 &TaskRos::set_weight_cb, this);
+    _set_weight_srv = _ctx->nh().advertiseService(
+        task_name + "/set_weight",
+        &TaskRos::set_weight_cb, this);
 
-    _set_active_srv = _ctx->nh().advertiseService(task_name + "/set_active",
-                                                 &TaskRos::set_active_cb, this);
+    _set_active_srv = _ctx->nh().advertiseService(
+        task_name + "/set_active",
+        &TaskRos::set_active_cb, this);
 
-    _task_changed_pub = _ctx->nh().advertise<std_msgs::String>(task_name + "/task_changed_event", 10);
+    _task_changed_pub = _ctx->nh().advertise<std_msgs::String>(
+        task_name + "/task_changed_event", 10);
+
+    _task_err_pub = _ctx->nh().advertise<std_msgs::Float64MultiArray>(
+        task_name + "/task_error", 10);
 
     _type_hierarchy.push_back("Task");
 }
 
 void TaskRos::run(ros::Time time)
 {
+    /* Publish task error */
+    if(_task->getTaskError(_err))
+    {
+        std_msgs::Float64MultiArray msg;
+        tf::matrixEigenToMsg(_err, msg);
+        _task_err_pub.publish(msg);
+    }
 }
 
 bool TaskRos::onActivationStateChanged()
@@ -232,10 +249,10 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
         try
         {
             ros_adapter = CallFunction<TaskRos*>(task->getLibName(),
-                                                 "create_cartesio_" + task->getType() + "_ros_api",
-                                                 task,
-                                                 context,
-                                                 detail::Version CARTESIO_ABI_VERSION);
+                                                  "create_cartesio_" + task->getType() + "_ros_api",
+                                                  task,
+                                                  context,
+                                                  detail::Version CARTESIO_ABI_VERSION);
         }
         catch(LibNotFound&)
         {

@@ -174,6 +174,7 @@ bool TaskRos::setLambda2(double value)
     }
 
     ROS_INFO("%s", srv.response.message.c_str());
+    return true;
 }
 
 const std::vector<std::string> & TaskRos::getDisabledJoints() const

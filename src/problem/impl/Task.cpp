@@ -242,6 +242,22 @@ bool TaskDescriptionImpl::setActivationState(const ActivationState & value)
     return true;
 }
 
+void TaskDescriptionImpl::setTaskError(const Eigen::VectorXd& e)
+{
+    _task_error = e;
+}
+
+bool TaskDescriptionImpl::getTaskError(Eigen::VectorXd& e) const
+{
+    if(_task_error.size() == 0)
+    {
+        return false;
+    }
+
+    e = _task_error;
+    return true;
+}
+
 void TaskDescriptionImpl::registerObserver(std::weak_ptr<TaskObserver> obs)
 {
     _observers.push_back(obs);
@@ -374,8 +390,11 @@ void TaskDescriptionImpl::reset()
 
 }
 
-
-
 bool TaskObserver::onWeightChanged() { return true; }
 
 bool TaskObserver::onActivationStateChanged() { return true; }
+
+bool TaskDescription::getTaskError(Eigen::VectorXd& e) const
+{
+    return false;
+}
