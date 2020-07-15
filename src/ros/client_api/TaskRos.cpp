@@ -232,7 +232,9 @@ int TaskRos::getSize() const
 
 const std::string & TaskRos::getLibName() const
 {
-    return get_task_info().lib_name;
+    thread_local std::string ret;
+    ret = get_task_info().lib_name;
+    return ret;
 }
 
 void TaskRos::registerObserver(TaskObserver::WeakPtr obs)

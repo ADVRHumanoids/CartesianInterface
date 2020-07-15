@@ -45,3 +45,9 @@ void OpenSotConstraintFromTaskAdapter::update(double time, double period)
     _task_adapter->update(time, period);
 }
 
+
+
+OpenSoT::OptvarHelper::VariableVector OpenSotConstraintFromTaskAdapter::getRequiredVariables() const
+{
+    return _task_adapter->getRequiredVariables();
+}

@@ -21,6 +21,8 @@ public:
     OpenSotConstraintFromTaskAdapter(ConstraintDescription::Ptr constr,
                                      Context::ConstPtr context);
 
+    OpenSoT::OptvarHelper::VariableVector getRequiredVariables() const override;
+
     virtual ConstraintPtr constructConstraint() override;
 
     virtual bool initialize(const OpenSoT::OptvarHelper& vars) override;
@@ -34,6 +36,7 @@ protected:
 private:
 
     OpenSotTaskAdapter::Ptr _task_adapter;
+
 };
 
 
