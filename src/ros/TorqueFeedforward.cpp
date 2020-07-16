@@ -129,6 +129,7 @@ int main(int argc, char ** argv)
     /* Publish optimized forces */
     std::vector<ros::Publisher> f_pubs;
     
+    ros::ServiceServer contact_rot_srv;
     if(model->isFloatingBase())
     {
         auto f_opt = g_fopt = boost::make_shared<OpenSoT::utils::ForceOptimization>(model, 
@@ -147,7 +148,7 @@ int main(int argc, char ** argv)
         }
         
         /* Service to change link orientation */
-        auto contact_rot_srv = nh.advertiseService("change_contact_frame", 
+        contact_rot_srv = nh.advertiseService("change_contact_frame",
                                                 on_contact_frame_changed);
         
     }
