@@ -102,7 +102,12 @@ PYBIND11_MODULE(pyci, m) {
 
     py::class_<CartesianInterfaceImpl,
             CartesianInterfaceImpl::Ptr>(m, "CartesianInterface")
-            .def_static("MakeInstance", make_ci)
+            .def_static("MakeInstance", make_ci,
+                    py::arg("solver"),
+                    py::arg("problem"),
+                    py::arg("model"),
+                    py::arg("dt"),
+                    py::arg("log_path") = "/tmp")
             .def("getTask", &CartesianInterfaceImpl::getTask, py::return_value_policy::reference_internal)
             .def("update", &CartesianInterfaceImpl::update)
             .def("getTaskList", &CartesianInterfaceImpl::getTaskList)

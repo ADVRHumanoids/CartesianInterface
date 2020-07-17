@@ -33,6 +33,11 @@
 
 namespace XBot { namespace Cartesian {
 
+/**
+ * @brief The CartesianInterfaceImpl class allows to implement
+ * the interface given by CartesianInterface, and provides
+ * a factory method to load such implementations.
+ */
 class CartesianInterfaceImpl : public CartesianInterface 
 {
     
@@ -41,18 +46,59 @@ public:
     /* Typedefs for shared pointers */
     CARTESIO_DECLARE_SMART_PTR(CartesianInterfaceImpl)
 
+    /**
+     * @brief CartesianInterfaceImpl constructor. Most often,
+     * users should not use directly this. Rather, they should
+     * dynamically load an implementation via the factory method
+     * MakeInstance().
+     * @param ik_problem is a description of the problem to be solved
+     * @param context holds some data structures used by CartesIO,
+     * such as the robot model.
+     */
     CartesianInterfaceImpl(ProblemDescription ik_problem,
                            Context::Ptr context);
 
+    /**
+     * @brief MakeInstance dynamically loads an implementation
+     * of CartesIO from a shared object, or plugin.
+     * @param solver_name is the plugin name
+     * @param ik_problem is a description of the problem to be solved
+     * @param context holds some data structures used by CartesIO,
+     * such as the robot model.
+     * @return a shared pointer to the requested object
+     */
     static Ptr MakeInstance(std::string solver_name,
                             ProblemDescription ik_problem,
                             Context::Ptr context);
     
+    /**
+     * @brief getModel returns a shared pointer to the robot model
+     * used by this instance
+     */
     ModelInterface::Ptr getModel() const;
+
+    /**
+     * @brief getIkProblem returns a copy of the problem description
+     * used to construct this instance
+     */
     const ProblemDescription& getIkProblem() const;
+
+    /**
+     * @brief getContext returns the context object used to
+     * construct this instance
+     */
     Context::Ptr getContext();
+
+    /**
+     * @brief getContext returns the context object used to
+     * construct this instance
+     */
     Context::ConstPtr getContext() const;
     
+
+    /* The methods above are documented in the base class header file
+     * 'CartesianInterface.h'
+     */
     virtual const std::vector<std::string>& getTaskList() const;
     virtual const std::string& getBaseLink(const std::string& ee_name) const;
     virtual ControlType getControlMode(const std::string& ee_name) const;

@@ -9,10 +9,11 @@ using namespace XBot::Cartesian;
 CartesianInterfaceImpl::Ptr make_ci(std::string solver_name,
                                     std::string problem,
                                     XBot::ModelInterface::Ptr model,
-                                    double dt)
+                                    double dt,
+                                    std::string log_path)
 {
     auto ctx = std::make_shared<Context>(
-                std::make_shared<Parameters>(dt),
+                std::make_shared<Parameters>(dt, log_path),
                 model
             );
 

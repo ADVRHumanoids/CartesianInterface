@@ -3,10 +3,10 @@
 
 using namespace XBot::Cartesian;
 
-
-
-Parameters::Parameters(double dt):
-    _dt(dt)
+Parameters::Parameters(double dt,
+                       std::string log_path):
+    _dt(dt),
+    _log_path(log_path)
 {
 
 }
@@ -14,6 +14,11 @@ Parameters::Parameters(double dt):
 double Parameters::getControlPeriod() const
 {
     return _dt;
+}
+
+std::string Parameters::getLogPath() const
+{
+    return _log_path;
 }
 
 Context::Context(Parameters::Ptr params,

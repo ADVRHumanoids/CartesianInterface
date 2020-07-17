@@ -17,14 +17,16 @@ public:
 
     CARTESIO_DECLARE_SMART_PTR(Parameters)
 
-    Parameters(double dt);
+    Parameters(double dt,
+               std::string log_path = "/tmp");
 
     double getControlPeriod() const;
+    std::string getLogPath() const;
 
 private:
 
     double _dt;
-
+    std::string _log_path;
 
 };
 
