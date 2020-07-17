@@ -81,6 +81,7 @@ Start from :ref:`here<quickstart>`!
    :maxdepth: 2
    :caption: API reference
 
+   reference/cartesian_ifc
    reference/problem
    reference/trajectory
    reference/sdk

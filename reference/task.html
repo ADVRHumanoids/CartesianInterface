@@ -256,6 +256,32 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian15TaskDescription17getDisabledJointsEv">
+<span id="_CPPv3NK4XBot9Cartesian15TaskDescription17getDisabledJointsEv"></span><span id="_CPPv2NK4XBot9Cartesian15TaskDescription17getDisabledJointsEv"></span><span id="XBot::Cartesian::TaskDescription::getDisabledJointsC"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1adbfeb78c3f33eb310635f9b5f2a6c1c7"></span><em class="property">virtual</em> <em class="property">const</em> std::vector&lt;std::string&gt; &amp;<code class="descname">getDisabledJoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian15TaskDescription17getDisabledJointsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getDisabledJoints returns the list of disabled joints for this task </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N4XBot9Cartesian15TaskDescription17setDisabledJointsERKNSt6vectorINSt6stringEEE">
+<span id="_CPPv3N4XBot9Cartesian15TaskDescription17setDisabledJointsERKNSt6vectorINSt6stringEEE"></span><span id="_CPPv2N4XBot9Cartesian15TaskDescription17setDisabledJointsERKNSt6vectorINSt6stringEEE"></span><span id="XBot::Cartesian::TaskDescription::setDisabledJoints__std::vector:ss:CR"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1a48b2b3aa711b4f6113b7d19417cb417e"></span><em class="property">virtual</em> void <code class="descname">setDisabledJoints</code><span class="sig-paren">(</span><em class="property">const</em> std::vector&lt;std::string&gt; &amp;<em>value</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian15TaskDescription17setDisabledJointsERKNSt6vectorINSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>setDisabledJoints gives a hint to the solver to ignore the given set of joints in the execution of the current task </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK4XBot9Cartesian15TaskDescription12getTaskErrorERN5Eigen8VectorXdE">
+<span id="_CPPv3NK4XBot9Cartesian15TaskDescription12getTaskErrorERN5Eigen8VectorXdE"></span><span id="_CPPv2NK4XBot9Cartesian15TaskDescription12getTaskErrorERN5Eigen8VectorXdE"></span><span id="XBot::Cartesian::TaskDescription::getTaskError__Eigen::VectorXdRC"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1a3ce3fc2528f63748845e54f74b04ab17"></span><em class="property">virtual</em> bool <code class="descname">getTaskError</code><span class="sig-paren">(</span>Eigen::VectorXd &amp;<em>e</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK4XBot9Cartesian15TaskDescription12getTaskErrorERN5Eigen8VectorXdE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>getTaskError returns an implementation-defined metric of task execution error </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt><dd>true if the functionality is supported </dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><code class="docutils literal notranslate"><span class="pre">e</span></code>: is the method output </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="_CPPv4N4XBot9Cartesian15TaskDescription6updateEdd">
 <span id="_CPPv3N4XBot9Cartesian15TaskDescription6updateEdd"></span><span id="_CPPv2N4XBot9Cartesian15TaskDescription6updateEdd"></span><span id="XBot::Cartesian::TaskDescription::update__double.double"></span><span class="target" id="classXBot_1_1Cartesian_1_1TaskDescription_1a8acbe61588368bcf3af7ee66bf90b3d1"></span><em class="property">virtual</em> void <code class="descname">update</code><span class="sig-paren">(</span>double <em>time</em>, double <em>period</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian15TaskDescription6updateEdd" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>update is a loop function which is called at each control iteration </p>
