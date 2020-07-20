@@ -33,3 +33,5 @@
 
 *.kdev4
 docs/xml/*
+*.user
+.vscode/*
