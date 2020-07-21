@@ -29,7 +29,6 @@ include_directories(include
                     ${alglib_INCLUDE_DIRS}
                     )
 
-
 # C++ 11
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -169,6 +168,7 @@ target_link_libraries(CartesianInterface PUBLIC ${OpenSoT_LIBRARIES}
                                                 yaml-cpp
                                                 ${ReflexxesTypeII_LIBRARIES}
                                                 ${alglib_LIBRARIES}
+                                                -llapack
                       )
 add_dependencies(CartesianInterface ${PROJECT_NAME}_generate_messages)
 

@@ -3,6 +3,8 @@
 
 #include <XBotInterface/ModelInterface.h>
 #include <algorithm>
+#include <lapack_svd/lapack_svd.h>
+
 
 namespace XBot { namespace Cartesian { namespace Utils {
     
@@ -42,8 +44,9 @@ namespace XBot { namespace Cartesian { namespace Utils {
         
     private:
         
-        void compute_A_b(double rate);
+        void compute_A_b();
         void solve();
+        void allocate_workspace();
         
         void compute_residuals(double rate);
         
@@ -52,6 +55,8 @@ namespace XBot { namespace Cartesian { namespace Utils {
             ForceTorqueSensor::Ptr sensor;
             std::vector<int> dofs;
             std::string link_name;
+            Eigen::Vector6d wrench;
+            Eigen::Matrix3d s_R_w;
             
         };
         
@@ -60,16 +65,15 @@ namespace XBot { namespace Cartesian { namespace Utils {
         Eigen::MatrixXd _Jtot;
         Eigen::MatrixXd _A;
         Eigen::MatrixXd _Jtmp;
-        
         Eigen::VectorXd _y, _tau, _g, _b, _sol;
         
         std::vector<TaskInfo> _tasks;
         std::set<int> _meas_idx;
         int _ndofs; 
         
-        Eigen::JacobiSVD<Eigen::MatrixXd> _svd;
+        LapackSvd _svd;
         
-        double _rate, _k_obs;
+        double _rate, _k_obs, _svd_th;
         bool _momentum_based;
         
         Eigen::Vector6d _world_wrench;
@@ -80,8 +84,7 @@ namespace XBot { namespace Cartesian { namespace Utils {
         XBot::MatLogger::Ptr _logger;
         
     };   
-    
-    
+
     
 } } }
 

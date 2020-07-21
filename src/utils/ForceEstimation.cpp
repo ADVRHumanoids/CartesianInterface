@@ -5,16 +5,28 @@ using namespace XBot::Cartesian::Utils;
 
 ForceEstimation::ForceEstimation(ModelInterface::ConstPtr model, 
                                  double svd_threshold,
-				 bool momentum_based,
-				 double obs_bw):
+                                 bool momentum_based,
+                                 double obs_bw):
     _model(model),
     _ndofs(0),
+    _svd_th(svd_threshold),
     _momentum_based(momentum_based),
     _k_obs(2.0 * M_PI * obs_bw),
     _logger(XBot::MatLogger::getLogger("/tmp/force_estimation_log"))
-{
-    _svd.setThreshold(svd_threshold);
+{    
     init_momentum_obs();
+}
+
+void ForceEstimation::allocate_workspace() 
+{
+    _Jtot.setZero(_ndofs, _model->getJointNum());
+    _Jtmp.setZero(6, _model->getJointNum());    
+    _A.setZero(_meas_idx.size(), _ndofs);
+    _b.setZero(_meas_idx.size());
+    _sol.setZero(_ndofs);
+    _svd = LapackSvd(_meas_idx.size(), _ndofs);
+    _svd.setThreshold(_svd_th);
+    _svd.compute(_A);
 }
 
 
@@ -69,6 +81,8 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
     static int id = -1;
     t.sensor = std::make_shared<ForceTorqueSensor>(urdf_link, id--);
     t.dofs = dofs;
+    t.wrench.setZero();
+    t.s_R_w.setZero();
     
     _tasks.push_back(t);
     
@@ -79,19 +93,16 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
                   [this](int i){ std::cout << _model->getEnabledJointNames().at(i) << "\n"; });
     std::cout << std::endl;
     
+    // allocate workspace
+    allocate_workspace();
     
     return t.sensor;
     
 }
 
 
-void ForceEstimation::compute_A_b(double rate)
-{
-    _Jtot.setZero(_ndofs, _model->getJointNum());
-    _Jtmp.setZero(6, _model->getJointNum());
-    _b.setZero(_meas_idx.size());
-    _A.setZero(_meas_idx.size(), _ndofs);
-    
+void ForceEstimation::compute_A_b()
+{   
     int dof_idx = 0;
     for(TaskInfo& t : _tasks)
     {
@@ -102,7 +113,7 @@ void ForceEstimation::compute_A_b(double rate)
         }
     }
     
-    compute_residuals(rate);
+//     compute_residuals(rate);
     
     int idx = 0;
     for(int i : _meas_idx)
@@ -116,38 +127,41 @@ void ForceEstimation::compute_A_b(double rate)
 
 void ForceEstimation::solve()
 {
-    _svd.compute(_A, Eigen::ComputeThinU|Eigen::ComputeThinV);
-    _sol = _svd.solve(_b);
+    _svd.compute(_A);
+    _svd.solve(_b, _sol);
 }
 
 
 void ForceEstimation::update(double rate)
 {
-    compute_A_b(rate);
+    compute_residuals(rate);
+    
+    compute_A_b();
     
     solve();
     
     int dof_idx = 0;
     for(TaskInfo& t : _tasks)
     {
-        Eigen::Vector6d wrench;
-        wrench.setZero();
+        t.wrench.setZero();
         
         for(int i : t.dofs)
         {
-            wrench(i) = _sol(dof_idx++);
+            t.wrench(i) = _sol(dof_idx++);
         }
         
-        setWorldWrench(wrench);
+        setWorldWrench(t.wrench);
         
-        Eigen::Matrix3d sensor_R_w;
-        _model->getOrientation(t.link_name, sensor_R_w);
-        sensor_R_w.transposeInPlace();
+        _model->getOrientation(t.link_name, t.s_R_w);
+        t.s_R_w.transposeInPlace();
         
-        wrench.head<3>() = sensor_R_w * wrench.head<3>();
-        wrench.tail<3>() = sensor_R_w * wrench.tail<3>();
+        t.wrench.head<3>() = t.s_R_w * t.wrench.head<3>();
+        t.wrench.tail<3>() = t.s_R_w * t.wrench.tail<3>();
         
-        t.sensor->setWrench(wrench, 0.0);
+        t.sensor->setWrench(t.wrench, 0.0);
+        
+        t.wrench.head<3>() = t.s_R_w.transpose() * t.wrench.head<3>();
+        t.wrench.tail<3>() = t.s_R_w.transpose() * t.wrench.tail<3>();
         
     }
     
@@ -158,16 +172,7 @@ void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger::Ptr logger) const
 {
     for(const TaskInfo& t : _tasks)
     {
-        Eigen::Vector6d wrench;
-        t.sensor->getWrench(wrench);
-        
-        Eigen::Matrix3d w_R_s;
-        _model->getOrientation(t.link_name, w_R_s);
-        
-        wrench.head<3>() = w_R_s * wrench.head<3>();
-        wrench.tail<3>() = w_R_s * wrench.tail<3>();
-        
-        logger->add(t.link_name + "_f_est", wrench);
+        logger->add(t.link_name + "_f_est", t.wrench);
     }
     
     logger->add("fest_A", _A);
@@ -234,7 +239,7 @@ void ForceEstimation::compute_residuals(double rate)
 	
 	/* Observer */
 	_model->getInertiaMatrix(_M);
-	_p1 = _M * _qdot;
+	_p1.noalias() = _M * _qdot;
 	
 	_Mdot.noalias() = (_M - _M_old) * rate;
 	_M_old.noalias() = _M;
@@ -268,11 +273,6 @@ void ForceEstimation::init_momentum_obs()
     _M_old = _M;
     _q_old = _q;
     
-    //Maialata
-    _Jtot.setZero(_ndofs, _model->getJointNum());
-    _Jtmp.setZero(6, _model->getJointNum());
-    _b.setZero(_meas_idx.size());
-    _A.setZero(_meas_idx.size(), _ndofs);
     _tau.setZero(_model->getJointNum());
     _g.setZero(_model->getJointNum());
     
