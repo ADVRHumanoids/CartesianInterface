@@ -4,17 +4,18 @@
 using namespace XBot::Cartesian::Utils;
 
 ForceEstimation::ForceEstimation(ModelInterface::ConstPtr model, 
-                                 double svd_threshold,
-                                 bool momentum_based,
-                                 double obs_bw):
+                                 double svd_threshold):
     _model(model),
     _ndofs(0),
     _svd_th(svd_threshold),
-    _momentum_based(momentum_based),
-    _k_obs(2.0 * M_PI * obs_bw),
     _logger(XBot::MatLogger::getLogger("/tmp/force_estimation_log"))
 {    
-    init_momentum_obs();
+    
+}
+
+ForceEstimation::~ForceEstimation()
+{
+    _logger->flush();
 }
 
 void ForceEstimation::allocate_workspace() 
@@ -28,7 +29,6 @@ void ForceEstimation::allocate_workspace()
     _svd.setThreshold(_svd_th);
     _svd.compute(_A);
 }
-
 
 XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name, 
                                                             std::vector<int> dofs,
@@ -93,13 +93,24 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
                   [this](int i){ std::cout << _model->getEnabledJointNames().at(i) << "\n"; });
     std::cout << std::endl;
     
-    // allocate workspace
     allocate_workspace();
     
     return t.sensor;
     
 }
 
+void ForceEstimation::compute_residuals()
+{
+    _model->getJointEffort(_tau);
+    _model->computeGravityCompensation(_g);
+    
+    /* Check for torque spikes */
+    const double MAX_ALLOWED_TORQUE = 300.0;
+    if((_tau.array().abs() < MAX_ALLOWED_TORQUE).all())
+    {
+        _y = _g - _tau;
+    }
+}
 
 void ForceEstimation::compute_A_b()
 {   
@@ -112,9 +123,7 @@ void ForceEstimation::compute_A_b()
             _Jtot.row(dof_idx++).noalias() = _Jtmp.row(i);
         }
     }
-    
-//     compute_residuals(rate);
-    
+
     int idx = 0;
     for(int i : _meas_idx)
     {
@@ -131,10 +140,9 @@ void ForceEstimation::solve()
     _svd.solve(_b, _sol);
 }
 
-
-void ForceEstimation::update(double rate)
+void ForceEstimation::update()
 {
-    compute_residuals(rate);
+    compute_residuals();
     
     compute_A_b();
     
@@ -149,8 +157,6 @@ void ForceEstimation::update(double rate)
         {
             t.wrench(i) = _sol(dof_idx++);
         }
-        
-        setWorldWrench(t.wrench);
         
         _model->getOrientation(t.link_name, t.s_R_w);
         t.s_R_w.transposeInPlace();
@@ -181,41 +187,46 @@ void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger::Ptr logger) const
     logger->add("fest_tau", _tau);
     logger->add("fest_g", _g);
     logger->add("fest_res", _y);
-    logger->add("fest_static_res", _y_static);
 }
 
-bool ForceEstimation::setWorldWrench(const Eigen::Vector6d &wrench)
+
+
+
+ForceEstimationMomentumBased::ForceEstimationMomentumBased(XBot::ModelInterface::ConstPtr model, 
+                                                            double rate, 
+                                                            double svd_threshold, 
+                                                            double obs_bw ) : 
+    ForceEstimation ( model, svd_threshold ),
+    _rate(rate),
+    _k_obs(2.0 * M_PI * obs_bw)
+{    
+    init_momentum_obs();
+}
+
+void ForceEstimationMomentumBased::init_momentum_obs()
 {
-    _world_wrench = wrench;
+    _p1.setZero(_model->getJointNum());
+    _p2.setZero(_model->getJointNum());
+    _y.setZero(_model->getJointNum());
+    _y_static.setZero(_model->getJointNum());
+    _coriolis.setZero(_model->getJointNum());
+    _h.setZero(_model->getJointNum());
     
-    return true;
-}
-
-bool ForceEstimation::getWorldWrench(Eigen::Vector6d &wrench) const
-{
-    wrench = _world_wrench;
+    _model->getInertiaMatrix(_M);
+    _model->getJointVelocity(_qdot);
+    _p0 = _M * _qdot;
     
-    return true;
-}
-
-bool ForceEstimation::get_residuals(Eigen::VectorXd &res) const
-{
-    res.resize(_meas_idx.size());
-    res = _y;
+    _M_old = _M;
     
-    return true;
-}
-
-bool ForceEstimation::get_static_residuals(Eigen::VectorXd &static_res) const
-{
-    static_res.resize(_meas_idx.size());
-    static_res = _y_static;
+    _tau.setZero(_model->getJointNum());
+    _g.setZero(_model->getJointNum());
     
-    return true;
+    _Mdot = _M;
 }
 
-void ForceEstimation::compute_residuals(double rate)
+void ForceEstimationMomentumBased::compute_residuals() 
 {
+    _model->getJointVelocity(_qdot);
     _model->getJointEffort(_tau);
     _model->computeGravityCompensation(_g);
     
@@ -226,62 +237,35 @@ void ForceEstimation::compute_residuals(double rate)
         _y_static = _g - _tau;
     }
     
-    if(_momentum_based){
-	
-	_model->getJointVelocity(_qdot);
-	/* Estimate link-side vel to avoid using link-side faulty readings from FW. */
-// 	_model->getJointPosition(_q);	
-// 	_qdot = (_q - _q_old) * rate;
-// 	_q_old = _q;
-	/* update the model to compute _M with not faulty velocity. _model can't be a ConstPtr if doing this  */
-// 	_model->setJointVelocity(_qdot);
-// 	_model->update();
-	
-	/* Observer */
-	_model->getInertiaMatrix(_M);
-	_p1.noalias() = _M * _qdot;
-	
-	_Mdot.noalias() = (_M - _M_old) * rate;
-	_M_old.noalias() = _M;
-	_model->computeNonlinearTerm(_h);
-	_model->computeGravityCompensation(_g);
-	_coriolis.noalias() = _h - _g;
-	_model->getJointEffort(_tau);
-	_p2.noalias() += (_tau + (_Mdot * _qdot - _coriolis) - _g + _y) / rate;
-	
-	_y = _k_obs*(_p1 - _p2 - _p0);
-    }
-    else {
-	_y = _y_static;
-    }
-}
-
-void ForceEstimation::init_momentum_obs()
-{
-    _p1.setZero(_model->getJointNum());
-    _p2.setZero(_model->getJointNum());
-    _y.setZero(_model->getJointNum());
-    _y_static.setZero(_model->getJointNum());
-    _coriolis.setZero(_model->getJointNum());
-    _h.setZero(_model->getJointNum());
-    
+    /* Observer */
     _model->getInertiaMatrix(_M);
-    _model->getJointPosition(_q);
-    _model->getJointVelocity(_qdot);
-    _p0 = _M * _qdot;
+    _p1.noalias() = _M * _qdot;
     
-    _M_old = _M;
-    _q_old = _q;
+    _Mdot.noalias() = (_M - _M_old) * _rate;
+    _M_old.noalias() = _M;
+    _model->computeNonlinearTerm(_h);
+    _coriolis.noalias() = _h - _g;
+    _model->getJointEffort(_tau);
+    _p2.noalias() += (_tau + (_Mdot * _qdot - _coriolis) - _g + _y) / _rate;
     
-    _tau.setZero(_model->getJointNum());
-    _g.setZero(_model->getJointNum());
-    
-    _Mdot = _M;
+    _y = _k_obs*(_p1 - _p2 - _p0);
 }
 
-ForceEstimation::~ForceEstimation()
+bool ForceEstimationMomentumBased::get_residuals(Eigen::VectorXd &res) const
 {
-    _logger->flush();
+    res = _y;   
+    return true;
 }
 
+bool ForceEstimationMomentumBased::get_static_residuals(Eigen::VectorXd &static_res) const
+{
+    static_res = _y_static;
+    return true;
+}
+
+void ForceEstimationMomentumBased::log(MatLogger::Ptr logger) const
+{
+    XBot::Cartesian::Utils::ForceEstimation::log(logger);
+    logger->add("fest_static_res", _y_static);
+}
 

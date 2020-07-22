@@ -16,39 +16,34 @@ namespace XBot { namespace Cartesian { namespace Utils {
         typedef std::shared_ptr<ForceEstimation> Ptr;
         
         static constexpr double DEFAULT_SVD_THRESHOLD = 0.05;
-        static constexpr double DEFAULT_RATE = 200.0;
-        static constexpr double DEFAULT_OBS_BW = 4.0;
 
         ForceEstimation(ModelInterface::ConstPtr model, 
-                        double svd_threshold = DEFAULT_SVD_THRESHOLD,
-                        bool momentum_based = false,
-                        double obs_bw = DEFAULT_OBS_BW);
+                        double svd_threshold = DEFAULT_SVD_THRESHOLD);
         
         ForceTorqueSensor::ConstPtr add_link(std::string name, 
                                              std::vector<int> dofs = {}, 
                                              std::vector<std::string> chains = {});
         
-        void update(double rate = Utils::ForceEstimation::DEFAULT_RATE);
+        void update();
         
-        void log(MatLogger::Ptr logger) const;
-
-        void init_momentum_obs();
-
-        bool get_residuals(Eigen::VectorXd &res) const;
-        bool get_static_residuals(Eigen::VectorXd &static_res) const;
-        
-        bool setWorldWrench(const Eigen::Vector6d &wrench);
-        bool getWorldWrench(Eigen::Vector6d &wrench) const;
+        virtual void log(MatLogger::Ptr logger) const;
         
         ~ForceEstimation();
         
+    protected:
+        
+        ModelInterface::ConstPtr _model;
+        
+        Eigen::VectorXd _y, _tau, _g;
+    
     private:
         
         void compute_A_b();
         void solve();
-        void allocate_workspace();
         
-        void compute_residuals(double rate);
+        virtual void compute_residuals();
+        void allocate_workspace();
+                
         
         struct TaskInfo
         {
@@ -60,12 +55,11 @@ namespace XBot { namespace Cartesian { namespace Utils {
             
         };
         
-        ModelInterface::ConstPtr _model;
         
         Eigen::MatrixXd _Jtot;
         Eigen::MatrixXd _A;
         Eigen::MatrixXd _Jtmp;
-        Eigen::VectorXd _y, _tau, _g, _b, _sol;
+        Eigen::VectorXd _b, _sol;
         
         std::vector<TaskInfo> _tasks;
         std::set<int> _meas_idx;
@@ -73,18 +67,42 @@ namespace XBot { namespace Cartesian { namespace Utils {
         
         LapackSvd _svd;
         
-        double _rate, _k_obs, _svd_th;
-        bool _momentum_based;
-        
-        Eigen::Vector6d _world_wrench;
-        
-        Eigen::VectorXd _p0, _p1, _p2, _q, _qdot, _q_old, _h, _coriolis, _y_static;
-        Eigen::MatrixXd _M, _M_old, _Mdot;
+        double _svd_th;
         
         XBot::MatLogger::Ptr _logger;
         
     };   
+    
+    
+    class ForceEstimationMomentumBased : public ForceEstimation
+    {
+      
+    public:
+        
+        typedef std::shared_ptr<ForceEstimationMomentumBased> Ptr;
+        
+        static constexpr double DEFAULT_OBS_BW = 4.0;
 
+        ForceEstimationMomentumBased(ModelInterface::ConstPtr model, 
+                        double rate,
+                        double svd_threshold = DEFAULT_SVD_THRESHOLD,
+                        double obs_bw = DEFAULT_OBS_BW);
+        
+        bool get_residuals(Eigen::VectorXd &res) const;
+        bool get_static_residuals(Eigen::VectorXd &static_res) const;
+        
+        void log(MatLogger::Ptr logger) const override;
+        
+    private:
+        
+        void compute_residuals() override;
+        void init_momentum_obs();
+
+        double _rate, _k_obs;
+        
+        Eigen::VectorXd _p0, _p1, _p2, _qdot, _h, _coriolis, _y_static;
+        Eigen::MatrixXd _M, _M_old, _Mdot;
+    };
     
 } } }
 
