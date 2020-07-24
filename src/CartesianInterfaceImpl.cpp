@@ -603,6 +603,11 @@ Context::ConstPtr CartesianInterfaceImpl::getContext() const
     return _ctx;
 }
 
+const std::map<std::string, Eigen::VectorXd>& CartesianInterfaceImpl::getSolution() const
+{
+    return _solution;
+}
+
 bool CartesianInterfaceImpl::getComPositionReference(Eigen::Vector3d& w_com_ref,
                                                      Eigen::Vector3d* base_vel_ref,
                                                      Eigen::Vector3d* base_acc_ref) const

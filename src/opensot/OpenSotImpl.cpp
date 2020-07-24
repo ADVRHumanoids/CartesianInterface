@@ -192,17 +192,19 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
             if(vars_map.count(v.first) > 0 &&
                     vars_map.at(v.first) != v.second)
             {
-                throw BadVariables(fmt::format("Conflicting size for var '{}': {} vs {}",
+                throw BadVariables(fmt::format("conflicting size for var '{}': {} vs {}",
                                                v.first, v.second, vars_map.at(v.first)));
             }
 
-            fmt::print("[OpenSot] Found variable '{}', size = {} \n",
+            fmt::print("[OpenSot] found variable '{}', size = {} \n",
                        v.first, v.second);
 
             vars_map[v.first] = v.second;
+
         }
     };
 
+    // apply lambda to tasks and constraints
     for(auto t : _task_adapters)
     {
         parse_task(t);
@@ -210,6 +212,12 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
     for(auto c : _constr_adapters)
     {
         parse_task(c);
+    }
+
+    // initialize solution map
+    for(auto v : vars_map)
+    {
+        _solution[v.first].setZero(v.second);
     }
 
     // copy to vector and create optvar helper
@@ -220,7 +228,11 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
     if(_x.size() == 0)
     {
         _x.setZero(_q.size());
+        _solution["qdot"].setZero(_x.size());
     }
+
+    // add full solution
+    _solution["full_solution"].setZero(_x.size());
 
     // fill variable map
     for(auto p : vars_map)
@@ -350,6 +362,8 @@ bool OpenSotImpl::update(double time, double period)
         success = false;
     }
 
+    _solution.at("full_solution") = _x;
+
     /* Allow tasks and constraints to read solution */
     for(auto t : _task_adapters)
     {
@@ -369,12 +383,14 @@ bool OpenSotImpl::update(double time, double period)
         _dq = _x;
         _dq /= period;
         _model->setJointVelocity(_dq);
+        _solution.at("qdot") = _dq;
     }
 
     if(_vars_map.count("qddot"))
     {
         _vars_map.at("qddot").getValue(_x, _ddq);
         _model->setJointAcceleration(_ddq);
+        _solution.at("qddot") = _ddq;
     }
 
     _model->update();
@@ -397,6 +413,8 @@ bool OpenSotImpl::update(double time, double period)
         _tau.noalias() -= _J.transpose() * f_value;
 
         _logger->add(p.first, f_value);
+
+        _solution.at(p.first) = f_value;
 
     }
 

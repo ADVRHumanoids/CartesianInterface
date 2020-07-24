@@ -108,6 +108,7 @@ PYBIND11_MODULE(pyci, m) {
                     py::arg("model"),
                     py::arg("dt"),
                     py::arg("log_path") = "/tmp")
+            .def("getSolution", &CartesianInterfaceImpl::getSolution)
             .def("getTask", &CartesianInterfaceImpl::getTask, py::return_value_policy::reference_internal)
             .def("update", &CartesianInterfaceImpl::update)
             .def("getTaskList", &CartesianInterfaceImpl::getTaskList)
