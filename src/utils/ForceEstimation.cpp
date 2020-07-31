@@ -185,7 +185,8 @@ ForceEstimationMomentumBased::ForceEstimationMomentumBased(XBot::ModelInterface:
                                                            double svd_threshold,
                                                            double obs_bw):
     ForceEstimation(model, svd_threshold),
-    _k_obs(2.0 * M_PI * obs_bw)
+    _k_obs(2.0 * M_PI * obs_bw),
+    _rate(rate)
 {
     init_momentum_obs();
 }
@@ -214,6 +215,9 @@ void ForceEstimationMomentumBased::compute_residual(Eigen::VectorXd& res)
     _p2 += (_tau + (_Mdot * _qdot - _coriolis) - _g + _y) / _rate;
 
     _y = _k_obs*(_p1 - _p2 - _p0);
+      
+    getResiduals(res);
+    
 }
 
 void ForceEstimationMomentumBased::init_momentum_obs()
