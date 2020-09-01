@@ -833,20 +833,24 @@ bool RosImpl::setDesiredDamping(const std::string& end_effector,
                                                  const Eigen::Matrix6d& d)
 {
     auto itask = get_interaction_task(end_effector, false);
-    Eigen::Matrix6d ktmp, dtmp;
-    itask->get_impedance(ktmp, dtmp);
-    itask->send_impedance(ktmp, d);
+
+    Eigen::Matrix6d k_invalid;
+    k_invalid = k_invalid.Identity() * -1;  // invalid stiffness matrix will be ignored
+
+    itask->send_impedance(k_invalid, d);
     
     return true;
 }
 
 bool RosImpl::setDesiredStiffness(const std::string& end_effector,
-                                                   const Eigen::Matrix6d& k)
+                                  const Eigen::Matrix6d& k)
 {
     auto itask = get_interaction_task(end_effector, false);
-    Eigen::Matrix6d ktmp, dtmp;
-    itask->get_impedance(ktmp, dtmp);
-    itask->send_impedance(k, dtmp);
+
+    Eigen::Matrix6d d_invalid;
+    d_invalid = d_invalid.Identity() * -1;  // invalid damping matrix will be ignored
+
+    itask->send_impedance(k, d_invalid);
     
     return true;
 }

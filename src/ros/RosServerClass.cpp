@@ -790,9 +790,13 @@ void RosServerClass::online_impedance_reference_cb(const cartesian_interface::Im
         }
     }
     
-    if((k.diagonal().array() >= 0).all() && (d.diagonal().array() >= 0).all())
+    if((k.diagonal().array() >= 0).all())
     {
         _cartesian_interface->setDesiredStiffness(ee_name, k);
+    }
+
+    if((d.diagonal().array() >= 0).all())
+    {
         _cartesian_interface->setDesiredDamping(ee_name, d);
     }
 }
