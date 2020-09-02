@@ -43,6 +43,11 @@ To uninstall all packages, an ``./uninstall`` script is provided as well.
 To use the software, sourcing the installed environment script is required.
 You can add the line ``source /opt/xbot/setup.sh`` to your ``.bashrc`` file.
 
+The binary package depends on
+
+ - ROS 1 (full desktop binary distribution)
+ - matio (``apt install libmatio-dev``)
+
 Cite our work
 -------------
 ..with the bibtex below!
