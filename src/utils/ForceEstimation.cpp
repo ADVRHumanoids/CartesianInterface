@@ -7,15 +7,15 @@ ForceEstimation::ForceEstimation(ModelInterface::ConstPtr model,
                                  double svd_threshold):
     _model(model),
     _ndofs(0),
-    _svd_th(svd_threshold),
-    _logger(XBot::MatLogger::getLogger("/tmp/force_estimation_log"))
+    _svd_th(svd_threshold)
+//     _logger(XBot::MatLogger::getLogger("/tmp/force_estimation_log"))
 {    
     
 }
 
 ForceEstimation::~ForceEstimation()
 {
-    _logger->flush();
+//     _logger->flush();
 }
 
 void ForceEstimation::allocate_workspace() 
@@ -60,6 +60,15 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
         throw std::invalid_argument("Dofs must be >= 0 && < 6");
     }
     
+    std::cout << "Adding link " << name << " to Force estimation:\n";
+    std::cout << "Dofs to estimate: \n";
+    for(auto d : dofs)
+        std::cout << d << "\n";
+    std::cout << "Chains to use: " << "\n";
+    for(auto ch : chains)
+        std::cout << ch << "\n";
+    std::cout << std::endl;
+    
     std::vector<int> meas_dofs;
     for(auto ch : chains)
     {
@@ -73,9 +82,7 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
             meas_dofs.push_back(_model->getDofIndex(id));
         }
     }
-    
     _meas_idx.insert(meas_dofs.begin(), meas_dofs.end());
-    
     TaskInfo t;
     t.link_name = name;
     static int id = -1;
@@ -85,7 +92,6 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
     t.s_R_w.setZero();
     
     _tasks.push_back(t);
-    
     _ndofs += dofs.size();
     
     std::cout << "Force estimation using joints:\n";
@@ -99,7 +105,7 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
     
 }
 
-void ForceEstimation::compute_residuals()
+void ForceEstimation::compute_residual()
 {
     _model->getJointEffort(_tau);
     _model->computeGravityCompensation(_g);
@@ -137,12 +143,12 @@ void ForceEstimation::compute_A_b()
 void ForceEstimation::solve()
 {
     _svd.compute(_A);
-    _svd.solve(_b, _sol);
+    _svd.solve2(_b, _sol);
 }
 
 void ForceEstimation::update()
 {
-    compute_residuals();
+    compute_residual();
     
     compute_A_b();
     
@@ -165,13 +171,14 @@ void ForceEstimation::update()
         t.wrench.tail<3>() = t.s_R_w * t.wrench.tail<3>();
         
         t.sensor->setWrench(t.wrench, 0.0);
+        t.sensor->getWrench(_local_wrench);
         
         t.wrench.head<3>() = t.s_R_w.transpose() * t.wrench.head<3>();
         t.wrench.tail<3>() = t.s_R_w.transpose() * t.wrench.tail<3>();
         
     }
     
-    log(_logger);
+//     log(_logger);
 }
 
 void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger::Ptr logger) const
@@ -179,10 +186,11 @@ void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger::Ptr logger) const
     for(const TaskInfo& t : _tasks)
     {
         logger->add(t.link_name + "_f_est", t.wrench);
+        logger->add(t.link_name + "_f_est_local", _local_wrench);
     }
     
-    logger->add("fest_A", _A);
-    logger->add("fest_b", _b);
+    // logger->add("fest_A", _A);
+    // logger->add("fest_b", _b);
     logger->add("fest_sol", _sol);
     logger->add("fest_tau", _tau);
     logger->add("fest_g", _g);
@@ -194,8 +202,8 @@ void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger::Ptr logger) const
 
 ForceEstimationMomentumBased::ForceEstimationMomentumBased(XBot::ModelInterface::ConstPtr model, 
                                                             double rate, 
-                                                            double svd_threshold, 
-                                                            double obs_bw ) : 
+                                                            double obs_bw,
+                                                            double svd_threshold) : 
     ForceEstimation ( model, svd_threshold ),
     _rate(rate),
     _k_obs(2.0 * M_PI * obs_bw)
@@ -224,7 +232,7 @@ void ForceEstimationMomentumBased::init_momentum_obs()
     _Mdot = _M;
 }
 
-void ForceEstimationMomentumBased::compute_residuals() 
+void ForceEstimationMomentumBased::compute_residual() 
 {
     _model->getJointVelocity(_qdot);
     _model->getJointEffort(_tau);
@@ -247,17 +255,18 @@ void ForceEstimationMomentumBased::compute_residuals()
     _coriolis.noalias() = _h - _g;
     _model->getJointEffort(_tau);
     _p2.noalias() += (_tau + (_Mdot * _qdot - _coriolis) - _g + _y) / _rate;
+    _h.noalias() = _Mdot * _qdot - _coriolis;
     
     _y = _k_obs*(_p1 - _p2 - _p0);
 }
 
-bool ForceEstimationMomentumBased::get_residuals(Eigen::VectorXd &res) const
+bool ForceEstimationMomentumBased::get_residual(Eigen::VectorXd &res) const
 {
     res = _y;   
     return true;
 }
 
-bool ForceEstimationMomentumBased::get_static_residuals(Eigen::VectorXd &static_res) const
+bool ForceEstimationMomentumBased::get_static_residual(Eigen::VectorXd &static_res) const
 {
     static_res = _y_static;
     return true;
@@ -267,5 +276,14 @@ void ForceEstimationMomentumBased::log(MatLogger::Ptr logger) const
 {
     XBot::Cartesian::Utils::ForceEstimation::log(logger);
     logger->add("fest_static_res", _y_static);
+    logger->add("fest_Mdot", _Mdot);
+//     logger->add("fest_M", _M);
+    logger->add("fest_coriolis", _coriolis);
+    logger->add("fest_h", _h);
+    logger->add("fest_p1", _p1);
+    logger->add("fest_p2", _p2);
+    logger->add("fest_p0", _p0);
+    logger->add("fest_qdot", _qdot);
+
 }
 

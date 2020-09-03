@@ -41,7 +41,7 @@ namespace XBot { namespace Cartesian { namespace Utils {
         void compute_A_b();
         void solve();
         
-        virtual void compute_residuals();
+        virtual void compute_residual();
         void allocate_workspace();
                 
         
@@ -54,7 +54,7 @@ namespace XBot { namespace Cartesian { namespace Utils {
             Eigen::Matrix3d s_R_w;
             
         };
-        
+        Eigen::Vector6d _local_wrench;
         
         Eigen::MatrixXd _Jtot;
         Eigen::MatrixXd _A;
@@ -69,7 +69,7 @@ namespace XBot { namespace Cartesian { namespace Utils {
         
         double _svd_th;
         
-        XBot::MatLogger::Ptr _logger;
+//         XBot::MatLogger::Ptr _logger;
         
     };   
     
@@ -85,23 +85,25 @@ namespace XBot { namespace Cartesian { namespace Utils {
 
         ForceEstimationMomentumBased(ModelInterface::ConstPtr model, 
                         double rate,
-                        double svd_threshold = DEFAULT_SVD_THRESHOLD,
-                        double obs_bw = DEFAULT_OBS_BW);
+                        double obs_bw = DEFAULT_OBS_BW,
+                        double svd_threshold = DEFAULT_SVD_THRESHOLD);
         
-        bool get_residuals(Eigen::VectorXd &res) const;
-        bool get_static_residuals(Eigen::VectorXd &static_res) const;
+        void init_momentum_obs();
+
+        bool get_residual(Eigen::VectorXd &res) const;
+        bool get_static_residual(Eigen::VectorXd &static_res) const;
         
         void log(MatLogger::Ptr logger) const override;
         
     private:
         
-        void compute_residuals() override;
-        void init_momentum_obs();
+        void compute_residual() override;
 
         double _rate, _k_obs;
         
         Eigen::VectorXd _p0, _p1, _p2, _qdot, _h, _coriolis, _y_static;
         Eigen::MatrixXd _M, _M_old, _Mdot;
+        
     };
     
 } } }

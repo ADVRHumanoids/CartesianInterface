@@ -48,7 +48,7 @@ int main(int argc, char ** argv)
     std::cout << "offset\n" << tau_offset.transpose() << std::endl;
     
     double obs_bw = nh_priv.param("obs_bw", (double)Utils::ForceEstimationMomentumBased::DEFAULT_OBS_BW);
-    Utils::ForceEstimationMomentumBased f_est(model, rate, svd_th, obs_bw);
+    Utils::ForceEstimationMomentumBased f_est(model, rate, obs_bw, svd_th);
     
     std::map<XBot::ForceTorqueSensor::ConstPtr, ros::Publisher> ft_map;
     
@@ -79,8 +79,8 @@ int main(int argc, char ** argv)
         
         f_est.update();
 	
-	f_est.get_residuals(res);
-	f_est.get_static_residuals(static_res);
+	f_est.get_residual(res);
+	f_est.get_static_residual(static_res);
 	
 	cartesian_interface::ForceEstimationMsg res_msg;
         
