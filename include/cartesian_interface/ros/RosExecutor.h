@@ -9,6 +9,7 @@
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include <std_msgs/Empty.h>
+#include <geometry_msgs/PoseStamped.h>
 
 #include <XBotInterface/RobotInterface.h>
 #include <XBotInterface/Utils.h>
@@ -56,6 +57,8 @@ namespace XBot { namespace Cartesian {
         void reset_model_state();
         void load_ros_api();
         void world_frame_to_param();
+
+        void floating_base_pose_callback(geometry_msgs::PoseStampedConstPtr msg);
         
         bool loader_callback(cartesian_interface::LoadControllerRequest&  req, 
                              cartesian_interface::LoadControllerResponse& res);
@@ -67,6 +70,7 @@ namespace XBot { namespace Cartesian {
         
         Context::Ptr _ctx;
 
+        ros::CallbackQueue _fb_queue;
         ros::NodeHandle _nh, _nh_priv;
         
         XBot::ConfigOptions _xbot_cfg, _xbot_cfg_robot;
@@ -87,6 +91,7 @@ namespace XBot { namespace Cartesian {
         ros::Publisher _ctrl_changed_pub;
         ros::ServiceServer _loader_srv;
         ros::ServiceServer _reset_srv;
+        ros::Subscriber _fb_sub;
         
         ros::Timer _loop_timer;
         double _time, _period;

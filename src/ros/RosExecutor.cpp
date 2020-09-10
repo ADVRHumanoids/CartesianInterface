@@ -45,6 +45,13 @@ void RosExecutor::init_ros()
     
     /* Load reset service */
     _reset_srv = _nh.advertiseService("reset", &RosExecutor::reset_callback, this);
+
+    /* Floating base override topic */
+    ros::NodeHandle nh_fb_queue(_nh);
+    nh_fb_queue.setCallbackQueue(&_fb_queue);
+    _fb_sub = nh_fb_queue.subscribe("base_pose_override",
+                                    1,
+                                    &RosExecutor::floating_base_pose_callback, this);
 }
 
 void RosExecutor::init_load_config()
@@ -159,8 +166,8 @@ void RosExecutor::init_load_model()
 
     /* Context for CI */
     _ctx = std::make_shared<Context>(
-                std::make_shared<Parameters>(_period),
-                _model);
+        std::make_shared<Parameters>(_period),
+        _model);
 
 }
 
@@ -196,7 +203,7 @@ void RosExecutor::reset_model_state()
         _model->setJointPosition(qhome);
         _model->update();
     }
-        
+
 }
 
 
@@ -439,6 +446,10 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
     
     _model->setJointPosition(_q);
     _model->setJointVelocity(_qdot);
+
+    // override floating base from topic
+    _fb_queue.callAvailable();
+
     _model->update();
     
     if(_robot && !_visual_mode)
@@ -493,11 +504,19 @@ void RosExecutor::world_frame_to_param()
     _nh.setParam("floating_base_pose/angular", angular);
 }
 
+void RosExecutor::floating_base_pose_callback(geometry_msgs::PoseStampedConstPtr msg)
+{
+    Eigen::Affine3d w_T_fb;
+
+    tf::poseMsgToEigen(msg->pose, w_T_fb);
+
+    _model->setFloatingBasePose(w_T_fb);
+}
+
 RosExecutor::~RosExecutor()
 {
     world_frame_to_param();
 }
-
 
 
 
