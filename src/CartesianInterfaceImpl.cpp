@@ -415,6 +415,7 @@ bool CartesianInterfaceImpl::update(double time, double period)
     }
     
     log_tasks();
+    log_model();
     
     return true;
     
@@ -430,6 +431,16 @@ void CartesianInterfaceImpl::log_tasks()
     }
     
     _logger->add("ci_time", _current_time);
+}
+
+void CartesianInterfaceImpl::log_model()
+{
+    if(_model->isFloatingBase())
+    {
+        Eigen::Vector6d centroidal_momentum; ///TODO: put it in header!
+        _model->getCentroidalMomentum(centroidal_momentum);
+        _logger->add("ci_centroidal_momentum", centroidal_momentum);
+    }
 }
 
 void XBot::Cartesian::CartesianInterfaceImpl::init_log_tasks()
