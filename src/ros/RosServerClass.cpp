@@ -804,8 +804,8 @@ void RosServerClass::init_reset_service()
     _ctrl_changed_pub = _nh.advertise<std_msgs::Empty>("changed_controller_event", 1);
 }
 
-bool RosServerClass::reset_cb(std_srvs::SetBoolRequest& req,
-                              std_srvs::SetBoolResponse& res)
+bool RosServerClass::reset_cb(std_srvs::TriggerRequest& req,
+                              std_srvs::TriggerResponse& res)
 {
     bool success = _cartesian_interface->reset(0.0);
 

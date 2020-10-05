@@ -166,8 +166,8 @@ namespace XBot { namespace Cartesian {
                             cartesian_interface::SetTaskInfoResponse& res,
                             const std::string& ee_name);
 
-        bool reset_cb(std_srvs::SetBoolRequest& req,
-                      std_srvs::SetBoolResponse& res);
+        bool reset_cb(std_srvs::TriggerRequest& req,
+                      std_srvs::TriggerResponse& res);
         
         bool reset_params_cb(std_srvs::TriggerRequest& req,
                              std_srvs::TriggerResponse& res);
