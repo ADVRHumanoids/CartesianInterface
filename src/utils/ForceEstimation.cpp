@@ -183,18 +183,18 @@ void ForceEstimation::update()
 
 void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger::Ptr logger) const
 {
-    for(const TaskInfo& t : _tasks)
-    {
-        logger->add(t.link_name + "_f_est", t.wrench);
-        logger->add(t.link_name + "_f_est_local", _local_wrench);
-    }
-    
-    // logger->add("fest_A", _A);
-    // logger->add("fest_b", _b);
-    logger->add("fest_sol", _sol);
-    logger->add("fest_tau", _tau);
-    logger->add("fest_g", _g);
-    logger->add("fest_res", _y);
+//     for(const TaskInfo& t : _tasks)
+//     {
+//         logger->add(t.link_name + "_f_est", t.wrench);
+//         logger->add(t.link_name + "_f_est_local", _local_wrench);
+//     }
+//     
+//     // logger->add("fest_A", _A);
+//     // logger->add("fest_b", _b);
+//     logger->add("fest_sol", _sol);
+//     logger->add("fest_tau", _tau);
+//     logger->add("fest_g", _g);
+//     logger->add("fest_res", _y);
 }
 
 
@@ -275,15 +275,28 @@ bool ForceEstimationMomentumBased::get_static_residual(Eigen::VectorXd &static_r
 void ForceEstimationMomentumBased::log(MatLogger::Ptr logger) const
 {
     XBot::Cartesian::Utils::ForceEstimation::log(logger);
-    logger->add("fest_static_res", _y_static);
-    logger->add("fest_Mdot", _Mdot);
+    logger->add("fest_static_res_" + std::to_string(_k_obs), _y_static);
+//     logger->add("fest_Mdot_" + std::to_string(_k_obs), _Mdot);
 //     logger->add("fest_M", _M);
-    logger->add("fest_coriolis", _coriolis);
-    logger->add("fest_h", _h);
-    logger->add("fest_p1", _p1);
-    logger->add("fest_p2", _p2);
-    logger->add("fest_p0", _p0);
-    logger->add("fest_qdot", _qdot);
+//     logger->add("fest_coriolis_" + std::to_string(_k_obs), _coriolis);
+//     logger->add("fest_h_" + std::to_string(_k_obs), _h);
+//     logger->add("fest_p1_" + std::to_string(_k_obs), _p1);
+//     logger->add("fest_p2_" + std::to_string(_k_obs), _p2);
+//     logger->add("fest_p0_" + std::to_string(_k_obs), _p0);
+//     logger->add("fest_qdot_" + std::to_string(_k_obs), _qdot);
+    for(const TaskInfo& t : _tasks)
+    {
+        logger->add(t.link_name + "_f_est_" + std::to_string(_k_obs), t.wrench);
+        logger->add(t.link_name + "_f_est_local_" + std::to_string(_k_obs), _local_wrench);
+        logger->add(t.link_name + "_f_est_ROT_" + std::to_string(_k_obs), t.s_R_w);
+    }
+    
+    // logger->add("fest_A", _A);
+    // logger->add("fest_b", _b);
+//     logger->add("fest_sol_" + std::to_string(_k_obs), _sol);
+    logger->add("fest_tau_" + std::to_string(_k_obs), _tau);
+    logger->add("fest_g_" + std::to_string(_k_obs), _g);
+    logger->add("fest_res_"    + std::to_string(_k_obs), _y);
 
 }
 

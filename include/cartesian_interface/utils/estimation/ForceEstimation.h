@@ -35,16 +35,6 @@ namespace XBot { namespace Cartesian { namespace Utils {
         ModelInterface::ConstPtr _model;
         
         Eigen::VectorXd _y, _tau, _g;
-    
-    private:
-        
-        void compute_A_b();
-        void solve();
-        
-        virtual void compute_residual();
-        void allocate_workspace();
-                
-        
         struct TaskInfo
         {
             ForceTorqueSensor::Ptr sensor;
@@ -64,6 +54,16 @@ namespace XBot { namespace Cartesian { namespace Utils {
         std::vector<TaskInfo> _tasks;
         std::set<int> _meas_idx;
         int _ndofs; 
+    
+    private:
+        
+        void compute_A_b();
+        void solve();
+        
+        virtual void compute_residual();
+        void allocate_workspace();
+                
+        
         
         LapackSvd _svd;
         
