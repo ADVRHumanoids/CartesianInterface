@@ -189,6 +189,18 @@ void RosExecutor::reset_model_state()
         _model->setJointPosition(qref);
         _model->update();
     }  
+    else if(_nh.hasParam("home"))
+    {
+        std::map<std::string, double> joint_map;
+        _nh.getParam("home", joint_map);
+
+        XBot::JointNameMap qref(joint_map.begin(),
+                                joint_map.end());
+
+
+        _model->setJointPosition(qref);
+        _model->update();
+    }
     else
     {
         Eigen::VectorXd qhome;
