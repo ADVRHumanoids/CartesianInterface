@@ -1,6 +1,6 @@
 #include <cartesian_interface/CartesianInterfaceImpl.h>
-#include "rt/utils/spsc_queue_ci.hpp"
-#include "rt/TaskRt.h"
+#include "utils/spsc_queue_ci.hpp"
+#include "TaskRt.h"
 
 namespace XBot { namespace Cartesian {
   

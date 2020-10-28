@@ -186,12 +186,13 @@ target_link_libraries(CartesianInterface
     PUBLIC
     XBotInterface::XBotInterface
     OpenSoT::OpenSoT
+    matlogger2::matlogger2
     ${catkin_LIBRARIES}
     yaml-cpp
     PRIVATE
     ${ReflexxesTypeII_LIBRARIES}
     ${alglib_LIBRARIES}
-    matlogger2::matlogger2
+
     )
 
 target_compile_definitions(CartesianInterface

@@ -353,7 +353,6 @@ bool OpenSotImpl::update(double time, double period)
     /* Update tasks and solve */
     _autostack->update(_x);
     _autostack->log(_logger);
-    _solver->log(_logger);
 
     if(!_solver->solve(_x))
     {
@@ -361,6 +360,8 @@ bool OpenSotImpl::update(double time, double period)
         XBot::Logger::error("OpenSot: unable to solve\n");
         success = false;
     }
+
+    _solver->log(_logger);
 
     _solution.at("full_solution") = _x;
 
