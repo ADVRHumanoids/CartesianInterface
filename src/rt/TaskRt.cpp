@@ -164,14 +164,13 @@ void TaskRt::sendState(bool send)
 
 TaskRt::Ptr TaskRt::MakeInstance(TaskDescription::Ptr task)
 {
-	//if(auto cart = std::dynamic_pointer_cast<InteractionTask>(task))
-    if(auto cart = std::dynamic_pointer_cast<CartesianTask>(task))
+    if(auto cint = std::dynamic_pointer_cast<InteractionTask>(task))
+    {
+        return std::make_shared<InteractionRt>(cint);
+    }
+    else if(auto cart = std::dynamic_pointer_cast<CartesianTask>(task))
     {
         return std::make_shared<CartesianRt>(cart);
-    }
-    else if(auto cint = std::dynamic_pointer_cast<InteractionTask>(task))
-	{
-		return std::make_shared<InteractionRt>(cint);
     }
     else
     {
