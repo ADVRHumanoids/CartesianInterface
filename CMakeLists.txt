@@ -128,6 +128,7 @@ set(CartesianInterface_SRC
     src/problem/impl/Constraint.cpp
     src/rt/TaskRt.cpp
     src/rt/CartesianRt.cpp
+    src/rt/CInteractionRt.cpp
     src/utils/ForceEstimation.cpp
     src/utils/RobotStatePublisher.cpp
     #        src/problem/MinJointVel.cpp
