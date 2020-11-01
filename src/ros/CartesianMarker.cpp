@@ -56,7 +56,14 @@ CartesianMarker::CartesianMarker(const std::string& task_name,
 
     MakeMenu();
 
+
+
     _server.applyChanges();
+
+
+    visualization_msgs::InteractiveMarkerFeedbackConstPtr foo;
+    resetMarker(foo);
+
 
     _clear_service = _nh.advertiseService(_int_marker.name + "/clear_marker",
                                           &CartesianMarker::clearMarker, this);
