@@ -26,19 +26,21 @@ public:
 
     CARTESIO_DECLARE_SMART_PTR(InteractionTask)
 
-    const Eigen::Matrix6d& getStiffness() const override;
-    const Eigen::Matrix6d& getDamping() const override;
-    const Eigen::Matrix6d& getInertia() const override;
+    const Impedance& getImpedance() const override;
+	
     const Eigen::Vector6d& getForceReference() const override;
     void getForceLimits(Eigen::Vector6d& fmin,
 						Eigen::Vector6d& fmax) const override;
 
-    void setStiffness(const Eigen::Matrix6d& k) override;
-    void setDamping(const Eigen::Matrix6d& d) override;
-    void setInertia(const Eigen::Matrix6d& m) override;
+    void setImpedance(const Impedance & impedance) override;
+	
     void setForceReference(const Eigen::Vector6d& f) override;
     bool setForceLimits(const Eigen::Vector6d& fmin,
 						const Eigen::Vector6d& fmax) override;
+						
+	void  abortStiffnessTransition() override;
+	bool  setStiffnessTransition(const Interpolator<Eigen::Matrix6d>::WayPointVector & way_points) override;
+	State getStiffnessState() const override;
 
 private:
 
@@ -47,12 +49,13 @@ private:
 
     struct DataToClient
     {
- 		Eigen::Matrix6d _stiffness;
- 		Eigen::Matrix6d _damping;
-		Eigen::Matrix6d _inertia;
-		Eigen::Vector6d _force;
+ 		Impedance       _impedance;
+
+		Eigen::Vector6d _force    ;
 		Eigen::Vector6d _force_max;
 		Eigen::Vector6d _force_min;
+		
+		State _stiffness_state;
 	};
 
     LockFreeQueue<DataToClient, 1024> _to_cli_queue;

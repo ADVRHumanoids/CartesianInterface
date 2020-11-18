@@ -35,9 +35,7 @@ void InteractionRt::sendState(bool send)
 	
     CartesianRt::sendState(send);
 
-    _rt_data._damping   = _task_impl->getDamping();
-    _rt_data._stiffness = _task_impl->getStiffness();
-	_rt_data._inertia   = _task_impl->getInertia();
+	_rt_data._impedance = _task_impl->getImpedance     ();
 	_rt_data._force     = _task_impl->getForceReference();
 	
 	_task_impl->getForceLimits(_rt_data._force_min,
@@ -46,19 +44,9 @@ void InteractionRt::sendState(bool send)
 	_to_cli_queue.push(_rt_data);
 }
 
-const Eigen::Matrix6d& InteractionRt::getStiffness() const
+const Impedance& InteractionRt::getImpedance() const
 {
-    return _cli_data._stiffness;
-}
-
-const Eigen::Matrix6d& InteractionRt::getDamping() const
-{
-    return _cli_data._stiffness;
-}
-
-const Eigen::Matrix6d& InteractionRt::getInertia() const
-{
-    return _cli_data._inertia;
+	return _cli_data._impedance;
 }
 
 const Eigen::Vector6d& InteractionRt::getForceReference() const
@@ -72,21 +60,14 @@ void InteractionRt::getForceLimits(Eigen::Vector6d& fmin, Eigen::Vector6d& fmax)
 	fmax = _cli_data._force_max;
 }
 
-void InteractionRt::setStiffness(const Eigen::Matrix6d& k)
+State InteractionRt::getStiffnessState() const
 {
-    auto cb = std::bind(&InteractionTask::setStiffness, pl::_1, k);
-    _cb_queue.push(cb);
+	return _rt_data._stiffness_state;
 }
 
-void InteractionRt::setDamping(const Eigen::Matrix6d& d)
+void InteractionRt::setImpedance(const Impedance& impedance)
 {
-	auto cb = std::bind(&InteractionTask::setDamping, pl::_1, d);
-    _cb_queue.push(cb);
-}
-
-void InteractionRt::setInertia(const Eigen::Matrix6d& m)
-{
-	auto cb = std::bind(&InteractionTask::setInertia, pl::_1, m);
+	auto cb = std::bind(&InteractionTask::setImpedance, pl::_1, impedance);
     _cb_queue.push(cb);
 }
 
@@ -106,6 +87,17 @@ bool InteractionRt::setForceLimits(const Eigen::Vector6d& fmin,	const Eigen::Vec
 	return true;
 }
 
+void InteractionRt::abortStiffnessTransition()
+{
+	auto cb = std::bind(&InteractionTask::abortStiffnessTransition, pl::_1);
+	_cb_queue.push(cb);
+}
+
+bool InteractionRt::setStiffnessTransition(const Interpolator<Eigen::Matrix6d>::WayPointVector & way_points)
+{
+	auto cb = std::bind(&InteractionTask::setStiffnessTransition, pl::_1, way_points);
+    return _cb_queue.push(cb);
+}
 
 void InteractionRt::update(double time, double period)
 {
