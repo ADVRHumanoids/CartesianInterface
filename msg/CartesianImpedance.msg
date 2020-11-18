@@ -1,0 +1,2 @@
+cartesian_interface/CartesianImpedanceBase linear
+cartesian_interface/CartesianImpedanceBase angular

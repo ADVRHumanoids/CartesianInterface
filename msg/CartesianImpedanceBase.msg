@@ -1,0 +1,2 @@
+geometry_msgs/Vector3 stiffness
+geometry_msgs/Vector3 damping_ratio

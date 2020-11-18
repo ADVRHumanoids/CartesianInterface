@@ -51,6 +51,9 @@ add_message_files(
     FILES
     Impedance3.msg
     Impedance6.msg
+    CartesianImpedanceBase.msg
+    CartesianImpedance.msg
+    CartesianImpedanceTimed.msg
     JoystickStatus.msg
     TaskInfo.msg
     CartesianTaskInfo.msg
@@ -84,6 +87,7 @@ add_service_files(
 add_action_files(
     FILES
     ReachPose.action
+    ReachCartesianImpedance.action
     )
 
 ## Generate added messages and services with any dependencies listed here
