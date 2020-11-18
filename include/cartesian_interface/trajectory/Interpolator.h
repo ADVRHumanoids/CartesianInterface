@@ -68,9 +68,8 @@ namespace XBot { namespace Cartesian {
         void addWayPoint (const WayPoint & way_point        ,
 						  double           time_offset = 0.0)
 		{
-			way_point.time += time_offset;
-			
 			_points.push_back(way_point);
+			_points.back().time += time_offset;
 			
 			sort_points();
 		}
