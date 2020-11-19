@@ -9,7 +9,7 @@ using namespace XBot::Cartesian::ServerApi;
 RCIAManager::RCIAManager(ros::NodeHandle      nh,
 						 InteractionTask::Ptr task):
 	
-    _server (new ActionServer(nh, task->getName() + "/reach", false)),
+    _server (new ActionServer(nh, task->getName() + "/stiffness", false)),
     _task   (task),
     _state  (ReachActionState::IDLE),
     _name   (task->getName())
@@ -226,7 +226,7 @@ InteractionRos::InteractionRos(InteractionTask::Ptr task,
         throw std::runtime_error("Provided task does not have expected type 'InteractionTask'");
     }
 
-    //_reach_action_manager.reset(new ReachActionManager(_ctx->nh(), _ci_inter->getName(), _ci_inter));
+	_action.reset(new RCIAManager(_ctx->nh(), _ci_inter));
 	
     _fref_pub = _ctx->nh().advertise<geometry_msgs::WrenchStamped>(task->getName() + "/current_force_reference", 1);
     _fref_sub = _ctx->nh().subscribe(task->getName() + "/force_reference", 1,
@@ -241,7 +241,9 @@ void InteractionRos::run(ros::Time time)
 
     geometry_msgs::WrenchStamped msg;
     tf::wrenchEigenToMsg(_ci_inter->getForceReference(), msg.wrench);
-
+	
+	_action->run();
+	
     _fref_pub.publish(msg);
 }
 
