@@ -35,8 +35,9 @@ void InteractionRt::sendState(bool send)
 	
     CartesianRt::sendState(send);
 
-	_rt_data._impedance = _task_impl->getImpedance     ();
-	_rt_data._force     = _task_impl->getForceReference();
+	_rt_data._impedance       = _task_impl->getImpedance     ();
+	_rt_data._force           = _task_impl->getForceReference();
+	_rt_data._stiffness_state = _task_impl->getStiffnessState();
 	
 	_task_impl->getForceLimits(_rt_data._force_min,
 							   _rt_data._force_max);

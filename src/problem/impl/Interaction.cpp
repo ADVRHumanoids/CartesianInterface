@@ -6,9 +6,10 @@ using namespace XBot::Cartesian;
 InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
                                          Context::ConstPtr context):
     CartesianTaskImpl(task_node, context),
-    _ref_timeout(-1),
-    _state(State::Online),
-    _fref(Eigen::Vector6d::Zero())
+    _ref_timeout  (-1),
+    _state        (State::Online),
+    _fref         (Eigen::Vector6d::Zero()),
+	_interpolator (new Interpolator<Eigen::Matrix6d>)
 {
     std::vector<double> stiffness, damping, inertia, fmin, fmax;
 
@@ -162,11 +163,11 @@ bool XBot::Cartesian::InteractionTaskImpl::setStiffnessTransition(const Interpol
     _state = State::Reaching;
     
 	_interpolator->clear();
-    _interpolator->addWayPoint(getTime(), _impedance.stiffness);
-    
+	_interpolator->addWayPoint(getTime(), _impedance.stiffness);
+	
     for(const auto& wp : way_points)
     {
-        _interpolator->addWayPoint(wp, getTime());
+		_interpolator->addWayPoint(wp, getTime());
     }
     
     _interpolator->compute();
@@ -197,14 +198,14 @@ void XBot::Cartesian::InteractionTaskImpl::update(double time, double period)
 		
 		if (_interpolator->isTrajectoryEnded(time))
         {
-            _state = State::Online;
+			_state = State::Online;
         }
     }
 }
 
 State XBot::Cartesian::InteractionTaskImpl::getStiffnessState() const
 {
-    return _state;
+	return _state;
 }
 
 
