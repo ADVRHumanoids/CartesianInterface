@@ -69,7 +69,7 @@ private:
     void on_fref_recv(geometry_msgs::WrenchStampedConstPtr msg);
 
     ros::Subscriber              _fref_sub;
-    ros::Publisher               _fref_pub;
+    ros::Publisher               _fref_pub, _impd_pub;
 
     InteractionTask::Ptr         _ci_inter   ;
 	

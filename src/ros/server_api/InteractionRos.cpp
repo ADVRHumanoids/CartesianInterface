@@ -47,7 +47,7 @@ void RCIAManager::run_state_idle()
 
     if(_server->isNewGoalAvailable())
     {
-        Logger::info(Logger::Severity::HIGH,
+		Logger::info(Logger::Severity::HIGH,
                      "Received new goal for task '%s'\n", _name.c_str());
 
         // obtain new goal
@@ -69,8 +69,8 @@ void RCIAManager::run_state_idle()
 
         // get current state for task (note: should it be getPoseReference instead?)
         Impedance impedance = _task->getImpedance();
-
-        // fill waypoint vector
+		
+		// fill waypoint vector
         Interpolator<Eigen::Matrix6d>::WayPointVector waypoints;
 
         for(int k = 0; k < goal->target.size(); k++)
@@ -93,11 +93,11 @@ void RCIAManager::run_state_idle()
 
         // send waypoints to cartesian ifc
         if(!_task->setStiffnessTransition(waypoints))
-        /*{
-            _server->setAborted(cartesian_interface::ReachCartesianImpedanceResult(), "Internal error");
+        {
+			_server->setAborted(cartesian_interface::ReachCartesianImpedanceResult(), "Internal error");
             return; // next state is 'idle'
-        }*/
-
+        }
+        
         // transit to 'accepted'
         _state = ReachActionState::ACCEPTED;
         return;
@@ -109,7 +109,7 @@ void RCIAManager::run_state_accepted()
     // wait till cartesian ifc switches state to 'reaching'
     if(_task->getStiffnessState() == State::Reaching)
     {
-        Logger::info(Logger::Severity::HIGH,
+		Logger::info(Logger::Severity::HIGH,
                      "Reaching started for task '%s'\n", _name.c_str());
 
         _state = ReachActionState::RUNNING; // next state is 'running'
@@ -120,10 +120,10 @@ void RCIAManager::run_state_accepted()
 
 void RCIAManager::run_state_running()
 {
-    // manage preemption
+	// manage preemption
     if (_server->isPreemptRequested())
     {
-        XBot::Logger::info(XBot::Logger::Severity::HIGH,
+		XBot::Logger::info(XBot::Logger::Severity::HIGH,
                            "Goal for task '%s' canceled by user\n",
                            _name.c_str());
 
@@ -153,8 +153,7 @@ void RCIAManager::run_state_running()
     // trajectory ended
     if(_task->getStiffnessState() == State::Online)
     {
-
-        cartesian_interface::ReachCartesianImpedanceResult result;
+		cartesian_interface::ReachCartesianImpedanceResult result;
 		
         /* use this affine in case you want to transform the stiffness in another frame */
         Eigen::Affine3d base_T_ee;
@@ -178,7 +177,7 @@ void RCIAManager::run_state_running()
     }
     else // publish feedback
     {
-        cartesian_interface::ReachCartesianImpedanceFeedback feedback;
+		cartesian_interface::ReachCartesianImpedanceFeedback feedback;
 
 		Impedance impedance = _task->getImpedance();
 		
@@ -203,7 +202,7 @@ void RCIAManager::run_state_running()
 
 void RCIAManager::run_state_completed()
 {
-    XBot::Logger::info(XBot::Logger::Severity::HIGH,
+	XBot::Logger::info(XBot::Logger::Severity::HIGH,
                        "Goal for task '%s' completed\n",
                        _name.c_str());
 
@@ -228,23 +227,33 @@ InteractionRos::InteractionRos(InteractionTask::Ptr task,
 
 	_action.reset(new RCIAManager(_ctx->nh(), _ci_inter));
 	
-    _fref_pub = _ctx->nh().advertise<geometry_msgs::WrenchStamped>(task->getName() + "/current_force_reference", 1);
-    _fref_sub = _ctx->nh().subscribe(task->getName() + "/force_reference", 1,
-                                    &InteractionRos::on_fref_recv, this);
-
-    
+	_impd_pub = _ctx->nh().advertise<cartesian_interface::CartesianImpedance>(task->getName() + "/current_impedance"      , 1);
+    _fref_pub = _ctx->nh().advertise<geometry_msgs::WrenchStamped           >(task->getName() + "/current_force_reference", 1);
+	
+    _fref_sub = _ctx->nh().subscribe(task->getName() + "/force_reference", 1, &InteractionRos::on_fref_recv, this);
 }
 
 void InteractionRos::run(ros::Time time)
 {
     CartesianRos::run(time);
-
-    geometry_msgs::WrenchStamped msg;
-    tf::wrenchEigenToMsg(_ci_inter->getForceReference(), msg.wrench);
 	
 	_action->run();
 	
-    _fref_pub.publish(msg);
+    geometry_msgs::WrenchStamped fr;
+    tf::wrenchEigenToMsg(_ci_inter->getForceReference(), fr.wrench);
+	
+	cartesian_interface::CartesianImpedance cimp;
+	
+	Impedance impedance = _ci_inter->getImpedance();
+		
+	tf::vectorEigenToMsg (impedance.stiffness.diagonal().head(3), cimp.linear.stiffness);
+	tf::vectorEigenToMsg (impedance.stiffness.diagonal().tail(3), cimp.angular.stiffness);
+	
+	tf::vectorEigenToMsg (impedance.damping.diagonal().head(3), cimp.linear.damping_ratio);
+	tf::vectorEigenToMsg (impedance.damping.diagonal().tail(3), cimp.angular.damping_ratio);
+	
+    _fref_pub.publish(fr);
+	_impd_pub.publish(cimp);
 }
 
 void InteractionRos::on_fref_recv(geometry_msgs::WrenchStampedConstPtr msg)
