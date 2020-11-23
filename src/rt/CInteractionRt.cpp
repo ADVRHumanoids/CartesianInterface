@@ -45,7 +45,7 @@ void InteractionRt::sendState(bool send)
 	_to_cli_queue.push(_rt_data);
 }
 
-const Impedance& InteractionRt::getImpedance() const
+const Impedance& InteractionRt::getImpedance()
 {
 	return _cli_data._impedance;
 }

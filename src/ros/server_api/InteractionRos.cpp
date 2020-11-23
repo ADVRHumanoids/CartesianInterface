@@ -132,8 +132,8 @@ void RCIAManager::run_state_running()
         cartesian_interface::ReachCartesianImpedanceResult result;
 		
 		/* use this affine in case you want to transform the stiffness in another frame */
-        Eigen::Affine3d base_T_ee;
-        _task->getCurrentPose(base_T_ee);
+        /* Eigen::Affine3d base_T_ee;
+        _task->getCurrentPose(base_T_ee); */
 		
 		Impedance impedance = _task->getImpedance();
 		

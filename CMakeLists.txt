@@ -57,6 +57,7 @@ add_message_files(
     JoystickStatus.msg
     TaskInfo.msg
     CartesianTaskInfo.msg
+    InteractionTaskInfo.msg
     )
 
 # Generate services in the 'srv' folder
@@ -162,6 +163,7 @@ set(CartesianInterfaceROS_SRC
     src/ros/server_api/PosturalRos.cpp
     src/ros/client_api/TaskRos.cpp
     src/ros/client_api/CartesianRos.cpp
+    src/ros/client_api/InteractionRos.cpp
     src/ros/client_api/PosturalRos.cpp
     src/ros/RosImpl.cpp
     src/ros/RosServerClass.cpp

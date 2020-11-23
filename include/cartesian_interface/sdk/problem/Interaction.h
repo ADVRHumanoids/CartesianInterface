@@ -33,7 +33,7 @@ public:
     void update(double time, double period) override;
     void log(MatLogger2::Ptr logger, bool init_logger, int buf_size) override;
 
-    const Impedance & getImpedance () const override;
+    const Impedance & getImpedance () override;
 	
     const Eigen::Vector6d& getForceReference() const override;
     void getForceLimits(Eigen::Vector6d& fmin,

@@ -26,7 +26,7 @@ public:
 
     CARTESIO_DECLARE_SMART_PTR(InteractionTask)
 
-    virtual const Impedance & getImpedance () const = 0;
+    virtual const Impedance & getImpedance () = 0;
 	
     virtual const Eigen::Vector6d& getForceReference () const = 0;
     virtual void getForceLimits (Eigen::Vector6d& fmin,

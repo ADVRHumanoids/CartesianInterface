@@ -95,7 +95,7 @@ InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
 
 }
 
-const Impedance & XBot::Cartesian::InteractionTaskImpl::getImpedance() const
+const Impedance & XBot::Cartesian::InteractionTaskImpl::getImpedance()
 {
 	return _impedance;
 }
