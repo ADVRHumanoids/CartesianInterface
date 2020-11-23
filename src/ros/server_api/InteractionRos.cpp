@@ -231,6 +231,30 @@ InteractionRos::InteractionRos(InteractionTask::Ptr task,
     _fref_pub = _ctx->nh().advertise<geometry_msgs::WrenchStamped           >(task->getName() + "/current_force_reference", 1);
 	
     _fref_sub = _ctx->nh().subscribe(task->getName() + "/force_reference", 1, &InteractionRos::on_fref_recv, this);
+	
+	_get_info_srv = _ctx->nh().advertiseService(_task->getName() + "/get_interaction_task_properties",
+                                                &InteractionRos::get_task_info_cb, this);
+	
+	_get_impedance_srv = _ctx->nh().advertiseService(_task->getName() + "/get_impedance",
+                                                &InteractionRos::get_impedance_cb, this);
+}
+
+bool InteractionRos::get_task_info_cb(cartesian_interface::GetInteractionTaskInfoRequest&  req,
+									  cartesian_interface::GetInteractionTaskInfoResponse& res)
+{
+	res.state = EnumToString(_ci_inter->getTaskState());
+}
+
+bool InteractionRos::get_impedance_cb(cartesian_interface::GetImpedanceRequest&  req,
+									  cartesian_interface::GetImpedanceResponse& res)
+{
+	Impedance impedance = _ci_inter->getImpedance();
+	
+	tf::vectorEigenToMsg (impedance.stiffness.diagonal().head(3), res.impedance.linear.stiffness);
+	tf::vectorEigenToMsg (impedance.stiffness.diagonal().tail(3), res.impedance.angular.stiffness);
+	
+	tf::vectorEigenToMsg (impedance.damping.diagonal().head(3), res.impedance.linear.damping_ratio);
+	tf::vectorEigenToMsg (impedance.damping.diagonal().tail(3), res.impedance.angular.damping_ratio);
 }
 
 void InteractionRos::run(ros::Time time)

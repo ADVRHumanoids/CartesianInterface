@@ -7,6 +7,8 @@
 #include <cartesian_interface/problem/Interaction.h>
 
 #include <cartesian_interface/ReachCartesianImpedanceAction.h>
+#include <cartesian_interface/GetInteractionTaskInfo.h>
+#include <cartesian_interface/GetImpedance.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -67,11 +69,19 @@ public:
 private:
 	
     void on_fref_recv(geometry_msgs::WrenchStampedConstPtr msg);
+	
+	bool get_task_info_cb(cartesian_interface::GetInteractionTaskInfoRequest&  req,
+                          cartesian_interface::GetInteractionTaskInfoResponse& res);
+
+    bool get_impedance_cb(cartesian_interface::GetImpedanceRequest&  req,
+                          cartesian_interface::GetImpedanceResponse& res);
 
     ros::Subscriber              _fref_sub;
     ros::Publisher               _fref_pub, _impd_pub;
+	
+	ros::ServiceServer _get_info_srv, _get_impedance_srv;
 
-    InteractionTask::Ptr         _ci_inter   ;
+    InteractionTask::Ptr         _ci_inter;
 	
 	std::unique_ptr<RCIAManager> _action  ;
 
