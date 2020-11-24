@@ -29,7 +29,7 @@ public:
     InteractionRos(std::string name,
 				   ros::NodeHandle nh);
 
-    const Impedance & getImpedance () = 0;
+    const Impedance & getImpedance ();
 	
 	const Eigen::Vector6d& getForceReference () const override;
     void getForceLimits (Eigen::Vector6d& fmin, Eigen::Vector6d& fmax) const override;
@@ -39,7 +39,7 @@ public:
 	void setForceReference (const Eigen::Vector6d& f) override;
     bool setForceLimits (const Eigen::Vector6d& fmin, const Eigen::Vector6d& fmax) override;
 	
-	bool  waitReachCompleted (double timeout);
+	bool  waitTransitionCompleted (double timeout);
 	void  abortStiffnessTransition () override;
 	bool  setStiffnessTransition (const Interpolator<Eigen::Matrix6d>::WayPointVector & way_points) override;
 	State getStiffnessState () const override;

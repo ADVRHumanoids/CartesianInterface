@@ -33,8 +33,8 @@ InteractionRos::InteractionRos(std::string name,
     
     if(!_action_cli.isServerConnected())
     {
-        throw std::runtime_error(fmt::format("Unable to reach action server '{}'",
-                                             nh.resolveName(name + "/reach")));
+        /*throw std::runtime_error(fmt::format("Unable to reach action server '{}'",
+                                             nh.resolveName(name + "/stiffness")));*/
     }
     
     _f.setZero();
@@ -133,7 +133,7 @@ void InteractionRos::abortStiffnessTransition()
     _action_cli.cancelAllGoals();
 }
 
-bool InteractionRos::waitReachCompleted(double timeout)
+bool InteractionRos::waitTransitionCompleted(double timeout)
 {
     return _action_cli.waitForResult(ros::Duration(timeout));
 }

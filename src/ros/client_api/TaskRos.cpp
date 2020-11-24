@@ -8,6 +8,7 @@
 #include <cartesian_interface/SetTaskActive.h>
 
 #include "ros/client_api/CartesianRos.h"
+#include "ros/client_api/InteractionRos.h"
 #include "ros/client_api/PosturalRos.h"
 
 using namespace XBot::Cartesian;
@@ -342,6 +343,10 @@ TaskDescription::Ptr TaskRos::MakeInstance(std::string name,
         {
             return task;
         }
+        else if(type == "Interaction")
+		{
+			return std::make_shared<InteractionRos>(name, nh);
+		}
         else if(type == "Cartesian")
         {
             return std::make_shared<CartesianRos>(name, nh);

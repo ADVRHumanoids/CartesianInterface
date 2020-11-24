@@ -77,7 +77,16 @@ PYBIND11_MODULE(pyci, m) {
 
     py::class_<InteractionTask,
             CartesianTask,
-            InteractionTask::Ptr>(m, "InteractionTask", py::multiple_inheritance());
+            InteractionTask::Ptr>(m, "InteractionTask", py::multiple_inheritance())
+			.def("getImpedance", &InteractionTask::getImpedance)
+			.def("getForceReference", &InteractionTask::getForceReference)
+			.def("getForceLimits", py_task_get_force_lims)
+			.def("setImpedance", &InteractionTask::setImpedance)
+			.def("setForceReference", &InteractionTask::setForceReference)
+			.def("setForceLimits", &InteractionTask::setForceLimits)
+			.def("setStiffnessTransition", &InteractionTask::setStiffnessTransition)
+			.def("abortStiffnessTransition", &InteractionTask::abortStiffnessTransition)
+			.def("getStiffnessState", &InteractionTask::getStiffnessState);
 
     py::class_<ClientApi::CartesianRos,
             CartesianTask,
@@ -152,7 +161,17 @@ PYBIND11_MODULE(pyci, m) {
             .def("setForceReference", &RosClient::setForceReference)
             .def("setDesiredStiffness", &RosClient::setDesiredStiffness)
             .def("setDesiredDamping", &RosClient::setDesiredDamping)
-            .def("resetWorld", (bool (RosClient::*)(const Eigen::Affine3d&)) &RosClient::resetWorld)
+			.def("setStiffnessTransition", py_send_stiffness_waypoints,
+                 py::arg("task_name"),
+                 py::arg("translational_stiffness"),
+				 py::arg("rotational_stiffness"),
+				 py::arg("time"))
+            .def("waitStiffnessTransitionCompleted", &RosClient::waitStiffnessTransitionCompleted,
+                 py::arg("task_name"),
+                 py::arg("timeout") = 0.0)
+            .def("abortStiffnessTransition", &RosClient::abortStiffnessTransition,
+                 py::arg("task_name"))
+			.def("resetWorld", (bool (RosClient::*)(const Eigen::Affine3d&)) &RosClient::resetWorld)
             .def("resetWorld", (bool (RosClient::*)(const std::string&))     &RosClient::resetWorld)
             .def("setVelocityReference", (bool (RosClient::*)(const std::string&,
                                                               const Eigen::Vector6d&))  &RosClient::setVelocityReference)

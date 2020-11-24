@@ -82,6 +82,13 @@ auto py_task_get_acc_lims(const CartesianTask& t)
     return std::make_tuple(l, a);
 }
 
+auto py_task_get_force_lims(const InteractionTask& t)
+{
+    Eigen::Vector6d l, a;
+    t.getForceLimits(l, a);
+    return std::make_tuple(l, a);
+}
+
 auto py_get_pose_reference(const RosClient& r, const std::string& ee)
 {
     Eigen::Affine3d T;
@@ -124,6 +131,34 @@ auto py_send_target_pose(RosClient& r,
     wp.time = time;
     wp.frame = T;
     return r.setWayPoints(ee, {wp}, incremental);
+}
+
+auto py_send_stiffness_waypoints(RosClient& r,
+                       const std::string& ee,
+					   const std::vector<Eigen::Vector3d> kt,
+					   const std::vector<Eigen::Vector3d> kr,
+					   const std::vector<double> t)
+{
+	if (kt.size() != kr.size() || kt.size() != t.size() || kt.size() < 1)
+	{
+		return false;
+	}
+	
+	Interpolator<Eigen::Matrix6d>::WayPointVector wpv;
+	
+	for (int i = 0; i < t.size(); i++)
+	{
+		Interpolator<Eigen::Matrix6d>::WayPoint wp;
+		wp.value.setZero();
+		
+		wp.value.diagonal().head(3) = kt[i];
+		wp.value.diagonal().tail(3) = kr[i];
+		wp.time = t[i];
+		
+		wpv.push_back(wp);
+	}
+	
+	return r.setStiffnessTransition(ee, wpv);
 }
 
 auto py_get_velocity_limits(RosClient& r, const std::string& ee)
