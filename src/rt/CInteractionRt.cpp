@@ -17,7 +17,7 @@ InteractionRt::InteractionRt(InteractionTask::Ptr task):
 
 void InteractionRt::callAvailable()
 {
-    TaskRt::callAvailable();
+    CartesianRt::callAvailable();
 	
     _cb_queue.consume_all([this](CallbackType& cb)
     {
