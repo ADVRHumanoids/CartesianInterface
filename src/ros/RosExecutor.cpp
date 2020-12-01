@@ -196,6 +196,18 @@ void RosExecutor::reset_model_state()
         _model->setJointPosition(qref);
         _model->update();
     }  
+    else if(_nh.hasParam("home"))
+    {
+        std::map<std::string, double> joint_map;
+        _nh.getParam("home", joint_map);
+
+        XBot::JointNameMap qref(joint_map.begin(),
+                                joint_map.end());
+
+
+        _model->setJointPosition(qref);
+        _model->update();
+    }
     else
     {
         Eigen::VectorXd qhome;
@@ -220,6 +232,11 @@ void RosExecutor::init_load_torque_offset()
 
 void RosExecutor::init_load_world_frame()
 {
+
+    if(!_model->isFloatingBase())
+    {
+        return;
+    }
     
     /* If the world pose is available from TF, use it */
     bool set_world_from_tf = _nh_priv.param("set_world_from_param", false);
@@ -236,13 +253,15 @@ void RosExecutor::init_load_world_frame()
     std::string world_frame_link;
     if(!set_world_from_tf && _xbot_cfg.get_parameter("world_frame_link", world_frame_link))
     {
-        Eigen::Affine3d w_T_l;
-        if(!_model->getPose(world_frame_link, w_T_l))
+        Eigen::Affine3d fb_T_l;
+        std::string floating_base_link;
+        _model->getFloatingBaseLink(floating_base_link);
+        if(!_model->getPose(world_frame_link, floating_base_link, fb_T_l))
         {
             throw std::runtime_error("World frame link '" + world_frame_link + "' is undefined");
         }
         
-        _model->setFloatingBasePose(w_T_l.inverse());
+        _model->setFloatingBasePose(fb_T_l.inverse());
         _model->update();
     }
 }

@@ -415,6 +415,7 @@ bool CartesianInterfaceImpl::update(double time, double period)
     }
     
     log_tasks();
+    log_model();
     
     return true;
     
@@ -432,6 +433,16 @@ void CartesianInterfaceImpl::log_tasks()
     _logger->add("ci_time", _current_time);
 }
 
+void CartesianInterfaceImpl::log_model()
+{
+    if(_model->isFloatingBase())
+    {
+        Eigen::Vector6d centroidal_momentum; ///TODO: put it in header!
+        _model->getCentroidalMomentum(centroidal_momentum);
+        _logger->add("ci_centroidal_momentum", centroidal_momentum);
+    }
+}
+
 void XBot::Cartesian::CartesianInterfaceImpl::init_log_tasks()
 {
     const int BUF_SIZE = 2e5;
@@ -444,6 +455,8 @@ void XBot::Cartesian::CartesianInterfaceImpl::init_log_tasks()
     }
     
     _logger->create("ci_time", 1, 1, BUF_SIZE);
+
+    _logger->create("ci_centroidal_momentum", 6, 1, BUF_SIZE);
 }
 
 bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_com_ref)

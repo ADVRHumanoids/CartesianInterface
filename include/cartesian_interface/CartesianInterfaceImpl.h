@@ -221,6 +221,7 @@ private:
 
     void add_task(TaskDescription::Ptr task);
     void log_tasks();
+    void log_model();
     void init_log_tasks();
     
     Context::Ptr _ctx;
