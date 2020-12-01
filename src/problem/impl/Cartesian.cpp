@@ -47,7 +47,7 @@ std::string get_name(YAML::Node task_node)
 {
     if(task_node["type"].as<std::string>() == "Com")
     {
-        return "Com";
+        return "com";  // to be uniform, both name and distal shall be 'com'
     }
     
     if(task_node["name"])
