@@ -455,6 +455,8 @@ void XBot::Cartesian::CartesianInterfaceImpl::init_log_tasks()
     }
     
     _logger->create("ci_time", 1, 1, BUF_SIZE);
+
+    _logger->create("ci_centroidal_momentum", 6, 1, BUF_SIZE);
 }
 
 bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_com_ref)
