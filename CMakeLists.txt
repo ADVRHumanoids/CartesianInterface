@@ -37,7 +37,7 @@ include_directories(include
     ${XBotInterface_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIRS}
     ${catkin_INCLUDE_DIRS}
-    ${ReflexxesTypeII_INCLUDE_DIRS}
+    ${ReflexxesTypeII_INCLUDE_DIRS}/..
     ${alglib_INCLUDE_DIRS}
     )
 
@@ -200,6 +200,7 @@ target_compile_definitions(CartesianInterface
 
 target_include_directories(CartesianInterface
     PUBLIC
+    $<INSTALL_INTERFACE:include>
     $<INSTALL_INTERFACE:include/${PROJECT_NAME}/external>
     )
 
