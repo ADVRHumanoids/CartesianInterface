@@ -15,7 +15,7 @@ using namespace cartesian_interface;
 CartesianRos::CartesianRos(std::string name,
                            ros::NodeHandle nh):
     TaskRos(name, nh),
-    _action_cli(nh, name + "/reach", false),
+    _action_cli(nh, name + "/reach", true),
     _Tref_recv(false), _vref_recv(false)
 {
     _cart_info_cli = _nh.serviceClient<GetCartesianTaskInfo>(name + "/get_cartesian_task_properties");
