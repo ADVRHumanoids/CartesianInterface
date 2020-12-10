@@ -1,11 +1,13 @@
 solver_options:
     regularization: 1e-3
-    back_end: "osqp"
+    back_end: "qpoases"
+    front_end: "l1hqp"
 
 stack:
-    - ["LeftFoot", "RightFoot", "ComXY"]
+    - ["LeftFoot", "RightFoot"]
+    - ["Com"]
     - ["LeftArm", "RightArm"]
-    - ["Postural"]
+#    - ["Postural"]
 
 constraints: ["JointLimits", "VelocityLimits"]
 
@@ -24,7 +26,7 @@ LeftArm:
     name: "left_hand"
     distal_link: "LSoftHand"
     lambda: 0.1
-    active: false
+    #active: false
 
 RightArm:
     type: "Cartesian"
@@ -34,7 +36,7 @@ RightArm:
     
 Postural:
     type: "Postural"
-    lambda: 0.01
+    lambda: 0.0
     weight:
         VIRTUALJOINT_1: 0.0
         VIRTUALJOINT_2: 0.0
@@ -43,11 +45,11 @@ Postural:
         VIRTUALJOINT_5: 0.0
         VIRTUALJOINT_6: 0.0
 
-ComXY:
+Com:
     type: "Com"
     lambda: 0.1
-    indices: [0, 1]
-    weight: 10
+    #indices: [0, 1]
+    #weight: 10
 
 JointLimits:
     type: "JointLimits"

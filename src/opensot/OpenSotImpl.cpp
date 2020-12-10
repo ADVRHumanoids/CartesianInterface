@@ -8,6 +8,7 @@
 #include <OpenSoT/solvers/eHQP.h>
 #include <OpenSoT/solvers/iHQP.h>
 #include <OpenSoT/solvers/nHQP.h>
+#include <OpenSoT/solvers/l1HQP.h>
 
 #include "utils/DynamicLoading.h"
 
@@ -60,6 +61,12 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
     else if(front_end_string == "ehqp")
     {
         return boost::make_shared<OpenSoT::solvers::eHQP>(as.getStack());
+    }
+    else if(front_end_string == "l1hqp")
+    {
+        return boost::make_shared<OpenSoT::solvers::l1HQP>(as,
+                                                           eps_regularisation,
+                                                           be_solver);
     }
     else if(front_end_string == "nhqp")
     {
