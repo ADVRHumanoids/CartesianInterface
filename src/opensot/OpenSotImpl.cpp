@@ -9,6 +9,7 @@
 #include <OpenSoT/solvers/iHQP.h>
 #include <OpenSoT/solvers/nHQP.h>
 #include <OpenSoT/solvers/l1HQP.h>
+#include <OpenSoT/solvers/GLPKBackEnd.h>
 
 #include "utils/DynamicLoading.h"
 
@@ -40,6 +41,10 @@ OpenSoT::solvers::solver_back_ends backend_from_string(std::string back_end_stri
     {
         return OpenSoT::solvers::solver_back_ends::ODYS;
     }
+    else if(back_end_string == "glpk")
+    {
+        return OpenSoT::solvers::solver_back_ends::GLPK;
+    }
     else
     {
         throw std::runtime_error("Invalid back end '" + back_end_string + "'");
@@ -64,9 +69,27 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
     }
     else if(front_end_string == "l1hqp")
     {
-        return boost::make_shared<OpenSoT::solvers::l1HQP>(as,
+        OpenSoT::solvers::l1HQP::Ptr l1hqp_solver =  boost::make_shared<OpenSoT::solvers::l1HQP>(as,
                                                            eps_regularisation,
                                                            be_solver);
+
+        if(be_solver == OpenSoT::solvers::solver_back_ends::GLPK)
+        {
+            OpenSoT::solvers::BackEnd::Ptr GLPK;
+            l1hqp_solver->getBackEnd(GLPK);
+
+
+            OpenSoT::solvers::GLPKBackEnd::GLPKBackEndOptions opt;
+            for(unsigned int i = l1hqp_solver->getFirstSlackIndex(); i < GLPK->getNumVariables(); ++i)
+                opt.var_id_kind_.push_back(std::pair<int, int>(i, GLP_IV));
+
+
+            GLPK->setOptions(opt);
+
+        }
+
+        return std::move(l1hqp_solver);
+
     }
     else if(front_end_string == "nhqp")
     {
