@@ -183,12 +183,15 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
     _vars({}),
     _force_space_references(false)
 {
-    /* Create logger */
-    MatLogger2::Options logger_opt;
-    logger_opt.default_buffer_size = 1e5;
-    _logger = MatLogger2::MakeLogger(context->params()->getLogPath() + "/cartesio_opensot_log_" + std::to_string(rand()),
-                                     logger_opt);
-    _logger->set_buffer_mode(VariableBuffer::Mode::circular_buffer);
+    if(this->getContext()->params()->isLogEnabled())
+    {
+        /* Create logger */
+        MatLogger2::Options logger_opt;
+        logger_opt.default_buffer_size = 1e5;
+        _logger = MatLogger2::MakeLogger(context->params()->getLogPath() + "/cartesio_opensot_log_" + std::to_string(rand()),
+                                         logger_opt);
+        _logger->set_buffer_mode(VariableBuffer::Mode::circular_buffer);
+    }
 
     _model->getJointPosition(_q);
     _dq.setZero(_q.size());
@@ -386,7 +389,11 @@ bool OpenSotImpl::update(double time, double period)
 
     /* Update tasks and solve */
     _autostack->update(_x);
-    _autostack->log(_logger);
+
+    if(_logger)
+    {
+        _autostack->log(_logger);
+    }
 
     if(!_solver->solve(_x))
     {
@@ -395,7 +402,10 @@ bool OpenSotImpl::update(double time, double period)
         success = false;
     }
 
-    _solver->log(_logger);
+    if(_logger)
+    {
+        _solver->log(_logger);
+    }
 
     _solution.at("full_solution") = _x;
 
@@ -447,7 +457,10 @@ bool OpenSotImpl::update(double time, double period)
 
         _tau.noalias() -= _J.transpose() * f_value;
 
-        _logger->add(p.first, f_value);
+        if(_logger)
+        {
+            _logger->add(p.first, f_value);
+        }
 
         _solution.at(p.first) = f_value;
 
@@ -455,10 +468,13 @@ bool OpenSotImpl::update(double time, double period)
 
     _model->setJointEffort(_tau);
 
-    _logger->add("q", _q);
-    _logger->add("dq", _dq);
-    _logger->add("ddq", _ddq);
-    _logger->add("tau", _tau);
+    if(_logger)
+    {
+        _logger->add("q", _q);
+        _logger->add("dq", _dq);
+        _logger->add("ddq", _ddq);
+        _logger->add("tau", _tau);
+    }
 
     return success;
 
