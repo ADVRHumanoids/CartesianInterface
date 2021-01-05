@@ -186,6 +186,13 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
     _vars({}),
     _force_space_references(false)
 {
+    /* Create logger */
+    MatLogger2::Options logger_opt;
+    logger_opt.default_buffer_size = 1e5;
+    _logger = MatLogger2::MakeLogger(context->params()->getLogPath() + "/cartesio_opensot_log_" + std::to_string(rand()),
+                                     logger_opt);
+    _logger->set_buffer_mode(VariableBuffer::Mode::circular_buffer);
+
     _model->getJointPosition(_q);
     _dq.setZero(_q.size());
     _ddq = _dq;
