@@ -1,17 +1,17 @@
 solver_options:
-    regularization: 1e-3
-    back_end: "qpoases"
-    front_end: "ihqp"
+    regularization: 0.
+    back_end: "glpk"
+    front_end: "l1hqp"
 
 stack:
 #     - ["LeftFoot"] 
 #     - ["RightFoot"]
-     - ["LeftFoot", "RightFoot"]
-     - ["Com"]
-     - ["LeftArm", "RightArm"]
+#     - ["LeftFoot", "RightFoot"]
+#     - ["Com"]
+#     - ["LeftArm", "RightArm"]
      - ["Postural"]
 
-constraints: ["JointLimits"] #[, "VelocityLimits"]
+constraints: ["JointLimits", "LeftFoot", "RightFoot"] #[, "VelocityLimits"]
 
 LeftFoot:
     type: "Cartesian"

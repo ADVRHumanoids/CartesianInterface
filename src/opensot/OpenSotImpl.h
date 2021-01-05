@@ -52,7 +52,7 @@ private:
     Eigen::MatrixXd _js_inertia_inv;
     bool _force_space_references;
     
-    XBot::MatLogger::Ptr _logger;
+    XBot::MatLogger2::Ptr _logger;
 
 };
 

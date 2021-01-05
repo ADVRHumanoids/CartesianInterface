@@ -180,9 +180,6 @@ void OpenSotImpl::make_constraint_adapter(ConstraintDescription::Ptr constr_desc
 OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
                          Context::Ptr context):
     CartesianInterfaceImpl(ik_problem, context),
-    _logger(XBot::MatLogger::getLogger(
-        context->params()->getLogPath() +
-        "/xbot_cartesian_opensot_log_" + std::to_string(rand()))),
     _vars({}),
     _force_space_references(false)
 {
@@ -470,7 +467,7 @@ bool OpenSotImpl::update(double time, double period)
 
 OpenSotImpl::~OpenSotImpl()
 {
-    _logger->flush();
+
 }
 
 
