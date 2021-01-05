@@ -37,7 +37,7 @@ include_directories(include
     ${XBotInterface_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIRS}
     ${catkin_INCLUDE_DIRS}
-    ${ReflexxesTypeII_INCLUDE_DIRS}/..
+    ${ReflexxesTypeII_INCLUDE_DIRS}
     ${alglib_INCLUDE_DIRS}
     )
 
