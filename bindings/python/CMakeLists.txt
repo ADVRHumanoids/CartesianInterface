@@ -1,4 +1,4 @@
-cmake_minimum_required(3.5)
+cmake_minimum_required(VERSION 3.5)
 
 if(${CMAKE_VERSION} VERSION_LESS "3.12.0") 
     message("Please consider to switch to latest version to enable 
