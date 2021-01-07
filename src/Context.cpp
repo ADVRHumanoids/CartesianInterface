@@ -43,6 +43,12 @@ Context::Context(Parameters::Ptr params,
     }
 }
 
+Context::Context(Parameters::Ptr params):
+    _params(params)
+{
+
+}
+
 Parameters::Ptr Context::params()
 {
     return _params;

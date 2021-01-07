@@ -44,6 +44,8 @@ public:
     Context(Parameters::Ptr params,
             ModelInterface::Ptr model);
 
+    Context(Parameters::Ptr params);
+
     Parameters::Ptr params();
     Parameters::ConstPtr params() const;
 

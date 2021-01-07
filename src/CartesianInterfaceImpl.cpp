@@ -86,7 +86,7 @@ void CartesianInterfaceImpl::init(ProblemDescription ik_problem)
 CartesianInterfaceImpl::CartesianInterfaceImpl(ProblemDescription ik_problem)
 {
     auto params = std::make_shared<Parameters>(1.);
-    _ctx = std::make_shared<Context>(params, nullptr);
+    _ctx = std::make_shared<Context>(params);
     init(ik_problem);
 }
 
