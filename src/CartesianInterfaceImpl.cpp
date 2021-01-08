@@ -17,15 +17,19 @@ namespace {
 const double DEFAULT_TTL = 0.1;
 }
 
-CartesianInterfaceImpl::CartesianInterfaceImpl(ProblemDescription ik_problem):
-    _ik_problem(ik_problem),
-    _solver_options(ik_problem.getSolverOptions())
+void CartesianInterfaceImpl::init(ProblemDescription ik_problem)
 {
-    /* Create logger */
-    MatLogger2::Options logger_opt;
-    logger_opt.default_buffer_size = 1e5;
-    _logger = MatLogger2::MakeLogger("/tmp/cartesio_logger", logger_opt);
-    _logger->set_buffer_mode(VariableBuffer::Mode::circular_buffer);
+    _ik_problem = ik_problem;
+    _solver_options = ik_problem.getSolverOptions();
+
+    if(_ctx->params()->isLogEnabled())
+    {
+        /* Create logger */
+        MatLogger2::Options logger_opt;
+        logger_opt.default_buffer_size = 1e5;
+        _logger = MatLogger2::MakeLogger("/tmp/cartesio_logger", logger_opt);
+        _logger->set_buffer_mode(VariableBuffer::Mode::circular_buffer);
+    }
 
     /* Validate ik problem */
     if(!ik_problem.validate())
@@ -73,17 +77,27 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(ProblemDescription ik_problem):
 
     reset(0.0);
 
-    init_log_tasks();
+    if(_logger)
+    {
+        init_log_tasks();
+    }
+}
+
+CartesianInterfaceImpl::CartesianInterfaceImpl(ProblemDescription ik_problem)
+{
+    auto params = std::make_shared<Parameters>(1.);
+    _ctx = std::make_shared<Context>(params, nullptr);
+    init(ik_problem);
 }
 
 
 CartesianInterfaceImpl::CartesianInterfaceImpl(ProblemDescription ik_problem,
-                                               Context::Ptr context):
-    CartesianInterfaceImpl(ik_problem)
+                                               Context::Ptr context)
 {
-    _ctx = context;
+   _ctx = context;
    _model = context->model();
    _current_time = 0.0;
+   init(ik_problem);
 }
 
 CartesianInterfaceImpl::Ptr CartesianInterfaceImpl::MakeInstance(std::string solver_name,
@@ -414,8 +428,11 @@ bool CartesianInterfaceImpl::update(double time, double period)
         task.update(time, period);
     }
     
-    log_tasks();
-    log_model();
+    if(_logger)
+    {
+        log_tasks();
+        log_model();
+    }
     
     return true;
     
