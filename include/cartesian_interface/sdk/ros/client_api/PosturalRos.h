@@ -34,6 +34,12 @@ public:
 
     void setReferencePosture(const JointNameMap& qref) override;
 
+    void setReferenceVelocity(const JointNameMap& qdotref) override;
+
+    void setReferenceVelocity(const Eigen::VectorXd& qdotref) override;
+
+    void getReferenceVelocity(Eigen::VectorXd& qdotref) const override;
+
 private:
 
     void on_current_ref_recv(sensor_msgs::JointStateConstPtr msg);

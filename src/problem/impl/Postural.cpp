@@ -68,9 +68,28 @@ void PosturalTaskImpl::getReferencePosture(XBot::JointNameMap & qref) const
     _model->eigenToMap(_qref, qref);
 }
 
+void PosturalTaskImpl::getReferenceVelocity(Eigen::VectorXd& qdotref) const
+{
+    if(qdotref.size() == _qdotref.size())
+    {
+        qdotref = _qdotref;
+    }
+}
+
 void PosturalTaskImpl::setReferencePosture(const XBot::JointNameMap & qref)
 {
     _model->mapToEigen(qref, _qref);
+}
+
+void PosturalTaskImpl::setReferenceVelocity(const XBot::JointNameMap& qdotref)
+{
+    _model->mapToEigen(qdotref, _qdotref);
+}
+
+void PosturalTaskImpl::setReferenceVelocity(const Eigen::VectorXd& qdotref)
+{
+    if(qdotref.size() == _qdotref.size())
+        _qdotref = qdotref;
 }
 
 void PosturalTaskImpl::update(double time, double period)
@@ -81,6 +100,7 @@ void PosturalTaskImpl::update(double time, double period)
 void PosturalTaskImpl::reset()
 {
     _model->getJointPosition(_qref);
+    _qdotref.setZero(_qref.size());
 }
 
 

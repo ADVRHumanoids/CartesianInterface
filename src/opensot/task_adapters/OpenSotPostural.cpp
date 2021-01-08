@@ -52,5 +52,7 @@ void OpenSotPosturalAdapter::update(double time, double period)
     }
 
     _ci_postural->getReferencePosture(_qref);
-    _opensot_postural->setReference(_qref);
+    _ci_postural->getReferenceVelocity(_qdotref);
+    _qdotref *= _ctx->params()->getControlPeriod();
+    _opensot_postural->setReference(_qref, _qdotref);
 }

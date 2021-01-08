@@ -68,3 +68,18 @@ void PosturalRos::on_current_ref_recv(sensor_msgs::JointStateConstPtr msg)
     }
 
 }
+
+void PosturalRos::setReferenceVelocity(const JointNameMap& qdotref)
+{
+    ///TODO
+}
+
+void PosturalRos::getReferenceVelocity(Eigen::VectorXd& qdotref) const
+{
+    ///TODO
+}
+
+void PosturalRos::setReferenceVelocity(const Eigen::VectorXd& qdotref)
+{
+    ///TODO
+}
