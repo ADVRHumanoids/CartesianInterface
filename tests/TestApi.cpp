@@ -111,7 +111,7 @@ TEST_F(TestApi, checkParsing)
     
     ASSERT_FALSE(std::find(list.begin(), list.end(), "arm2_8") == list.end());
     
-    ASSERT_FALSE(std::find(list.begin(), list.end(), "Com") == list.end());
+    ASSERT_FALSE(std::find(list.begin(), list.end(), "com") == list.end());
 
     ASSERT_FALSE(std::find(list.begin(), list.end(), "Postural") == list.end());
     
