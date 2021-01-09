@@ -13,19 +13,19 @@ Eigen::Affine3d GetRandomFrame()
     Eigen::Quaterniond q;
     q.coeffs().setRandom();
     q.normalize();
-    
+
     Eigen::Affine3d T;
     T.setIdentity();
     T.linear() = q.toRotationMatrix();
     T.translation().setRandom();
-    
+
     return T;
 }
 
 }
 
 class TestOpensot: public ::testing::Test {
-    
+
 
 protected:
 
@@ -212,6 +212,70 @@ TEST_F(TestOpensot, checkMotion)
     ci->getCurrentPose("arm1_8", T);
 
     EXPECT_TRUE(T.isApprox(Tref, 0.01));
+};
+
+TEST_F(TestOpensot, checkVelocityCtrl)
+{
+    auto t = ci->getTask("arm1_8");
+    ASSERT_TRUE(t != nullptr);
+
+    auto ct = std::dynamic_pointer_cast<CartesianTask>(t);
+    ASSERT_TRUE(ct != nullptr);
+
+    Eigen::Affine3d pose0;
+    ct->getCurrentPose(pose0);
+
+    ASSERT_TRUE(ct->setControlMode(ControlType::Velocity));
+    EXPECT_EQ(ct->getControlMode(), ControlType::Velocity);
+
+    Eigen::Vector6d vref;
+    vref << 0.1, 0, 0, 0, 0, 0;
+
+    double time = 0.0;
+    double dt = ci->getContext()->params()->getControlPeriod();
+
+    Eigen::VectorXd q, dq;
+    for(int i = 0; i < 1.0/dt; i++)
+    {
+        EXPECT_TRUE(ct->setVelocityReference(vref));
+        ci->update(time, dt);
+
+        time += dt;
+
+        ci->getModel()->getJointPosition(q);
+        ci->getModel()->getJointVelocity(dq);
+        q += dq * dt;
+        ci->getModel()->setJointPosition(q);
+        ci->getModel()->update();
+    }
+
+    Eigen::Affine3d pose1;
+    ct->getCurrentPose(pose1);
+
+    // we should've moved ~= 0.1 m
+    EXPECT_NEAR(pose0.translation().x() + 0.1,
+                pose1.translation().x(),
+                0.01);
+
+    ASSERT_TRUE(ct->setControlMode(ControlType::Position));
+    EXPECT_EQ(ct->getControlMode(), ControlType::Position);
+
+    for(int i = 0; i < 1.0/dt; i++)
+    {
+        ci->update(time, dt);
+
+        ci->getModel()->getJointPosition(q);
+        ci->getModel()->getJointVelocity(dq);
+        q += dq * dt;
+        ci->getModel()->setJointPosition(q);
+        ci->getModel()->update();
+    }
+
+    Eigen::Affine3d pose2;
+    ct->getCurrentPose(pose2);
+
+    EXPECT_TRUE(pose2.isApprox(pose1));
+
 };
 
 
