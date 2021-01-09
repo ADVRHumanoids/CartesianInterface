@@ -49,7 +49,7 @@ std::string get_name(YAML::Node task_node)
     {
         return "com";  // to be uniform, both name and distal shall be 'com'
     }
-    
+
     if(task_node["name"])
     {
         return task_node["name"].as<std::string>();
@@ -66,7 +66,7 @@ int get_size(YAML::Node task_node)
     {
         return 3;
     }
-    
+
     return 6;
 }
 
@@ -81,20 +81,20 @@ CartesianTaskImpl::CartesianTaskImpl(YAML::Node task_node, Context::ConstPtr con
     _is_body_jacobian(false)
 {
     bool is_com = task_node["type"].as<std::string>() == "Com";
-    
+
     _distal_link = is_com ? "com" : task_node["distal_link"].as<std::string>();
     _base_link = "world";
-    
+
     if(task_node["base_link"])
     {
         _base_link = task_node["base_link"].as<std::string>();
     }
-    
+
     if(task_node["orientation_gain"])
     {
         _orientation_gain = task_node["orientation_gain"].as<double>();
     }
-    
+
     if(task_node["use_local_subtasks"] && task_node["use_local_subtasks"].as<bool>())
     {
         _is_body_jacobian = true;
@@ -155,16 +155,16 @@ void CartesianTaskImpl::setVelocityLimits(double max_vel_lin, double max_vel_ang
 {
     _otg_maxvel << max_vel_lin, max_vel_lin, max_vel_lin,
             max_vel_ang/2.0, max_vel_ang/2.0, max_vel_ang/2.0, max_vel_ang/2.0;
-    
+
     if(_otg)
     {
         Logger::success(Logger::Severity::LOW, "Task::set_otg_vel_limits (%f, %f): success\n",
                         max_vel_lin,
                         max_vel_ang);
-        
+
         _otg->setVelocityLimits(_otg_maxvel);
     }
-    
+
     NOTIFY_OBSERVERS(SafetyLimits)
 }
 
@@ -172,16 +172,16 @@ void CartesianTaskImpl::setAccelerationLimits(double max_acc_lin, double max_acc
 {
     _otg_maxacc << max_acc_lin, max_acc_lin, max_acc_lin,
             max_acc_ang/2.0, max_acc_ang/2.0, max_acc_ang/2.0, max_acc_ang/2.0;
-    
+
     if(_otg)
     {
         Logger::success(Logger::Severity::LOW, "Task::set_otg_acc_limits (%f, %f): success\n",
                         max_acc_lin,
                         max_acc_ang);
-        
+
         _otg->setAccelerationLimits(_otg_maxacc);
     }
-    
+
     NOTIFY_OBSERVERS(SafetyLimits)
 }
 
@@ -200,10 +200,10 @@ bool CartesianTaskImpl::getPoseReference(Eigen::Affine3d & base_T_ref,
                                          Eigen::Vector6d * base_acc_ref) const
 {
     base_T_ref = get_pose_ref_otg();
-    
+
     if(base_vel_ref) *base_vel_ref = _vel;
     if(base_acc_ref) *base_acc_ref = _acc;
-    
+
     return true;
 }
 
@@ -212,10 +212,10 @@ bool CartesianTaskImpl::getPoseReferenceRaw(Eigen::Affine3d & base_T_ref,
                                             Eigen::Vector6d * base_acc_ref) const
 {
     base_T_ref = _T;
-    
+
     if(base_vel_ref) *base_vel_ref = _vel;
     if(base_acc_ref) *base_acc_ref = _acc;
-    
+
     return true;
 }
 
@@ -248,7 +248,7 @@ bool CartesianTaskImpl::setBaseLink(const std::string & new_base_link)
                             new_base_link.c_str());
         return false;
     }
-    
+
     /* Check that the task is not in reaching mode */
     if( _state != State::Online )
     {
@@ -256,17 +256,17 @@ bool CartesianTaskImpl::setBaseLink(const std::string & new_base_link)
                             _distal_link.c_str());
         return false;
     }
-    
+
     /* Update task */
     _base_link = new_base_link;
     _vel.setZero();
     _acc.setZero();
-    
+
     /* Reset reference */
     reset();
-    
+
     NOTIFY_OBSERVERS(BaseLink);
-    
+
     return true;
 }
 
@@ -283,14 +283,14 @@ bool CartesianTaskImpl::setPoseReference(const Eigen::Affine3d & base_T_ref)
                             _distal_link.c_str());
         return false;
     }
-    
+
     if(getActivationState() == ActivationState::Disabled)
     {
         XBot::Logger::error("Unable to set pose reference. Task '%s' is in DISABLED mode \n",
                             _distal_link.c_str());
         return false;
     }
-    
+
     if(_ctrl_mode == ControlType::Position)
     {
         _T = base_T_ref;
@@ -301,7 +301,7 @@ bool CartesianTaskImpl::setPoseReference(const Eigen::Affine3d & base_T_ref)
                         "Task '%s': not setting position reference\n",
                         getName().c_str());
     }
-    
+
     return true;
 }
 
@@ -309,7 +309,7 @@ bool CartesianTaskImpl::setPoseReferenceRaw(const Eigen::Affine3d & base_T_ref)
 {
     bool ret = setPoseReference(base_T_ref);
     reset_otg();
-    
+
     return ret;
 }
 
@@ -321,10 +321,10 @@ bool CartesianTaskImpl::setVelocityReference(const Eigen::Vector6d & base_vel_re
                             getName().c_str());
         return false;
     }
-    
+
     _vel = base_vel_ref;
     _vref_time_to_live = DEFAULT_TTL;
-    
+
     return true;
 }
 
@@ -336,20 +336,20 @@ bool CartesianTaskImpl::setPoseTarget(const Eigen::Affine3d & base_T_ref, double
                             getName().c_str());
         return false;
     }
-    
+
     if(_ctrl_mode != ControlType::Position)
     {
         XBot::Logger::error("Unable to set target pose. Task '%s' is in NOT in position mode \n",
                             getName().c_str());
         return false;
     }
-    
+
     _state = State::Reaching;
     _trajectory->clear();
     _trajectory->addWayPoint(getTime(), _T);
     _trajectory->addWayPoint(getTime() + time, base_T_ref);
     _trajectory->compute();
-    
+
     return true;
 }
 
@@ -361,23 +361,23 @@ bool CartesianTaskImpl::setWayPoints(const Trajectory::WayPointVector & way_poin
                             getName().c_str());
         return false;
     }
-    
+
     if(_ctrl_mode != ControlType::Position)
     {
         XBot::Logger::error("Unable to set target pose. Task '%s' is in NOT in position mode \n",
                             getName().c_str());
         return false;
     }
-    
+
     _state = State::Reaching;
     _trajectory->clear();
     _trajectory->addWayPoint(getTime(), _T);
-    
+
     for(const auto& wp : way_points)
     {
         _trajectory->addWayPoint(wp, getTime());
     }
-    
+
     _trajectory->compute();
     return true;
 }
@@ -402,7 +402,7 @@ void CartesianTaskImpl::update(double time, double period)
     TaskDescriptionImpl::update(time, period);
 
     _vref_time_to_live -= period;
-    
+
     if(_state == State::Reaching)
     {
         _T = _trajectory->evaluate(time, &_vel, &_acc);
@@ -421,19 +421,19 @@ void CartesianTaskImpl::update(double time, double period)
             _vref_time_to_live = -1.0;
         }
     }
-    
+
     apply_otg();
 }
 
 void CartesianTaskImpl::reset()
 {
     _T = get_current_pose();
-    
+
     _vel.setZero();
     _acc.setZero();
-    
+
     _state = State::Online;
-    
+
     reset_otg();
 }
 
@@ -479,9 +479,11 @@ ControlType CartesianTaskImpl::getControlMode() const
 bool CartesianTaskImpl::setControlMode(const ControlType & value)
 {
     _ctrl_mode = value;
-    
+
+    reset();
+
     NOTIFY_OBSERVERS(ControlMode);
-    
+
     return true;
 }
 
@@ -489,14 +491,14 @@ bool CartesianTaskImpl::check_reach() const
 {
     auto Totg = get_pose_ref_otg();
     auto Tref = _trajectory->getWayPoints().back().frame;
-    
+
     return Tref.isApprox(Totg, DEFAULT_REACH_THRESHOLD);
 }
 
 void CartesianTaskImpl::apply_otg()
 {
     if(!_otg) return;
-    
+
     /* Compute p + q 7d vector */
     Eigen::Quaterniond q_actual(_otg_des.tail<4>());
     Eigen::Quaterniond q_des(_T.linear());
@@ -505,34 +507,34 @@ void CartesianTaskImpl::apply_otg()
     {
         q_des_coeffs = -q_des_coeffs;
     }
-    
+
     _otg_des << _T.translation(), q_des_coeffs;
 
     /* Compute pdot + qdot 7d vector */
     EigenVector7d otg_vdes;
     otg_vdes.setZero();
-    otg_vdes.head<3>() = _vel.head<3>();
-    
+//    otg_vdes.head<3>() = _vel.head<3>();
+
     _otg->setReference(_otg_des, otg_vdes);
     _otg->update(_otg_ref, _otg_vref);
-    
+
     if(_otg_ref.tail<4>().norm() < 0.01)
     {
         Logger::warning("Experimental orientation otg: norm < 0.01 for task '%s': contact the developers! \n",
                         getName().c_str());
-        
+
     }
-    
+
 }
 
 void CartesianTaskImpl::reset_otg()
 {
     if(!_otg) return;
-    
+
     _otg_des << _T.translation(), Eigen::Quaterniond(_T.linear()).coeffs();
     _otg_ref = _otg_des;
-    
-    
+
+
     _otg->reset(_otg_des);
 }
 
@@ -542,23 +544,23 @@ Eigen::Affine3d CartesianTaskImpl::get_pose_ref_otg() const
     {
         return _T;
     }
-    
+
     Eigen::Affine3d Totg;
     Eigen::Quaterniond q(_otg_ref.tail<4>());
     q.normalize();
-    
+
     Totg.setIdentity();
-    
+
     Totg.translation() = _otg_ref.head<3>();
     Totg.linear() = q.toRotationMatrix();
-    
+
     return Totg;
 }
 
 Eigen::Affine3d CartesianTaskImpl::get_current_pose() const
 {
     Eigen::Affine3d ret;
-    
+
     if(_distal_link == "com")
     {
         Eigen::Vector3d com;
@@ -568,7 +570,7 @@ Eigen::Affine3d CartesianTaskImpl::get_current_pose() const
 
         return ret;
     }
-    
+
     if(_base_link == "world")
     {
         _model->getPose(_distal_link, ret);
@@ -577,7 +579,7 @@ Eigen::Affine3d CartesianTaskImpl::get_current_pose() const
     {
         _model->getPose(_distal_link, _base_link, ret);
     }
-    
+
     return ret;
 }
 
