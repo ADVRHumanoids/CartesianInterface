@@ -9,7 +9,13 @@
 #include <OpenSoT/solvers/iHQP.h>
 #include <OpenSoT/solvers/nHQP.h>
 #include <OpenSoT/solvers/l1HQP.h>
-#include <OpenSoT/solvers/GLPKBackEnd.h>
+
+#ifdef _GLPK_FOUND
+    #define GLPK_FOUND true
+    #include <OpenSoT/solvers/GLPKBackEnd.h>
+#else
+    #define GLPK_FOUND false
+#endif
 
 #include "utils/DynamicLoading.h"
 
@@ -73,8 +79,10 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
                                                            eps_regularisation,
                                                            be_solver);
 
+
         if(be_solver == OpenSoT::solvers::solver_back_ends::GLPK)
         {
+#if GLPK_FOUND
             OpenSoT::solvers::BackEnd::Ptr GLPK;
             l1hqp_solver->getBackEnd(GLPK);
 
@@ -89,6 +97,9 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
         }
 
         return std::move(l1hqp_solver);
+#else
+            throw std::runtime_error("Solver Back-End GLPK can not be requested because GLPK is not found!");
+#endif
 
     }
     else if(front_end_string == "nhqp")
