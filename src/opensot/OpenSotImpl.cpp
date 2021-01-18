@@ -86,13 +86,14 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
             OpenSoT::solvers::BackEnd::Ptr GLPK;
             l1hqp_solver->getBackEnd(GLPK);
 
+            if(options && options["MILP"])
+            {
+                OpenSoT::solvers::GLPKBackEnd::GLPKBackEndOptions opt;
+                for(unsigned int i = l1hqp_solver->getFirstSlackIndex(); i < GLPK->getNumVariables(); ++i)
+                    opt.var_id_kind_.push_back(std::pair<int, int>(i, GLP_IV));
 
-            OpenSoT::solvers::GLPKBackEnd::GLPKBackEndOptions opt;
-            for(unsigned int i = l1hqp_solver->getFirstSlackIndex(); i < GLPK->getNumVariables(); ++i)
-                opt.var_id_kind_.push_back(std::pair<int, int>(i, GLP_IV));
-
-
-            GLPK->setOptions(opt);
+                GLPK->setOptions(opt);
+            }
 
         }
 
