@@ -134,7 +134,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task
             _com_task_map[cart_desc->getName()] = com_desc;
         }
 
-        Logger::success(Logger::Severity::HIGH) <<  "Successfully added Cartesian task with\n" <<
+        Logger::success() <<  "Successfully added Cartesian task with\n" <<
                                                     "   BASE LINK:   " << XBot::bold_on << cart_desc->getBaseLink() << XBot::bold_off  << "\n" << XBot::color_yellow <<
                                                     "   DISTAL LINK: " << XBot::bold_on << cart_desc->getDistalLink() << XBot::bold_off << Logger::endl();
     }
@@ -142,14 +142,12 @@ void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task
     {
         _postural_task_map[task_desc->getName()] = postural_desc;
 
-        Logger::success(Logger::Severity::HIGH,
-                        "Successfully added postural task '%s'\n",
+        Logger::success("Successfully added postural task '%s'\n",
                         task_desc->getName().c_str());
     }
     else
     {
-        Logger::success(Logger::Severity::HIGH,
-                        "Successfully added task '%s' with type '%s'\n",
+        Logger::success("Successfully added task '%s' with type '%s'\n",
                         task_desc->getName().c_str(),
                         task_desc->getType().c_str());
     }

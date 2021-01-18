@@ -41,7 +41,6 @@ protected:
 private:
 
     CartesianTask::Ptr _ci_cart;
-    double _old_lambda;
 };
 
 

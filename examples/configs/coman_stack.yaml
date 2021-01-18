@@ -1,17 +1,13 @@
 solver_options:
-    regularization: 0.
-    back_end: "glpk"
-    front_end: "l1hqp"
+    regularization: 1e-3
+    back_end: "qpoases"
 
 stack:
-#     - ["LeftFoot"] 
-#     - ["RightFoot"]
-#     - ["LeftFoot", "RightFoot"]
-#     - ["Com"]
-#     - ["LeftArm", "RightArm"]
-     - ["Postural"]
+    - ["LeftFoot", "RightFoot", "ComXY"]
+    - ["LeftArm", "RightArm"]
+    - ["Postural"]
 
-constraints: ["JointLimits", "LeftFoot", "RightFoot"] #[, "VelocityLimits"]
+constraints: ["JointLimits", "VelocityLimits"]
 
 LeftFoot:
     type: "Cartesian"
@@ -28,30 +24,30 @@ LeftArm:
     name: "left_hand"
     distal_link: "LSoftHand"
     lambda: 0.1
-    #active: false
+    active: false
 
 RightArm:
     type: "Cartesian"
     name: "right_hand"
     distal_link: "RSoftHand"
     lambda: 0.1
-    
+
 Postural:
     type: "Postural"
-    lambda: 0.0
-#    weight:
-#        VIRTUALJOINT_1: 0.0
-#        VIRTUALJOINT_2: 0.0
-#        VIRTUALJOINT_3: 0.0
-#        VIRTUALJOINT_4: 0.0
-#        VIRTUALJOINT_5: 0.0
-#        VIRTUALJOINT_6: 0.0
+    lambda: 0.01
+    weight:
+        VIRTUALJOINT_1: 0.0
+        VIRTUALJOINT_2: 0.0
+        VIRTUALJOINT_3: 0.0
+        VIRTUALJOINT_4: 0.0
+        VIRTUALJOINT_5: 0.0
+        VIRTUALJOINT_6: 0.0
 
-Com:
+ComXY:
     type: "Com"
     lambda: 0.1
-#    indices: [0, 1]
-#    weight: 10
+    indices: [0, 1]
+    weight: 10
 
 JointLimits:
     type: "JointLimits"

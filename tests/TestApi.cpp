@@ -6,23 +6,23 @@
 using namespace XBot::Cartesian;
 
 namespace {
-    
+
 Eigen::Affine3d GetRandomFrame()
 {
     Eigen::Quaterniond q;
     q.coeffs().setRandom();
     q.normalize();
-    
+
     Eigen::Affine3d T;
     T.setIdentity();
     T.linear() = q.toRotationMatrix();
     T.translation().setRandom();
-    
+
     return T;
 }
 
 class TestApi: public ::testing::Test {
-    
+
 
 protected:
 
@@ -32,49 +32,49 @@ protected:
          std::cout << __PRETTY_FUNCTION__ << std::endl;
 
          XBot::Logger::SetVerbosityLevel(XBot::Logger::Severity::DEBUG);
-         
+
 #ifndef CARTESIO_TEST_CONFIG_PATH
          throw std::runtime_error("CARTESIO_TEST_CONFIG_PATH is not defined");
 #endif
-         
+
          std::string path_to_cfg(CARTESIO_TEST_CONFIG_PATH);
          std::cout << __func__ << " using path " << path_to_cfg << std::endl;
-         
+
          XBot::ConfigOptions opt;
          if(!opt.set_urdf_path(path_to_cfg + "centauro.urdf"))
          {
              throw std::runtime_error("unable to load urdf");
          }
-         
+
          if(!opt.set_srdf_path(path_to_cfg + "centauro.srdf"))
          {
              throw std::runtime_error("unable to load srdf");
          }
-         
+
          if(!opt.generate_jidmap())
          {
              throw std::runtime_error("unable to load jidmap");
          }
-         
+
          opt.set_parameter("is_model_floating_base", true);
          opt.set_parameter<std::string>("model_type", "RBDL");
-         
+
          auto model = XBot::ModelInterface::getModel(opt);
 
          Eigen::VectorXd qhome;
          model->getRobotState("home", qhome);
          model->setJointPosition(qhome);
-         
+
          YAML::Node ik_yaml = YAML::LoadFile(path_to_cfg + "centauro_test_stack.yaml");
 
          auto ctx = std::make_shared<Context>(
                      std::make_shared<Parameters>(.01),
                      model);
-         
+
          ProblemDescription ik_problem(ik_yaml, ctx);
-         
+
          ci = std::make_shared<CartesianInterfaceImpl>(ik_problem, ctx);
-         
+
      }
 
      virtual ~TestApi()
@@ -83,14 +83,14 @@ protected:
      }
 
      virtual void SetUp() {
-         
+
      }
 
      virtual void TearDown() {
      }
-     
+
      CartesianInterfaceImpl::Ptr ci;
-     
+
 };
 
 TEST_F(TestApi, checkParsing)
@@ -98,45 +98,45 @@ TEST_F(TestApi, checkParsing)
     auto list = ci->getTaskList();
 
     std::copy(list.begin(), list.end(), std::ostream_iterator<std::string>(std::cout, " "));
-    
+
     ASSERT_FALSE(std::find(list.begin(), list.end(), "wheel_1") == list.end());
-    
+
     ASSERT_FALSE(std::find(list.begin(), list.end(), "wheel_2") == list.end());
-    
+
     ASSERT_FALSE(std::find(list.begin(), list.end(), "wheel_3") == list.end());
-    
+
     ASSERT_FALSE(std::find(list.begin(), list.end(), "wheel_4") == list.end());
-    
+
     ASSERT_FALSE(std::find(list.begin(), list.end(), "arm1_8") == list.end());
-    
+
     ASSERT_FALSE(std::find(list.begin(), list.end(), "arm2_8") == list.end());
-    
+
     ASSERT_FALSE(std::find(list.begin(), list.end(), "com") == list.end());
 
     ASSERT_FALSE(std::find(list.begin(), list.end(), "Postural") == list.end());
-    
+
     ASSERT_TRUE( ci->getBaseLink("wheel_1") == "world" );
-    
+
     ASSERT_TRUE( ci->getBaseLink("wheel_2") == "world" );
-    
+
     ASSERT_TRUE( ci->getBaseLink("wheel_3") == "world" );
-    
+
     ASSERT_TRUE( ci->getBaseLink("wheel_4") == "world" );
-    
+
     ASSERT_TRUE( ci->getBaseLink("arm1_8") == "pelvis" );
-    
+
     ASSERT_TRUE( ci->getBaseLink("arm2_8") == "world" );
-    
+
     ASSERT_TRUE( ci->getBaseLink("com") == "world" );
-    
+
     EXPECT_THROW( ci->getBaseLink("undefined_link"), std::exception );
-    
+
     Eigen::VectorXd qref;
     ASSERT_TRUE(ci->getReferencePosture(qref));
     Eigen::VectorXd qhome;
     ci->getModel()->getRobotState("home", qhome);
     ASSERT_TRUE( (qref - qhome).norm() == 0.0 );
-    
+
 };
 
 
@@ -148,17 +148,17 @@ TEST_F(TestApi, checkTaskProperties)
     ASSERT_TRUE(ci->getBaseLink("arm2_8") == "pelvis");
     ASSERT_TRUE(ci->setBaseLink("arm2_8", "world"));
     ASSERT_TRUE(ci->getBaseLink("arm2_8") == "world");
-    
+
     for(auto task : ci->getTaskList())
     {
         ASSERT_EQ(ci->getTaskState(task), State::Online);
     }
-    
+
     for(auto task : ci->getTaskList())
     {
         ASSERT_EQ(ci->getActivationState(task), ActivationState::Enabled);
     }
-    
+
     for(auto task : ci->getTaskList())
     {
         ASSERT_TRUE(ci->setActivationState(task, ActivationState::Disabled));
@@ -175,15 +175,15 @@ TEST_F(TestApi, checkTaskProperties)
         }
 
     }
-    
-    
+
+
 }
 
 
 TEST_F(TestApi, checkReferences)
 {
     std::string ee = "arm1_8";
-    
+
     {
         auto T = GetRandomFrame();
         Eigen::Vector6d vel, acc;
@@ -196,7 +196,7 @@ TEST_F(TestApi, checkReferences)
         EXPECT_TRUE( T.isApprox(T1) );
         EXPECT_TRUE( vel.isApprox(vel1) );
     }
-    
+
     {
         auto T = GetRandomFrame();
         Eigen::Vector6d vel, acc;
@@ -207,7 +207,7 @@ TEST_F(TestApi, checkReferences)
         ASSERT_TRUE(ci->getPoseReferenceRaw(ee, T1, &vel1, &acc1));
         EXPECT_TRUE( T.isApprox(T1) );
     }
-    
+
     Eigen::Vector3d pcom, vcom, acom;
     pcom.setRandom();
     vcom.setRandom();
@@ -218,7 +218,7 @@ TEST_F(TestApi, checkReferences)
     ASSERT_TRUE(ci->getComPositionReference(pcom1, &vcom1, &acom1));
     EXPECT_TRUE( pcom.isApprox(pcom1) );
     EXPECT_TRUE( vcom.isApprox(vcom1) );
-    
+
     XBot::JointNameMap posture_ref;
     int i = 0;
     for(auto j : ci->getModel()->getEnabledJointNames())
@@ -232,8 +232,8 @@ TEST_F(TestApi, checkReferences)
     XBot::JointNameMap posture_ref1;
     ASSERT_TRUE(ci->getReferencePosture(posture_ref1));
     ASSERT_TRUE(posture_ref == posture_ref1);
-    
-    
+
+
 }
 
 
@@ -246,12 +246,12 @@ TEST_F(TestApi, checkTrajectories)
     Eigen::Affine3d T2;
     ci->getPoseTarget(ee, T2);
     ASSERT_TRUE( T.isApprox(T2) );
-    
+
     const double dt = 0.01;
     for(double t = 0; t < 2.5; t += dt)
     {
         ASSERT_TRUE(ci->update(t, dt));
-        
+
         if(t < 2.0)
         {
             ASSERT_EQ(ci->getTaskState(ee), State::Reaching);
@@ -264,17 +264,17 @@ TEST_F(TestApi, checkTrajectories)
             EXPECT_TRUE( T.isApprox(T1) );
         }
     }
-    
-    
+
+
     T = GetRandomFrame();
     ASSERT_TRUE(ci->setTargetPose(ee, T, 3.0));
     ci->getPoseTarget(ee, T2);
     ASSERT_TRUE( T.isApprox(T2) );
-    
+
     for(double t = 2.5; t < 12.0; t += dt)
     {
         ASSERT_TRUE(ci->update(t, dt));
-        
+
         if(t < (2.5 + 3.0))
         {
             EXPECT_EQ(ci->getTaskState(ee), State::Reaching);
@@ -287,7 +287,7 @@ TEST_F(TestApi, checkTrajectories)
             EXPECT_TRUE( T.isApprox(T1) );
         }
     }
-    
+
 }
 
 
@@ -300,18 +300,18 @@ TEST_F(TestApi, checkWaypoints)
     wpvec.emplace_back(GetRandomFrame(), 1.5);
     wpvec.emplace_back(GetRandomFrame(), 3.0);
     wpvec.emplace_back(GetRandomFrame(), 4.0);
-    
+
     ci->setWayPoints(ee, wpvec);
-    
+
     Eigen::Affine3d T2;
     ci->getPoseTarget(ee, T2);
     ASSERT_TRUE( wpvec.back().frame.isApprox(T2) );
-    
+
     const double dt = 0.01;
     for(double t = 0; t < 5.5; t += dt)
     {
         ASSERT_TRUE(ci->update(t, dt));
-        
+
         if(t < 4.0)
         {
             ASSERT_EQ(ci->getTaskState(ee), State::Reaching);
@@ -324,23 +324,23 @@ TEST_F(TestApi, checkWaypoints)
             EXPECT_TRUE( T1.isApprox(wpvec.back().frame) );
         }
     }
-    
-    
-    
+
+
+
     Trajectory::WayPointVector wpvec1;
     wpvec1.emplace_back(GetRandomFrame(), 1.0);
     wpvec1.emplace_back(GetRandomFrame(), 1.5);
     wpvec1.emplace_back(GetRandomFrame(), 3.0);
     wpvec1.emplace_back(GetRandomFrame(), 4.0);
-    
+
     ci->setWayPoints(ee, wpvec1);
     ci->getPoseTarget(ee, T2);
     ASSERT_TRUE( wpvec1.back().frame.isApprox(T2) );
-    
+
     for(double t = 5.5; t < 12.0; t += dt)
     {
         ASSERT_TRUE(ci->update(t, dt));
-        
+
         if(t < 9.5)
         {
             ASSERT_EQ(ci->getTaskState(ee), State::Reaching);

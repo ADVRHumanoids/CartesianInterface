@@ -4,8 +4,7 @@ using namespace XBot::Cartesian;
 
 OpenSotCartesianAdapter::OpenSotCartesianAdapter(TaskDescription::Ptr task,
                                                  Context::ConstPtr context):
-    OpenSotTaskAdapter(task, context),
-    _old_lambda(0.0)
+    OpenSotTaskAdapter(task, context)
 {
     _ci_cart = std::dynamic_pointer_cast<CartesianTask>(task);
 
@@ -40,12 +39,9 @@ bool OpenSotCartesianAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 
 
     /* Cartesian task specific parameters */
-
-    _old_lambda = _opensot_cart->getLambda();
     _opensot_cart->setIsBodyJacobian(_ci_cart->isSubtaskLocal());
 
     /* Register observer */
-
     auto this_shared_ptr = std::dynamic_pointer_cast<OpenSotCartesianAdapter>(shared_from_this());
     _ci_cart->registerObserver(this_shared_ptr);
 
@@ -54,7 +50,16 @@ bool OpenSotCartesianAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 
 void OpenSotCartesianAdapter::update(double time, double period)
 {
+    // note: this will update lambda
     OpenSotTaskAdapter::update(time, period);
+
+    // we implement velocity control by forcing lambda = 0.0
+    auto ctrl = _ci_cart->getControlMode();
+
+    if(ctrl == ControlType::Velocity)
+    {
+        _opensot_cart->setLambda(0.0);
+    }
 
     /* Update reference */
     Eigen::Affine3d Tref;
@@ -70,17 +75,5 @@ bool OpenSotCartesianAdapter::onBaseLinkChanged()
 
 bool OpenSotCartesianAdapter::onControlModeChanged()
 {
-    auto ctrl = _ci_cart->getControlMode();
-
-    if(ctrl == ControlType::Position)
-    {
-        _opensot_cart->setLambda(_old_lambda);
-    }
-    else if(ctrl == ControlType::Velocity)
-    {
-        _old_lambda = _opensot_cart->getLambda();
-        _opensot_cart->setLambda(0.0);
-    }
-
     return true;
 }
