@@ -97,11 +97,11 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
 
         }
 
-        return std::move(l1hqp_solver);
 #else
             throw std::runtime_error("Solver Back-End GLPK can not be requested because GLPK is not found!");
+        }
 #endif
-
+        return std::move(l1hqp_solver);
     }
     else if(front_end_string == "nhqp")
     {
