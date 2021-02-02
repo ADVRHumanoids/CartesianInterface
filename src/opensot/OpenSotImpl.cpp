@@ -8,6 +8,14 @@
 #include <OpenSoT/solvers/eHQP.h>
 #include <OpenSoT/solvers/iHQP.h>
 #include <OpenSoT/solvers/nHQP.h>
+#include <OpenSoT/solvers/l1HQP.h>
+
+#ifdef _GLPK_FOUND
+    #define GLPK_FOUND true
+    #include <OpenSoT/solvers/GLPKBackEnd.h>
+#else
+    #define GLPK_FOUND false
+#endif
 
 #include "utils/DynamicLoading.h"
 
@@ -39,6 +47,10 @@ OpenSoT::solvers::solver_back_ends backend_from_string(std::string back_end_stri
     {
         return OpenSoT::solvers::solver_back_ends::ODYS;
     }
+    else if(back_end_string == "glpk")
+    {
+        return OpenSoT::solvers::solver_back_ends::GLPK;
+    }
     else
     {
         throw std::runtime_error("Invalid back end '" + back_end_string + "'");
@@ -60,6 +72,36 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
     else if(front_end_string == "ehqp")
     {
         return boost::make_shared<OpenSoT::solvers::eHQP>(as.getStack());
+    }
+    else if(front_end_string == "l1hqp")
+    {
+        OpenSoT::solvers::l1HQP::Ptr l1hqp_solver =  boost::make_shared<OpenSoT::solvers::l1HQP>(as,
+                                                           eps_regularisation,
+                                                           be_solver);
+
+
+        if(be_solver == OpenSoT::solvers::solver_back_ends::GLPK)
+        {
+#if GLPK_FOUND
+            OpenSoT::solvers::BackEnd::Ptr GLPK;
+            l1hqp_solver->getBackEnd(GLPK);
+
+            if(options && options["MILP"])
+            {
+                OpenSoT::solvers::GLPKBackEnd::GLPKBackEndOptions opt;
+                for(unsigned int i = l1hqp_solver->getFirstSlackIndex(); i < GLPK->getNumVariables(); ++i)
+                    opt.var_id_kind_.push_back(std::pair<int, int>(i, GLP_IV));
+
+                GLPK->setOptions(opt);
+            }
+
+        }
+
+#else
+            throw std::runtime_error("Solver Back-End GLPK can not be requested because GLPK is not found!");
+        }
+#endif
+        return std::move(l1hqp_solver);
     }
     else if(front_end_string == "nhqp")
     {
@@ -150,12 +192,19 @@ void OpenSotImpl::make_constraint_adapter(ConstraintDescription::Ptr constr_desc
 OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
                          Context::Ptr context):
     CartesianInterfaceImpl(ik_problem, context),
-    _logger(XBot::MatLogger::getLogger(
-        context->params()->getLogPath() +
-        "/xbot_cartesian_opensot_log_" + std::to_string(rand()))),
     _vars({}),
     _force_space_references(false)
 {
+    if(this->getContext()->params()->isLogEnabled())
+    {
+        /* Create logger */
+        MatLogger2::Options logger_opt;
+        logger_opt.default_buffer_size = 1e5;
+        _logger = MatLogger2::MakeLogger(context->params()->getLogPath() + "/cartesio_opensot_log_" + std::to_string(rand()),
+                                         logger_opt);
+        _logger->set_buffer_mode(VariableBuffer::Mode::circular_buffer);
+    }
+
     _model->getJointPosition(_q);
     _dq.setZero(_q.size());
     _ddq = _dq;
@@ -352,7 +401,11 @@ bool OpenSotImpl::update(double time, double period)
 
     /* Update tasks and solve */
     _autostack->update(_x);
-    _autostack->log(_logger);
+
+    if(_logger)
+    {
+        _autostack->log(_logger);
+    }
 
     if(!_solver->solve(_x))
     {
@@ -361,7 +414,10 @@ bool OpenSotImpl::update(double time, double period)
         success = false;
     }
 
-    _solver->log(_logger);
+    if(_logger)
+    {
+        _solver->log(_logger);
+    }
 
     _solution.at("full_solution") = _x;
 
@@ -413,7 +469,10 @@ bool OpenSotImpl::update(double time, double period)
 
         _tau.noalias() -= _J.transpose() * f_value;
 
-        _logger->add(p.first, f_value);
+        if(_logger)
+        {
+            _logger->add(p.first, f_value);
+        }
 
         _solution.at(p.first) = f_value;
 
@@ -421,10 +480,13 @@ bool OpenSotImpl::update(double time, double period)
 
     _model->setJointEffort(_tau);
 
-    _logger->add("q", _q);
-    _logger->add("dq", _dq);
-    _logger->add("ddq", _ddq);
-    _logger->add("tau", _tau);
+    if(_logger)
+    {
+        _logger->add("q", _q);
+        _logger->add("dq", _dq);
+        _logger->add("ddq", _ddq);
+        _logger->add("tau", _tau);
+    }
 
     return success;
 
@@ -433,7 +495,7 @@ bool OpenSotImpl::update(double time, double period)
 
 OpenSotImpl::~OpenSotImpl()
 {
-    _logger->flush();
+
 }
 
 

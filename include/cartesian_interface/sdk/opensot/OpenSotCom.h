@@ -40,7 +40,6 @@ private:
 
     ComSoT::Ptr _opensot_com;
     CartesianTask::Ptr _ci_com;
-    double _old_lambda;
 };
 
 } }

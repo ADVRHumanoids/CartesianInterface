@@ -57,7 +57,7 @@ TEST_F(TestRos, checkClient)
     EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "wheel_4") == tlist.end());
     EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "JointLimits") == tlist.end());
     EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "VelocityLimits") == tlist.end());
-    EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "Com") == tlist.end());
+    EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "com") == tlist.end());
     EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "ComXY") == tlist.end());
     EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "ComZ") == tlist.end());
     EXPECT_FALSE(std::find(tlist.begin(), tlist.end(), "Postural") == tlist.end());

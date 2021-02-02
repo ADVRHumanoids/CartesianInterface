@@ -1,6 +1,6 @@
 solver_options:
     regularization: 1e-3
-    back_end: "osqp"
+    back_end: "qpoases"
 
 stack:
     - ["Wheel_FR", "Wheel_HR", "Wheel_HL", "Wheel_FL"]
@@ -40,7 +40,7 @@ RightArm:
     type: "Cartesian"
     distal_link: "arm2_8"
     lambda: 0.1
-    
+
 Postural:
     type: "Postural"
     lambda: 0.01

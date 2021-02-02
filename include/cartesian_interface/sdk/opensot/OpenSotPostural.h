@@ -38,7 +38,7 @@ private:
 
     bool _use_inertia_matrix;
     Eigen::MatrixXd _inertia_matrix;
-    Eigen::VectorXd _qref;
+    Eigen::VectorXd _qref, _qdotref;
 };
 
 } }

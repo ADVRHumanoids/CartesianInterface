@@ -6,9 +6,20 @@ using namespace XBot::Cartesian;
 Parameters::Parameters(double dt,
                        std::string log_path):
     _dt(dt),
-    _log_path(log_path)
+    _log_path(log_path),
+    _enable_log(true)
 {
 
+}
+
+bool Parameters::isLogEnabled() const
+{
+    return _enable_log;
+}
+
+void Parameters::setLogEnabled(bool flag)
+{
+    _enable_log = flag;
 }
 
 double Parameters::getControlPeriod() const
@@ -30,6 +41,12 @@ Context::Context(Parameters::Ptr params,
     {
         throw std::invalid_argument("Model is nullptr");
     }
+}
+
+Context::Context(Parameters::Ptr params):
+    _params(params)
+{
+
 }
 
 Parameters::Ptr Context::params()

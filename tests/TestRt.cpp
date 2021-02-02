@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <gtest/gtest.h>
 
-#include "utils/LockfreeBufferImpl.h"
+#include "rt/LockfreeBufferImpl.h"
 #include "utils/DynamicLoading.h"
 
 #include "testutils.h"

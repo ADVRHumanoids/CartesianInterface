@@ -33,10 +33,6 @@ bool OpenSotComAdapter::initialize(const OpenSoT::OptvarHelper& vars)
     bool ret = OpenSotTaskAdapter::initialize(vars);
     if(!ret) return false;
 
-
-    /* Com task specific parameters */
-    _old_lambda = _opensot_com->getLambda();
-
     /* Register observer */
     auto this_shared_ptr = std::dynamic_pointer_cast<OpenSotComAdapter>(shared_from_this());
     _ci_com->registerObserver(this_shared_ptr);
@@ -46,7 +42,16 @@ bool OpenSotComAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 
 void OpenSotComAdapter::update(double time, double period)
 {
+    // note: this will update lambda
     OpenSotTaskAdapter::update(time, period);
+
+    // we implement velocity control by forcing lambda = 0.0
+    auto ctrl = _ci_com->getControlMode();
+
+    if(ctrl == ControlType::Velocity)
+    {
+        _opensot_com->setLambda(0.0);
+    }
 
     /* Update reference */
     Eigen::Affine3d Tref;
@@ -62,17 +67,5 @@ bool OpenSotComAdapter::onBaseLinkChanged()
 
 bool OpenSotComAdapter::onControlModeChanged()
 {
-    auto ctrl = _ci_com->getControlMode();
-
-    if(ctrl == ControlType::Position)
-    {
-        _opensot_com->setLambda(_old_lambda);
-    }
-    else if(ctrl == ControlType::Velocity)
-    {
-        _old_lambda = _opensot_com->getLambda();
-        _opensot_com->setLambda(0.0);
-    }
-
     return true;
 }

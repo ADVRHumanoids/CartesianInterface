@@ -23,10 +23,14 @@ public:
     double getControlPeriod() const;
     std::string getLogPath() const;
 
+    bool isLogEnabled() const;
+    void setLogEnabled(bool flag);
+
 private:
 
     double _dt;
     std::string _log_path;
+    bool _enable_log;
 
 };
 
@@ -39,6 +43,8 @@ public:
 
     Context(Parameters::Ptr params,
             ModelInterface::Ptr model);
+
+    Context(Parameters::Ptr params);
 
     Parameters::Ptr params();
     Parameters::ConstPtr params() const;

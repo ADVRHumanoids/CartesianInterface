@@ -222,7 +222,10 @@ private:
 
     void add_task(TaskDescription::Ptr task);
     void log_tasks();
+    void log_model();
     void init_log_tasks();
+
+    void init(ProblemDescription ik_problem);
     
     Context::Ptr _ctx;
    

@@ -38,7 +38,13 @@ namespace XBot { namespace Cartesian {
 
         void getReferencePosture(JointNameMap& qref) const override;
 
+        void getReferenceVelocity(Eigen::VectorXd& qdotref) const override;
+
         void setReferencePosture(const JointNameMap& qref) override;
+
+        void setReferenceVelocity(const JointNameMap& qdotref) override;
+
+        void setReferenceVelocity(const Eigen::VectorXd& qdotref) override;
         
         void update(double time, double period) override;
 
@@ -50,7 +56,7 @@ namespace XBot { namespace Cartesian {
 
     private:
 
-        Eigen::VectorXd _qref;
+        Eigen::VectorXd _qref, _qdotref;
         bool _use_inertia_matrix;
 
     };

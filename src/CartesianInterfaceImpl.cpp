@@ -17,15 +17,19 @@ namespace {
 const double DEFAULT_TTL = 0.1;
 }
 
-CartesianInterfaceImpl::CartesianInterfaceImpl(ProblemDescription ik_problem):
-    _ik_problem(ik_problem),
-    _solver_options(ik_problem.getSolverOptions())
+void CartesianInterfaceImpl::init(ProblemDescription ik_problem)
 {
-    /* Create logger */
-    MatLogger2::Options logger_opt;
-    logger_opt.default_buffer_size = 1e5;
-    _logger = MatLogger2::MakeLogger("/tmp/cartesio_logger", logger_opt);
-    _logger->set_buffer_mode(VariableBuffer::Mode::circular_buffer);
+    _ik_problem = ik_problem;
+    _solver_options = ik_problem.getSolverOptions();
+
+    if(_ctx->params()->isLogEnabled())
+    {
+        /* Create logger */
+        MatLogger2::Options logger_opt;
+        logger_opt.default_buffer_size = 1e5;
+        _logger = MatLogger2::MakeLogger("/tmp/cartesio_logger", logger_opt);
+        _logger->set_buffer_mode(VariableBuffer::Mode::circular_buffer);
+    }
 
     /* Validate ik problem */
     if(!ik_problem.validate())
@@ -73,17 +77,27 @@ CartesianInterfaceImpl::CartesianInterfaceImpl(ProblemDescription ik_problem):
 
     reset(0.0);
 
-    init_log_tasks();
+    if(_logger)
+    {
+        init_log_tasks();
+    }
+}
+
+CartesianInterfaceImpl::CartesianInterfaceImpl(ProblemDescription ik_problem)
+{
+    auto params = std::make_shared<Parameters>(1.);
+    _ctx = std::make_shared<Context>(params);
+    init(ik_problem);
 }
 
 
 CartesianInterfaceImpl::CartesianInterfaceImpl(ProblemDescription ik_problem,
-                                               Context::Ptr context):
-    CartesianInterfaceImpl(ik_problem)
+                                               Context::Ptr context)
 {
-    _ctx = context;
+   _ctx = context;
    _model = context->model();
    _current_time = 0.0;
+   init(ik_problem);
 }
 
 CartesianInterfaceImpl::Ptr CartesianInterfaceImpl::MakeInstance(std::string solver_name,
@@ -136,7 +150,7 @@ void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task
             _com_task_map[cart_desc->getName()] = com_desc;
         }
 
-        Logger::success(Logger::Severity::HIGH) <<  "Successfully added Cartesian task with\n" <<
+        Logger::success() <<  "Successfully added Cartesian task with\n" <<
                                                     "   BASE LINK:   " << XBot::bold_on << cart_desc->getBaseLink() << XBot::bold_off  << "\n" << XBot::color_yellow <<
                                                     "   DISTAL LINK: " << XBot::bold_on << cart_desc->getDistalLink() << XBot::bold_off << Logger::endl();
     }
@@ -144,14 +158,12 @@ void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task
     {
         _postural_task_map[task_desc->getName()] = postural_desc;
 
-        Logger::success(Logger::Severity::HIGH,
-                        "Successfully added postural task '%s'\n",
+        Logger::success("Successfully added postural task '%s'\n",
                         task_desc->getName().c_str());
     }
     else
     {
-        Logger::success(Logger::Severity::HIGH,
-                        "Successfully added task '%s' with type '%s'\n",
+        Logger::success("Successfully added task '%s' with type '%s'\n",
                         task_desc->getName().c_str(),
                         task_desc->getType().c_str());
     }
@@ -443,7 +455,11 @@ bool CartesianInterfaceImpl::update(double time, double period)
         task.update(time, period);
     }
     
-    log_tasks();
+    if(_logger)
+    {
+        log_tasks();
+        log_model();
+    }
     
     return true;
     
@@ -461,6 +477,16 @@ void CartesianInterfaceImpl::log_tasks()
     _logger->add("ci_time", _current_time);
 }
 
+void CartesianInterfaceImpl::log_model()
+{
+    if(_model->isFloatingBase())
+    {
+        Eigen::Vector6d centroidal_momentum; ///TODO: put it in header!
+        _model->getCentroidalMomentum(centroidal_momentum);
+        _logger->add("ci_centroidal_momentum", centroidal_momentum);
+    }
+}
+
 void XBot::Cartesian::CartesianInterfaceImpl::init_log_tasks()
 {
     const int BUF_SIZE = 2e5;
@@ -473,6 +499,8 @@ void XBot::Cartesian::CartesianInterfaceImpl::init_log_tasks()
     }
     
     _logger->create("ci_time", 1, 1, BUF_SIZE);
+
+    _logger->create("ci_centroidal_momentum", 6, 1, BUF_SIZE);
 }
 
 bool CartesianInterfaceImpl::setComPositionReference(const Eigen::Vector3d& w_com_ref)

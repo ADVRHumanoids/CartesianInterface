@@ -1,6 +1,6 @@
 solver_options:
     regularization: 1e-3
-    back_end: "osqp"
+    back_end: "qpoases"
 
 stack:
     - ["LeftFoot", "RightFoot", "ComXY"]
@@ -24,13 +24,14 @@ LeftArm:
     name: "left_hand"
     distal_link: "LSoftHand"
     lambda: 0.1
+    active: false
 
 RightArm:
     type: "Cartesian"
     name: "right_hand"
     distal_link: "RSoftHand"
     lambda: 0.1
-    
+
 Postural:
     type: "Postural"
     lambda: 0.01
