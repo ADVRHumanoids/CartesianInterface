@@ -42,13 +42,16 @@ PosturalTaskImpl::PosturalTaskImpl(YAML::Node task_node,
     
     if(task_node["indices"])
     {
-        throw std::runtime_error("Specifying indices is not allowed for postural tasks. Use disabled_joints instead.");
+        throw std::runtime_error("specifying indices is not allowed for postural tasks: "
+                                 "use disabled_joints instead");
     }
 
     if(task_node["use_inertia"] && task_node["use_inertia"].as<bool>())
     {
         _use_inertia_matrix = true;
     }
+
+    setDisabledJoints(getDisabledJoints());
 
     reset();
 }
@@ -70,10 +73,7 @@ void PosturalTaskImpl::getReferencePosture(XBot::JointNameMap & qref) const
 
 void PosturalTaskImpl::getReferenceVelocity(Eigen::VectorXd& qdotref) const
 {
-    if(qdotref.size() == _qdotref.size())
-    {
-        qdotref = _qdotref;
-    }
+    qdotref = _qdotref;
 }
 
 void PosturalTaskImpl::setReferencePosture(const XBot::JointNameMap & qref)
@@ -89,7 +89,13 @@ void PosturalTaskImpl::setReferenceVelocity(const XBot::JointNameMap& qdotref)
 void PosturalTaskImpl::setReferenceVelocity(const Eigen::VectorXd& qdotref)
 {
     if(qdotref.size() == _qdotref.size())
+    {
         _qdotref = qdotref;
+        return;
+    }
+
+    Logger::error("[PosturalTaskImpl] qdotref.size() = %d != _qdotref.size() = %d \n",
+                  qdotref.size(), _qdotref.size());
 }
 
 void PosturalTaskImpl::update(double time, double period)
@@ -105,16 +111,33 @@ void PosturalTaskImpl::reset()
 
 
 
-void PosturalTaskImpl::setIndices(const std::vector<int>& value)
+void PosturalTaskImpl::setIndices(const std::vector<int>&)
 {
-    TaskDescriptionImpl::setIndices(value);
-
-    // TBD act on disabled joints
+    throw std::runtime_error("specifying indices is not allowed for postural tasks: "
+                             "use disabled_joints instead");
 }
 
 void PosturalTaskImpl::setDisabledJoints(const std::vector<std::string>& value)
 {
     TaskDescriptionImpl::setDisabledJoints(value);
 
-    // TBD act on indices
+    std::vector<int> indices;
+    for(int i = 0; i < getSize(); i++)
+    {
+        indices.push_back(i);
+    }
+
+    auto to_be_removed = [this, value](auto i)
+    {
+        return std::find(value.begin(), value.end(),
+                  _model->getEnabledJointNames().at(i)) != value.end();
+    };
+
+    auto first_invalid = std::remove_if(indices.begin(),
+                                        indices.end(),
+                                        to_be_removed);
+
+    indices.erase(first_invalid, indices.end());
+
+    TaskDescriptionImpl::setIndices(indices);
 }
