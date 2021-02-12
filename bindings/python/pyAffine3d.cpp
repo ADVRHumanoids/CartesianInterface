@@ -17,7 +17,7 @@ Eigen::Ref<Eigen::Matrix3d> get_lin_ref(Eigen::Affine3d& T)
     return T.linear();
 }
 
-Eigen::Vector3d get_t(const Eigen::Affine3d& T)
+Eigen::Ref<Eigen::Vector3d> get_t(Eigen::Affine3d& T)
 {
     return T.translation();
 }
@@ -37,7 +37,7 @@ void set_q(Eigen::Affine3d& T, const Eigen::Vector4d& q)
     T.linear() = Eigen::Quaterniond(q).normalized().toRotationMatrix();
 }
 
-Eigen::Matrix3d get_lin(const Eigen::Affine3d& T)
+Eigen::Ref<Eigen::Matrix3d> get_lin(Eigen::Affine3d& T)
 {
     return T.linear();
 }
