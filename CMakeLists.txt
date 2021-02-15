@@ -274,13 +274,13 @@ install(TARGETS force_estimation_node force_estimation_node
 )
 
 # TorqueFeedforward executable
-add_executable(torque_feedforward_node src/ros/TorqueFeedforward.cpp)
-target_link_libraries(torque_feedforward_node CartesianInterface)
-install(TARGETS torque_feedforward_node torque_feedforward_node
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#add_executable(torque_feedforward_node src/ros/TorqueFeedforward.cpp)
+#target_link_libraries(torque_feedforward_node CartesianInterface)
+#install(TARGETS torque_feedforward_node torque_feedforward_node
+#    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
 # Robot state publisher executable
 add_executable(robot_state_publisher src/utils/RobotStatePublisherNode.cpp)

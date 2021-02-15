@@ -652,8 +652,8 @@ visualization_msgs::Marker CartesianMarker::makeSphere( visualization_msgs::Inte
 
 visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::InteractiveMarker &msg )
 {
-    boost::shared_ptr<const urdf::Link> link = _urdf.getLink(_distal_link);
-    boost::shared_ptr<const urdf::Link> controlled_link = link;
+    auto link = _urdf.getLink(_distal_link);
+    auto controlled_link = link;
 
     KDL::Frame T; T.Identity();
     while(!link->visual)
@@ -680,8 +680,8 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
     {
         _marker.type = visualization_msgs::Marker::MESH_RESOURCE;
 
-        boost::shared_ptr<urdf::Mesh> mesh =
-                boost::static_pointer_cast<urdf::Mesh>(link->visual->geometry);
+        auto mesh =
+                std::static_pointer_cast<urdf::Mesh>(link->visual->geometry);
 
         _marker.mesh_resource = mesh->filename;
         _marker.scale.x = mesh->scale.x;
@@ -692,8 +692,8 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
     {
         _marker.type = visualization_msgs::Marker::CUBE;
 
-        boost::shared_ptr<urdf::Box> mesh =
-                boost::static_pointer_cast<urdf::Box>(link->visual->geometry);
+        auto mesh =
+                std::static_pointer_cast<urdf::Box>(link->visual->geometry);
 
         KDL::Frame T_marker;
         URDFPoseToKDLFrame(link->visual->origin, T_marker);
@@ -707,8 +707,8 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
     {
         _marker.type = visualization_msgs::Marker::CYLINDER;
 
-        boost::shared_ptr<urdf::Cylinder> mesh =
-                boost::static_pointer_cast<urdf::Cylinder>(link->visual->geometry);
+        auto mesh =
+                std::static_pointer_cast<urdf::Cylinder>(link->visual->geometry);
 
         KDL::Frame T_marker;
         URDFPoseToKDLFrame(link->visual->origin, T_marker);
@@ -720,8 +720,8 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
     {
         _marker.type = visualization_msgs::Marker::SPHERE;
 
-        boost::shared_ptr<urdf::Sphere> mesh =
-                boost::static_pointer_cast<urdf::Sphere>(link->visual->geometry);
+        auto mesh =
+                std::static_pointer_cast<urdf::Sphere>(link->visual->geometry);
 
         KDL::Frame T_marker;
         URDFPoseToKDLFrame(link->visual->origin, T_marker);

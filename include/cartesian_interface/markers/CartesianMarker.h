@@ -13,15 +13,6 @@
 #include <cartesian_interface/ReachPoseAction.h>
 #include <actionlib/client/simple_action_client.h>
 
-namespace urdf {
-    typedef  boost::shared_ptr<Link> LinkSharedPtr;
-    typedef  boost::shared_ptr<const Link> LinkConstSharedPtr;
-    typedef  boost::shared_ptr<Joint> JointSharedPtr;
-    typedef  boost::shared_ptr<const Joint> JointConstSharedPtr;
-    typedef  boost::shared_ptr<Material> MaterialSharedPtr;
-    typedef  boost::shared_ptr<const Material> MaterialConstSharedPtr;
-}
-
 
 namespace XBot { namespace Cartesian {
 

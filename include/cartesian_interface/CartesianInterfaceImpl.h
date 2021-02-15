@@ -26,7 +26,7 @@
 #include <cartesian_interface/problem/ProblemDescription.h>
 #include <cartesian_interface/problem/Cartesian.h>
 #include <XBotInterface/SoLib.h>
-#include <ReflexxesTypeII/Wrappers/TrajectoryGenerator.h>
+#include <Wrappers/TrajectoryGenerator.h>
 
 namespace XBot { namespace Cartesian {
 
