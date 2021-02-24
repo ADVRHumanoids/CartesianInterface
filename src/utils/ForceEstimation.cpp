@@ -119,6 +119,12 @@ void ForceEstimation::compute_residual(Eigen::VectorXd& res)
     _model->getJointEffort(_tau);
     _model->computeGravityCompensation(_g);
 
+    /* Skip fb efforts when checking for spikes */
+    if(_model->isFloatingBase())
+    {
+        _tau.head<6>().setZero();
+    }
+
     /* Check for torque spikes */
     const double MAX_ALLOWED_TORQUE = 300.0;
     if((_tau.array().abs() < MAX_ALLOWED_TORQUE).all())
