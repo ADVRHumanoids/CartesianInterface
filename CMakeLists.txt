@@ -131,7 +131,7 @@ set(CartesianInterfaceSOTacc_SRC
 set(CartesianInterfaceROS_SRC
         src/ros/RosImpl.cpp
         src/ros/RosServerClass.cpp
-        src/ros/CartesianMarker.cpp
+        #src/ros/CartesianMarker.cpp
         src/ros/JoyStick.cpp
         src/ros/CartesianAnalyzer.cpp
         src/ros/RosExecutor.cpp
@@ -225,15 +225,6 @@ install(TARGETS ros_server_node ros_server_node
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-# Marker spawner executable
-add_executable(marker_spawner src/ros/MarkerSpawner.cpp)
-target_link_libraries(marker_spawner CartesianInterface)
-install(TARGETS marker_spawner marker_spawner
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
 # JoyStick spawner executable
 add_executable(joystick_spawner src/ros/JoyStickSpawner.cpp)
 target_link_libraries(joystick_spawner CartesianInterface)
@@ -262,14 +253,6 @@ install(TARGETS force_estimation_node force_estimation_node
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-# TorqueFeedforward executable
-add_executable(torque_feedforward_node src/ros/TorqueFeedforward.cpp)
-target_link_libraries(torque_feedforward_node CartesianInterface)
-install(TARGETS torque_feedforward_node torque_feedforward_node
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
 
 # WorldConnecter executable
 add_executable(world_connecter src/ros/WorldConnecter.cpp)

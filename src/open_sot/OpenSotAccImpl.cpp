@@ -782,8 +782,6 @@ bool OpenSotAccImpl::update(double time, double period)
     }
     
     _autostack->update(_q);
-    _autostack->log(_logger);
-
     
     if(!_solver->solve(_x))
     {
@@ -794,7 +792,7 @@ bool OpenSotAccImpl::update(double time, double period)
     
 //     Logger::info() << "Solution: " << _x.transpose() << Logger::endl();
 
-    _id->computedTorque(_x, _tau, _ddq);
+    //_id->computedTorque(_x, _tau, _ddq);
     
     _model->setJointAcceleration(_ddq);
     _model->setJointEffort(_tau);
