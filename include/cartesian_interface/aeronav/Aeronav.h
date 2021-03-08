@@ -70,7 +70,7 @@ private:
     ros::Publisher _joy_audio_pub;
     ros::Subscriber _joy_sub;
 
-    void joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
+    void aeronavCallback(const sensor_msgs::Joy::ConstPtr& joy);
     void setVelocityCtrl();
     void localCtrl();
     void twistInBase();

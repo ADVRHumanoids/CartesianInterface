@@ -30,7 +30,7 @@ Aeronav::Aeronav ( const std::vector<std::string>& distal_links,
     _twist_filt.setOmega ( 2.0 * M_PI * 2.0 );
     _twist_filt.setTimeStep ( 1./30. );
 
-    _joy_sub = _nh.subscribe<sensor_msgs::Joy> ( "joy", 10, &Aeronav::joyCallback, this );
+    _joy_sub = _nh.subscribe<sensor_msgs::Joy> ( "joy", 10, &Aeronav::aeronavCallback, this );
 
     _joy_audio_pub = _nh.advertise<std_msgs::String> ( "audio", 1 );
 
@@ -81,7 +81,7 @@ Aeronav::~Aeronav() {
 
 }
 
-void Aeronav::joyCallback ( const sensor_msgs::Joy::ConstPtr& joy ) {
+void Aeronav::aeronavCallback ( const sensor_msgs::Joy::ConstPtr& joy ) {
     /* Print documentation to terminal */
 // //     if ( joy->buttons[4] ) {
 // //         ROS_INFO ( Doc().c_str() );
@@ -163,7 +163,7 @@ void Aeronav::joyCallback ( const sensor_msgs::Joy::ConstPtr& joy ) {
     _twist[1] = _linear_speed_sf * joy->axes[0];
     _twist[2] = _linear_speed_sf * joy->axes[7];
     _twist[3] = _angular_speed_sf * joy->axes[5];
-    _twist[4] = _angular_speed_sf * joy->axes[3];
+    _twist[4] = _angular_speed_sf * joy->axes[4];
     _twist[5] = _angular_speed_sf * joy->axes[2];
 
     /* Apply mask */
