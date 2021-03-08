@@ -1,5 +1,7 @@
 #include <cartesian_interface/utils/Manipulability.h>
 #include <cartesian_interface/problem/Cartesian.h>
+#include <cartesian_interface/problem/Com.h>
+
 
 #if EIGEN_VERSION_AT_LEAST(3, 2, 92)
 #define HAS_SVD_SET_THRESHOLD
@@ -65,7 +67,7 @@ bool ManipulabilityAnalyzer::compute_task_matrix(CartesianTask::Ptr cart_ij,
         return false;
     }
     
-    if(cart_ij->getType() == "Com")
+    if(auto com = std::dynamic_pointer_cast<ComTask>(cart_ij))
     {
         _model->getCOMJacobian(A);
         A.conservativeResize(6, A.cols());
@@ -80,14 +82,14 @@ bool ManipulabilityAnalyzer::compute_task_matrix(CartesianTask::Ptr cart_ij,
         
         if(cart_ij->getBaseLink() == "world")
         {
-            _model->getJacobian(cart_ij->getDistalLink(), A);
-            _model->getPose(cart_ij->getDistalLink(), T);
+            _model->getJacobian(cart_ij->getDistalLink(), A);            
         }
         else
         {
             _model->getRelativeJacobian(cart_ij->getDistalLink(), cart_ij->getBaseLink(), A);
-            _model->getPose(cart_ij->getDistalLink(), cart_ij->getBaseLink(), T);
         }
+
+        _model->getPose(cart_ij->getDistalLink(), T);
     }
     
     for(int k = 0; k < 6; k++)
@@ -136,6 +138,11 @@ void ManipulabilityAnalyzer::compute()
         }
         
         int dim = Ji.rows();
+
+        if(dim == 0)
+        {
+            continue;
+        }
         
         _tasks[i] = (Ji*Ji.transpose() + 1e-6*Eigen::MatrixXd::Identity(dim,dim)).inverse();
         
@@ -203,7 +210,9 @@ void ManipulabilityAnalyzer::publish()
 
 
 visualization_msgs::Marker ManipulabilityAnalyzer::ComputeEllipsoidFromQuadraticForm(const Eigen::MatrixXd& JJtinv,
-                                                                                     const Eigen::Vector3d& pos, const std::string& base_link, int start_idx)
+                                                                                     const Eigen::Vector3d& pos, 
+                                                                                     const std::string& base_link, 
+                                                                                     int start_idx)
 {
     static Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver;
     Eigen::Matrix3d K = JJtinv.middleRows<3>(start_idx).middleCols<3>(start_idx);
