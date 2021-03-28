@@ -120,7 +120,7 @@ set(CartesianInterfaceSOT_SRC
 set(CartesianInterfaceROS_SRC
         src/ros/RosImpl.cpp
         src/ros/RosServerClass.cpp
-        src/ros/CartesianMarker.cpp
+ 
         src/ros/Aeronav.cpp
         src/ros/CartesianAnalyzer.cpp
         src/ros/RosExecutor.cpp
@@ -198,15 +198,6 @@ install(TARGETS CartesioConvexHullAddon CartesioConvexHullAddon
 add_executable(ros_server_node src/ros/RosServerNode.cpp)
 target_link_libraries(ros_server_node CartesianInterface dl)
 install(TARGETS ros_server_node ros_server_node
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-# Marker spawner executable
-add_executable(marker_spawner src/ros/MarkerSpawner.cpp)
-target_link_libraries(marker_spawner CartesianInterface)
-install(TARGETS marker_spawner marker_spawner
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
