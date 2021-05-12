@@ -75,7 +75,7 @@ ProblemDescription construct_problem(ros::NodeHandle nh)
     ProblemDescription ik_pb(tasks);
 
     attempts = 100;
-    while(attempts-- && !ik_pb.validate())
+    while(--attempts && !ik_pb.validate())
     {
         if(attempts % 10 == 0) fmt::print("Waiting for all tasks to become valid... \n");
 

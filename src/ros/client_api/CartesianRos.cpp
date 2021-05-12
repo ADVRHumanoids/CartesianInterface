@@ -58,11 +58,17 @@ CartesianRos::CartesianRos(std::string name,
                                                               on_vref_recv);
 
     _set_safety_lims_cli = _nh.serviceClient<SetSafetyLimits>(name + "/set_safety_limits");
+
+    _task_info_sub = _nh.subscribe(name + "/cartesian_task_properties", 10,
+                                 &CartesianRos::on_task_info_recv, this);
 }
 
 bool CartesianRos::validate()
 {
-    return TaskRos::validate() && _Tref_recv && _vref_recv;
+    return TaskRos::validate() &&
+            _Tref_recv &&
+            _vref_recv &&
+            !_info.distal_link.empty();
 }
 
 void CartesianRos::enableOnlineTrajectoryGeneration()
@@ -287,12 +293,6 @@ bool CartesianRos::setWayPoints(const Trajectory::WayPointVector& way_points,
         goal.time.push_back(f.time);
     }
 
-//    if(!_action_cli.waitForServer(ros::Duration(2.0)))
-//    {
-//        throw std::runtime_error(fmt::format("Unable to reach action server '{}'",
-//                                             _nh.resolveName(getName() + "/reach")));
-//    }
-
     _action_cli.sendGoal(goal,
                          boost::bind(&CartesianRos::on_action_done, this, _1, _2),
                          boost::bind(&CartesianRos::on_action_active, this),
@@ -346,6 +346,11 @@ void CartesianRos::on_action_done(const actionlib::SimpleClientGoalState & state
              getName().c_str());
 
     _current_segment_idx = -1;
+}
+
+void CartesianRos::on_task_info_recv(CartesianTaskInfoConstPtr msg)
+{
+    _info = *msg;
 }
 
 

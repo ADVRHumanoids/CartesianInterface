@@ -49,29 +49,37 @@ CartesianRos::CartesianRos(CartesianTask::Ptr cart_task,
 
     _reach_action_manager.reset(new ReachActionManager(_ctx->nh(), task_name, _cart));
 
-    _pose_ref_pub = _ctx->nh().advertise<geometry_msgs::PoseStamped>(_task->getName() + "/current_reference", 1);
+    _pose_ref_pub = _ctx->nh().advertise<geometry_msgs::PoseStamped>(
+                _task->getName() + "/current_reference", 1
+                );
 
-    _vel_ref_pub = _ctx->nh().advertise<geometry_msgs::TwistStamped>(_task->getName() + "/current_velocity_reference", 1);
+    _vel_ref_pub = _ctx->nh().advertise<geometry_msgs::TwistStamped>(
+                _task->getName() + "/current_velocity_reference", 1
+                );
 
     _pose_ref_sub = _ctx->nh().subscribe(_task->getName() + "/reference", 1,
-                                        &CartesianRos::online_position_reference_cb,
-                                        this);
+                                         &CartesianRos::online_position_reference_cb,
+                                         this);
+
+    _task_info_pub = _ctx->nh().advertise<cartesian_interface::CartesianTaskInfo>(
+                _task->getName() + "/cartesian_task_properties", 1
+                );
 
     _vel_ref_sub = _ctx->nh().subscribe(_task->getName() + "/velocity_reference", 1,
-                                       &CartesianRos::online_velocity_reference_cb,
-                                       this);
+                                        &CartesianRos::online_velocity_reference_cb,
+                                        this);
 
     _set_base_link_srv = _ctx->nh().advertiseService(_task->getName() + "/set_base_link",
-                                                    &CartesianRos::set_base_link_cb, this);
+                                                     &CartesianRos::set_base_link_cb, this);
 
     _set_ctrl_srv = _ctx->nh().advertiseService(_task->getName() + "/set_control_mode",
-                                               &CartesianRos::set_control_mode_cb, this);
+                                                &CartesianRos::set_control_mode_cb, this);
 
     _set_safety_srv = _ctx->nh().advertiseService(_task->getName() + "/set_safety_limits",
-                                                 &CartesianRos::set_safety_lims_cb, this);
+                                                  &CartesianRos::set_safety_lims_cb, this);
 
     _get_info_srv = _ctx->nh().advertiseService(_task->getName() + "/get_cartesian_task_properties",
-                                               &CartesianRos::get_task_info_cb, this);
+                                                &CartesianRos::get_task_info_cb, this);
 
 }
 
@@ -82,6 +90,8 @@ void CartesianRos::run(ros::Time time)
     _reach_action_manager->run();
 
     publish_ref(time);
+
+    publish_task_info();
 }
 
 void CartesianRos::publish_ref(ros::Time time)
@@ -108,6 +118,26 @@ void CartesianRos::publish_ref(ros::Time time)
 
     _vel_ref_pub.publish(vel_msg);
 
+
+}
+
+void CartesianRos::publish_task_info()
+{
+    cartesian_interface::GetCartesianTaskInfo srv;
+    get_task_info_cb(srv.request, srv.response);
+
+    cartesian_interface::CartesianTaskInfo msg;
+    msg.base_link = srv.response.base_link;
+    msg.control_mode = srv.response.control_mode;
+    msg.distal_link = srv.response.distal_link;
+    msg.max_acc_ang = srv.response.max_acc_ang;
+    msg.max_acc_lin = srv.response.max_acc_lin;
+    msg.max_vel_ang = srv.response.max_vel_ang;
+    msg.max_vel_lin = srv.response.max_vel_lin;
+    msg.state = srv.response.state;
+    msg.use_local_subtasks = srv.response.use_local_subtasks;
+
+    _task_info_pub.publish(msg);
 
 }
 

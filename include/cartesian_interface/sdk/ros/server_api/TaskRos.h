@@ -12,6 +12,7 @@
 #include <cartesian_interface/SetTaskActive.h>
 #include <cartesian_interface/sdk/ros/RosContext.h>
 #include <cartesian_interface/sdk/ros/Plugin.h>
+#include <cartesian_interface/TaskInfo.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -77,7 +78,7 @@ private:
     ros::ServiceServer _get_task_info_srv, _set_lambda_srv, _set_lambda2_srv, _set_weight_srv;
     ros::ServiceServer _set_active_srv;
 
-    ros::Publisher _task_changed_pub, _task_err_pub;
+    ros::Publisher _task_changed_pub, _task_err_pub, _task_info_pub;
     Eigen::VectorXd _err;
 
 };
