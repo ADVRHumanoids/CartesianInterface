@@ -382,6 +382,7 @@ void JoyStick::setRobotBaseLinkCtrlFrame(const std::string& robot_base_link)
 
 bool XBot::Cartesian::JoyStick::updateStatus()
 {
+    _ci->update(0, 0);
 
     std::string link = _ci->getBaseLink(_distal_links[_selected_task]);
 

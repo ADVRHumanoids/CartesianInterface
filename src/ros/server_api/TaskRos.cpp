@@ -20,30 +20,33 @@ TaskRos::TaskRos(TaskDescription::Ptr task,
     _ctx(context)
 {
     _get_task_info_srv = _ctx->nh().advertiseService(
-        task_name + "/get_task_properties",
-        &TaskRos::get_task_info_cb, this);
+                task_name + "/get_task_properties",
+                &TaskRos::get_task_info_cb, this);
 
     _set_lambda_srv = _ctx->nh().advertiseService(
-        task_name + "/set_lambda",
-        &TaskRos::set_lambda_cb, this);
+                task_name + "/set_lambda",
+                &TaskRos::set_lambda_cb, this);
 
     _set_lambda2_srv = _ctx->nh().advertiseService(
-        task_name + "/set_lambda2",
-        &TaskRos::set_lambda2_cb, this);
+                task_name + "/set_lambda2",
+                &TaskRos::set_lambda2_cb, this);
 
     _set_weight_srv = _ctx->nh().advertiseService(
-        task_name + "/set_weight",
-        &TaskRos::set_weight_cb, this);
+                task_name + "/set_weight",
+                &TaskRos::set_weight_cb, this);
 
     _set_active_srv = _ctx->nh().advertiseService(
-        task_name + "/set_active",
-        &TaskRos::set_active_cb, this);
+                task_name + "/set_active",
+                &TaskRos::set_active_cb, this);
 
     _task_changed_pub = _ctx->nh().advertise<std_msgs::String>(
-        task_name + "/task_changed_event", 10);
+                task_name + "/task_changed_event", 10);
 
     _task_err_pub = _ctx->nh().advertise<std_msgs::Float64MultiArray>(
-        task_name + "/task_error", 10);
+                task_name + "/task_error", 10);
+
+    _task_info_pub = _ctx->nh().advertise<cartesian_interface::TaskInfo>(
+                task_name + "/task_properties", 10);
 
     _type_hierarchy.push_back("Task");
 }
@@ -57,6 +60,27 @@ void TaskRos::run(ros::Time time)
         tf::matrixEigenToMsg(_err, msg);
         _task_err_pub.publish(msg);
     }
+
+    /* Publish task info */
+    cartesian_interface::GetTaskInfo info_srv;
+    get_task_info_cb(info_srv.request, info_srv.response);
+
+    cartesian_interface::TaskInfo info_msg;
+    info_msg.activation_state = info_srv.response.activation_state;
+    info_msg.disabled_joints = info_srv.response.disabled_joints;
+    info_msg.indices = info_srv.response.indices;
+    info_msg.lambda = info_srv.response.lambda;
+    info_msg.lambda2 = info_srv.response.lambda2;
+    info_msg.lib_name = info_srv.response.lib_name;
+    info_msg.name = info_srv.response.name;
+    info_msg.size = info_srv.response.size;
+    info_msg.type = info_srv.response.type;
+    info_msg.weight = info_srv.response.weight;
+
+    _task_info_pub.publish(info_msg);
+
+
+
 }
 
 bool TaskRos::onActivationStateChanged()
@@ -249,10 +273,10 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
         try
         {
             ros_adapter = CallFunction<TaskRos*>(task->getLibName(),
-                                                  "create_cartesio_" + task->getType() + "_ros_api",
-                                                  task,
-                                                  context,
-                                                  detail::Version CARTESIO_ABI_VERSION);
+                                                 "create_cartesio_" + task->getType() + "_ros_api",
+                                                 task,
+                                                 context,
+                                                 detail::Version CARTESIO_ABI_VERSION);
         }
         catch(LibNotFound&)
         {
