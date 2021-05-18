@@ -68,12 +68,6 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
     
     _ndofs += dofs.size();
     
-    std::cout << "Force estimation using joints:\n";
-    std::for_each(_meas_idx.begin(), _meas_idx.end(), 
-                  [this](int i){ std::cout << _model->getEnabledJointNames().at(i) << "\n"; });
-    std::cout << std::endl;
-    
-    
     return t.sensor;
     
 }
@@ -118,6 +112,12 @@ void ForceEstimation::compute_residual(Eigen::VectorXd& res)
 {
     _model->getJointEffort(_tau);
     _model->computeGravityCompensation(_g);
+
+    /* Skip fb efforts when checking for spikes */
+    if(_model->isFloatingBase())
+    {
+        _tau.head<6>().setZero();
+    }
 
     /* Check for torque spikes */
     const double MAX_ALLOWED_TORQUE = 300.0;

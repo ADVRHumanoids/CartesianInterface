@@ -6,6 +6,7 @@
 #include "problem/Cartesian.h"
 #include "problem/Postural.h"
 #include "problem/Interaction.h"
+#include "problem/Com.h"
 
 #include <cartesian_interface/utils/RobotStatePublisher.h>
 
@@ -69,6 +70,10 @@ PYBIND11_MODULE(pyci, m) {
             .def("getPoseReference", py_task_get_pose_reference)
             .def("abort", &CartesianTask::abort);
 
+    py::class_<ComTask,
+            CartesianTask,
+            ComTask::Ptr>(m, "ComTask", py::multiple_inheritance());
+
     py::class_<PosturalTask,
             TaskDescription,
             PosturalTask::Ptr>(m, "PosturalTask", py::multiple_inheritance())
@@ -100,6 +105,10 @@ PYBIND11_MODULE(pyci, m) {
     py::class_<CartesianTaskImpl,
             CartesianTask,
             CartesianTaskImpl::Ptr>(m, "CartesianTaskImpl", py::multiple_inheritance());
+
+    py::class_<ComTaskImpl,
+            CartesianTaskImpl,
+            ComTaskImpl::Ptr>(m, "ComTaskImpl", py::multiple_inheritance());
 
     py::class_<PosturalTaskImpl,
             PosturalTask,
