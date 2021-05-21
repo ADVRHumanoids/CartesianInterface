@@ -3,6 +3,8 @@
 
 using namespace XBot::Cartesian::Utils;
 
+const double ForceEstimation::DEFAULT_SVD_THRESHOLD = 0.05;
+
 ForceEstimation::ForceEstimation(ModelInterface::ConstPtr model, 
                                  double svd_threshold):
     _model(model),
