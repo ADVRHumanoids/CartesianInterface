@@ -2,6 +2,7 @@
 #include <pybind11/eigen.h>
 #include <pybind11/stl.h>
 #include <cartesian_interface/ros/RosClient.h>
+#include <cartesian_interface/problem/Interaction.h>
 
 namespace py = pybind11;
 using namespace XBot::Cartesian;
@@ -33,6 +34,15 @@ std::string waypoint_repr(const Trajectory::WayPoint& w)
     ss <<   "translation: " << w.frame.translation().transpose().format(CleanFmt);
     ss << "\nrotation   : " << Eigen::Quaterniond(w.frame.linear()).coeffs().transpose().format(CleanFmt);
     ss << "\ntime       : " << w.time;
+    return ss.str();
+}
+
+std::string impedance_repr(const Impedance& imp)
+{
+    std::stringstream ss;
+    ss <<  "stiffness:\n" << imp.stiffness;
+    ss << "\ndamping :\n" << imp.damping;
+    ss << "\nmass    :\n" << imp.mass;
     return ss.str();
 }
 

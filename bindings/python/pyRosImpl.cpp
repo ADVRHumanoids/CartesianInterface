@@ -3,6 +3,8 @@
 
 #include "ros/client_api/CartesianRos.h"
 #include "ros/client_api/PosturalRos.h"
+#include "ros/client_api/InteractionRos.h"
+
 #include "problem/Cartesian.h"
 #include "problem/Postural.h"
 #include "problem/Interaction.h"
@@ -80,6 +82,12 @@ PYBIND11_MODULE(pyci, m) {
             .def("setReferencePosture",  &PosturalTask::setReferencePosture)
             .def("getReferencePostureMap",  py_postural_get_reference_map);
 
+    py::class_<Impedance>(m, "Impedance")
+        .def_readwrite("stiffness", &Impedance::stiffness)
+        .def_readwrite("damping", &Impedance::damping)
+        .def_readwrite("mass", &Impedance::mass)
+        .def("__repr__", impedance_repr);
+
     py::class_<InteractionTask,
             CartesianTask,
             InteractionTask::Ptr>(m, "InteractionTask", py::multiple_inheritance())
@@ -92,6 +100,14 @@ PYBIND11_MODULE(pyci, m) {
 			.def("setStiffnessTransition", &InteractionTask::setStiffnessTransition)
 			.def("abortStiffnessTransition", &InteractionTask::abortStiffnessTransition)
 			.def("getStiffnessState", &InteractionTask::getStiffnessState);
+
+    py::class_<ClientApi::InteractionRos,
+            InteractionTask,
+            ClientApi::InteractionRos::Ptr>(m, "InteractionRos", py::multiple_inheritance());
+
+    py::class_<InteractionTaskImpl,
+            InteractionTask,
+            InteractionTaskImpl::Ptr>(m, "InteractionTaskImpl", py::multiple_inheritance());
 
     py::class_<ClientApi::CartesianRos,
             CartesianTask,
@@ -113,10 +129,6 @@ PYBIND11_MODULE(pyci, m) {
     py::class_<PosturalTaskImpl,
             PosturalTask,
             PosturalTaskImpl::Ptr>(m, "PosturalTaskImpl", py::multiple_inheritance());
-
-    py::class_<InteractionTaskImpl,
-            CartesianTaskImpl, InteractionTask,
-            InteractionTaskImpl::Ptr>(m, "InteractionTaskImpl", py::multiple_inheritance());
 
     py::class_<CartesianInterfaceImpl,
             CartesianInterfaceImpl::Ptr>(m, "CartesianInterface")

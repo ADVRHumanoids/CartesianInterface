@@ -249,12 +249,14 @@ bool InteractionRos::get_impedance_cb(cartesian_interface::GetImpedanceRequest& 
 									  cartesian_interface::GetImpedanceResponse& res)
 {
 	Impedance impedance = _ci_inter->getImpedance();
-	
+
 	tf::vectorEigenToMsg (impedance.stiffness.diagonal().head(3), res.impedance.linear.stiffness);
 	tf::vectorEigenToMsg (impedance.stiffness.diagonal().tail(3), res.impedance.angular.stiffness);
 	
 	tf::vectorEigenToMsg (impedance.damping.diagonal().head(3), res.impedance.linear.damping_ratio);
 	tf::vectorEigenToMsg (impedance.damping.diagonal().tail(3), res.impedance.angular.damping_ratio);
+
+    return true;
 }
 
 void InteractionRos::run(ros::Time time)
