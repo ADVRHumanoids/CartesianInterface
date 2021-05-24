@@ -11,7 +11,7 @@
 std::map<std::string, Eigen::Vector6d> * g_fmap_ptr;
 std::map<std::string, ros::Time> * g_timeoutmap_ptr;
 const double FORCE_TTL = 0.1;
-boost::shared_ptr<OpenSoT::utils::ForceOptimization> g_fopt;
+std::shared_ptr<OpenSoT::utils::ForceOptimization> g_fopt;
 
 void on_force_recv(const geometry_msgs::WrenchStampedConstPtr& msg, std::string l)
 {
@@ -132,7 +132,7 @@ int main(int argc, char ** argv)
     ros::ServiceServer contact_rot_srv;
     if(model->isFloatingBase())
     {
-        auto f_opt = g_fopt = boost::make_shared<OpenSoT::utils::ForceOptimization>(model, 
+        auto f_opt = g_fopt = std::make_shared<OpenSoT::utils::ForceOptimization>(model, 
                                                                        contact_links, 
                                                                        optimize_contact_torque,
                                                                        friction_coeff

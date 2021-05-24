@@ -21,7 +21,7 @@ ConstraintPtr OpenSotJointLimitsAdapter::constructConstraint()
     Eigen::VectorXd q;
     _model->getJointPosition(q);
 
-    return boost::make_shared<JointLimitsSoT>(q,
+    return std::make_shared<JointLimitsSoT>(q,
                                               _ci_jlim->getQmax(),
                                               _ci_jlim->getQmin(),
                                               _ci_jlim->getBoundScaling());

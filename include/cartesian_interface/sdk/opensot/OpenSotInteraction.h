@@ -4,7 +4,7 @@
 #include "OpenSotCartesian.h"
 #include <cartesian_interface/problem/Interaction.h>
 
-#include <boost/make_shared.hpp>
+#include <memory>
 
 #include <OpenSoT/tasks/velocity/CartesianAdmittance.h>
 

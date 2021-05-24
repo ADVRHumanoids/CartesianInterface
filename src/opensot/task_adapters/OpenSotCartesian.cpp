@@ -18,7 +18,7 @@ TaskPtr OpenSotCartesianAdapter::constructTask()
     Eigen::VectorXd q;
     _model->getJointPosition(q);
 
-    _opensot_cart = boost::make_shared<CartesianSoT>(_ci_cart->getName(),
+    _opensot_cart = std::make_shared<CartesianSoT>(_ci_cart->getName(),
                                                      q,
                                                      const_cast<ModelInterface&>(*_model),
                                                      _ci_cart->getDistalLink(),

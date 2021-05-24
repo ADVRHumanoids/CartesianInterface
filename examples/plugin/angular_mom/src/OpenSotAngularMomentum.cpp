@@ -1,6 +1,6 @@
 #include "OpenSotAngularMomentum.h"
 
-#include <boost/make_shared.hpp>
+#include <memory>
 
 #include "fmt/format.h"
 
@@ -22,7 +22,7 @@ TaskPtr OpenSotAngularMomentum::constructTask()
     Eigen::VectorXd q;
     _model->getJointPosition(q);
 
-    _sot_angmom = boost::make_shared<AngularMomentumSoT>(q,
+    _sot_angmom = std::make_shared<AngularMomentumSoT>(q,
                                                          const_cast<ModelInterface&>(*_model));
 
     return _sot_angmom;

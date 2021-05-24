@@ -1,7 +1,7 @@
 #ifndef OPENSOTJOINTLIMITS_H
 #define OPENSOTJOINTLIMITS_H
 
-#include <boost/make_shared.hpp>
+#include <memory>
 
 #include <cartesian_interface/problem/Limits.h>
 #include "OpenSotTask.h"

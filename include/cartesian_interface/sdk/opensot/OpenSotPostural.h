@@ -1,7 +1,7 @@
 #ifndef OPENSOTPOSTURAL_H
 #define OPENSOTPOSTURAL_H
 
-#include <boost/make_shared.hpp>
+#include <memory>
 
 #include <cartesian_interface/problem/Postural.h>
 #include "OpenSotTask.h"

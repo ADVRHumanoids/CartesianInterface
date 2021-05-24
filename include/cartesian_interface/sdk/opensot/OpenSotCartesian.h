@@ -1,7 +1,7 @@
 #ifndef OPENSOTCARTESIANADAPTER_H
 #define OPENSOTCARTESIANADAPTER_H
 
-#include <boost/make_shared.hpp>
+#include <memory>
 
 #include <cartesian_interface/problem/Cartesian.h>
 #include "OpenSotTask.h"

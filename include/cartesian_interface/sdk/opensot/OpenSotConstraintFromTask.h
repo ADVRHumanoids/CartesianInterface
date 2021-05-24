@@ -2,7 +2,7 @@
 #define OPENSOTCONSTRAINTFROMTASK_H
 
 
-#include <boost/make_shared.hpp>
+#include <memory>
 
 #include <cartesian_interface/problem/Constraint.h>
 #include "OpenSotTask.h"
