@@ -82,12 +82,6 @@ PYBIND11_MODULE(pyci, m) {
             .def("setReferencePosture",  &PosturalTask::setReferencePosture)
             .def("getReferencePostureMap",  py_postural_get_reference_map);
 
-    py::class_<Impedance>(m, "Impedance")
-        .def_readwrite("stiffness", &Impedance::stiffness)
-        .def_readwrite("damping", &Impedance::damping)
-        .def_readwrite("mass", &Impedance::mass)
-        .def("__repr__", impedance_repr);
-
     py::class_<InteractionTask,
             CartesianTask,
             InteractionTask::Ptr>(m, "InteractionTask", py::multiple_inheritance())

@@ -37,15 +37,6 @@ std::string waypoint_repr(const Trajectory::WayPoint& w)
     return ss.str();
 }
 
-std::string impedance_repr(const Impedance& imp)
-{
-    std::stringstream ss;
-    ss <<  "stiffness:\n" << imp.stiffness;
-    ss << "\ndamping :\n" << imp.damping;
-    ss << "\nmass    :\n" << imp.mass;
-    return ss.str();
-}
-
 std::string ci_repr(const RosClient& r)
 {
     std::stringstream ss;

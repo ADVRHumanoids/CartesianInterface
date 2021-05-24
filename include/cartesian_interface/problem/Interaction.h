@@ -16,6 +16,12 @@ public:
 	Eigen::Matrix6d stiffness;
 	Eigen::Matrix6d damping  ;
 	Eigen::Matrix6d mass     ;
+
+    Impedance(const Eigen::Matrix6d& stiffness = Eigen::Matrix6d::Zero(),
+              const Eigen::Matrix6d& damping = Eigen::Matrix6d::Zero(),
+              const Eigen::Matrix6d& mass = Eigen::Matrix6d::Identity())
+        : stiffness(stiffness), damping(damping), mass(mass) {}
+
 };
 
 
