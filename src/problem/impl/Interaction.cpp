@@ -112,16 +112,17 @@ void XBot::Cartesian::InteractionTaskImpl::getForceLimits(Eigen::Vector6d& fmin,
     fmax = _fmax;
 }
 
-void XBot::Cartesian::InteractionTaskImpl::setImpedance(const Impedance& impedance)
+bool XBot::Cartesian::InteractionTaskImpl::setImpedance(const Impedance& impedance)
 {
 	if(_state == State::Reaching)
     {
         XBot::Logger::error("Unable to set pose reference. Task '%s' is in REACHING state \n",
                             getName().c_str());
-        return;
+        return false;
     }
     
     _impedance = impedance;
+    return true;
 }
 
 void XBot::Cartesian::InteractionTaskImpl::setForceReference(const Eigen::Vector6d& f)

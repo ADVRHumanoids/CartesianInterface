@@ -30,7 +30,15 @@ InteractionRos::InteractionRos(std::string name,
         throw std::runtime_error(fmt::format("Non existent service '{}'",
                                              _get_impedance_cli.getService()));
     }
-    
+
+    _set_impedance_cli = _nh.serviceClient<SetImpedance>(name + "/set_impedance");
+
+    if(!_set_impedance_cli.waitForExistence(ros::Duration(1.0)) || !_set_impedance_cli.exists())
+    {
+        throw std::runtime_error(fmt::format("Non existent service '{}'",
+                                             _set_impedance_cli.getService()));
+    }
+        
     if(!_action_cli.isServerConnected())
     {
         /*throw std::runtime_error(fmt::format("Unable to reach action server '{}'",
@@ -108,9 +116,25 @@ void InteractionRos::getForceLimits (Eigen::Vector6d& fmin, Eigen::Vector6d& fma
 	fmax.setZero();
 }
 
-void InteractionRos::setImpedance (const Impedance & impedance)
+bool InteractionRos::setImpedance (const Impedance & impedance)
 {
-	ROS_WARN("unsupported function: setImpedance, use setStiffnessTransition instead!");
+    cartesian_interface::SetImpedance srv;
+
+    tf::vectorEigenToMsg(impedance.stiffness.diagonal().head(3), srv.request.impedance.linear.stiffness);
+    tf::vectorEigenToMsg(impedance.stiffness.diagonal().tail(3), srv.request.impedance.angular.stiffness);
+
+    tf::vectorEigenToMsg(impedance.damping.diagonal().head(3), srv.request.impedance.linear.damping_ratio);
+    tf::vectorEigenToMsg(impedance.damping.diagonal().tail(3), srv.request.impedance.angular.damping_ratio);
+
+    if(!_set_impedance_cli.call(srv))
+    {
+        throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                             _set_impedance_cli.getService()));
+    }
+
+    ROS_INFO("%s", srv.response.message.c_str());
+
+    return srv.response.success;
 }
 
 void InteractionRos::setForceReference (const Eigen::Vector6d& f)

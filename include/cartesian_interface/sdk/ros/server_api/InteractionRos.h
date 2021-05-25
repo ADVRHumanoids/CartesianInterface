@@ -9,6 +9,7 @@
 #include <cartesian_interface/ReachCartesianImpedanceAction.h>
 #include <cartesian_interface/GetInteractionTaskInfo.h>
 #include <cartesian_interface/GetImpedance.h>
+#include <cartesian_interface/SetImpedance.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -76,10 +77,13 @@ private:
     bool get_impedance_cb(cartesian_interface::GetImpedanceRequest&  req,
                           cartesian_interface::GetImpedanceResponse& res);
 
+    bool set_impedance_cb(cartesian_interface::SetImpedanceRequest& req,
+                          cartesian_interface::SetImpedanceResponse& res);
+
     ros::Subscriber              _fref_sub;
     ros::Publisher               _fref_pub, _impd_pub;
 	
-	ros::ServiceServer _get_info_srv, _get_impedance_srv;
+    ros::ServiceServer _get_info_srv, _get_impedance_srv, _set_impedance_srv;
 
     InteractionTask::Ptr         _ci_inter;
 	

@@ -8,6 +8,7 @@
 #include <cartesian_interface/ReachCartesianImpedanceAction.h>
 #include <cartesian_interface/GetInteractionTaskInfo.h>
 #include <cartesian_interface/GetImpedance.h>
+#include <cartesian_interface/SetImpedance.h>
 #include <cartesian_interface/InteractionTaskInfo.h>
 
 
@@ -34,7 +35,7 @@ public:
 	const Eigen::Vector6d& getForceReference () const override;
     void getForceLimits (Eigen::Vector6d& fmin, Eigen::Vector6d& fmax) const override;
 
-    void setImpedance (const Impedance & impedance) override;
+    bool setImpedance (const Impedance & impedance) override;
 	
 	void setForceReference (const Eigen::Vector6d& f) override;
     bool setForceLimits (const Eigen::Vector6d& fmin, const Eigen::Vector6d& fmax) override;
@@ -52,6 +53,7 @@ private:
     ActionClient _action_cli;
 	
 	mutable ros::ServiceClient _get_impedance_cli;
+    mutable ros::ServiceClient _set_impedance_cli;
     mutable ros::ServiceClient _interaction_info_cli;
 	
 	cartesian_interface::InteractionTaskInfo _info;

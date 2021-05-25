@@ -38,7 +38,7 @@ public:
     virtual void getForceLimits (Eigen::Vector6d& fmin,
                                  Eigen::Vector6d& fmax) const = 0;
 
-    virtual void setImpedance (const Impedance & impedance) = 0;
+    virtual bool setImpedance (const Impedance & impedance) = 0;
 	
 	
 	virtual void setForceReference (const Eigen::Vector6d& f) = 0;

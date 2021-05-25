@@ -66,10 +66,12 @@ State InteractionRt::getStiffnessState() const
 	return _rt_data._stiffness_state;
 }
 
-void InteractionRt::setImpedance(const Impedance& impedance)
+bool InteractionRt::setImpedance(const Impedance& impedance)
 {
 	auto cb = std::bind(&InteractionTask::setImpedance, pl::_1, impedance);
     _cb_queue.push(cb);
+
+    return true;
 }
 
 void InteractionRt::setForceReference(const Eigen::Vector6d& f)

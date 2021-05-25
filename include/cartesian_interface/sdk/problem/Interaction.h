@@ -39,7 +39,7 @@ public:
     void getForceLimits(Eigen::Vector6d& fmin,
                         Eigen::Vector6d& fmax) const override;
 
-    void setImpedance (const Impedance & impedance) override;
+    bool setImpedance (const Impedance & impedance) override;
 	
 	void setForceReference(const Eigen::Vector6d& f) override;
     bool setForceLimits(const Eigen::Vector6d& fmin,

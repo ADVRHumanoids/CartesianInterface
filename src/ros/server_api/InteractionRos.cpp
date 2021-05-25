@@ -1,3 +1,5 @@
+#include "fmt/format.h"
+
 #include "ros/server_api/InteractionRos.h"
 #include <eigen_conversions/eigen_msg.h>
 
@@ -237,6 +239,9 @@ InteractionRos::InteractionRos(InteractionTask::Ptr task,
 	
 	_get_impedance_srv = _ctx->nh().advertiseService(_task->getName() + "/get_impedance",
                                                 &InteractionRos::get_impedance_cb, this);
+
+    _set_impedance_srv = _ctx->nh().advertiseService(_task->getName() + "/set_impedance",
+                                                     &InteractionRos::set_impedance_cb, this);
 }
 
 bool InteractionRos::get_task_info_cb(cartesian_interface::GetInteractionTaskInfoRequest&  req,
@@ -257,6 +262,46 @@ bool InteractionRos::get_impedance_cb(cartesian_interface::GetImpedanceRequest& 
 	tf::vectorEigenToMsg (impedance.damping.diagonal().tail(3), res.impedance.angular.damping_ratio);
 
     return true;
+}
+
+bool InteractionRos::set_impedance_cb(cartesian_interface::SetImpedanceRequest& req,
+                                      cartesian_interface::SetImpedanceResponse& res)
+
+{
+    Eigen::Vector3d lin_stiff, ang_stiff, lin_damp, ang_damp;
+
+    tf::vectorMsgToEigen(req.impedance.linear.stiffness, lin_stiff);
+    tf::vectorMsgToEigen(req.impedance.angular.stiffness, ang_stiff);
+
+    tf::vectorMsgToEigen(req.impedance.linear.damping_ratio, lin_damp);
+    tf::vectorMsgToEigen(req.impedance.angular.damping_ratio, ang_damp);
+
+    Eigen::Matrix6d stiffness, damping;
+
+    stiffness.diagonal().head(3) = lin_stiff;
+    stiffness.diagonal().tail(3) = ang_stiff;
+
+    damping.diagonal().head(3) = lin_damp;
+    damping.diagonal().tail(3) = ang_damp;
+
+    ROS_WARN("Unsupported feat: set mass matrix");
+
+    Impedance impedance{stiffness, damping};
+
+    if (_ci_inter->setImpedance(impedance))
+    {
+        res.message = fmt::format("Successfully set impedance");   // to:\n{}", impedance);
+        res.success = true;
+        return true;
+    }
+
+    else
+    {
+        res.message = fmt::format("Unable to set impedance");   // to:\n{}", impedance);
+        res.success = false;
+        return false;
+    }
+
 }
 
 void InteractionRos::run(ros::Time time)

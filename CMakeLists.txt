@@ -76,6 +76,7 @@ add_service_files(
     GetTaskList.srv
     ResetWorld.srv
     GetImpedance.srv
+    SetImpedance.srv
     ToggleAxis.srv
     SetContactFrame.srv
     SetJoystickActiveTask.srv
