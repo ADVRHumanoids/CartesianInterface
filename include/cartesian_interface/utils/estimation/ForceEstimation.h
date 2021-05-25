@@ -15,7 +15,7 @@ public:
 
     CARTESIO_DECLARE_SMART_PTR(ForceEstimation)
 
-    static constexpr double DEFAULT_SVD_THRESHOLD = 0.05;
+    static const double DEFAULT_SVD_THRESHOLD;
 
     /**
          * @brief ForceEstimation constructor.
