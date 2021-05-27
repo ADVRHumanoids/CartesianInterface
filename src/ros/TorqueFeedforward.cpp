@@ -6,7 +6,10 @@
 #include <XBotInterface/RobotInterface.h>
 #include <RobotInterfaceROS/ConfigFromParam.h>
 
+#include "opensot/OpenSotUtils.h"
 #include <OpenSoT/utils/ForceOptimization.h>
+
+using namespace XBot::Cartesian;
 
 std::map<std::string, Eigen::Vector6d> * g_fmap_ptr;
 std::map<std::string, ros::Time> * g_timeoutmap_ptr;
@@ -132,7 +135,7 @@ int main(int argc, char ** argv)
     ros::ServiceServer contact_rot_srv;
     if(model->isFloatingBase())
     {
-        auto f_opt = g_fopt = boost::make_shared<OpenSoT::utils::ForceOptimization>(model, 
+        auto f_opt = g_fopt = SotUtils::make_shared<OpenSoT::utils::ForceOptimization>(model, 
                                                                        contact_links, 
                                                                        optimize_contact_torque,
                                                                        friction_coeff

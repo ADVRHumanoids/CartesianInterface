@@ -1,4 +1,5 @@
 #include "OpenSotImpl.h"
+
 #include <cartesian_interface/sdk/SolverPlugin.h>
 
 #include <cartesian_interface/problem/ProblemDescription.h>
@@ -65,17 +66,17 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
 {
     if(front_end_string == "ihqp")
     {
-        return boost::make_shared<OpenSoT::solvers::iHQP>(as,
+        return SotUtils::make_shared<OpenSoT::solvers::iHQP>(as,
                                                           eps_regularisation,
                                                           be_solver);
     }
     else if(front_end_string == "ehqp")
     {
-        return boost::make_shared<OpenSoT::solvers::eHQP>(as.getStack());
+        return SotUtils::make_shared<OpenSoT::solvers::eHQP>(as.getStack());
     }
     else if(front_end_string == "l1hqp")
     {
-        OpenSoT::solvers::l1HQP::Ptr l1hqp_solver =  boost::make_shared<OpenSoT::solvers::l1HQP>(as,
+        OpenSoT::solvers::l1HQP::Ptr l1hqp_solver =  SotUtils::make_shared<OpenSoT::solvers::l1HQP>(as,
                                                            eps_regularisation,
                                                            be_solver);
 
@@ -105,7 +106,7 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
     }
     else if(front_end_string == "nhqp")
     {
-        auto frontend = boost::make_shared<OpenSoT::solvers::nHQP>(as.getStack(),
+        auto frontend = SotUtils::make_shared<OpenSoT::solvers::nHQP>(as.getStack(),
                                                                    as.getBounds(),
                                                                    //as.getRegularisationTask(),
                                                                    eps_regularisation,
@@ -148,7 +149,7 @@ OpenSoT::tasks::Aggregated::TaskPtr OpenSotImpl::aggregated_from_stack(Aggregate
     /* Return Aggregated */
     if(tasks_list.size() > 1)
     {
-        return boost::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _x.size());
+        return SotUtils::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _x.size());
     }
     else if(tasks_list.empty())
     {
@@ -302,7 +303,7 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
 
     /* Parse stack #0 and create autostack */
     auto stack_0 = aggregated_from_stack(ik_problem.getTask(static_cast<int>(0)));
-    _autostack = boost::make_shared<OpenSoT::AutoStack>(stack_0);
+    _autostack = SotUtils::make_shared<OpenSoT::AutoStack>(stack_0);
 
     /* Parse remaining stacks  */
     for(int i = 1; i < ik_problem.getNumTasks(); i++)

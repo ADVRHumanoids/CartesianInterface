@@ -30,7 +30,7 @@ OpenSotConstraintFromTaskAdapter::OpenSotConstraintFromTaskAdapter(ConstraintDes
 
 ConstraintPtr OpenSotConstraintFromTaskAdapter::constructConstraint()
 {
-    return boost::make_shared<OpenSoT::constraints::TaskToConstraint>(_task_adapter->getOpenSotTask());
+    return SotUtils::make_shared<OpenSoT::constraints::TaskToConstraint>(_task_adapter->getOpenSotTask());
 }
 
 bool OpenSotConstraintFromTaskAdapter::initialize(const OpenSoT::OptvarHelper& vars)

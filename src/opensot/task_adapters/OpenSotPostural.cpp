@@ -19,7 +19,7 @@ TaskPtr OpenSotPosturalAdapter::constructTask()
     Eigen::VectorXd q;
     _model->getJointPosition(q);
 
-    _opensot_postural = boost::make_shared<PosturalSoT>(q);
+    _opensot_postural = SotUtils::make_shared<PosturalSoT>(q);
 
     return _opensot_postural;
 }

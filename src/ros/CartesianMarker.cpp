@@ -86,19 +86,21 @@ CartesianMarker::~CartesianMarker()
 
 void CartesianMarker::MakeMenu()
 {
+    namespace pl = std::placeholders;
+
     _menu_entry_counter = 0;
 
-    _reset_marker_entry = _menu_handler.insert("Reset Marker",boost::bind(boost::mem_fn(&CartesianMarker::resetMarker),
-                                                                          this, _1));
+    _reset_marker_entry = _menu_handler.insert("Reset Marker",std::bind(std::mem_fn(&CartesianMarker::resetMarker),
+                                                                          this, pl::_1));
     _menu_entry_counter++;
 
-    _global_control_entry = _menu_handler.insert("Global Ctrl",boost::bind(boost::mem_fn(&CartesianMarker::setControlGlobalLocal),
-                                                                           this, _1));
+    _global_control_entry = _menu_handler.insert("Global Ctrl",std::bind(std::mem_fn(&CartesianMarker::setControlGlobalLocal),
+                                                                           this, pl::_1));
     _menu_handler.setCheckState(_global_control_entry, interactive_markers::MenuHandler::UNCHECKED);
     _menu_entry_counter++;
 
-    _continuous_control_entry = _menu_handler.insert("Continuous Ctrl",boost::bind(boost::mem_fn(&CartesianMarker::setContinuousCtrl),
-                                                                                   this, _1));
+    _continuous_control_entry = _menu_handler.insert("Continuous Ctrl",std::bind(std::mem_fn(&CartesianMarker::setContinuousCtrl),
+                                                                                   this, pl::_1));
     _menu_handler.setCheckState(_continuous_control_entry, interactive_markers::MenuHandler::UNCHECKED);
     _menu_entry_counter++;
 
@@ -113,30 +115,30 @@ void CartesianMarker::MakeMenu()
         std::ostringstream s;
         s <<i+1;
         _T_last = _menu_handler.insert( _T_entry, s.str(),
-                                        boost::bind(boost::mem_fn(&CartesianMarker::wayPointCallBack),
-                                                    this, _1));
+                                        std::bind(std::mem_fn(&CartesianMarker::wayPointCallBack),
+                                                    this, pl::_1));
         _menu_entry_counter++;
         _menu_handler.setCheckState(_T_last, interactive_markers::MenuHandler::UNCHECKED );
     }
-    _reset_all_way_points_entry = _menu_handler.insert(_way_point_entry, "Reset All",boost::bind(boost::mem_fn(&CartesianMarker::resetAllWayPoints),
-                                                                                                 this, _1));
+    _reset_all_way_points_entry = _menu_handler.insert(_way_point_entry, "Reset All",std::bind(std::mem_fn(&CartesianMarker::resetAllWayPoints),
+                                                                                                 this, pl::_1));
     _menu_entry_counter++;
-    _reset_last_way_point_entry = _menu_handler.insert(_way_point_entry, "Reset Last",boost::bind(boost::mem_fn(&CartesianMarker::resetLastWayPoints),
-                                                                                                  this, _1));
+    _reset_last_way_point_entry = _menu_handler.insert(_way_point_entry, "Reset Last",std::bind(std::mem_fn(&CartesianMarker::resetLastWayPoints),
+                                                                                                  this, pl::_1));
     _menu_entry_counter++;
 
-    _send_way_points_entry = _menu_handler.insert(_way_point_entry, "Send",boost::bind(boost::mem_fn(&CartesianMarker::sendWayPoints),
-                                                                                       this, _1));
+    _send_way_points_entry = _menu_handler.insert(_way_point_entry, "Send",std::bind(std::mem_fn(&CartesianMarker::sendWayPoints),
+                                                                                       this, pl::_1));
     _menu_entry_counter++;
 
     _properties_entry = _menu_handler.insert("Properties");
     _menu_entry_counter++;
-    _task_is_active_entry = _menu_handler.insert(_properties_entry, "Task Active",boost::bind(boost::mem_fn(&CartesianMarker::activateTask),
-                                                                                              this, _1));
+    _task_is_active_entry = _menu_handler.insert(_properties_entry, "Task Active",std::bind(std::mem_fn(&CartesianMarker::activateTask),
+                                                                                              this, pl::_1));
     _menu_entry_counter++;
     _menu_handler.setCheckState(_task_is_active_entry, interactive_markers::MenuHandler::CHECKED );
-    _position_feedback_is_active_entry = _menu_handler.insert(_properties_entry, "Position FeedBack Active",boost::bind(boost::mem_fn(&CartesianMarker::activatePositionFeedBack),
-                                                                                                                        this, _1));
+    _position_feedback_is_active_entry = _menu_handler.insert(_properties_entry, "Position FeedBack Active",std::bind(std::mem_fn(&CartesianMarker::activatePositionFeedBack),
+                                                                                                                        this, pl::_1));
     _menu_entry_counter++;
     _menu_handler.setCheckState(_position_feedback_is_active_entry, interactive_markers::MenuHandler::CHECKED );
 
@@ -150,7 +152,7 @@ void CartesianMarker::MakeMenu()
         if(_distal_link != _links.at(i)->name)
         {
             interactive_markers::MenuHandler::EntryHandle link_entry = _menu_handler.insert(_base_link_entry,
-                                                                                            _links.at(i)->name, boost::bind(boost::mem_fn(&CartesianMarker::changeBaseLink), this, _1));
+                                                                                            _links.at(i)->name, std::bind(std::mem_fn(&CartesianMarker::changeBaseLink), this, pl::_1));
 
             _menu_entry_counter++;
 
@@ -205,6 +207,8 @@ void CartesianMarker::sendWayPoints(const visualization_msgs::InteractiveMarkerF
 
 void CartesianMarker::resetLastWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
+    namespace pl = std::placeholders;
+
     _T.pop_back();
     _waypoints.pop_back();
     clearMarker(_req, _res);
@@ -222,7 +226,7 @@ void CartesianMarker::resetLastWayPoints(const visualization_msgs::InteractiveMa
 
             KDLFrameToVisualizationPose(_start_pose, _int_marker);
 
-            _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
+            _server.insert(_int_marker, std::bind(std::mem_fn(&CartesianMarker::MarkerFeedback),this, pl::_1));
             _menu_handler.apply(_server, _int_marker.name);
             _server.applyChanges();
         }
@@ -470,28 +474,34 @@ void CartesianMarker::setControlGlobalLocal(const visualization_msgs::Interactiv
 
 bool CartesianMarker::setGlobal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
+    namespace pl = std::placeholders;
+
     KDLFrameToVisualizationPose(_actual_pose, _int_marker);
 
     for(unsigned int i = 1; i < _int_marker.controls.size(); ++i)
         _int_marker.controls[i].orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
-    _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback), this, _1));
+    _server.insert(_int_marker, std::bind(std::mem_fn(&CartesianMarker::MarkerFeedback), this, pl::_1));
     _server.applyChanges();
     return true;
 }
 
 bool CartesianMarker::setLocal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
+    namespace pl = std::placeholders;
+
     KDLFrameToVisualizationPose(_actual_pose, _int_marker);
 
     for(unsigned int i = 1; i < _int_marker.controls.size(); ++i)
         _int_marker.controls[i].orientation_mode = visualization_msgs::InteractiveMarkerControl::INHERIT;
-    _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback), this, _1));
+    _server.insert(_int_marker, std::bind(std::mem_fn(&CartesianMarker::MarkerFeedback), this, pl::_1));
     _server.applyChanges();
     return true;
 }
 
 bool CartesianMarker::spawnMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
+    namespace pl = std::placeholders;
+
     if(_server.empty())
     {
         _start_pose = getRobotActualPose();
@@ -499,7 +509,7 @@ bool CartesianMarker::spawnMarker(std_srvs::Empty::Request& req, std_srvs::Empty
 
         KDLFrameToVisualizationPose(_start_pose, _int_marker);
 
-        _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
+        _server.insert(_int_marker, std::bind(std::mem_fn(&CartesianMarker::MarkerFeedback),this, pl::_1));
         _menu_handler.apply(_server, _int_marker.name);
         _server.applyChanges();
     }
@@ -550,6 +560,8 @@ void CartesianMarker::createInteractiveMarkerControl(const double qw, const doub
 void CartesianMarker::MakeMarker(const std::string &distal_link, const std::string &base_link,
                                  bool fixed, unsigned int interaction_mode, bool show)
 {
+    namespace pl = std::placeholders;
+
     ROS_INFO("Creating marker %s -> %s\n", base_link.c_str(), distal_link.c_str());
     _int_marker.header.frame_id = _tf_prefix+base_link;
     _int_marker.scale = 0.5;
@@ -573,7 +585,7 @@ void CartesianMarker::MakeMarker(const std::string &distal_link, const std::stri
 
     KDLFrameToVisualizationPose(_start_pose, _int_marker);
 
-    _server.insert(_int_marker, boost::bind(boost::mem_fn(&CartesianMarker::MarkerFeedback),this, _1));
+    _server.insert(_int_marker, std::bind(std::mem_fn(&CartesianMarker::MarkerFeedback),this, pl::_1));
 }
 
 void CartesianMarker::MarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
@@ -628,7 +640,7 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
     auto controlled_link = link;
 
 #if ROS_VERSION_MINOR <= 12
-#define STATIC_POINTER_CAST boost::static_pointer_cast
+#define STATIC_POINTER_CAST std::static_pointer_cast
 #else
 #define STATIC_POINTER_CAST std::static_pointer_cast
 #endif
