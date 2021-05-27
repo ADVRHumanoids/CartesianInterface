@@ -14,7 +14,7 @@ using namespace XBot::Cartesian;
 std::map<std::string, Eigen::Vector6d> * g_fmap_ptr;
 std::map<std::string, ros::Time> * g_timeoutmap_ptr;
 const double FORCE_TTL = 0.1;
-boost::shared_ptr<OpenSoT::utils::ForceOptimization> g_fopt;
+std::shared_ptr<OpenSoT::utils::ForceOptimization> g_fopt;
 
 void on_force_recv(const geometry_msgs::WrenchStampedConstPtr& msg, std::string l)
 {

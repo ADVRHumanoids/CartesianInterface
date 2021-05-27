@@ -640,7 +640,7 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
     auto controlled_link = link;
 
 #if ROS_VERSION_MINOR <= 12
-#define STATIC_POINTER_CAST std::static_pointer_cast
+#define STATIC_POINTER_CAST boost::static_pointer_cast
 #else
 #define STATIC_POINTER_CAST std::static_pointer_cast
 #endif
