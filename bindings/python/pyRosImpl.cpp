@@ -97,7 +97,8 @@ PYBIND11_MODULE(pyci, m) {
 
     py::class_<ClientApi::InteractionRos,
             InteractionTask,
-            ClientApi::InteractionRos::Ptr>(m, "InteractionRos", py::multiple_inheritance());
+            ClientApi::InteractionRos::Ptr>(m, "InteractionRos", py::multiple_inheritance())
+            .def("waitReachCompleted", &ClientApi::InteractionRos::waitReachCompleted);
 
     py::class_<InteractionTaskImpl,
             InteractionTask,
