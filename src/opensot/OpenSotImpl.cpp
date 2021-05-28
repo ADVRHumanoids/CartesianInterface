@@ -1,4 +1,5 @@
-#include "OpenSotImpl.h"
+#include <cartesian_interface/sdk/opensot/OpenSotImpl.h>
+#include <cartesian_interface/sdk/opensot/OpenSotSubtask.h>
 
 #include <cartesian_interface/sdk/SolverPlugin.h>
 
@@ -142,8 +143,10 @@ OpenSoT::tasks::Aggregated::TaskPtr OpenSotImpl::aggregated_from_stack(Aggregate
     {
         auto it = *std::find_if(_task_adapters.begin(), _task_adapters.end(),
                                 [task_desc](auto t){ return t->getTaskDescription() == task_desc; });
-        
+
         tasks_list.push_back(it->getOpenSotTask());
+
+        _open_sot_tasks[it->getTaskDescription()->getName()] = it->getOpenSotParentTask();
     }
 
     /* Return Aggregated */
@@ -319,6 +322,8 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
 
         auto constr_ptr = constr_adapter->getOpenSotConstraint();
 
+        _open_sot_constraints[constr_adapter->getConstraintDescription()->getName()] = constr_adapter->getOpenSotConstraint();
+
         if(constr_ptr)
         {
             _autostack << constr_ptr;
@@ -374,6 +379,16 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
                                      get_config()
                                      );
     
+}
+
+OpenSoT::tasks::Aggregated::TaskPtr OpenSotImpl::getOpenSotTask(const std::string& task_name)
+{
+    return _open_sot_tasks.at(task_name);
+}
+
+OpenSoT::constraints::Aggregated::ConstraintPtr OpenSotImpl::getOpenSotConstraint(const std::string& constr_name)
+{
+    return _open_sot_constraints.at(constr_name);
 }
 
 bool OpenSotImpl::update(double time, double period)
@@ -492,7 +507,6 @@ bool OpenSotImpl::update(double time, double period)
     return success;
 
 }
-
 
 OpenSotImpl::~OpenSotImpl()
 {

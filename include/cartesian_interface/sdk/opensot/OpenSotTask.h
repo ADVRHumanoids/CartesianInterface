@@ -44,6 +44,8 @@ public:
 
     TaskPtr getOpenSotTask();
 
+    TaskPtr getOpenSotParentTask();
+
     TaskDescriptionImpl::Ptr getTaskDescription() const;
 
     virtual bool onWeightChanged() override;

@@ -115,6 +115,11 @@ TaskPtr OpenSotTaskAdapter::getOpenSotTask()
     return _sub_task;
 }
 
+TaskPtr OpenSotTaskAdapter::getOpenSotParentTask()
+{
+    return _opensot_task;
+}
+
 TaskDescriptionImpl::Ptr OpenSotTaskAdapter::getTaskDescription() const
 {
     return _ci_task;
