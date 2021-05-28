@@ -278,6 +278,9 @@ bool InteractionRos::set_impedance_cb(cartesian_interface::SetImpedanceRequest& 
 
     Eigen::Matrix6d stiffness, damping;
 
+    damping.  setZero();
+    stiffness.setZero();
+
     stiffness.diagonal().head(3) = lin_stiff;
     stiffness.diagonal().tail(3) = ang_stiff;
 
@@ -286,7 +289,7 @@ bool InteractionRos::set_impedance_cb(cartesian_interface::SetImpedanceRequest& 
 
     ROS_WARN("Unsupported feat: set mass matrix");
 
-    Impedance impedance{stiffness, damping};
+    Impedance impedance(stiffness, damping);
 
     if (_ci_inter->setImpedance(impedance))
     {
