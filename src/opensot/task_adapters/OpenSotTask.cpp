@@ -97,7 +97,7 @@ OpenSoT::OptvarHelper::VariableVector OpenSotTaskAdapter::getRequiredVariables()
     return {};
 }
 
-void OpenSotTaskAdapter::update(double time, double period)
+void OpenSotTaskAdapter::update(double /*time*/, double /*period*/)
 {
     _opensot_task->setLambda(_ci_task->getLambda());
 }
