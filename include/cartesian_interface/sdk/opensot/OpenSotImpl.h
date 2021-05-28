@@ -4,7 +4,7 @@
 
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/utils/estimation/ForceEstimation.h>
-#include "opensot/OpenSotTask.h"
+#include <cartesian_interface/sdk/opensot/OpenSotTask.h>
 
 #include <OpenSoT/Solver.h>
 #include <OpenSoT/utils/AutoStack.h>
@@ -16,15 +16,19 @@ class OpenSotImpl : public CartesianInterfaceImpl
 {
     
 public:
+
+    /* Typedefs for shared pointers */
+    CARTESIO_DECLARE_SMART_PTR(OpenSotImpl)
     
     OpenSotImpl(ProblemDescription ik_problem,
                 Context::Ptr context);
 
     virtual bool update(double time, double period) override;
-
-
     
     virtual ~OpenSotImpl() override;
+
+    OpenSoT::tasks::Aggregated::TaskPtr getOpenSotTask(const std::string& task_name);
+    OpenSoT::constraints::Aggregated::ConstraintPtr getOpenSotConstraint(const std::string& constr_name);
     
 protected:
     
@@ -46,6 +50,8 @@ private:
     std::vector<OpenSotConstraintAdapter::Ptr> _constr_adapters;
     OpenSoT::OptvarHelper _vars;
     std::map<std::string, OpenSoT::AffineHelper> _vars_map;
+    std::map<std::string, OpenSoT::tasks::Aggregated::TaskPtr> _open_sot_tasks;
+    std::map<std::string, OpenSoT::constraints::Aggregated::ConstraintPtr> _open_sot_constraints;
 
     OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr _solver;
     OpenSoT::AutoStack::Ptr _autostack;
