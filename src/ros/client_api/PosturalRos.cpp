@@ -53,6 +53,11 @@ void PosturalRos::setReferencePosture(const XBot::JointNameMap & qref)
     _ref_pub.publish(msg);
 }
 
+void PosturalRos::setReferencePosture(const Eigen::VectorXd & qref)
+{
+    ///TODO
+}
+
 void PosturalRos::on_current_ref_recv(sensor_msgs::JointStateConstPtr msg)
 {
     _curr_ref_recv = true;

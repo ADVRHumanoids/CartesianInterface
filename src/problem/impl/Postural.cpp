@@ -81,6 +81,15 @@ void PosturalTaskImpl::setReferencePosture(const XBot::JointNameMap & qref)
     _model->mapToEigen(qref, _qref);
 }
 
+void PosturalTaskImpl::setReferencePosture(const Eigen::VectorXd& qref)
+{
+    if(qref.size() == _qref.size())
+    {
+        _qref = qref;
+        return;
+    }
+}
+
 void PosturalTaskImpl::setReferenceVelocity(const XBot::JointNameMap& qdotref)
 {
     _model->mapToEigen(qdotref, _qdotref);
