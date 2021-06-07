@@ -168,6 +168,14 @@ bool CartesianRt::setPoseReferenceRaw(const Eigen::Affine3d & base_T_ref)
     return _cb_queue.push(cb);
 }
 
+bool CartesianRt::setGains(const Eigen::Matrix6d& Kp, const Eigen::Matrix6d& Kd)
+{
+    auto cb = std::bind(&CartesianTask::setGains,
+                        pl::_1, Kp, Kd);
+
+    return _cb_queue.push(cb);
+}
+
 bool CartesianRt::setVelocityReference(const Eigen::Vector6d & base_vel_ref)
 {
     auto cb = std::bind(&CartesianTask::setVelocityReference,

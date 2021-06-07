@@ -116,6 +116,13 @@ public:
                                      Eigen::Vector6d * base_acc_ref = nullptr) const = 0;
 
     /**
+     * @brief getGains get both position and velocity gains
+     * @param Kp a SPD matrix
+     * @param Kd a SPD matrix
+     */
+    virtual bool getGains(const Eigen::Matrix6d& Kp, const Eigen::Matrix6d& Kd) = 0;
+
+    /**
      * @brief setPoseReference sets a new pose reference for the controller.
      * If enableOnlineTrajectoryGeneration() was called, the provided reference is
      * saturated according to the active velocity and acceleration limits.
@@ -129,6 +136,13 @@ public:
      * bypasses any trajectory generation. It is therefore less safe to use.
      */
     virtual bool setPoseReferenceRaw(const Eigen::Affine3d& base_T_ref) = 0;
+
+    /**
+     * @brief setGains set both position and velocity gains
+     * @param Kp a SPD matrix
+     * @param Kd a SPD matrix
+     */
+    virtual bool setGains(const Eigen::Matrix6d& Kp, const Eigen::Matrix6d& Kd) = 0;
 
     /**
      * @brief setVelocityReference sets a new desired velocity for the task.

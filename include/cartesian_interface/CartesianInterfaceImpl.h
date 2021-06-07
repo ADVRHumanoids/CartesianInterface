@@ -155,6 +155,8 @@ public:
     virtual bool getCurrentPose(const std::string& end_effector, Eigen::Affine3d& base_T_ee) const;
                             
     virtual State getTaskState(const std::string& end_effector) const;
+
+    virtual State getGains(const std::string& end_effector, Eigen::Matrix6d& Kp, Eigen::Matrix6d& Kd) const;
                             
     virtual bool setPoseReference(const std::string& end_effector, 
                           const Eigen::Affine3d& base_T_ref);
@@ -173,7 +175,9 @@ public:
                           
     virtual bool setPoseReferenceRaw(const std::string& end_effector, 
                              const Eigen::Affine3d& base_T_ref);
-    
+
+    virtual bool setGains(const std::string& end_effector, const Eigen::Matrix6d& Kp, const Eigen::Matrix6d& Kd);
+
     virtual bool setComPositionReference(const Eigen::Vector3d& base_com_ref);
                                  
     virtual bool setComVelocityReference(const Eigen::Vector3d& base_vel_ref);

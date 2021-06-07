@@ -329,6 +329,20 @@ int CartesianInterfaceImpl::getCurrentSegmentId(const std::string& end_effector)
     return task->getCurrentSegmentId();
 }
 
+bool CartesianInterfaceImpl::getGains(const std::string& end_effector,
+                                            Eigen::Matrix6d& Kp,
+                                            Eigen::Matrix6d& Kd)
+{
+    auto task = get_cart_task(end_effector);
+
+    if(!task)
+    {
+        return false;
+    }
+
+    return task->getGains(Kp,Kd);
+}
+
 
 bool CartesianInterfaceImpl::setPoseReference(const std::string& end_effector,
                                               const Eigen::Affine3d& w_T_ref)
@@ -371,6 +385,19 @@ bool CartesianInterfaceImpl::setPoseReferenceRaw(const std::string& end_effector
     return task->setPoseReferenceRaw(w_T_ref);
 }
 
+bool CartesianInterfaceImpl::setGains(const std::string& end_effector,
+                                      const Eigen::Matrix6d& Kp,
+                                      const Eigen::Matrix6d& Kd)
+{
+    auto task = get_cart_task(end_effector);
+
+    if(!task)
+    {
+        return false;
+    }
+
+    return task->setGains(Kp,Kd);
+}
 
 bool CartesianInterfaceImpl::setWayPoints(const std::string& end_effector,
                                           const Trajectory::WayPointVector& way_points)

@@ -225,6 +225,12 @@ bool CartesianRos::setPoseReferenceRaw(const Eigen::Affine3d& base_T_ref)
                                          __PRETTY_FUNCTION__));
 }
 
+bool CartesianRos::setGains(const Eigen::Matrix6d& Kp, const Eigen::Matrix6d& Kd)
+{
+    throw std::runtime_error(fmt::format("Unsupported function '{}'",
+                                         __PRETTY_FUNCTION__));
+}
+
 bool CartesianRos::setVelocityReference(const Eigen::Vector6d& base_vel_ref)
 {
     return setVelocityReference(base_vel_ref, "");

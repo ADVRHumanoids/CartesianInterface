@@ -90,6 +90,8 @@ public:
 
     virtual bool setPoseReferenceRaw(const Eigen::Affine3d& base_T_ref);
 
+    virtual bool setGains(const Eigen::Matrix6d& Kp, const Eigen::Matrix6d& Kd);
+
     virtual bool setVelocityReference(const Eigen::Vector6d& base_vel_ref);
 
     virtual bool getPoseTarget(Eigen::Affine3d& base_T_ref) const;

@@ -313,6 +313,13 @@ bool CartesianTaskImpl::setPoseReferenceRaw(const Eigen::Affine3d & base_T_ref)
     return ret;
 }
 
+bool CartesianTaskImpl::setGains(const Eigen::Matrix6d& Kp, const Eigen::Matrix6d& Kd)
+{
+
+
+    return true;
+}
+
 bool CartesianTaskImpl::setVelocityReference(const Eigen::Vector6d & base_vel_ref)
 {
     if(getActivationState() == ActivationState::Disabled)
