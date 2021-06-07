@@ -754,6 +754,43 @@ bool XBot::Cartesian::CartesianInterfaceImpl::setReferencePosture(const XBot::Jo
     return true;
 }
 
+bool XBot::Cartesian::CartesianInterfaceImpl::setReferencePosture(const Eigen::VectorXd& qref)
+{
+    if(!postural_task_defined())
+    {
+        return false;
+    }
+
+    if(_postural_task_map.size() > 1)
+    {
+        Logger::warning("Many postural tasks defined, results might be inaccurate! \n");
+    }
+
+    _postural_task_map.begin()->second->setReferencePosture(qref);
+
+    return true;
+}
+
+bool XBot::Cartesian::CartesianInterfaceImpl::setReferencePosture(const XBot::JointNameMap& qref, const XBot::JointNameMap& qdotref)
+{
+    if(setReferencePosture(qref))
+        _postural_task_map.begin()->second->setReferenceVelocity(qdotref);
+    else
+        return false;
+
+    return true;
+}
+
+bool XBot::Cartesian::CartesianInterfaceImpl::setReferencePosture(const Eigen::VectorXd& qref, const Eigen::VectorXd& qdotref)
+{
+    if(setReferencePosture(qref))
+        _postural_task_map.begin()->second->setReferenceVelocity(qdotref);
+    else
+        return false;
+
+    return true;
+}
+
 void XBot::Cartesian::CartesianInterfaceImpl::enableOtg(double expected_dt)
 {
     XBot::Logger::info(Logger::Severity::LOW, "Online trajectory generator enabled \n");
