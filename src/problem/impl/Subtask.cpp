@@ -83,8 +83,6 @@ const Eigen::MatrixXd& SubtaskImpl::getWeight() const
                        _tmp_weight_small,
                        _indices);
 
-    std::cout << _tmp_weight_small << std::endl;
-
     return _tmp_weight_small;
 }
 
@@ -93,8 +91,6 @@ bool SubtaskImpl::setWeight(const Eigen::MatrixXd& value_small)
     _tmp_weight_big = _task->getWeight();
     ::weightSmallToBig(value_small, _tmp_weight_big, _indices);
     _task->setWeight(_tmp_weight_big);
-
-    std::cout << _tmp_weight_big << std::endl;
 
     return true;
 }
