@@ -77,7 +77,7 @@ PYBIND11_MODULE(pyci, m) {
     py::class_<PosturalTask,
             TaskDescription,
             PosturalTask::Ptr>(m, "PosturalTask", py::multiple_inheritance())
-            .def("setReferencePosture",  &PosturalTask::setReferencePosture)
+            .def("setReferencePosture", (void (PosturalTask::*)(const XBot::JointNameMap&)) &PosturalTask::setReferencePosture)
             .def("getReferencePostureMap",  py_postural_get_reference_map);
 
     py::class_<InteractionTask,
@@ -142,7 +142,7 @@ PYBIND11_MODULE(pyci, m) {
             .def("getAccelerationLimits", py_get_acceleration_limits)
             .def("setVelocityLimits", &RosClient::setVelocityLimits)
             .def("setAccelerationLimits", &RosClient::setAccelerationLimits)
-            .def("setReferencePosture", &RosClient::setReferencePosture)
+            .def("setReferencePosture",  (bool (RosClient::*)(const XBot::JointNameMap&)) &RosClient::setReferencePosture)
             .def("setTargetPose", py_send_target_pose,
                  py::arg("task_name"),
                  py::arg("pose"),
