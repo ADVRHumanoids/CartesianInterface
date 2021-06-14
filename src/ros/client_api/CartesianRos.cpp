@@ -25,10 +25,10 @@ CartesianRos::CartesianRos(std::string name,
                                              _cart_info_cli.getService()));
     }
 
-    if(!_action_cli.isServerConnected())
+    if(!_action_cli.waitForServer(ros::Duration(2.0)))
     {
-//        throw std::runtime_error(fmt::format("Unable to reach action server '{}'",
-//                                             nh.resolveName(name + "/reach")));
+        throw std::runtime_error(fmt::format("Unable to reach action server '{}'",
+                                             _nh.resolveName(getName() + "/reach")));
     }
 
     _set_base_link_cli = _nh.serviceClient<SetBaseLink>(name + "/set_base_link");
@@ -286,12 +286,6 @@ bool CartesianRos::setWayPoints(const Trajectory::WayPointVector& way_points,
         goal.frames.push_back(frame);
         goal.time.push_back(f.time);
     }
-
-//    if(!_action_cli.waitForServer(ros::Duration(2.0)))
-//    {
-//        throw std::runtime_error(fmt::format("Unable to reach action server '{}'",
-//                                             _nh.resolveName(getName() + "/reach")));
-//    }
 
     _action_cli.sendGoal(goal,
                          boost::bind(&CartesianRos::on_action_done, this, _1, _2),
