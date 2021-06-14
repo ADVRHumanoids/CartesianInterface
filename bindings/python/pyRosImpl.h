@@ -3,6 +3,8 @@
 #include <pybind11/stl.h>
 #include <cartesian_interface/ros/RosClient.h>
 #include <cartesian_interface/problem/Interaction.h>
+#include "ros/client_api/CartesianRos.h"
+#include "ros/client_api/InteractionRos.h"
 
 namespace py = pybind11;
 using namespace XBot::Cartesian;
@@ -188,4 +190,18 @@ auto py_get_pose_from_tf(RosClient& r, const std::string& source_frame, const st
 
     return T;
 
+}
+
+
+
+
+auto py_wait_reach_completed_gil_release_cart(ClientApi::CartesianRos& c, double timeout)
+{
+    py::gil_scoped_release gil_release;
+    return c.waitReachCompleted(timeout);
+}
+
+auto py_wait_reach_completed_gil_release_inte(ClientApi::InteractionRos& c, double timeout)
+{
+    return py_wait_reach_completed_gil_release_cart(c, timeout);
 }

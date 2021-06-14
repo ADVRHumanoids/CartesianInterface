@@ -98,7 +98,7 @@ PYBIND11_MODULE(pyci, m) {
     py::class_<ClientApi::InteractionRos,
             InteractionTask,
             ClientApi::InteractionRos::Ptr>(m, "InteractionRos", py::multiple_inheritance())
-            .def("waitReachCompleted", &ClientApi::InteractionRos::waitReachCompleted);
+            .def("waitReachCompleted", py_wait_reach_completed_gil_release_inte);
 
     py::class_<InteractionTaskImpl,
             InteractionTask,
@@ -107,7 +107,7 @@ PYBIND11_MODULE(pyci, m) {
     py::class_<ClientApi::CartesianRos,
             CartesianTask,
             ClientApi::CartesianRos::Ptr>(m, "CartesianTaskRos", py::multiple_inheritance())
-            .def("waitReachCompleted", &ClientApi::CartesianRos::waitReachCompleted);
+            .def("waitReachCompleted", py_wait_reach_completed_gil_release_cart);
 
     py::class_<ClientApi::PosturalRos,
             PosturalTask,
