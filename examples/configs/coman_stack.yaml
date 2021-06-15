@@ -1,6 +1,6 @@
 solver_options:
-    regularization: 1e-3
-    back_end: "qpoases"
+    regularization: 0.
+    front_end: "hcod"
 
 stack:
     - ["LeftFoot", "RightFoot", "ComXY"]

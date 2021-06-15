@@ -10,6 +10,7 @@
 #include <OpenSoT/solvers/iHQP.h>
 #include <OpenSoT/solvers/nHQP.h>
 #include <OpenSoT/solvers/l1HQP.h>
+#include <OpenSoT/solvers/HCOD.h>
 
 #ifdef _GLPK_FOUND
     #define GLPK_FOUND true
@@ -124,6 +125,12 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
             }
         }
 
+        return std::move(frontend);
+    }
+    else if(front_end_string == "hcod")
+    {
+        auto frontend = SotUtils::make_shared<OpenSoT::solvers::HCOD>(
+                    as.getStack(), as.getBounds(), eps_regularisation);
         return std::move(frontend);
     }
     else

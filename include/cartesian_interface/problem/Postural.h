@@ -42,6 +42,12 @@ namespace XBot { namespace Cartesian {
         virtual void setReferencePosture(const JointNameMap& qref) = 0;
 
         /**
+         * @brief setReferencePosture
+         * @param qref
+         */
+        virtual void setReferencePosture(const Eigen::VectorXd& qref) = 0;
+
+        /**
          * @brief setReferenceVelocity
          * @param qdotref
          */
