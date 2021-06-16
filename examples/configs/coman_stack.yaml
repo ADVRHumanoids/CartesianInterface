@@ -1,5 +1,5 @@
 solver_options:
-    regularization: 0.
+    regularization: 1e-4
     front_end: "hcod"
 
 stack:

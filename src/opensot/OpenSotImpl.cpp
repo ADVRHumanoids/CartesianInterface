@@ -29,6 +29,8 @@ using namespace XBot::Cartesian;
 
 CARTESIO_REGISTER_SOLVER_PLUGIN(OpenSotImpl, OpenSot)
 
+#define EPS_REGULARISATION_SCALING_FACTOR 1e12
+
 namespace
 {
 OpenSoT::solvers::solver_back_ends backend_from_string(std::string back_end_string)
@@ -130,7 +132,7 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
     else if(front_end_string == "hcod")
     {
         auto frontend = SotUtils::make_shared<OpenSoT::solvers::HCOD>(
-                    as.getStack(), as.getBounds(), eps_regularisation);
+                    as.getStack(), as.getBounds(), eps_regularisation/EPS_REGULARISATION_SCALING_FACTOR); //we do not need the scaling factor here!
         return std::move(frontend);
     }
     else
@@ -363,7 +365,7 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
     if(has_config() && get_config()["regularization"])
     {
         eps_regularization = get_config()["regularization"].as<double>();
-        eps_regularization *= 1e12;
+        eps_regularization *= EPS_REGULARISATION_SCALING_FACTOR;
     }
 
     if(has_config() && get_config()["force_space_references"])
