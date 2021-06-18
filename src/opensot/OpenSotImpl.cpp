@@ -133,6 +133,16 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
     {
         auto frontend = SotUtils::make_shared<OpenSoT::solvers::HCOD>(
                     as.getStack(), as.getBounds(), eps_regularisation/EPS_REGULARISATION_SCALING_FACTOR); //we do not need the scaling factor here!
+
+        if(options["disable_weights_computation"])
+        {
+            bool option = options["disable_weights_computation"].as<bool>();
+            frontend->setDisableWeightsComputation(option);
+            if(option)
+                Logger::info("hcod solver option disable_weights_computation set to true\n");
+        }
+
+
         return std::move(frontend);
     }
     else
