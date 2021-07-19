@@ -21,7 +21,7 @@ ConstraintPtr OpenSotVelocityLimitsAdapter::constructConstraint()
     Eigen::VectorXd q;
     _model->getJointPosition(q);
 
-    _opensot_vlim = boost::make_shared<VelocityLimitsSoT>(_ci_vlim->getQdotMax(),
+    _opensot_vlim = std::make_shared<VelocityLimitsSoT>(_ci_vlim->getQdotMax(),
                                                  _ctx->params()->getControlPeriod());
 
     return _opensot_vlim;

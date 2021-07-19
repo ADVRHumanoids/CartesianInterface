@@ -17,8 +17,8 @@ TaskPtr OpenSotComAdapter::constructTask()
     Eigen::VectorXd q;
     _model->getJointPosition(q);
 
-    _opensot_com = boost::make_shared<ComSoT>(q,
-                                              const_cast<ModelInterface&>(*_model));
+    _opensot_com = std::make_shared<ComSoT>(q,
+                                            const_cast<ModelInterface&>(*_model));
 
     return _opensot_com;
 }
