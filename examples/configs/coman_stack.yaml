@@ -1,9 +1,11 @@
 solver_options:
     regularization: 1e-4
     front_end: "hcod"
+    disable_weights_computation: False
 
 stack:
-    - ["LeftFoot", "RightFoot", "ComXY"]
+    - ["LeftFoot", "RightFoot"] 
+    - ["ComXY"]
     - ["LeftArm", "RightArm"]
     - ["Postural"]
 
@@ -25,6 +27,7 @@ LeftArm:
     distal_link: "LSoftHand"
     lambda: 0.1
     active: false
+    weight: 10.
 
 RightArm:
     type: "Cartesian"
