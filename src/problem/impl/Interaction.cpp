@@ -1,6 +1,12 @@
 #include "problem/Interaction.h"
 #include "fmt/format.h"
 
+#define TASK_SPACE_DIM 6
+#define SAFETY_FACTOR 1.1
+#define TRANS_ERROR_MAX 0.1
+#define ROT_ERROR_MAX 1.0
+#define MATCH_THRESHOLD 0.001
+
 using namespace XBot::Cartesian;
 
 InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
@@ -11,6 +17,14 @@ InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
     _fref         (Eigen::Vector6d::Zero()),
 	_interpolator (new Interpolator<Eigen::Matrix6d>)
 {
+    int dof = _model->getJointNum();
+
+    _k.setZero(dof); _q.setZero(dof); _q_ref.setZero(dof); _g.setZero(dof);
+    _tau.setZero(dof); _tau_ref.setZero(dof); _delta.setZero(dof); _temp.setZero(dof);
+
+    _JtK.setZero(dof, TASK_SPACE_DIM); _J.setZero(TASK_SPACE_DIM, dof);
+    _JtKsvd.compute(_JtK, Eigen::ComputeThinU | Eigen::ComputeThinV);
+
     std::vector<double> stiffness, damping, inertia, fmin, fmax;
 
     if(task_node["stiffness"])
@@ -234,6 +248,249 @@ void XBot::Cartesian::InteractionTaskImpl::log(MatLogger2::Ptr logger,
 }
 
 
+void XBot::Cartesian::InteractionTaskImpl::reset()
+{
+    // note: reset should be called only when the robot is not moving
+
+    // provides torque reference continuity
+
+    _T = matchTorqueReference();
+
+    _vel.setZero();
+    _acc.setZero();
+
+    _state = State::Online;
+
+    reset_otg();
+}
+
+
+void XBot::Cartesian::InteractionTaskImpl::computeCurrentTorque(Eigen::VectorXd& tau)
+{
+    XBot::RobotInterface::Ptr robot = XBot::RobotInterface::getRobot(_model->getConfigOptions());
+
+    robot->sense(false);
+
+    robot->getStiffness(_k);
+    robot->getJointPosition(_q);
+    robot->getPositionReference(_q_ref);
+
+    robot->getEffortReference(_tau_ref);
+
+    tau.noalias() = _tau_ref;
+    tau.noalias() += _k.asDiagonal() * (_q_ref - _q);
+}
+
+
+bool XBot::Cartesian::InteractionTaskImpl::compareCurrentInteractionTorque(const Eigen::VectorXd& error, const Eigen::VectorXd& tau)
+{
+    /* tau = g + JtKe */
+
+    _temp = tau;
+
+    computeJtK(_JtK);
+    subtractGravity(_temp);
+
+    _temp.noalias() -= _JtK * error;
+
+    return _temp.norm() < MATCH_THRESHOLD;
+}
+
+
+void XBot::Cartesian::InteractionTaskImpl::computeJtK(Eigen::MatrixXd& jtk)
+{
+    if(_base_link == "world")
+    {
+        _model->getJacobian(_distal_link, _J);
+    }
+    else
+    {
+        _model->getJacobian(_distal_link, _base_link, _J);
+    }
+
+    jtk.noalias() = _J.transpose() * _impedance.stiffness;
+}
+
+
+void XBot::Cartesian::InteractionTaskImpl::subtractGravity(Eigen::VectorXd& tau)
+{
+    _model->computeGravityCompensation(_g);
+
+    /**/
+
+    tau -= _g;
+}
+
+
+void XBot::Cartesian::InteractionTaskImpl::computeEquivalentCartesianError(const Eigen::VectorXd& tau, Eigen::Vector6d& error)
+{
+    for (int i = 0; i < 3; i++)
+    {
+        _temp = tau;
+
+        computeJtK(_JtK);
+        subtractGravity(_temp);
+
+        // least squares (minimum norm) solution:
+
+        _JtKsvd.compute(_JtK, Eigen::ComputeThinU | Eigen::ComputeThinV);
+
+        error = _JtKsvd.solve(_temp);
+
+        double kt = error.head(3).norm() / TRANS_ERROR_MAX;
+        double ko = error.tail(3).norm() / ROT_ERROR_MAX;
+
+        if (kt <= 1 && ko <= 1)
+        {
+            break;
+        }
+
+        /* automatically correct impedance to respect error constraints */
+
+        _impedance.stiffness = _impedance.stiffness * SAFETY_FACTOR * std::max(kt, ko);
+    }
+}
+
+
+bool XBot::Cartesian::InteractionTaskImpl::computeEquivalentCartesianReference(const Eigen::Vector6d& error, Eigen::Affine3d& pose_reference)
+{
+    // error = sin(theta/2) * u
+
+    Eigen::Vector3d translation_error = error.head(3);
+
+    /* note thet in the control algorithm the computed orientation error is multiplied by 2.0 */
+
+    Eigen::Vector3d orientation_error = error.tail(3) / 2.0;
+
+    double angle = 0.; Eigen::Vector3d axis(0., 0., 1.);
+    double norm = orientation_error.norm();
+
+    if (norm > 1.0)
+    {
+        return false;
+    }
+
+    else if (norm > 0)
+    {
+        angle = asin(norm) * 2.0;
+        axis = orientation_error / norm;
+    }
+
+    Eigen::Affine3d current_pose = get_current_pose();
+    Eigen::AngleAxisd angle_axis(angle, axis);
+
+    pose_reference.linear().noalias() = angle_axis.toRotationMatrix() * current_pose.linear();
+    pose_reference.translation().noalias() = current_pose.translation() + translation_error;
+
+    return true;
+}
+
+
+Eigen::Affine3d XBot::Cartesian::InteractionTaskImpl::matchTorqueReference()
+{
+    Eigen::Vector6d error;
+    Eigen::Affine3d pose_reference;
+
+    computeCurrentTorque(_tau);
+    computeEquivalentCartesianError(_tau, error);
+
+    if (computeEquivalentCartesianReference(error, pose_reference))
+    {
+        /* double check! */
+
+        Eigen::Vector3d orientation_error;
+        Eigen::Affine3d current_pose = get_current_pose();
+
+        XBot::Utils::computeOrientationError(pose_reference.linear(), current_pose.linear(), orientation_error);
+
+        error.head(3) = pose_reference.translation() - current_pose.translation();
+        error.tail(3) = 2.0 * orientation_error;
+
+        if (compareCurrentInteractionTorque(error, _tau))
+        {
+            return pose_reference;
+        }
+    }
+
+    return get_current_pose();
+}
+
+//Eigen::Affine3d XBot::Cartesian::InteractionTaskImpl::matchTorqueReference(const Eigen::VectorXd& tau)
+//{
+//    _model->computeGravityCompensation(_g);
+
+//    _delta = tau - _g;
+
+//    if(_base_link == "world")
+//    {
+//        _model->getJacobian(_distal_link, _J);
+//    }
+//    else
+//    {
+//        _model->getJacobian(_distal_link, _base_link, _J);
+//    }
+
+//    _JtK.noalias() = _J.transpose() * _impedance.stiffness;
+
+//    // least squares (minimum norm) solution:
+
+//    _JtKsvd.compute(_JtK, Eigen::ComputeThinU | Eigen::ComputeThinV);
+
+//    Eigen::Affine3d pose_reference;
+//    Eigen::Vector6d error = _JtKsvd.solve(_delta);
+
+//    if (getPoseReferenceFromError(error, pose_reference))
+//    {
+//        Eigen::Vector3d orientation_error;
+//        auto current_pose = get_current_pose();
+
+//        XBot::Utils::computeOrientationError(pose_reference.linear(), current_pose.linear(), orientation_error);
+
+//        error.head(3) = pose_reference.translation() - current_pose.translation();
+//        error.tail(3) = 2.0 * orientation_error;
+
+//        double residual = (_JtK * error + _g - _tau).norm();
+
+//        return pose_reference;
+//    }
+
+//    return get_current_pose();
+//}
+
+
+//bool XBot::Cartesian::InteractionTaskImpl::getPoseReferenceFromError(const Eigen::Vector6d& error, Eigen::Affine3d& pose_reference)
+//{
+//    // error = sin(theta/2) * u
+
+//    Eigen::Vector3d translation_error = error.head(3);
+//    Eigen::Vector3d orientation_error = error.tail(3) / 2.0; // !!!
+
+//    double angle = 0.;
+//    Eigen::Vector3d axis(0., 0., 1.);
+
+//    double norm = orientation_error.norm();
+
+//    if (norm > 1.0)
+//    {
+//        return false;
+//    }
+
+//    else if (norm > 0)
+//    {
+//        angle = asin(norm) * 2.0;
+//        axis = orientation_error / norm;
+//    }
+
+//    Eigen::Affine3d current_pose = get_current_pose();
+//    Eigen::AngleAxisd angle_axis(angle, axis);
+
+//    pose_reference.linear().noalias() = angle_axis.toRotationMatrix() * current_pose.linear();
+//    pose_reference.translation().noalias() = current_pose.translation() + translation_error;
+
+//    return true;
+//}
+
+
 AdmittanceTaskImpl::AdmittanceTaskImpl(YAML::Node task_node,
                                        Context::ConstPtr context):
     InteractionTaskImpl(task_node, context)
@@ -270,3 +527,9 @@ const std::vector<std::string>& XBot::Cartesian::AdmittanceTaskImpl::getForceEst
 {
     return _fest_chains;
 }
+
+#undef ROT_ERROR_MAX
+#undef SAFETY_FACTOR
+#undef TASK_SPACE_DIM
+#undef TRANS_ERROR_MAX
+#undef MATCH_THRESHOLD

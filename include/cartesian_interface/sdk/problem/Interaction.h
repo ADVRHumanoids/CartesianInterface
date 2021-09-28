@@ -4,6 +4,7 @@
 #include <cartesian_interface/sdk/problem/Cartesian.h>
 #include <cartesian_interface/problem/Interaction.h>
 
+#include "XBotInterface/RobotInterface.h"
 
 namespace XBot { namespace Cartesian {
 
@@ -32,6 +33,7 @@ public:
 
     void update(double time, double period) override;
     void log(MatLogger2::Ptr logger, bool init_logger, int buf_size) override;
+    void reset() override;
 
     const Impedance & getImpedance () override;
 	
@@ -62,6 +64,24 @@ private:
 	
 	State                              _state;
 	Interpolator<Eigen::Matrix6d>::Ptr _interpolator;
+
+    Eigen::JacobiSVD<Eigen::MatrixXd> _JtKsvd;
+
+    Eigen::MatrixXd _JtK, _J;
+    Eigen::VectorXd _k, _q, _q_ref, _g, _tau, _tau_ref, _delta, _temp;
+
+private:
+
+    Eigen::Affine3d matchTorqueReference();
+
+    void computeCurrentTorque(Eigen::VectorXd& tau);
+    void computeEquivalentCartesianError(const Eigen::VectorXd& tau, Eigen::Vector6d& error);
+
+    bool compareCurrentInteractionTorque(const Eigen::VectorXd& error, const Eigen::VectorXd& tau);
+    bool computeEquivalentCartesianReference(const Eigen::Vector6d& error, Eigen::Affine3d& pose_reference);
+
+    void computeJtK(Eigen::MatrixXd& jtk);
+    void subtractGravity(Eigen::VectorXd& tau);
 
 };
 

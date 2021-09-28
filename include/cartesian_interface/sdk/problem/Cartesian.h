@@ -113,7 +113,7 @@ public:
 
     virtual void registerObserver(TaskObserver::WeakPtr observer);
 
-private:
+protected:
 
     ControlType _ctrl_mode;
 
