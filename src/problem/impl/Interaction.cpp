@@ -25,6 +25,8 @@ InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
     _JtK.setZero(dof, TASK_SPACE_DIM); _J.setZero(TASK_SPACE_DIM, dof);
     _JtKsvd.compute(_JtK, Eigen::ComputeThinU | Eigen::ComputeThinV);
 
+    _robot = XBot::RobotInterface::getRobot(_model->getConfigOptions());
+
     std::vector<double> stiffness, damping, inertia, fmin, fmax;
 
     if(task_node["stiffness"])
@@ -267,15 +269,13 @@ void XBot::Cartesian::InteractionTaskImpl::reset()
 
 void XBot::Cartesian::InteractionTaskImpl::computeCurrentTorque(Eigen::VectorXd& tau)
 {
-    XBot::RobotInterface::Ptr robot = XBot::RobotInterface::getRobot(_model->getConfigOptions());
+    _robot->sense(false);
 
-    robot->sense(false);
+    _robot->getStiffness(_k);
+    _robot->getJointPosition(_q);
+    _robot->getPositionReference(_q_ref);
 
-    robot->getStiffness(_k);
-    robot->getJointPosition(_q);
-    robot->getPositionReference(_q_ref);
-
-    robot->getEffortReference(_tau_ref);
+    _robot->getEffortReference(_tau_ref);
 
     tau.noalias() = _tau_ref;
     tau.noalias() += _k.asDiagonal() * (_q_ref - _q);

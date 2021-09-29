@@ -70,6 +70,8 @@ private:
     Eigen::MatrixXd _JtK, _J;
     Eigen::VectorXd _k, _q, _q_ref, _g, _tau, _tau_ref, _delta, _temp;
 
+    XBot::RobotInterface::Ptr _robot;
+
 private:
 
     Eigen::Affine3d matchTorqueReference();
