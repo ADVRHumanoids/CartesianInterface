@@ -36,6 +36,8 @@ LockfreeBufferImpl::LockfreeBufferImpl(CartesianInterfaceImpl * ci,
         _tasks.push_back(t_rt);
     }
 
+    callAvailable(ci);
+
     pushState(ci, ci->getModel().get());
     updateState();
 }

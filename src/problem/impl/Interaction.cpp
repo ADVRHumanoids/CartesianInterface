@@ -256,7 +256,9 @@ void XBot::Cartesian::InteractionTaskImpl::reset()
 
     // provides torque reference continuity
 
-    _T = matchTorqueReference();
+//    _T = matchTorqueReference();
+
+    _T = get_current_pose();
 
     _vel.setZero();
     _acc.setZero();
