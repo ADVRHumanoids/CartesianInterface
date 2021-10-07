@@ -11,6 +11,7 @@ PYBIND11_MODULE(pyest, m) {
         .def(py::init<XBot::ModelInterface::ConstPtr, double>())
         .def("addLink", &ForceEstimation::add_link)
         .def("update", &ForceEstimation::update)
+        .def("setIgnoredJoint", &ForceEstimation::setIgnoredJoint)
         ;
 }
 
