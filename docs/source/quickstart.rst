@@ -62,7 +62,7 @@ For your commodity, it is better to wrap all the system setup in a single launch
 
     </launch>
 
-You can immediately start controlling you robot by executing this simple launch file!
+You can immediately start controlling your robot by executing this simple launch file!
 It is now possible to interact with you Cartesian controller directly to the auto-generated
 ROS API (``rostopic list``, ``rosservice list``), or through our C++/Python Client Library
 
