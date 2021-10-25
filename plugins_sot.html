@@ -1,75 +1,36 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Implementing OpenSot support for a custom task &mdash; CartesIO 2.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="CartesIO 2.0.0 documentation" href="index.html"/>
-        <link rel="up" title="How to expand CartesIO" href="plugins.html"/>
-        <link rel="next" title="Porting code from v1.x" href="porting.html"/>
-        <link rel="prev" title="Implementing the ROS API for a custom task" href="plugins_ros.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Porting code from v1.x" href="porting.html" />
+    <link rel="prev" title="Implementing the ROS API for a custom task" href="plugins_ros.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
-
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
-          
-
-          
+        <div class="wy-side-nav-search" >
             <a href="index.html" class="icon icon-home"> CartesIO
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
                 2.0.0
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -77,15 +38,8 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-                <p class="caption"><span class="caption-text">Design and usage</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Design and usage</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="design.html">Design notes</a></li>
@@ -101,7 +55,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="porting.html">Porting code from v1.x</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="reference/cartesian_ifc.html">CartesianInterface API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reference/problem.html">Problem Description API Reference</a></li>
@@ -109,69 +63,50 @@
 <li class="toctree-l1"><a class="reference internal" href="reference/sdk.html">SDK API Reference</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">CartesIO</a>
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">CartesIO</a>
       </nav>
 
-
-      
       <div class="wy-nav-content">
         <div class="rst-content">
-          
-
- 
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="plugins.html">How to expand CartesIO</a> &raquo;</li>
-      
-    <li>Implementing OpenSot support for a custom task</li>
+      <li>Implementing OpenSot support for a custom task</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/plugins_sot.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
   </ul>
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <div class="section" id="implementing-opensot-support-for-a-custom-task">
-<h1>Implementing OpenSot support for a custom task<a class="headerlink" href="#implementing-opensot-support-for-a-custom-task" title="Permalink to this headline">¶</a></h1>
+<h1>Implementing OpenSot support for a custom task<a class="headerlink" href="#implementing-opensot-support-for-a-custom-task" title="Permalink to this headline"></a></h1>
 <p>To implement the OpenSot support, you need to define a subclass of <code class="docutils literal notranslate"><span class="pre">OpenSotTaskAdapter</span></code>.
 You must implement:</p>
 <blockquote>
 <div><ul class="simple">
-<li>a constructor with fixed signature, which checks that the provided
-<cite>TaskDescription</cite> object is of the proper type</li>
-<li>a <code class="docutils literal notranslate"><span class="pre">constructTask</span></code> method which actually construct the OpenSot task instance</li>
-<li>an optional <code class="docutils literal notranslate"><span class="pre">initialize</span></code> override if you need to perform some post-construction operation. The
+<li><p>a constructor with fixed signature, which checks that the provided
+<cite>TaskDescription</cite> object is of the proper type</p></li>
+<li><p>a <code class="docutils literal notranslate"><span class="pre">constructTask</span></code> method which actually construct the OpenSot task instance</p></li>
+<li><p>an optional <code class="docutils literal notranslate"><span class="pre">initialize</span></code> override if you need to perform some post-construction operation. The
 base class implementation will perform all generic task operations such as setting the lambda, weight,
-indices, active joint mask, …</li>
-<li>an optional <code class="docutils literal notranslate"><span class="pre">update</span></code> override to customize the control loop. The base class method will update lambda
-weight</li>
-<li>an optional <code class="docutils literal notranslate"><span class="pre">setRequiredVariables</span></code> override to specify custom optimization variables.
-The default is that optimization is carried out over joint position increments.</li>
+indices, active joint mask, …</p></li>
+<li><p>an optional <code class="docutils literal notranslate"><span class="pre">update</span></code> override to customize the control loop. The base class method will update lambda
+weight</p></li>
+<li><p>an optional <code class="docutils literal notranslate"><span class="pre">setRequiredVariables</span></code> override to specify custom optimization variables.
+The default is that optimization is carried out over joint position increments.</p></li>
 </ul>
 </div></blockquote>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span class="cp">#ifndef OPENSOTANGULARMOMENTUM_H</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#ifndef OPENSOTANGULARMOMENTUM_H</span>
 <span class="cp">#define OPENSOTANGULARMOMENTUM_H</span>
 
 <span class="cp">#include</span> <span class="cpf">&quot;AngularMomentum.h&quot;</span><span class="cp"></span>
@@ -191,11 +126,11 @@ The default is that optimization is carried out over joint position increments.<
     <span class="n">OpenSotAngularMomentum</span><span class="p">(</span><span class="n">TaskDescription</span><span class="o">::</span><span class="n">Ptr</span> <span class="n">task</span><span class="p">,</span>
                            <span class="n">Context</span><span class="o">::</span><span class="n">ConstPtr</span> <span class="n">context</span><span class="p">);</span>
 
-    <span class="k">virtual</span> <span class="n">TaskPtr</span> <span class="nf">constructTask</span><span class="p">()</span> <span class="k">override</span><span class="p">;</span>
+    <span class="k">virtual</span> <span class="n">TaskPtr</span> <span class="n">constructTask</span><span class="p">()</span> <span class="k">override</span><span class="p">;</span>
 
-    <span class="k">virtual</span> <span class="kt">bool</span> <span class="nf">initialize</span><span class="p">(</span><span class="k">const</span> <span class="n">OpenSoT</span><span class="o">::</span><span class="n">OptvarHelper</span><span class="o">&amp;</span> <span class="n">vars</span><span class="p">)</span> <span class="k">override</span><span class="p">;</span>
+    <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">initialize</span><span class="p">(</span><span class="k">const</span> <span class="n">OpenSoT</span><span class="o">::</span><span class="n">OptvarHelper</span><span class="o">&amp;</span> <span class="n">vars</span><span class="p">)</span> <span class="k">override</span><span class="p">;</span>
 
-    <span class="k">virtual</span> <span class="kt">void</span> <span class="nf">update</span><span class="p">(</span><span class="kt">double</span> <span class="n">time</span><span class="p">,</span> <span class="kt">double</span> <span class="n">period</span><span class="p">)</span> <span class="k">override</span><span class="p">;</span>
+    <span class="k">virtual</span> <span class="kt">void</span> <span class="n">update</span><span class="p">(</span><span class="kt">double</span> <span class="n">time</span><span class="p">,</span> <span class="kt">double</span> <span class="n">period</span><span class="p">)</span> <span class="k">override</span><span class="p">;</span>
 
 <span class="k">private</span><span class="o">:</span>
 
@@ -210,7 +145,7 @@ The default is that optimization is carried out over joint position increments.<
 <span class="cp">#endif </span><span class="c1">// OPENSOTANGULARMOMENTUM_H</span>
 </pre></div>
 </div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span class="cp">#include</span> <span class="cpf">&quot;OpenSotAngularMomentum.h&quot;</span><span class="cp"></span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&quot;OpenSotAngularMomentum.h&quot;</span><span class="cp"></span>
 
 <span class="cp">#include</span> <span class="cpf">&lt;boost/make_shared.hpp&gt;</span><span class="cp"></span>
 
@@ -242,7 +177,7 @@ The default is that optimization is carried out over joint position increments.<
 <span class="p">{</span>
     <span class="k">if</span><span class="p">(</span><span class="n">vars</span><span class="p">.</span><span class="n">getAllVariables</span><span class="p">().</span><span class="n">size</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
     <span class="p">{</span>
-        <span class="k">throw</span> <span class="n">BadVariables</span><span class="p">(</span><span class="s">&quot;[OpenSotAngularMomentum] requires default variables definition&quot;</span><span class="p">);</span>
+        <span class="k">throw</span> <span class="nf">BadVariables</span><span class="p">(</span><span class="s">&quot;[OpenSotAngularMomentum] requires default variables definition&quot;</span><span class="p">);</span>
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">OpenSotTaskAdapter</span><span class="o">::</span><span class="n">initialize</span><span class="p">();</span>
@@ -259,8 +194,8 @@ The default is that optimization is carried out over joint position increments.<
 </pre></div>
 </div>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">All <code class="docutils literal notranslate"><span class="pre">*REGISTER*</span></code> macros take as second argument the task name that will be specified
+<p class="admonition-title">Note</p>
+<p>All <code class="docutils literal notranslate"><span class="pre">*REGISTER*</span></code> macros take as second argument the task name that will be specified
 by users inside the <code class="docutils literal notranslate"><span class="pre">type</span></code> yaml field. In this case, the OpenSot adapter will
 correspond to a task with <code class="docutils literal notranslate"><span class="pre">type:</span> <span class="pre">AngularMomentum</span></code></p>
 </div>
@@ -269,70 +204,32 @@ correspond to a task with <code class="docutils literal notranslate"><span class
 
            </div>
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="porting.html" class="btn btn-neutral float-right" title="Porting code from v1.x" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="plugins_ros.html" class="btn btn-neutral" title="Implementing the ROS API for a custom task" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="plugins_ros.html" class="btn btn-neutral float-left" title="Implementing the ROS API for a custom task" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="porting.html" class="btn btn-neutral float-right" title="Porting code from v1.x" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2020, Arturo Laurenzi.
-
-    </p>
+    <p>&#169; Copyright 2020, Arturo Laurenzi.</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'2.0.0',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="_static/language_data.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

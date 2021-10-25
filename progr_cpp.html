@@ -1,74 +1,36 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Programmatic API (C++) &mdash; CartesIO 2.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="CartesIO 2.0.0 documentation" href="index.html"/>
-        <link rel="next" title="Programmatic API (Python)" href="progr_py.html"/>
-        <link rel="prev" title="Joint limits ROS API" href="tasks/limitsros.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Programmatic API (Python)" href="progr_py.html" />
+    <link rel="prev" title="Joint limits ROS API" href="tasks/limitsros.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
-
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
-          
-
-          
+        <div class="wy-side-nav-search" >
             <a href="index.html" class="icon icon-home"> CartesIO
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
                 2.0.0
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -76,15 +38,8 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-                <p class="caption"><span class="caption-text">Design and usage</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Design and usage</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="design.html">Design notes</a></li>
@@ -104,7 +59,7 @@
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">How to expand CartesIO</a></li>
 <li class="toctree-l1"><a class="reference internal" href="porting.html">Porting code from v1.x</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="reference/cartesian_ifc.html">CartesianInterface API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reference/problem.html">Problem Description API Reference</a></li>
@@ -112,65 +67,47 @@
 <li class="toctree-l1"><a class="reference internal" href="reference/sdk.html">SDK API Reference</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">CartesIO</a>
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">CartesIO</a>
       </nav>
 
-
-      
       <div class="wy-nav-content">
         <div class="rst-content">
-          
-
- 
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Programmatic API (C++)</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Programmatic API (C++)</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/progr_cpp.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
   </ul>
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <div class="section" id="programmatic-api-c">
-<h1>Programmatic API (C++)<a class="headerlink" href="#programmatic-api-c" title="Permalink to this headline">¶</a></h1>
+<h1>Programmatic API (C++)<a class="headerlink" href="#programmatic-api-c" title="Permalink to this headline"></a></h1>
 <p>From C++ code, it is possible to</p>
 <blockquote>
 <div><ul class="simple">
-<li>create an instance of the <code class="docutils literal notranslate"><span class="pre">RosClient</span></code> class in order to interact with a remotely running
-instance of CartesIO</li>
-<li>create an instance of the <code class="docutils literal notranslate"><span class="pre">CartesianInterfaceImpl</span></code> class in order to actually set up and
-solve an IK problem, or..</li>
+<li><p>create an instance of the <code class="docutils literal notranslate"><span class="pre">RosClient</span></code> class in order to interact with a remotely running
+instance of CartesIO</p></li>
+<li><p>create an instance of the <code class="docutils literal notranslate"><span class="pre">CartesianInterfaceImpl</span></code> class in order to actually set up and
+solve an IK problem, or..</p></li>
 </ul>
 </div></blockquote>
 <p>Once one of these objects is created, their API is essentially shared.
 You can check a reference (doxygen generated) of the C++ API by following
 <a class="reference internal" href="reference/problem.html#cppref"><span class="std std-ref">this link</span></a>.</p>
 <div class="section" id="a-minimal-example-ros-client">
-<h2>A minimal example (ROS client)<a class="headerlink" href="#a-minimal-example-ros-client" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span class="cp">#include</span> <span class="cpf">&lt;cartesian_interface/ros/RosClient.h&gt;</span><span class="cp"></span>
+<h2>A minimal example (ROS client)<a class="headerlink" href="#a-minimal-example-ros-client" title="Permalink to this headline"></a></h2>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;cartesian_interface/ros/RosClient.h&gt;</span><span class="cp"></span>
 
 <span class="k">using</span> <span class="k">namespace</span> <span class="n">XBot</span><span class="o">::</span><span class="n">Cartesian</span><span class="p">;</span>
 
@@ -223,7 +160,7 @@ You can check a reference (doxygen generated) of the C++ API by following
 </pre></div>
 </div>
 <p>A minimal <cite>CMakeLists.txt</cite> to compile the snippet above is the following</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span> <span class="s">3.5</span><span class="p">)</span>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span> <span class="s">3.5</span><span class="p">)</span>
 
 <span class="nb">project</span><span class="p">(</span><span class="s">cartesio_example_test</span><span class="p">)</span>
 <span class="nb">find_package</span><span class="p">(</span><span class="s">catkin</span> <span class="s">REQUIRED</span> <span class="s">COMPONENTS</span> <span class="s">cartesian_interface</span><span class="p">)</span>
@@ -238,28 +175,28 @@ You can check a reference (doxygen generated) of the C++ API by following
 </div>
 </div>
 <div class="section" id="a-minimal-example-solver">
-<h2>A minimal example (Solver)<a class="headerlink" href="#a-minimal-example-solver" title="Permalink to this headline">¶</a></h2>
+<h2>A minimal example (Solver)<a class="headerlink" href="#a-minimal-example-solver" title="Permalink to this headline"></a></h2>
 <p>An example of embedding the actual solver is way more complex, due mainly to the
 setup code needed.</p>
 <div class="section" id="part-i-setup">
-<h3>Part I: setup<a class="headerlink" href="#part-i-setup" title="Permalink to this headline">¶</a></h3>
+<h3>Part I: setup<a class="headerlink" href="#part-i-setup" title="Permalink to this headline"></a></h3>
 <p>We here retrieve the minimal configuration file set, which is composed of</p>
 <blockquote>
 <div><ul class="simple">
-<li>a URDF file (for this example, we assume it to be available at <cite>URDF_PATH</cite>)</li>
-<li>an SRDF file (<cite>SRDF_PATH</cite>)</li>
-<li>a YAML file with the ik problem description (<cite>IK_PB_PATH</cite>)</li>
+<li><p>a URDF file (for this example, we assume it to be available at <cite>URDF_PATH</cite>)</p></li>
+<li><p>an SRDF file (<cite>SRDF_PATH</cite>)</p></li>
+<li><p>a YAML file with the ik problem description (<cite>IK_PB_PATH</cite>)</p></li>
 </ul>
 </div></blockquote>
 <p>Based on this, we create all required classes, which include:</p>
 <blockquote>
 <div><ul class="simple">
-<li>an <code class="docutils literal notranslate"><span class="pre">XBot::ModelInterface</span></code> object to hold the kinematic/dynamic model of the system</li>
-<li>the <code class="docutils literal notranslate"><span class="pre">XBot::Cartesian::ProblemDescription</span></code> object which describes the ik problem</li>
-<li>the <code class="docutils literal notranslate"><span class="pre">XBot::Cartesian::CartesianInterfaceImpl</span></code> object which is the actual solver</li>
+<li><p>an <code class="docutils literal notranslate"><span class="pre">XBot::ModelInterface</span></code> object to hold the kinematic/dynamic model of the system</p></li>
+<li><p>the <code class="docutils literal notranslate"><span class="pre">XBot::Cartesian::ProblemDescription</span></code> object which describes the ik problem</p></li>
+<li><p>the <code class="docutils literal notranslate"><span class="pre">XBot::Cartesian::CartesianInterfaceImpl</span></code> object which is the actual solver</p></li>
 </ul>
 </div></blockquote>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span class="cp">#include</span> <span class="cpf">&lt;cartesian_interface/CartesianInterfaceImpl.h&gt;</span><span class="cp"></span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;cartesian_interface/CartesianInterfaceImpl.h&gt;</span><span class="cp"></span>
 <span class="cp">#include</span> <span class="cpf">&lt;thread&gt;</span><span class="cp"></span>
 
 <span class="k">using</span> <span class="k">namespace</span> <span class="n">XBot</span><span class="o">::</span><span class="n">Cartesian</span><span class="p">;</span>
@@ -310,19 +247,19 @@ setup code needed.</p>
 </div>
 </div>
 <div class="section" id="part-ii-control-loop">
-<h3>Part II: control loop<a class="headerlink" href="#part-ii-control-loop" title="Permalink to this headline">¶</a></h3>
+<h3>Part II: control loop<a class="headerlink" href="#part-ii-control-loop" title="Permalink to this headline"></a></h3>
 <p>We here implement a simplistic finite state machine to command the <code class="docutils literal notranslate"><span class="pre">left_hand</span></code>
 Cartesian task to a target pose, and then exit. At all iterations, it is necessary to:</p>
 <blockquote>
 <div><ul class="simple">
-<li>call <code class="docutils literal notranslate"><span class="pre">CartesianInterface::update()</span></code> to compute the ik, which will set the optimized
-motion (in terms of joint velocity or acceleration) to the model</li>
-<li>integrate such motion to update the joint state</li>
+<li><p>call <code class="docutils literal notranslate"><span class="pre">CartesianInterface::update()</span></code> to compute the ik, which will set the optimized
+motion (in terms of joint velocity or acceleration) to the model</p></li>
+<li><p>integrate such motion to update the joint state</p></li>
 </ul>
 </div></blockquote>
 <p>Upon succesfull exit, some <cite>.mat</cite> files will be available for inspection, as they are
 auto-generated by CartesIO.</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span class="kt">int</span> <span class="n">current_state</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// hand-crafted finite state machine!</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="n">current_state</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// hand-crafted finite state machine!</span>
 <span class="kt">double</span> <span class="n">time</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 <span class="n">Eigen</span><span class="o">::</span><span class="n">VectorXd</span> <span class="n">q</span><span class="p">,</span> <span class="n">qdot</span><span class="p">,</span> <span class="n">qddot</span><span class="p">;</span>
 <span class="k">while</span><span class="p">(</span><span class="nb">true</span><span class="p">)</span>
@@ -400,8 +337,8 @@ auto-generated by CartesIO.</p>
 </div>
 </div>
 <div class="section" id="how-to-compile">
-<h2>How to compile<a class="headerlink" href="#how-to-compile" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span class="nb">find_package</span><span class="p">(</span><span class="s">cartesian_interface</span> <span class="s">REQUIRED</span><span class="p">)</span>
+<h2>How to compile<a class="headerlink" href="#how-to-compile" title="Permalink to this headline"></a></h2>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">find_package</span><span class="p">(</span><span class="s">cartesian_interface</span> <span class="s">REQUIRED</span><span class="p">)</span>
 
 <span class="nb">include_directories</span><span class="p">(</span><span class="o">${</span><span class="nv">cartesian_interface_INCLUDE_DIRS</span><span class="o">}</span><span class="p">)</span>
 
@@ -416,70 +353,32 @@ auto-generated by CartesIO.</p>
 
            </div>
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="progr_py.html" class="btn btn-neutral float-right" title="Programmatic API (Python)" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="tasks/limitsros.html" class="btn btn-neutral" title="Joint limits ROS API" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tasks/limitsros.html" class="btn btn-neutral float-left" title="Joint limits ROS API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="progr_py.html" class="btn btn-neutral float-right" title="Programmatic API (Python)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2020, Arturo Laurenzi.
-
-    </p>
+    <p>&#169; Copyright 2020, Arturo Laurenzi.</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'2.0.0',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="_static/language_data.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

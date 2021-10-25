@@ -1,74 +1,36 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CartesianInterface API Reference &mdash; CartesIO 2.0.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
-  
-  
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../genindex.html"/>
-        <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="CartesIO 2.0.0 documentation" href="../index.html"/>
-        <link rel="next" title="Problem Description API Reference" href="problem.html"/>
-        <link rel="prev" title="Porting code from v1.x" href="../porting.html"/> 
-
-  
-  <script src="../_static/js/modernizr.min.js"></script>
-
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Problem Description API Reference" href="problem.html" />
+    <link rel="prev" title="Porting code from v1.x" href="../porting.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
-
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
-          
-
-          
+        <div class="wy-side-nav-search" >
             <a href="../index.html" class="icon icon-home"> CartesIO
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
                 2.0.0
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -76,15 +38,8 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-                <p class="caption"><span class="caption-text">Design and usage</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Design and usage</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../design.html">Design notes</a></li>
@@ -95,7 +50,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../plugins.html">How to expand CartesIO</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../porting.html">Porting code from v1.x</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">CartesianInterface API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem.html">Problem Description API Reference</a></li>
@@ -103,278 +58,265 @@
 <li class="toctree-l1"><a class="reference internal" href="sdk.html">SDK API Reference</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">CartesIO</a>
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">CartesIO</a>
       </nav>
 
-
-      
       <div class="wy-nav-content">
         <div class="rst-content">
-          
-
- 
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
-      
-    <li>CartesianInterface API Reference</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>CartesianInterface API Reference</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/reference/cartesian_ifc.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
   </ul>
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <div class="section" id="cartesianinterface-api-reference">
-<span id="cartesian-ifc"></span><h1>CartesianInterface API Reference<a class="headerlink" href="#cartesianinterface-api-reference" title="Permalink to this headline">¶</a></h1>
+<span id="cartesian-ifc"></span><h1>CartesianInterface API Reference<a class="headerlink" href="#cartesianinterface-api-reference" title="Permalink to this headline"></a></h1>
 <p>The header files <code class="docutils literal notranslate"><span class="pre">CartesianInterface.h</span></code> and <code class="docutils literal notranslate"><span class="pre">CartesianInterfaceImpl.h</span></code>
 contain the API definition for the main CartesIO class, which users can load
 via the provided factory method <code class="docutils literal notranslate"><span class="pre">CartesianInterfaceImpl::MakeInstance()</span></code>.
 After loading, the recommended way to interact with the defined tasks
 and constraint is to use their own specific APIs, as
 obtained via the getTask() method.</p>
-<dl class="class">
-<dt id="_CPPv4N4XBot9Cartesian18CartesianInterfaceE">
-<span id="_CPPv3N4XBot9Cartesian18CartesianInterfaceE"></span><span id="_CPPv2N4XBot9Cartesian18CartesianInterfaceE"></span><span id="XBot::Cartesian::CartesianInterface"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterface"></span><em class="property">class </em><code class="descname">CartesianInterface</code><a class="headerlink" href="#_CPPv4N4XBot9Cartesian18CartesianInterfaceE" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N4XBot9Cartesian18CartesianInterfaceE">
+<span id="_CPPv3N4XBot9Cartesian18CartesianInterfaceE"></span><span id="_CPPv2N4XBot9Cartesian18CartesianInterfaceE"></span><span id="XBot::Cartesian::CartesianInterface"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterface"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">XBot</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Cartesian</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">CartesianInterface</span></span></span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian18CartesianInterfaceE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>The <a class="reference internal" href="#classXBot_1_1Cartesian_1_1CartesianInterface"><span class="std std-ref">CartesianInterface</span></a> class provides interfaces to perform cartesian control of floating base robots in a generic fashion. </p>
 <p>The recommended way to interact with the defined tasks and constraint is to use their own specific APIs, as obtained via the <a class="reference internal" href="#classXBot_1_1Cartesian_1_1CartesianInterface_1a20ba71389c69b0607a765790af65785d"><span class="std std-ref">getTask()</span></a> method. </p>
 <p>Subclassed by <a class="reference internal" href="#classXBot_1_1Cartesian_1_1CartesianInterfaceImpl"><span class="std std-ref">XBot::Cartesian::CartesianInterfaceImpl</span></a></p>
-<div class="breathe-sectiondef container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="function">
-<dt id="_CPPv4N4XBot9Cartesian18CartesianInterface6updateEdd">
-<span id="_CPPv3N4XBot9Cartesian18CartesianInterface6updateEdd"></span><span id="_CPPv2N4XBot9Cartesian18CartesianInterface6updateEdd"></span><span id="XBot::Cartesian::CartesianInterface::update__double.double"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterface_1aecca0c57d3466b937c24235ac20853aa"></span><em class="property">virtual</em> bool <code class="descname">update</code><span class="sig-paren">(</span>double <em>time</em>, double <em>period</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian18CartesianInterface6updateEdd" title="Permalink to this definition">¶</a><br /></dt>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4XBot9Cartesian18CartesianInterface6updateEdd">
+<span id="_CPPv3N4XBot9Cartesian18CartesianInterface6updateEdd"></span><span id="_CPPv2N4XBot9Cartesian18CartesianInterface6updateEdd"></span><span id="XBot::Cartesian::CartesianInterface::update__double.double"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterface_1aecca0c57d3466b937c24235ac20853aa"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">update</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">period</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian18CartesianInterface6updateEdd" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Update function. It must be called periodically inside the user control loop. </p>
-<p><dl class="docutils">
-<dt><strong>Return</strong></dt><dd>true if no errors occurred </dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time [s] </li>
-<li><code class="docutils literal notranslate"><span class="pre">period</span></code>: period between last call and current one [s] </li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> – current time [s] </p></li>
+<li><p><strong>period</strong> – period between last call and current one [s] </p></li>
 </ul>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>true if no errors occurred </p>
+</dd>
 </dl>
-</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="_CPPv4N4XBot9Cartesian18CartesianInterface5resetEd">
-<span id="_CPPv3N4XBot9Cartesian18CartesianInterface5resetEd"></span><span id="_CPPv2N4XBot9Cartesian18CartesianInterface5resetEd"></span><span id="XBot::Cartesian::CartesianInterface::reset__double"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterface_1a59dd00004bc6a524e603b7ba06df4145"></span><em class="property">virtual</em> bool <code class="descname">reset</code><span class="sig-paren">(</span>double <em>time</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian18CartesianInterface5resetEd" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4XBot9Cartesian18CartesianInterface5resetEd">
+<span id="_CPPv3N4XBot9Cartesian18CartesianInterface5resetEd"></span><span id="_CPPv2N4XBot9Cartesian18CartesianInterface5resetEd"></span><span id="XBot::Cartesian::CartesianInterface::reset__double"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterface_1a59dd00004bc6a524e603b7ba06df4145"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">reset</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian18CartesianInterface5resetEd" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Reset all cartesian references to current model pose. It also resets time. </p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: Current time </li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>time</strong> – Current time </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="_CPPv4N4XBot9Cartesian18CartesianInterface10resetWorldERKN5Eigen8Affine3dE">
-<span id="_CPPv3N4XBot9Cartesian18CartesianInterface10resetWorldERKN5Eigen8Affine3dE"></span><span id="_CPPv2N4XBot9Cartesian18CartesianInterface10resetWorldERKN5Eigen8Affine3dE"></span><span id="XBot::Cartesian::CartesianInterface::resetWorld__Eigen::Affine3dCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterface_1a5736c5a8427d20d22cee1293c5f44846"></span><em class="property">virtual</em> bool <code class="descname">resetWorld</code><span class="sig-paren">(</span><em class="property">const</em> Eigen::Affine3d &amp;<em>w_T_new_world</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian18CartesianInterface10resetWorldERKN5Eigen8Affine3dE" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4XBot9Cartesian18CartesianInterface10resetWorldERKN5Eigen8Affine3dE">
+<span id="_CPPv3N4XBot9Cartesian18CartesianInterface10resetWorldERKN5Eigen8Affine3dE"></span><span id="_CPPv2N4XBot9Cartesian18CartesianInterface10resetWorldERKN5Eigen8Affine3dE"></span><span id="XBot::Cartesian::CartesianInterface::resetWorld__Eigen::Affine3dCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterface_1a5736c5a8427d20d22cee1293c5f44846"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">resetWorld</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Eigen</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Affine3d</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w_T_new_world</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian18CartesianInterface10resetWorldERKN5Eigen8Affine3dE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Reset the world frame and call <a class="reference internal" href="#classXBot_1_1Cartesian_1_1CartesianInterface_1a59dd00004bc6a524e603b7ba06df4145"><span class="std std-ref">reset()</span></a>. </p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><code class="docutils literal notranslate"><span class="pre">w_T_new_world</span></code>: is the new world pose w.r.t. old world </li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>w_T_new_world</strong> – is the new world pose w.r.t. old world </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="_CPPv4NK4XBot9Cartesian18CartesianInterface11getTaskListEv">
-<span id="_CPPv3NK4XBot9Cartesian18CartesianInterface11getTaskListEv"></span><span id="_CPPv2NK4XBot9Cartesian18CartesianInterface11getTaskListEv"></span><span id="XBot::Cartesian::CartesianInterface::getTaskListC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterface_1a88abd97e74177710069d0de1fdd9e802"></span><em class="property">virtual</em> <em class="property">const</em> std::vector&lt;std::string&gt; &amp;<code class="descname">getTaskList</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian18CartesianInterface11getTaskListEv" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK4XBot9Cartesian18CartesianInterface11getTaskListEv">
+<span id="_CPPv3NK4XBot9Cartesian18CartesianInterface11getTaskListEv"></span><span id="_CPPv2NK4XBot9Cartesian18CartesianInterface11getTaskListEv"></span><span id="XBot::Cartesian::CartesianInterface::getTaskListC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterface_1a88abd97e74177710069d0de1fdd9e802"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">getTaskList</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4NK4XBot9Cartesian18CartesianInterface11getTaskListEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>getTaskList returns the list of all defined tasks and constraints; returned elements may be used as arguments to <a class="reference internal" href="#classXBot_1_1Cartesian_1_1CartesianInterface_1a20ba71389c69b0607a765790af65785d"><span class="std std-ref">getTask()</span></a> </p>
 </dd></dl>
 
-<dl class="function">
-<dt id="_CPPv4N4XBot9Cartesian18CartesianInterface7getTaskERKNSt6stringE">
-<span id="_CPPv3N4XBot9Cartesian18CartesianInterface7getTaskERKNSt6stringE"></span><span id="_CPPv2N4XBot9Cartesian18CartesianInterface7getTaskERKNSt6stringE"></span><span id="XBot::Cartesian::CartesianInterface::getTask__ssCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterface_1a20ba71389c69b0607a765790af65785d"></span><em class="property">virtual</em> <a class="reference internal" href="task.html#_CPPv4N4XBot9Cartesian15TaskDescriptionE" title="XBot::Cartesian::TaskDescription">TaskDescription</a>::Ptr <code class="descname">getTask</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>task_name</em><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N4XBot9Cartesian18CartesianInterface7getTaskERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4XBot9Cartesian18CartesianInterface7getTaskERKNSt6stringE">
+<span id="_CPPv3N4XBot9Cartesian18CartesianInterface7getTaskERKNSt6stringE"></span><span id="_CPPv2N4XBot9Cartesian18CartesianInterface7getTaskERKNSt6stringE"></span><span id="XBot::Cartesian::CartesianInterface::getTask__ssCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterface_1a20ba71389c69b0607a765790af65785d"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="task.html#_CPPv4N4XBot9Cartesian15TaskDescriptionE" title="XBot::Cartesian::TaskDescription"><span class="n"><span class="pre">TaskDescription</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Ptr</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getTask</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">task_name</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian18CartesianInterface7getTaskERKNSt6stringE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>getTask returns a shared pointer to the task or constraint with given name, if it exists. It returns a null shared pointer otherwise. From CartesI/O v2.0 on, the recommended way to interact with tasks and constraints is to use the returned task handle, casted to the appropriate type (e.g. ‘<a class="reference internal" href="cartesian.html#classXBot_1_1Cartesian_1_1CartesianTask"><span class="std std-ref">CartesianTask</span></a>’) via std::dynamic_pointer_task&lt;&gt;() </p>
-<p><dl class="docutils">
-<dt><strong>Return</strong></dt><dd>a shared pointer to the task or constraint </dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><code class="docutils literal notranslate"><span class="pre">task_name</span></code>: </li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>task_name</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a shared pointer to the task or constraint </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="_CPPv4NK4XBot9Cartesian18CartesianInterface19getCurrentSegmentIdERKNSt6stringE">
-<span id="_CPPv3NK4XBot9Cartesian18CartesianInterface19getCurrentSegmentIdERKNSt6stringE"></span><span id="_CPPv2NK4XBot9Cartesian18CartesianInterface19getCurrentSegmentIdERKNSt6stringE"></span><span id="XBot::Cartesian::CartesianInterface::getCurrentSegmentId__ssCRC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterface_1a024dc4b1b5ecf5758658ef761e3f6cac"></span><em class="property">virtual</em> int <code class="descname">getCurrentSegmentId</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>end_effector</em><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK4XBot9Cartesian18CartesianInterface19getCurrentSegmentIdERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK4XBot9Cartesian18CartesianInterface19getCurrentSegmentIdERKNSt6stringE">
+<span id="_CPPv3NK4XBot9Cartesian18CartesianInterface19getCurrentSegmentIdERKNSt6stringE"></span><span id="_CPPv2NK4XBot9Cartesian18CartesianInterface19getCurrentSegmentIdERKNSt6stringE"></span><span id="XBot::Cartesian::CartesianInterface::getCurrentSegmentId__ssCRC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterface_1a024dc4b1b5ecf5758658ef761e3f6cac"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getCurrentSegmentId</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">end_effector</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4NK4XBot9Cartesian18CartesianInterface19getCurrentSegmentIdERKNSt6stringE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>If the specified task (arg #1) is performing a reaching motion, returns the index of the waypoint that is currently being processed. Otherwise, a negative value is returned. </p>
-<p><dl class="docutils">
-<dt><strong>Return</strong></dt><dd>A value between 0 and N-1 (-1 if task is not in reaching phase) </dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><code class="docutils literal notranslate"><span class="pre">Task</span></code>: name </li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Task</strong> – name </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A value between 0 and N-1 (-1 if task is not in reaching phase) </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 </div>
 </dd></dl>
 
-<dl class="class">
-<dt id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImplE">
-<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImplE"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImplE"></span><span id="XBot::Cartesian::CartesianInterfaceImpl"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl"></span><em class="property">class </em><code class="descname">CartesianInterfaceImpl</code> : <em class="property">public</em> XBot::Cartesian::<a class="reference internal" href="#_CPPv4N4XBot9Cartesian18CartesianInterfaceE" title="XBot::Cartesian::CartesianInterface">CartesianInterface</a><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImplE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Subclassed by XBot::Cartesian::RosClient</p>
-<div class="breathe-sectiondef container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="function">
-<dt id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl22CartesianInterfaceImplE18ProblemDescriptionN7Context3PtrE">
-<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImpl22CartesianInterfaceImplE18ProblemDescriptionN7Context3PtrE"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImpl22CartesianInterfaceImplE18ProblemDescriptionN7Context3PtrE"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::CartesianInterfaceImpl__ProblemDescription.Context::Ptr"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a4453727343f6c99559be36b1b4a39f40"></span><code class="descname">CartesianInterfaceImpl</code><span class="sig-paren">(</span>ProblemDescription <em>ik_problem</em>, Context::Ptr <em>context</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl22CartesianInterfaceImplE18ProblemDescriptionN7Context3PtrE" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImplE">
+<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImplE"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImplE"></span><span id="XBot::Cartesian::CartesianInterfaceImpl"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">XBot</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Cartesian</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">CartesianInterfaceImpl</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">XBot</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Cartesian</span></span><span class="p"><span class="pre">::</span></span><a class="reference internal" href="#_CPPv4N4XBot9Cartesian18CartesianInterfaceE" title="XBot::Cartesian::CartesianInterface"><span class="n"><span class="pre">CartesianInterface</span></span></a><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImplE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>The <a class="reference internal" href="#classXBot_1_1Cartesian_1_1CartesianInterfaceImpl"><span class="std std-ref">CartesianInterfaceImpl</span></a> class allows to implement the interface given by <a class="reference internal" href="#classXBot_1_1Cartesian_1_1CartesianInterface"><span class="std std-ref">CartesianInterface</span></a>, and provides a factory method to load such implementations. </p>
+<p>Subclassed by XBot::Cartesian::LockfreeBufferImpl, XBot::Cartesian::RosClient</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl22CartesianInterfaceImplE18ProblemDescriptionN7Context3PtrE">
+<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImpl22CartesianInterfaceImplE18ProblemDescriptionN7Context3PtrE"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImpl22CartesianInterfaceImplE18ProblemDescriptionN7Context3PtrE"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::CartesianInterfaceImpl__ProblemDescription.Context::Ptr"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a4453727343f6c99559be36b1b4a39f40"></span><span class="sig-name descname"><span class="n"><span class="pre">CartesianInterfaceImpl</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ProblemDescription</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">ik_problem</span></span>, <span class="n"><span class="pre">Context</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Ptr</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">context</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl22CartesianInterfaceImplE18ProblemDescriptionN7Context3PtrE" title="Permalink to this definition"></a><br /></dt>
 <dd><p><a class="reference internal" href="#classXBot_1_1Cartesian_1_1CartesianInterfaceImpl"><span class="std std-ref">CartesianInterfaceImpl</span></a> constructor. Most often, users should not use directly this. Rather, they should dynamically load an implementation via the factory method <a class="reference internal" href="#classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a685190315b582d15274607ba227c2b1a"><span class="std std-ref">MakeInstance()</span></a>. </p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><code class="docutils literal notranslate"><span class="pre">ik_problem</span></code>: is a description of the problem to be solved </li>
-<li><code class="docutils literal notranslate"><span class="pre">context</span></code>: holds some data structures used by CartesIO, such as the robot model. </li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ik_problem</strong> – is a description of the problem to be solved </p></li>
+<li><p><strong>context</strong> – holds some data structures used by CartesIO, such as the robot model. </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl8getModelEv">
-<span id="_CPPv3NK4XBot9Cartesian22CartesianInterfaceImpl8getModelEv"></span><span id="_CPPv2NK4XBot9Cartesian22CartesianInterfaceImpl8getModelEv"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::getModelC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a3c2d86b4c3de2870fef66c81f996a7fd"></span>ModelInterface::Ptr <code class="descname">getModel</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl8getModelEv" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl8getModelEv">
+<span id="_CPPv3NK4XBot9Cartesian22CartesianInterfaceImpl8getModelEv"></span><span id="_CPPv2NK4XBot9Cartesian22CartesianInterfaceImpl8getModelEv"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::getModelC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a9832b0b44b76d53487034a5d333e6d9f"></span><span class="n"><span class="pre">ModelInterface</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Ptr</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getModel</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl8getModelEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>getModel returns a shared pointer to the robot model used by this instance </p>
 </dd></dl>
 
-<dl class="function">
-<dt id="_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl12getIkProblemEv">
-<span id="_CPPv3NK4XBot9Cartesian22CartesianInterfaceImpl12getIkProblemEv"></span><span id="_CPPv2NK4XBot9Cartesian22CartesianInterfaceImpl12getIkProblemEv"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::getIkProblemC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1aa62cc595c7280a96bd6793f548263e8a"></span><em class="property">const</em> ProblemDescription &amp;<code class="descname">getIkProblem</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl12getIkProblemEv" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl12getIkProblemEv">
+<span id="_CPPv3NK4XBot9Cartesian22CartesianInterfaceImpl12getIkProblemEv"></span><span id="_CPPv2NK4XBot9Cartesian22CartesianInterfaceImpl12getIkProblemEv"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::getIkProblemC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a27df04a042d4ebdc16aa62e8e27a59c7"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">ProblemDescription</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">getIkProblem</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl12getIkProblemEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>getIkProblem returns a copy of the problem description used to construct this instance </p>
 </dd></dl>
 
-<dl class="function">
-<dt id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl10getContextEv">
-<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImpl10getContextEv"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImpl10getContextEv"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::getContext"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a1a2b20009bc8566737890cfc2657781c"></span>Context::Ptr <code class="descname">getContext</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl10getContextEv" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl10getContextEv">
+<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImpl10getContextEv"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImpl10getContextEv"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::getContext"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a1a2b20009bc8566737890cfc2657781c"></span><span class="n"><span class="pre">Context</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Ptr</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getContext</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl10getContextEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>getContext returns the context object used to construct this instance </p>
 </dd></dl>
 
-<dl class="function">
-<dt id="_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl10getContextEv">
-<span id="_CPPv3NK4XBot9Cartesian22CartesianInterfaceImpl10getContextEv"></span><span id="_CPPv2NK4XBot9Cartesian22CartesianInterfaceImpl10getContextEv"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::getContextC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1aef0d040ffb5357ff1684bdf3478a0b7e"></span>Context::ConstPtr <code class="descname">getContext</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl10getContextEv" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl10getContextEv">
+<span id="_CPPv3NK4XBot9Cartesian22CartesianInterfaceImpl10getContextEv"></span><span id="_CPPv2NK4XBot9Cartesian22CartesianInterfaceImpl10getContextEv"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::getContextC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a613b512600070fc5c3e45b20d31fdb81"></span><span class="n"><span class="pre">Context</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ConstPtr</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getContext</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl10getContextEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>getContext returns the context object used to construct this instance </p>
 </dd></dl>
 
-<dl class="function">
-<dt id="_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl11getTaskListEv">
-<span id="_CPPv3NK4XBot9Cartesian22CartesianInterfaceImpl11getTaskListEv"></span><span id="_CPPv2NK4XBot9Cartesian22CartesianInterfaceImpl11getTaskListEv"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::getTaskListC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a9a75bd8fa03036f2ff443edd86fb2e0f"></span><em class="property">virtual</em> <em class="property">const</em> std::vector&lt;std::string&gt; &amp;<code class="descname">getTaskList</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl11getTaskListEv" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl11getSolutionEv">
+<span id="_CPPv3NK4XBot9Cartesian22CartesianInterfaceImpl11getSolutionEv"></span><span id="_CPPv2NK4XBot9Cartesian22CartesianInterfaceImpl11getSolutionEv"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::getSolutionC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a6934fca6094fbd93a1c6cee74a827010"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">map</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">Eigen</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">VectorXd</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">getSolution</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl11getSolutionEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>getSolution returns a map containing all variables generated by the solver, together with the corresponding solution at the last call to <a class="reference internal" href="#classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1ae9a2b3c86e34ccb8c664ea1e19557bf4"><span class="std std-ref">update()</span></a> </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl11getTaskListEv">
+<span id="_CPPv3NK4XBot9Cartesian22CartesianInterfaceImpl11getTaskListEv"></span><span id="_CPPv2NK4XBot9Cartesian22CartesianInterfaceImpl11getTaskListEv"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::getTaskListC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a671def47d38e07bcbbaa8b9af9dfa089"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">getTaskList</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl11getTaskListEv" title="Permalink to this definition"></a><br /></dt>
 <dd><p>getTaskList returns the list of all defined tasks and constraints; returned elements may be used as arguments to <a class="reference internal" href="#classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a14b06822fc09c0d5ed90e32bcc8f84e3"><span class="std std-ref">getTask()</span></a> </p>
 </dd></dl>
 
-<dl class="function">
-<dt id="_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl19getCurrentSegmentIdERKNSt6stringE">
-<span id="_CPPv3NK4XBot9Cartesian22CartesianInterfaceImpl19getCurrentSegmentIdERKNSt6stringE"></span><span id="_CPPv2NK4XBot9Cartesian22CartesianInterfaceImpl19getCurrentSegmentIdERKNSt6stringE"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::getCurrentSegmentId__ssCRC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a2f0f760dad786aff449d6a944381d806"></span><em class="property">virtual</em> int <code class="descname">getCurrentSegmentId</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>end_effector</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl19getCurrentSegmentIdERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl19getCurrentSegmentIdERKNSt6stringE">
+<span id="_CPPv3NK4XBot9Cartesian22CartesianInterfaceImpl19getCurrentSegmentIdERKNSt6stringE"></span><span id="_CPPv2NK4XBot9Cartesian22CartesianInterfaceImpl19getCurrentSegmentIdERKNSt6stringE"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::getCurrentSegmentId__ssCRC"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a0b473d0a5a1ab6a82f92607c4101b884"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getCurrentSegmentId</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">end_effector</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK4XBot9Cartesian22CartesianInterfaceImpl19getCurrentSegmentIdERKNSt6stringE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>If the specified task (arg #1) is performing a reaching motion, returns the index of the waypoint that is currently being processed. Otherwise, a negative value is returned. </p>
-<p><dl class="docutils">
-<dt><strong>Return</strong></dt><dd>A value between 0 and N-1 (-1 if task is not in reaching phase) </dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><code class="docutils literal notranslate"><span class="pre">Task</span></code>: name </li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Task</strong> – name </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A value between 0 and N-1 (-1 if task is not in reaching phase) </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl6updateEdd">
-<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImpl6updateEdd"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImpl6updateEdd"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::update__double.double"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1ae9a2b3c86e34ccb8c664ea1e19557bf4"></span><em class="property">virtual</em> bool <code class="descname">update</code><span class="sig-paren">(</span>double <em>time</em>, double <em>period</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl6updateEdd" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl6updateEdd">
+<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImpl6updateEdd"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImpl6updateEdd"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::update__double.double"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1ae9a2b3c86e34ccb8c664ea1e19557bf4"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">update</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">period</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl6updateEdd" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Update function. It must be called periodically inside the user control loop. </p>
-<p><dl class="docutils">
-<dt><strong>Return</strong></dt><dd>true if no errors occurred </dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time [s] </li>
-<li><code class="docutils literal notranslate"><span class="pre">period</span></code>: period between last call and current one [s] </li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> – current time [s] </p></li>
+<li><p><strong>period</strong> – period between last call and current one [s] </p></li>
 </ul>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>true if no errors occurred </p>
+</dd>
 </dl>
-</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl5resetEd">
-<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImpl5resetEd"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImpl5resetEd"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::reset__double"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1adb81e90ddbd087b2876fb1a9d4b604da"></span><em class="property">virtual</em> bool <code class="descname">reset</code><span class="sig-paren">(</span>double <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl5resetEd" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl5resetEd">
+<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImpl5resetEd"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImpl5resetEd"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::reset__double"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1adb81e90ddbd087b2876fb1a9d4b604da"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">reset</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl5resetEd" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Reset all cartesian references to current model pose. It also resets time. </p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: Current time </li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>time</strong> – Current time </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl10resetWorldERKN5Eigen8Affine3dE">
-<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImpl10resetWorldERKN5Eigen8Affine3dE"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImpl10resetWorldERKN5Eigen8Affine3dE"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::resetWorld__Eigen::Affine3dCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a700db7126d69a8f16136bf07ba4b04fa"></span><em class="property">virtual</em> bool <code class="descname">resetWorld</code><span class="sig-paren">(</span><em class="property">const</em> Eigen::Affine3d &amp;<em>w_T_new_world</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl10resetWorldERKN5Eigen8Affine3dE" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl10resetWorldERKN5Eigen8Affine3dE">
+<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImpl10resetWorldERKN5Eigen8Affine3dE"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImpl10resetWorldERKN5Eigen8Affine3dE"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::resetWorld__Eigen::Affine3dCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a700db7126d69a8f16136bf07ba4b04fa"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">resetWorld</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Eigen</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Affine3d</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">w_T_new_world</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl10resetWorldERKN5Eigen8Affine3dE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Reset the world frame and call <a class="reference internal" href="#classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1adb81e90ddbd087b2876fb1a9d4b604da"><span class="std std-ref">reset()</span></a>. </p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><code class="docutils literal notranslate"><span class="pre">w_T_new_world</span></code>: is the new world pose w.r.t. old world </li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>w_T_new_world</strong> – is the new world pose w.r.t. old world </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl7getTaskERKNSt6stringE">
-<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImpl7getTaskERKNSt6stringE"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImpl7getTaskERKNSt6stringE"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::getTask__ssCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a14b06822fc09c0d5ed90e32bcc8f84e3"></span><em class="property">virtual</em> <a class="reference internal" href="task.html#_CPPv4N4XBot9Cartesian15TaskDescriptionE" title="XBot::Cartesian::TaskDescription">TaskDescription</a>::Ptr <code class="descname">getTask</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>task_name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl7getTaskERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl7getTaskERKNSt6stringE">
+<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImpl7getTaskERKNSt6stringE"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImpl7getTaskERKNSt6stringE"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::getTask__ssCR"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a14b06822fc09c0d5ed90e32bcc8f84e3"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="task.html#_CPPv4N4XBot9Cartesian15TaskDescriptionE" title="XBot::Cartesian::TaskDescription"><span class="n"><span class="pre">TaskDescription</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Ptr</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getTask</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">task_name</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl7getTaskERKNSt6stringE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>getTask returns a shared pointer to the task or constraint with given name, if it exists. It returns a null shared pointer otherwise. From CartesI/O v2.0 on, the recommended way to interact with tasks and constraints is to use the returned task handle, casted to the appropriate type (e.g. ‘<a class="reference internal" href="cartesian.html#classXBot_1_1Cartesian_1_1CartesianTask"><span class="std std-ref">CartesianTask</span></a>’) via std::dynamic_pointer_task&lt;&gt;() </p>
-<p><dl class="docutils">
-<dt><strong>Return</strong></dt><dd>a shared pointer to the task or constraint </dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><code class="docutils literal notranslate"><span class="pre">task_name</span></code>: </li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>task_name</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a shared pointer to the task or constraint </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 </div>
-<div class="breathe-sectiondef container">
-<p class="breathe-sectiondef-title rubric">Public Static Functions</p>
-<dl class="function">
-<dt id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl12MakeInstanceENSt6stringE18ProblemDescriptionN7Context3PtrE">
-<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImpl12MakeInstanceENSt6stringE18ProblemDescriptionN7Context3PtrE"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImpl12MakeInstanceENSt6stringE18ProblemDescriptionN7Context3PtrE"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::MakeInstance__ss.ProblemDescription.Context::Ptr"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a685190315b582d15274607ba227c2b1a"></span><em class="property">static</em> Ptr <code class="descname">MakeInstance</code><span class="sig-paren">(</span>std::string <em>solver_name</em>, ProblemDescription <em>ik_problem</em>, Context::Ptr <em>context</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl12MakeInstanceENSt6stringE18ProblemDescriptionN7Context3PtrE" title="Permalink to this definition">¶</a><br /></dt>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl12MakeInstanceENSt6stringE18ProblemDescriptionN7Context3PtrE">
+<span id="_CPPv3N4XBot9Cartesian22CartesianInterfaceImpl12MakeInstanceENSt6stringE18ProblemDescriptionN7Context3PtrE"></span><span id="_CPPv2N4XBot9Cartesian22CartesianInterfaceImpl12MakeInstanceENSt6stringE18ProblemDescriptionN7Context3PtrE"></span><span id="XBot::Cartesian::CartesianInterfaceImpl::MakeInstance__ss.ProblemDescription.Context::Ptr"></span><span class="target" id="classXBot_1_1Cartesian_1_1CartesianInterfaceImpl_1a685190315b582d15274607ba227c2b1a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Ptr</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MakeInstance</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">solver_name</span></span>, <span class="n"><span class="pre">ProblemDescription</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">ik_problem</span></span>, <span class="n"><span class="pre">Context</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Ptr</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">context</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4XBot9Cartesian22CartesianInterfaceImpl12MakeInstanceENSt6stringE18ProblemDescriptionN7Context3PtrE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>MakeInstance dynamically loads an implementation of CartesIO from a shared object, or plugin. </p>
-<p><dl class="docutils">
-<dt><strong>Return</strong></dt><dd>a shared pointer to the requested object </dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><code class="docutils literal notranslate"><span class="pre">solver_name</span></code>: is the plugin name </li>
-<li><code class="docutils literal notranslate"><span class="pre">ik_problem</span></code>: is a description of the problem to be solved </li>
-<li><code class="docutils literal notranslate"><span class="pre">context</span></code>: holds some data structures used by CartesIO, such as the robot model. </li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solver_name</strong> – is the plugin name </p></li>
+<li><p><strong>ik_problem</strong> – is a description of the problem to be solved </p></li>
+<li><p><strong>context</strong> – holds some data structures used by CartesIO, such as the robot model. </p></li>
 </ul>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a shared pointer to the requested object </p>
+</dd>
 </dl>
-</p>
 </dd></dl>
 
 </div>
@@ -385,70 +327,32 @@ obtained via the getTask() method.</p>
 
            </div>
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="problem.html" class="btn btn-neutral float-right" title="Problem Description API Reference" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="../porting.html" class="btn btn-neutral" title="Porting code from v1.x" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../porting.html" class="btn btn-neutral float-left" title="Porting code from v1.x" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="problem.html" class="btn btn-neutral float-right" title="Problem Description API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2020, Arturo Laurenzi.
-
-    </p>
+    <p>&#169; Copyright 2020, Arturo Laurenzi.</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../',
-            VERSION:'2.0.0',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="../_static/jquery.js"></script>
-      <script type="text/javascript" src="../_static/underscore.js"></script>
-      <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="../_static/language_data.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>
