@@ -13,7 +13,9 @@ PYBIND11_MODULE(pyest, m) {
         .def("update", &ForceEstimation::update)
         .def("setIgnoredJoint", &ForceEstimation::setIgnoredJoint)
         ;
+
+    py::class_<ForceEstimationMomentumBased, ForceEstimation>(m, "ForceEstimationMomentumBased")
+        .def(py::init<XBot::ModelInterface::ConstPtr, double, double>())
+        ;
 }
 
-
-//        .def("sendForce", (void (ForcePublisher::*)(std::vector<std::string>, Eigen::VectorXd)), &ForcePublisher::send_force)
