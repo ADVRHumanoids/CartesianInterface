@@ -427,7 +427,13 @@ bool OpenSotImpl::update(double time, double period)
         _autostack->log(_logger);
     }
 
-    if(!_solver->solve(_x))
+    using namespace std::chrono;
+    auto tic = high_resolution_clock::now();
+    bool solver_success = _solver->solve(_x);
+    auto toc = high_resolution_clock::now();
+
+
+    if(!solver_success)
     {
         _x.setZero(_x.size());
         XBot::Logger::error("OpenSot: unable to solve\n");
@@ -437,6 +443,8 @@ bool OpenSotImpl::update(double time, double period)
     if(_logger)
     {
         _solver->log(_logger);
+        double solver_time_us = std::chrono::duration_cast<std::chrono::microseconds>(toc-tic).count();
+        _logger->add("solver_time", solver_time_us);
     }
 
     _solution.at("full_solution") = _x;
