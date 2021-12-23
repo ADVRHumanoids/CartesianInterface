@@ -81,7 +81,8 @@ private:
     std::set<int> _meas_idx;
     int _ndofs;
 
-    Eigen::BDCSVD<Eigen::MatrixXd> _svd;
+    Eigen::JacobiSVD<Eigen::MatrixXd> _svd;
+    Eigen::ColPivHouseholderQR<Eigen::MatrixXd> _qr;
 
 };
 
