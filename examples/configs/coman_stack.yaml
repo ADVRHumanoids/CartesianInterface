@@ -1,6 +1,6 @@
 solver_options:
     regularization: 1e-3
-    back_end: "qpoases"
+    back_end: "qpoases" #"osqp"
     #front_end: "hcod"
     #disable_weights_computation: False
 
