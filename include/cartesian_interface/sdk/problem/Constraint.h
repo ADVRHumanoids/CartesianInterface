@@ -20,12 +20,14 @@ namespace XBot { namespace Cartesian {
         void update(double time, double period) override;
         void reset() override;
         void log(MatLogger2::Ptr logger, bool init_logger, int buf_size) override;
+        bool getTaskError(Eigen::VectorXd &e) const override;
 
         TaskDescription::Ptr getTask() override;
 
     private:
 
         TaskDescriptionImpl::Ptr _task;
+
     };
     
     ConstraintDescription::Ptr MakeConstraintFromTask(TaskDescription::Ptr task);

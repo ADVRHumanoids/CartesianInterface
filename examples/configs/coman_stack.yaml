@@ -1,7 +1,8 @@
 solver_options:
-    regularization: 1e-4
-    front_end: "hcod"
-    disable_weights_computation: False
+    regularization: 1e-3
+    back_end: "qpoases"
+    #front_end: "hcod"
+    #disable_weights_computation: False
 
 stack:
     - ["LeftFoot", "RightFoot"] 
@@ -26,7 +27,6 @@ LeftArm:
     name: "left_hand"
     distal_link: "LSoftHand"
     lambda: 0.1
-    active: false
     weight: 10.
 
 RightArm:

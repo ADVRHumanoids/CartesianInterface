@@ -84,6 +84,7 @@ add_service_files(
     SetBaseLink.srv
     SetControlMode.srv
     SetSafetyLimits.srv
+    SetTransform.srv
     )
 
 

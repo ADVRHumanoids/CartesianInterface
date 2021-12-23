@@ -81,3 +81,9 @@ TaskDescription::Ptr XBot::Cartesian::ConstraintFromTaskImpl::getTask()
 {
     return _task;
 }
+
+
+bool XBot::Cartesian::ConstraintFromTaskImpl::getTaskError(Eigen::VectorXd &e) const
+{
+    return _task->getTaskError(e);
+}

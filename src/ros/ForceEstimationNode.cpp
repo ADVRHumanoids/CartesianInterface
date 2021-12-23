@@ -38,7 +38,7 @@ int main(int argc, char ** argv)
     }
     
     double svd_th = nh_priv.param("svd_threshold", (double)Utils::ForceEstimation::DEFAULT_SVD_THRESHOLD);
-    
+
     // get torque offset map
     auto tau_off_map = nh_priv.param("torque_offset", std::map<std::string, double>());
     XBot::JointNameMap tau_off_map_xbot(tau_off_map.begin(), tau_off_map.end());
@@ -60,6 +60,13 @@ int main(int argc, char ** argv)
     }
 
     Utils::ForceEstimation& f_est = *f_est_ptr;
+
+    // set ignored joints
+    auto ignored_joints = nh_priv.param("ignored_joints", std::vector<std::string>());
+    for(auto jname : ignored_joints)
+    {
+        f_est.setIgnoredJoint(jname);
+    }
     
     // generate virtual fts
     std::map<XBot::ForceTorqueSensor::ConstPtr, ros::Publisher> ft_map;

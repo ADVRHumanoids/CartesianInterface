@@ -51,3 +51,9 @@ OpenSoT::OptvarHelper::VariableVector OpenSotConstraintFromTaskAdapter::getRequi
 {
     return _task_adapter->getRequiredVariables();
 }
+
+
+void OpenSotConstraintFromTaskAdapter::processSolution(const Eigen::VectorXd &solution)
+{
+    _task_adapter->processSolution(solution);
+}
