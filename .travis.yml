@@ -12,13 +12,14 @@ jobs:
 branches:
   only:
     - 2.0-devel
+    - 2.0-master
 
 notifications:
   email:
     recipients:
-      # - luca.muratore89@gmail.com
+      - luca.muratore89@gmail.com
       - arturo.laurenzi@iit.it
-      # - enrico.mingo@pal-robotics.com
+      - enrico.mingo@pal-robotics.com
     on_success: never
     on_failure: always
 
