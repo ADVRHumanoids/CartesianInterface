@@ -29,6 +29,8 @@ public:
 
     virtual void update(double time, double period) override;
 
+    void processSolution(const Eigen::VectorXd &solution) override;
+
     virtual ~OpenSotConstraintFromTaskAdapter() override = default;
 
 protected:
@@ -38,8 +40,6 @@ private:
     OpenSotTaskAdapter::Ptr _task_adapter;
 
 };
-
-
 
 
 } }

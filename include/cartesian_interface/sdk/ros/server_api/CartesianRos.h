@@ -14,6 +14,7 @@
 #include <cartesian_interface/SetBaseLink.h>
 #include <cartesian_interface/SetControlMode.h>
 #include <cartesian_interface/SetSafetyLimits.h>
+#include <cartesian_interface/CartesianTaskInfo.h>
 
 
 namespace XBot { namespace Cartesian {
@@ -75,6 +76,8 @@ private:
 
     void publish_ref(ros::Time time);
 
+    void publish_task_info();
+
     void online_position_reference_cb(geometry_msgs::PoseStampedConstPtr  msg);
 
     void online_velocity_reference_cb(geometry_msgs::TwistStampedConstPtr msg);
@@ -93,7 +96,7 @@ private:
 
 
 
-    ros::Publisher _pose_ref_pub, _vel_ref_pub;
+    ros::Publisher _pose_ref_pub, _vel_ref_pub, _task_info_pub;
     ros::Subscriber _pose_ref_sub, _vel_ref_sub;
     ros::ServiceServer _get_info_srv, _set_base_link_srv, _set_ctrl_srv, _set_safety_srv;
 

@@ -6,6 +6,7 @@
 #include "problem/Cartesian.h"
 #include "problem/Postural.h"
 #include "problem/Interaction.h"
+#include "problem/Com.h"
 
 #include <cartesian_interface/utils/RobotStatePublisher.h>
 
@@ -69,10 +70,14 @@ PYBIND11_MODULE(pyci, m) {
             .def("getPoseReference", py_task_get_pose_reference)
             .def("abort", &CartesianTask::abort);
 
+    py::class_<ComTask,
+            CartesianTask,
+            ComTask::Ptr>(m, "ComTask", py::multiple_inheritance());
+
     py::class_<PosturalTask,
             TaskDescription,
             PosturalTask::Ptr>(m, "PosturalTask", py::multiple_inheritance())
-            .def("setReferencePosture",  &PosturalTask::setReferencePosture)
+            .def("setReferencePosture", (void (PosturalTask::*)(const XBot::JointNameMap&)) &PosturalTask::setReferencePosture)
             .def("getReferencePostureMap",  py_postural_get_reference_map);
 
     py::class_<InteractionTask,
@@ -91,6 +96,10 @@ PYBIND11_MODULE(pyci, m) {
     py::class_<CartesianTaskImpl,
             CartesianTask,
             CartesianTaskImpl::Ptr>(m, "CartesianTaskImpl", py::multiple_inheritance());
+
+    py::class_<ComTaskImpl,
+            CartesianTaskImpl,
+            ComTaskImpl::Ptr>(m, "ComTaskImpl", py::multiple_inheritance());
 
     py::class_<PosturalTaskImpl,
             PosturalTask,
@@ -133,7 +142,7 @@ PYBIND11_MODULE(pyci, m) {
             .def("getAccelerationLimits", py_get_acceleration_limits)
             .def("setVelocityLimits", &RosClient::setVelocityLimits)
             .def("setAccelerationLimits", &RosClient::setAccelerationLimits)
-            .def("setReferencePosture", &RosClient::setReferencePosture)
+            .def("setReferencePosture",  (bool (RosClient::*)(const XBot::JointNameMap&)) &RosClient::setReferencePosture)
             .def("setTargetPose", py_send_target_pose,
                  py::arg("task_name"),
                  py::arg("pose"),

@@ -182,7 +182,6 @@ int main(int argc, char **argv)
         model->setJointVelocity(qdot);
         model->update();
 
-
         // roughly loop at 100 Hz
         std::this_thread::sleep_for(std::chrono::duration<double>(dt));
         time += dt;

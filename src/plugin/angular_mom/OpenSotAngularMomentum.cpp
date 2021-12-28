@@ -22,7 +22,7 @@ TaskPtr OpenSotAngularMomentum::constructTask()
     Eigen::VectorXd q;
     _model->getJointPosition(q);
 
-    _sot_angmom = boost::make_shared<AngularMomentumSoT>(q,
+    _sot_angmom = SotUtils::make_shared<AngularMomentumSoT>(q,
                                                          const_cast<ModelInterface&>(*_model));
 
     return _sot_angmom;

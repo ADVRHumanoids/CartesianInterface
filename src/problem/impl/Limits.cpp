@@ -172,7 +172,7 @@ Eigen::VectorXd VelocityLimitsImpl::getQdotMax() const
 
 bool VelocityLimitsImpl::validate()
 {
-    return _qdot_max.minCoeff() > 0.0 && _bound_scaling > 0.0;
+    return _qdot_max.minCoeff() >= 0.0 && _bound_scaling >= 0.0;
 }
 
 void VelocityLimitsImpl::update(double time, double period)

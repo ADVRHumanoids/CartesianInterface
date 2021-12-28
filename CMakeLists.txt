@@ -24,6 +24,13 @@ find_package(catkin REQUIRED COMPONENTS roscpp
     interactive_markers
     tf tf_conversions)
 
+find_package(GLPK QUIET)
+if(${GLPK_FOUND})
+    message("glpk found!")
+    add_definitions( -D_GLPK_FOUND=${GLPK_FOUND} )
+endif()
+
+
 option(CARTESIO_USE_ALGLIB "Support spline trajectories with alglib" OFF)
 if(${CARTESIO_USE_ALGLIB})
     find_package(alglib QUIET)
@@ -37,7 +44,7 @@ include_directories(include
     ${XBotInterface_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIRS}
     ${catkin_INCLUDE_DIRS}
-    ${ReflexxesTypeII_INCLUDE_DIRS}/..
+    ${ReflexxesTypeII_INCLUDE_DIRS}
     ${alglib_INCLUDE_DIRS}
     )
 
@@ -77,6 +84,7 @@ add_service_files(
     SetBaseLink.srv
     SetControlMode.srv
     SetSafetyLimits.srv
+    SetTransform.srv
     )
 
 

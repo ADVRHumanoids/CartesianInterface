@@ -1,6 +1,8 @@
 #ifndef OPENSOTTASKADAPTER_H
 #define OPENSOTTASKADAPTER_H
 
+#include "OpenSotUtils.h"
+
 #include <cartesian_interface/sdk/problem/Task.h>
 #include <cartesian_interface/problem/Constraint.h>
 #include <cartesian_interface/CartesianInterface.h>

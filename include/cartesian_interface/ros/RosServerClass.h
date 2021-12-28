@@ -9,6 +9,7 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <cartesian_interface/GetTaskList.h>
 #include <cartesian_interface/ResetWorld.h>
+#include <cartesian_interface/SetTransform.h>
 #include <std_srvs/Empty.h>
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
@@ -86,6 +87,9 @@ namespace XBot { namespace Cartesian {
         bool reset_world_cb(cartesian_interface::ResetWorldRequest& req, 
                             cartesian_interface::ResetWorldResponse& res);
 
+        bool reset_base_cb(cartesian_interface::SetTransformRequest &req,
+                           cartesian_interface::SetTransformResponse &res);
+
         ros::CallbackQueue _cbk_queue;
         ros::NodeHandle _nh;
 
@@ -105,7 +109,8 @@ namespace XBot { namespace Cartesian {
         ros::Publisher _com_pub, _solution_pub;
         ros::ServiceServer _reset_srv, 
                            _tasklist_srv, 
-                           _reset_world_srv;
+                           _reset_world_srv, 
+                           _reset_base_srv;
         ros::Timer _heartbeat_timer;
         ros::Publisher _heartbeat_pub;
 

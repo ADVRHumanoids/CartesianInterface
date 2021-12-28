@@ -1,4 +1,5 @@
 #include "OpenSotImpl.h"
+
 #include <cartesian_interface/sdk/SolverPlugin.h>
 
 #include <cartesian_interface/problem/ProblemDescription.h>
@@ -8,6 +9,14 @@
 #include <OpenSoT/solvers/eHQP.h>
 #include <OpenSoT/solvers/iHQP.h>
 #include <OpenSoT/solvers/nHQP.h>
+#include <OpenSoT/solvers/l1HQP.h>
+
+#ifdef _GLPK_FOUND
+    #define GLPK_FOUND true
+    #include <OpenSoT/solvers/GLPKBackEnd.h>
+#else
+    #define GLPK_FOUND false
+#endif
 
 #include "utils/DynamicLoading.h"
 
@@ -39,6 +48,10 @@ OpenSoT::solvers::solver_back_ends backend_from_string(std::string back_end_stri
     {
         return OpenSoT::solvers::solver_back_ends::ODYS;
     }
+    else if(back_end_string == "glpk")
+    {
+        return OpenSoT::solvers::solver_back_ends::GLPK;
+    }
     else
     {
         throw std::runtime_error("Invalid back end '" + back_end_string + "'");
@@ -53,17 +66,47 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
 {
     if(front_end_string == "ihqp")
     {
-        return boost::make_shared<OpenSoT::solvers::iHQP>(as,
+        return SotUtils::make_shared<OpenSoT::solvers::iHQP>(as,
                                                           eps_regularisation,
                                                           be_solver);
     }
     else if(front_end_string == "ehqp")
     {
-        return boost::make_shared<OpenSoT::solvers::eHQP>(as.getStack());
+        return SotUtils::make_shared<OpenSoT::solvers::eHQP>(as.getStack());
+    }
+    else if(front_end_string == "l1hqp")
+    {
+        OpenSoT::solvers::l1HQP::Ptr l1hqp_solver =  SotUtils::make_shared<OpenSoT::solvers::l1HQP>(as,
+                                                           eps_regularisation,
+                                                           be_solver);
+
+
+        if(be_solver == OpenSoT::solvers::solver_back_ends::GLPK)
+        {
+#if GLPK_FOUND
+            OpenSoT::solvers::BackEnd::Ptr GLPK;
+            l1hqp_solver->getBackEnd(GLPK);
+
+            if(options && options["MILP"])
+            {
+                OpenSoT::solvers::GLPKBackEnd::GLPKBackEndOptions opt;
+                for(unsigned int i = l1hqp_solver->getFirstSlackIndex(); i < GLPK->getNumVariables(); ++i)
+                    opt.var_id_kind_.push_back(std::pair<int, int>(i, GLP_IV));
+
+                GLPK->setOptions(opt);
+            }
+
+        }
+
+#else
+            throw std::runtime_error("Solver Back-End GLPK can not be requested because GLPK is not found!");
+        }
+#endif
+        return std::move(l1hqp_solver);
     }
     else if(front_end_string == "nhqp")
     {
-        auto frontend = boost::make_shared<OpenSoT::solvers::nHQP>(as.getStack(),
+        auto frontend = SotUtils::make_shared<OpenSoT::solvers::nHQP>(as.getStack(),
                                                                    as.getBounds(),
                                                                    //as.getRegularisationTask(),
                                                                    eps_regularisation,
@@ -106,7 +149,7 @@ OpenSoT::tasks::Aggregated::TaskPtr OpenSotImpl::aggregated_from_stack(Aggregate
     /* Return Aggregated */
     if(tasks_list.size() > 1)
     {
-        return boost::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _x.size());
+        return SotUtils::make_shared<OpenSoT::tasks::Aggregated>(tasks_list, _x.size());
     }
     else if(tasks_list.empty())
     {
@@ -260,7 +303,7 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
 
     /* Parse stack #0 and create autostack */
     auto stack_0 = aggregated_from_stack(ik_problem.getTask(static_cast<int>(0)));
-    _autostack = boost::make_shared<OpenSoT::AutoStack>(stack_0);
+    _autostack = SotUtils::make_shared<OpenSoT::AutoStack>(stack_0);
 
     /* Parse remaining stacks  */
     for(int i = 1; i < ik_problem.getNumTasks(); i++)

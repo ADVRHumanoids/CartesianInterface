@@ -24,13 +24,21 @@ JoyStick::JoyStick(std::shared_ptr<RosClient> ci_ros,
     _nh("cartesian")
 {
     _ci->set_async_mode(false);
-    _distal_links = _ci->getTaskList();
 
-    for(auto dl : _distal_links)
+    // fill distal and base links for each cartesian task
+    for(auto tname : _ci->getTaskList())
     {
-        _base_links.push_back(_ci->getBaseLink(dl));
-    }
+        auto task = _ci->getTask(tname);
 
+        if(auto cart = std::dynamic_pointer_cast<CartesianTask>(task))
+        {
+            auto distal = cart->getDistalLink();
+            auto base = cart->getBaseLink();
+
+            _distal_links.push_back(distal);
+            _base_links.push_back(base);
+        }
+    }
 
     _twist.setZero();
     _twist_mask.setOnes();
@@ -374,6 +382,7 @@ void JoyStick::setRobotBaseLinkCtrlFrame(const std::string& robot_base_link)
 
 bool XBot::Cartesian::JoyStick::updateStatus()
 {
+    _ci->update(0, 0);
 
     std::string link = _ci->getBaseLink(_distal_links[_selected_task]);
 

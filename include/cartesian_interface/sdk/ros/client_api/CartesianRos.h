@@ -79,6 +79,7 @@ private:
     ros::Publisher _vel_ref_pub;
     ros::Subscriber _pose_ref_sub;
     ros::Subscriber _vel_ref_sub;
+    ros::Subscriber _task_info_sub;
     ros::ServiceClient _set_safety_lims_cli;
     ros::ServiceClient _set_base_link_cli;
     ros::ServiceClient _set_ctrl_mode_cli;
@@ -87,6 +88,7 @@ private:
     bool _Tref_recv, _vref_recv;
     Eigen::Affine3d _Tref;
     Eigen::Vector6d _vref;
+    cartesian_interface::CartesianTaskInfo _info;
 
     ActionClient _action_cli;
     int _current_segment_idx;
@@ -95,14 +97,14 @@ private:
 
     mutable std::string _base_link, _distal_link;
 
-    cartesian_interface::CartesianTaskInfo _info;
-
     void on_reach_feedback_recv(const cartesian_interface::ReachPoseFeedbackConstPtr& feedback);
 
     void on_action_active();
 
     void on_action_done(const actionlib::SimpleClientGoalState& state,
                         const cartesian_interface::ReachPoseResultConstPtr& result);
+
+    void on_task_info_recv(cartesian_interface::CartesianTaskInfoConstPtr msg);
 
 };
 

@@ -34,6 +34,8 @@ public:
 
     void setReferencePosture(const JointNameMap& qref) override;
 
+    void setReferencePosture(const Eigen::VectorXd& qref) override;
+
     void setReferenceVelocity(const JointNameMap& qdotref) override;
 
     void setReferenceVelocity(const Eigen::VectorXd& qdotref) override;

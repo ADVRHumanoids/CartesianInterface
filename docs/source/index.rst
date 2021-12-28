@@ -34,11 +34,13 @@ Features
 
 How to install
 --------------
-Binaries are available `at this link <https://github.com/ADVRHumanoids/XBotControl/releases/tag/v2.0-devel>`_. Remember to pick the right version
-for your specific Linux distribution. Currently, Ubuntu 16.04 (Xenial) and 18.04 (Bionic)
-are supported, whereas support for 20.04 (Focal) is still experimental. After
-extracting the archive, run the ``./install`` script (requires sudo permissions).
-To uninstall all packages, an ``./uninstall`` script is provided as well.
+A binary distribution is available by adding a new source (with the corresponding GPG key) to 
+``apt``, and then invoking the usual *update*/*install* commands:
+
+ - ``sudo sh -c 'echo "deb http://xbot.cloud/xbot2/ubuntu/$(lsb_release -sc) /" > /etc/apt/sources.list.d/xbot-latest.list'``
+ - ``wget -q -O - http://xbot.cloud/xbot2/ubuntu/KEY.gpg | sudo apt-key add -``
+ - ``sudo apt update``
+ - ``sudo apt install cartesian_interface``
 
 To use the software, sourcing the installed environment script is required.
 You can add the line ``source /opt/xbot/setup.sh`` to your ``.bashrc`` file.

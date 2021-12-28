@@ -240,6 +240,7 @@ XBot::ModelInterface::ConstPtr RosServerClass::getModel() const
 void XBot::Cartesian::RosServerClass::init_reset_world_service()
 {
     _reset_world_srv = _nh.advertiseService("reset_world", &RosServerClass::reset_world_cb, this);
+    _reset_base_srv = _nh.advertiseService("reset_base", &RosServerClass::reset_base_cb, this);
 }
 
 void RosServerClass::init_heartbeat_pub()
@@ -293,5 +294,27 @@ bool XBot::Cartesian::RosServerClass::reset_world_cb(cartesian_interface::ResetW
         res.message = "World could not be changed.";
     }
 
+    return true;
+}
+
+bool RosServerClass::reset_base_cb(cartesian_interface::SetTransformRequest& req,
+                                   cartesian_interface::SetTransformResponse& res)
+{
+    Eigen::Affine3d nw_T_base, w_T_nw, w_T_base;
+    tf::poseMsgToEigen(get_normalized_pose(req.pose), nw_T_base);
+
+    if(!_model->getFloatingBasePose(w_T_base))
+    {
+        res.success = false;
+        res.message = "model is not floating base";
+        return true;
+    }
+
+    w_T_nw = w_T_base * nw_T_base.inverse();
+
+    _ci->resetWorld(w_T_nw);
+
+    res.success = true;
+    res.message = "successfully set floating base pose to model";
     return true;
 }

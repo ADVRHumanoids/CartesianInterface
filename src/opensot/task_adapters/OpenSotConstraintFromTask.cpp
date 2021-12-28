@@ -30,7 +30,7 @@ OpenSotConstraintFromTaskAdapter::OpenSotConstraintFromTaskAdapter(ConstraintDes
 
 ConstraintPtr OpenSotConstraintFromTaskAdapter::constructConstraint()
 {
-    return boost::make_shared<OpenSoT::constraints::TaskToConstraint>(_task_adapter->getOpenSotTask());
+    return SotUtils::make_shared<OpenSoT::constraints::TaskToConstraint>(_task_adapter->getOpenSotTask());
 }
 
 bool OpenSotConstraintFromTaskAdapter::initialize(const OpenSoT::OptvarHelper& vars)
@@ -50,4 +50,10 @@ void OpenSotConstraintFromTaskAdapter::update(double time, double period)
 OpenSoT::OptvarHelper::VariableVector OpenSotConstraintFromTaskAdapter::getRequiredVariables() const
 {
     return _task_adapter->getRequiredVariables();
+}
+
+
+void OpenSotConstraintFromTaskAdapter::processSolution(const Eigen::VectorXd &solution)
+{
+    _task_adapter->processSolution(solution);
 }

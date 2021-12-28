@@ -1,5 +1,7 @@
 #include <cartesian_interface/utils/Manipulability.h>
 #include <cartesian_interface/problem/Cartesian.h>
+#include <cartesian_interface/problem/Com.h>
+
 
 #if EIGEN_VERSION_AT_LEAST(3, 2, 92)
 #define HAS_SVD_SET_THRESHOLD
@@ -65,7 +67,7 @@ bool ManipulabilityAnalyzer::compute_task_matrix(CartesianTask::Ptr cart_ij,
         return false;
     }
     
-    if(cart_ij->getType() == "Com")
+    if(auto com = std::dynamic_pointer_cast<ComTask>(cart_ij))
     {
         _model->getCOMJacobian(A);
         A.conservativeResize(6, A.cols());
@@ -80,14 +82,14 @@ bool ManipulabilityAnalyzer::compute_task_matrix(CartesianTask::Ptr cart_ij,
         
         if(cart_ij->getBaseLink() == "world")
         {
-            _model->getJacobian(cart_ij->getDistalLink(), A);
-            _model->getPose(cart_ij->getDistalLink(), T);
+            _model->getJacobian(cart_ij->getDistalLink(), A);            
         }
         else
         {
             _model->getRelativeJacobian(cart_ij->getDistalLink(), cart_ij->getBaseLink(), A);
-            _model->getPose(cart_ij->getDistalLink(), cart_ij->getBaseLink(), T);
         }
+
+        _model->getPose(cart_ij->getDistalLink(), T);
     }
     
     for(int k = 0; k < 6; k++)
@@ -136,6 +138,11 @@ void ManipulabilityAnalyzer::compute()
         }
         
         int dim = Ji.rows();
+
+        if(dim == 0)
+        {
+            continue;
+        }
         
         _tasks[i] = (Ji*Ji.transpose() + 1e-6*Eigen::MatrixXd::Identity(dim,dim)).inverse();
         
@@ -176,21 +183,23 @@ void ManipulabilityAnalyzer::publish()
         int prio = _task_idx.at(task_name).first;
         int start_idx = _task_idx.at(task_name).second;
         
+        Eigen::Vector3d rgb; rgb<<0.,1.,0.;
         auto marker_pos = ComputeEllipsoidFromQuadraticForm(_tasks[prio],
                                                             _task_poses.at(task_name).translation(),
                                                             _tf_prefix_slash + "world",
-                                                            start_idx
-                                                            );
+                                                            start_idx,
+                                                            rgb);
         
         marker_pos.scale.x *= _scale_pos.at(task_name);
         marker_pos.scale.y *= _scale_pos.at(task_name);
         marker_pos.scale.z *= _scale_pos.at(task_name);
         
+        rgb<<0.,0.,1.;
         auto marker_rot = ComputeEllipsoidFromQuadraticForm(_tasks[prio],
                                                             _task_poses.at(task_name).translation(),
                                                             _tf_prefix_slash + "world",
-                                                            start_idx + 3
-                                                            );
+                                                            start_idx + 3,
+                                                            rgb);
         
         marker_rot.scale.x *= _scale_rot.at(task_name);
         marker_rot.scale.y *= _scale_rot.at(task_name);
@@ -203,7 +212,10 @@ void ManipulabilityAnalyzer::publish()
 
 
 visualization_msgs::Marker ManipulabilityAnalyzer::ComputeEllipsoidFromQuadraticForm(const Eigen::MatrixXd& JJtinv,
-                                                                                     const Eigen::Vector3d& pos, const std::string& base_link, int start_idx)
+                                                                                     const Eigen::Vector3d& pos, 
+                                                                                     const std::string& base_link, 
+                                                                                     int start_idx,
+                                                                                     const Eigen::Vector3d& rgb)
 {
     static Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver;
     Eigen::Matrix3d K = JJtinv.middleRows<3>(start_idx).middleCols<3>(start_idx);
@@ -226,9 +238,9 @@ visualization_msgs::Marker ManipulabilityAnalyzer::ComputeEllipsoidFromQuadratic
     marker.scale.y = 1.0/std::sqrt(eigensolver.eigenvalues()(1));
     marker.scale.z = 1.0/std::sqrt(eigensolver.eigenvalues()(2));
     marker.color.a = 0.75; // Don't forget to set the alpha!
-    marker.color.r = 0.0;
-    marker.color.g = 1.0;
-    marker.color.b = 0.0;
+    marker.color.r = rgb[0];
+    marker.color.g = rgb[1];
+    marker.color.b = rgb[2];
     
     return marker;
 }

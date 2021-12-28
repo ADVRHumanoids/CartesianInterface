@@ -15,14 +15,14 @@ public:
 
     CARTESIO_DECLARE_SMART_PTR(ForceEstimation)
 
-    static constexpr double DEFAULT_SVD_THRESHOLD = 0.05;
+    static const double DEFAULT_SVD_THRESHOLD;
 
     /**
-         * @brief ForceEstimation constructor.
-         * @param model: shared pointer to ModelInterface; client code must keep this model up to date
-         * with respect to the robot state
-         * @param svd_threshold: threshold for solution regularization (close to singularities)
-         */
+     * @brief ForceEstimation constructor.
+     * @param model: shared pointer to ModelInterface; client code must keep this model up to date
+     * with respect to the robot state
+     * @param svd_threshold: threshold for solution regularization (close to singularities)
+     */
     ForceEstimation(ModelInterface::ConstPtr model,
                     double svd_threshold = DEFAULT_SVD_THRESHOLD);
 
@@ -37,6 +37,12 @@ public:
     ForceTorqueSensor::ConstPtr add_link(std::string name,
                                          std::vector<int> dofs = {},
                                          std::vector<std::string> chains = {});
+
+    /**
+     * @brief ignore measuements from the provided joints when computing
+     * the force estimate
+     */
+    void setIgnoredJoint(const std::string& jname);
 
     /**
     * @brief update computes the estimation and updates all registered virtual FT-sensors
@@ -63,6 +69,7 @@ private:
 
     };
 
+    std::set<int> _ignore_idx;
 
     Eigen::MatrixXd _Jtot;
     Eigen::MatrixXd _A;
@@ -74,7 +81,8 @@ private:
     std::set<int> _meas_idx;
     int _ndofs;
 
-    Eigen::BDCSVD<Eigen::MatrixXd> _svd;
+    Eigen::JacobiSVD<Eigen::MatrixXd> _svd;
+    Eigen::ColPivHouseholderQR<Eigen::MatrixXd> _qr;
 
 };
 

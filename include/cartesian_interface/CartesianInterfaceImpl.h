@@ -190,6 +190,11 @@ public:
 
     virtual bool setReferencePosture(const JointNameMap& qref);
 
+    virtual bool setReferencePosture(const Eigen::VectorXd& qref);
+
+    virtual bool setReferencePosture(const XBot::JointNameMap& qref, const XBot::JointNameMap& qdotref);
+
+    virtual bool setReferencePosture(const Eigen::VectorXd& qref, const Eigen::VectorXd& qdotref);
 
     virtual bool update(double time, double period);
 

@@ -24,7 +24,6 @@ LeftArm:
     name: "left_hand"
     distal_link: "LSoftHand"
     lambda: 0.1
-    active: false
 
 RightArm:
     type: "Cartesian"

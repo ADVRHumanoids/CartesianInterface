@@ -105,6 +105,7 @@ private:
     ros::ServiceClient _set_lambda_cli, _set_lambda2_cli;
     ros::ServiceClient _activate_cli;
     ros::Subscriber _task_changed_sub;
+    ros::Subscriber _task_info_sub;
 
     cartesian_interface::TaskInfo _info;
 

@@ -31,15 +31,16 @@ public:
     
     void compute();
     
-    static visualization_msgs::Marker ComputeEllipsoidFromJacobian(const Eigen::MatrixXd& J, 
-                                                                   const Eigen::Vector3d& pos, 
-                                                                   const std::string& base_link,
-                                                                   int start_idx);
+//    static visualization_msgs::Marker ComputeEllipsoidFromJacobian(const Eigen::MatrixXd& J,
+//                                                                   const Eigen::Vector3d& pos,
+//                                                                   const std::string& base_link,
+//                                                                   int start_idx);
     
     static visualization_msgs::Marker ComputeEllipsoidFromQuadraticForm(const Eigen::MatrixXd& JJtinv, 
                                                                    const Eigen::Vector3d& pos, 
                                                                    const std::string& base_link,
-                                                                   int start_idx);
+                                                                   int start_idx,
+                                                                   const Eigen::Vector3d& rgb);
     
 private:
     

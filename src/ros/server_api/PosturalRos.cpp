@@ -18,6 +18,8 @@ PosturalRos::PosturalRos(PosturalTask::Ptr task,
 
 void PosturalRos::run(ros::Time time)
 {
+    TaskRos::run(time);
+
     sensor_msgs::JointState msg;
 
     if(_current_ref_pub.getNumSubscribers() == 0)

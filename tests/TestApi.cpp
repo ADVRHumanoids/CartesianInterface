@@ -374,47 +374,47 @@ TEST_F(TestApi, checkWaypoints)
             EXPECT_TRUE( T1.isApprox(wpvec1.back().frame) );
         }
     }
-
+    
 }
 
 
 TEST_F(TestApi, checkLimits)
 {
     const double dt = ci->getContext()->params()->getControlPeriod();
-
-
+    
+    
     auto logger = XBot::MatLogger::getLogger("/tmp/checkLimits_logger");
     std::string ee = "arm1_8";
     ci->enableOtg(dt);
     ci->reset(0.0);
-
+   
     double vmax_lin, vmax_ang, amax_lin, amax_ang;
     ci->getVelocityLimits(ee, vmax_lin, vmax_ang);
     ci->getAccelerationLimits(ee, amax_lin, amax_ang);
     std::cout << ee << " " << vmax_lin << "  " << vmax_ang << std::endl;
     std::cout << ee << " " << amax_lin << "  " << amax_ang << std::endl;
-
-
+    
+    
     Eigen::Affine3d Told, Tref;
     ci->getPoseReference(ee, Told);
     Eigen::Vector3d v_lin_old(0,0,0), v_ang_old(0,0,0);
     for(double t = 0.0; t < 15.0; t += dt)
     {
-
+        
         if(t < 5.0)
         {
             Tref = GetRandomFrame();
             Tref.translation() *= 10.0;
         }
-
-
+        
+        
         ci->setPoseReference(ee, Tref);
         ci->update(t, dt);
         Eigen::Affine3d Tnew;
         ci->getPoseReference(ee, Tnew);
-
+        
         std::cout << "V_LIN ***********" << std::endl;
-
+        
         Eigen::Vector3d v_lin = (Tnew.translation() - Told.translation())/dt;
         std::cout << v_lin.transpose() << std::endl;
         std::cout << v_lin.norm() << std::endl;
@@ -422,11 +422,11 @@ TEST_F(TestApi, checkLimits)
         EXPECT_LE( std::fabs(v_lin.x()), vmax_lin + EPS_V_LIN );
         EXPECT_LE( std::fabs(v_lin.y()), vmax_lin + EPS_V_LIN );
         EXPECT_LE( std::fabs(v_lin.z()), vmax_lin + EPS_V_LIN );
-
+        
         std::cout << "V_ANG ***********" << std::endl;
-
-        Eigen::Matrix3d R12 = (Tnew.linear().transpose()*Told.linear());
-        Eigen::Matrix3d S = (Tnew.linear() - Told.linear()) * Tnew.linear().transpose() / dt;
+        
+        Eigen::Matrix3d R12 = (Tnew.linear().transpose()*Told.linear()); 
+        Eigen::Matrix3d S = (Tnew.linear() - Told.linear()) * Tnew.linear().transpose() / dt; 
         Eigen::Vector3d v_ang(S(2,1), S(0,2), S(1,0));
         double delta_theta = std::acos(0.5*(R12.trace() - 1));
         std::cout << "S\n " << S << std::endl;
@@ -434,9 +434,9 @@ TEST_F(TestApi, checkLimits)
         std::cout << "v_ang " << v_ang.transpose() << " --- " << v_ang.norm() <<  std::endl;
         const double EPS_V_ANG = 0.001;
 //         EXPECT_TRUE( std::fabs(delta_theta) <= vmax_ang + EPS_V_ANG );
-
+        
         std::cout << "A_LIN ***********" << std::endl;
-
+        
         Eigen::Vector3d acc_lin = (v_lin - v_lin_old)/dt;
         std::cout << acc_lin.transpose() << std::endl;
         std::cout << acc_lin.norm() << std::endl;
@@ -444,8 +444,8 @@ TEST_F(TestApi, checkLimits)
         EXPECT_LE( std::fabs(acc_lin.x()), amax_lin + EPS_A_LIN );
         EXPECT_LE( std::fabs(acc_lin.y()), amax_lin + EPS_A_LIN );
         EXPECT_LE( std::fabs(acc_lin.z()), amax_lin + EPS_A_LIN );
-
-
+        
+        
         std::cout << "A_ANG ***********" << std::endl;
         Eigen::Vector3d acc_ang = (v_ang - v_ang_old)/dt;
         std::cout << acc_ang.transpose() << std::endl;
@@ -454,11 +454,11 @@ TEST_F(TestApi, checkLimits)
 //         EXPECT_TRUE( std::fabs(acc_ang.x()) <= amax_ang + EPS_A_ANG );
 //         EXPECT_TRUE( std::fabs(acc_ang.y()) <= amax_ang + EPS_A_ANG );
 //         EXPECT_TRUE( std::fabs(acc_ang.z()) <= amax_ang + EPS_A_ANG );
-
+        
         Told = Tnew;
         v_lin_old = v_lin;
         v_ang_old = v_ang;
-
+        
         logger->add("v_lin", v_lin  );
         logger->add("a_lin", acc_lin);
         logger->add("v_ang", v_ang  );
@@ -467,13 +467,13 @@ TEST_F(TestApi, checkLimits)
         logger->add("a_lin_norm", acc_lin.norm());
         logger->add("v_ang_norm", v_ang  .norm());
         logger->add("a_ang_norm", acc_ang.norm());
-
+        
     }
-
+    
     logger->flush();
 }
 
-
+   
 
 }
 

@@ -3,6 +3,8 @@
 
 using namespace XBot::Cartesian::Utils;
 
+const double ForceEstimation::DEFAULT_SVD_THRESHOLD = 0.05;
+
 ForceEstimation::ForceEstimation(ModelInterface::ConstPtr model, 
                                  double svd_threshold):
     _model(model),
@@ -16,7 +18,7 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
                                                             std::vector<int> dofs,
                                                             std::vector<std::string> chains)
 {
-    
+    // check link exists
     auto urdf_link = _model->getUrdf().getLink(name);
     
     if(!urdf_link)
@@ -24,16 +26,19 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
         throw std::invalid_argument("Invalid link '" + name + "'");
     }
     
+    // wrench dofs if not provided
     if(dofs.size() == 0)
     {
         dofs = {0, 1, 2, 3, 4, 5};
     }
     
+    // chains to use for estimation if not provided
     if(chains.size() == 0)
     {
         chains = _model->getChainNames();
     }
     
+    // check dofs are valid
     auto it = std::find_if(dofs.begin(), 
                            dofs.end(), 
                            [](int dof){ return dof >= 6 || dof < 0; });
@@ -42,6 +47,7 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
         throw std::invalid_argument("Dofs must be >= 0 && < 6");
     }
     
+    // add torque sensing dofs for the requested chains
     std::vector<int> meas_dofs;
     for(auto ch : chains)
     {
@@ -57,7 +63,14 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
     }
     
     _meas_idx.insert(meas_dofs.begin(), meas_dofs.end());
+
+    // remove ignored ids
+    for(int ignid : _ignore_idx)
+    {
+        _meas_idx.erase(ignid);
+    }
     
+    // make virtual sensor and task info struct
     TaskInfo t;
     t.link_name = name;
     static int id = -1;
@@ -68,14 +81,23 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
     
     _ndofs += dofs.size();
     
-    std::cout << "Force estimation using joints:\n";
-    std::for_each(_meas_idx.begin(), _meas_idx.end(), 
-                  [this](int i){ std::cout << _model->getEnabledJointNames().at(i) << "\n"; });
-    std::cout << std::endl;
-    
-    
     return t.sensor;
     
+}
+
+void ForceEstimation::setIgnoredJoint(const std::string &jname)
+{
+    int idx = _model->getDofIndex(jname);
+    if(idx < 0)
+    {
+        throw std::invalid_argument("invalid joint '" + jname + "'");
+    }
+
+    // add to ignored ids set
+    _ignore_idx.insert(idx);
+
+    // remove from meas ids set
+    _meas_idx.erase(idx);
 }
 
 
@@ -112,6 +134,9 @@ void ForceEstimation::solve()
 {
     _svd.compute(_A, Eigen::ComputeThinU|Eigen::ComputeThinV);
     _sol = _svd.solve(_b);
+
+//    _qr.compute(_A);
+//    _sol = _qr.solve(_b);
 }
 
 void ForceEstimation::compute_residual(Eigen::VectorXd& res)
@@ -119,12 +144,8 @@ void ForceEstimation::compute_residual(Eigen::VectorXd& res)
     _model->getJointEffort(_tau);
     _model->computeGravityCompensation(_g);
 
-    /* Check for torque spikes */
-    const double MAX_ALLOWED_TORQUE = 300.0;
-    if((_tau.array().abs() < MAX_ALLOWED_TORQUE).all())
-    {
-        res = _g - _tau;
-    }
+    res = _g - _tau;
+
 }
 
 
