@@ -78,6 +78,7 @@ before_script:
 - sudo apt install qttools5-dev libqt5charts5-dev qtdeclarative5-dev
 - sudo apt install ros-$ROS_DISTRO-gazebo-ros-pkgs  
 - sudo pip3 install rospkg
+- . /opt/ros/$ROS_DISTRO/setup.bash  # NOTE, re-source to update ld library path based on installed packages (e.g. fcl)
 
 # xbot2 framework install 
 - sudo sh -c 'echo "deb http://xbot.cloud/xbot2/ubuntu/$(lsb_release -sc) /" > /etc/apt/sources.list.d/xbot-latest.list'
