@@ -6,6 +6,7 @@
 #include <RobotInterfaceROS/ConfigFromParam.h>
 
 #include <cartesian_interface/utils/estimation/ForceEstimation.h>
+#include <matlogger2/matlogger2.h>
 
 int main(int argc, char ** argv)
 {
@@ -79,6 +80,13 @@ int main(int argc, char ** argv)
         
         ft_map[f_est.add_link(l, dofs, chains)] = pub;
     }
+
+    // log
+    XBot::MatLogger2::Ptr logger;
+    if(nh_priv.param("enable_log", false))
+    {
+        logger = XBot::MatLogger2::MakeLogger("/tmp/force_estimation_log");
+    }
     
     // start looping
     Eigen::VectorXd tau;
@@ -112,6 +120,12 @@ int main(int argc, char ** argv)
             msg.header.stamp = ros::Time::now();
             
             ft_pub.second.publish(msg);
+        }
+
+        // log
+        if(logger)
+        {
+            f_est.log(logger);
         }
         
         // sync with desired loop freq
