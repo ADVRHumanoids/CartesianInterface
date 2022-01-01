@@ -10,6 +10,7 @@
 #include <OpenSoT/solvers/iHQP.h>
 #include <OpenSoT/solvers/nHQP.h>
 #include <OpenSoT/solvers/l1HQP.h>
+#include <OpenSoT/solvers/HCOD.h>
 
 #ifdef _GLPK_FOUND
     #define GLPK_FOUND true
@@ -27,6 +28,8 @@
 using namespace XBot::Cartesian;
 
 CARTESIO_REGISTER_SOLVER_PLUGIN(OpenSotImpl, OpenSot)
+
+#define EPS_REGULARISATION_SCALING_FACTOR 1e12
 
 namespace
 {
@@ -123,6 +126,22 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
                 frontend->setMinSingularValueRatio(options["nhqp_min_sv_ratio"].as<std::vector<double>>());
             }
         }
+
+        return std::move(frontend);
+    }
+    else if(front_end_string == "hcod")
+    {
+        auto frontend = SotUtils::make_shared<OpenSoT::solvers::HCOD>(
+                    as.getStack(), as.getBounds(), eps_regularisation/EPS_REGULARISATION_SCALING_FACTOR); //we do not need the scaling factor here!
+
+        if(options["disable_weights_computation"])
+        {
+            bool option = options["disable_weights_computation"].as<bool>();
+            frontend->setDisableWeightsComputation(option);
+            if(option)
+                Logger::info("hcod solver option disable_weights_computation set to true\n");
+        }
+
 
         return std::move(frontend);
     }
@@ -356,7 +375,7 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
     if(has_config() && get_config()["regularization"])
     {
         eps_regularization = get_config()["regularization"].as<double>();
-        eps_regularization *= 1e12;
+        eps_regularization *= EPS_REGULARISATION_SCALING_FACTOR;
     }
 
     if(has_config() && get_config()["force_space_references"])
@@ -408,7 +427,13 @@ bool OpenSotImpl::update(double time, double period)
         _autostack->log(_logger);
     }
 
-    if(!_solver->solve(_x))
+    using namespace std::chrono;
+    auto tic = high_resolution_clock::now();
+    bool solver_success = _solver->solve(_x);
+    auto toc = high_resolution_clock::now();
+
+
+    if(!solver_success)
     {
         _x.setZero(_x.size());
         XBot::Logger::error("OpenSot: unable to solve\n");
@@ -418,6 +443,8 @@ bool OpenSotImpl::update(double time, double period)
     if(_logger)
     {
         _solver->log(_logger);
+        double solver_time_us = std::chrono::duration_cast<std::chrono::microseconds>(toc-tic).count();
+        _logger->add("solver_time", solver_time_us);
     }
 
     _solution.at("full_solution") = _x;

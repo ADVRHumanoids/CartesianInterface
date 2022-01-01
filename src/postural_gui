@@ -37,6 +37,7 @@ from threading import Thread
 import sys
 import signal
 import math
+from cartesian_interface.srv import GetTaskInfo
 
 RANGE = 10000
 
@@ -142,11 +143,14 @@ class JointStatePublisher():
                     joint['continuous'] = True
                 self.free_joints[name] = joint
 
-    def __init__(self):
+
+    def __init__(self, disabled_joints_list):
         description = get_param('robot_description')
 
         self.free_joints = {}
         self.joint_list = [] # for maintaining the original order of the joints
+        self.disabled_joint_list = disabled_joints_list # we don't want to see these joints in the GUI
+
         self.dependent_joints = get_param("dependent_joints", {})
         self.use_mimic = get_param('use_mimic_tags', True)
         self.use_small = get_param('use_smallest_joint_limits', True)
@@ -333,6 +337,9 @@ class JointStatePublisherGui(QWidget):
             if joint['min'] == joint['max']:
                 continue
 
+            if name in self.jsp.disabled_joint_list:
+                continue
+
             joint_layout = QVBoxLayout()
             row_layout = QHBoxLayout()
 
@@ -351,7 +358,7 @@ class JointStatePublisherGui(QWidget):
 
             slider.setFont(font)
             slider.setRange(0, RANGE)
-            slider.setValue(RANGE/2)
+            slider.setValue(int(RANGE/2))
 
             joint_layout.addWidget(slider)
 
@@ -419,7 +426,7 @@ class JointStatePublisherGui(QWidget):
             joint = joint_info['joint']
             joint_info['slidervalue'] = self.valueToSlider(joint['position'],
                                                            joint)
-            joint_info['slider'].setValue(joint_info['slidervalue'])
+            joint_info['slider'].setValue(int(joint_info['slidervalue']))
 
     def center_event(self, event):
         self.center()
@@ -428,7 +435,7 @@ class JointStatePublisherGui(QWidget):
         rospy.loginfo("Centering")
         for name, joint_info in self.joint_map.items():
             joint = joint_info['joint']
-            joint_info['slider'].setValue(self.valueToSlider(joint['zero'], joint))
+            joint_info['slider'].setValue(int(self.valueToSlider(joint['zero'], joint)))
 
     def reorggrid_event(self, event):
         self.reorganize_grid(event)
@@ -493,11 +500,20 @@ if __name__ == '__main__':
     try:
         
         rospy.init_node('task_postural_gui')
+
+        disabled_joint_list = []
+        rospy.wait_for_service('/cartesian/Postural/get_task_properties')
+        try:
+            task_properties = rospy.ServiceProxy('/cartesian/Postural/get_task_properties', GetTaskInfo)
+            disabled_joint_list = task_properties().disabled_joints
+            print(f"Disabled joints: {disabled_joint_list}")
+        except rospy.ServiceException as e:
+            print(f"Service call failed: {e}")
         
         msg = rospy.wait_for_message('/cartesian/Postural/current_reference', JointState)
         joints_callback(msg)
                     
-        jsp = JointStatePublisher()
+        jsp = JointStatePublisher(disabled_joint_list)
         
         if jsp.gui is None:
             jsp.loop()
