@@ -1,9 +1,12 @@
 solver_options:
     regularization: 1e-3
-    back_end: "qpoases"
+    back_end: "qpoases" #"osqp"
+    #front_end: "hcod"
+    #disable_weights_computation: False
 
 stack:
-    - ["LeftFoot", "RightFoot", "ComXY"]
+    - ["LeftFoot", "RightFoot"] 
+    - ["ComXY"]
     - ["LeftArm", "RightArm"]
     - ["Postural"]
 
@@ -24,6 +27,7 @@ LeftArm:
     name: "left_hand"
     distal_link: "LSoftHand"
     lambda: 0.1
+    weight: 10.
 
 RightArm:
     type: "Cartesian"
