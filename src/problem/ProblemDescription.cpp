@@ -11,6 +11,7 @@
 #include <XBotInterface/Logger.hpp>
 
 #include "problem/Subtask.h"
+#include "problem/Subconstraint.h"
 
 #include "fmt/format.h"
 
