@@ -3,6 +3,7 @@ include(ExternalProject)
 # compite GTest
 find_package(GTest)
 find_package(Threads)
+
 if(NOT GTEST_FOUND)
     set(gTestSource "/usr/src/gtest")
     ExternalProject_Add(GTest-ext SOURCE_DIR ${gTestSource}

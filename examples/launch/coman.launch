@@ -1,7 +1,7 @@
 <launch>
 
     <arg name="prefix" default=""/>
-    <arg name="gui" default="false"/>
+    <arg name="gui" default="true"/>
     
     <param name="robot_description" 
         textfile="$(find cartesian_interface)/examples/urdf/coman.urdf"/>
