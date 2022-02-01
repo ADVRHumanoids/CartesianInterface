@@ -34,7 +34,7 @@ before_script:
 - sudo pip3 install hhcm-forest==0.0.27
 - SRC_FOLDER=$PWD
 - cd .. && mkdir forest_ws && cd forest_ws && forest --init  # create forest ws for building
-- ln -s $SRC_FOLDER src/$(basename $SRC_FOLDER)  # symlink original source folder
+- ln -s $SRC_FOLDER src/cartesian_interface  # symlink original source folder
 - forest -a git@github.com:advrhumanoids/multidof_recipes.git master -u --clone-protocol ssh  # get recipes
 
 # apt update and core packages installation
