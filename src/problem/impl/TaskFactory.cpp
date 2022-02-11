@@ -43,15 +43,22 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
                                                  task_name));
         }
 
-        if(!task_node["indices"])
+        if(task_node["indices"] && task_node["remove_indices"])
         {
-            throw BadTaskDescription(fmt::format("Missing field 'indices' for subtask '{}'",
+            throw BadTaskDescription(fmt::format("'indices' and 'remove_indices' can not be set contemporary"));
+        }
+
+        if(!task_node["indices"] && !task_node["remove_indices"])
+        {
+            throw BadTaskDescription(fmt::format("Missing both fields 'indices' and 'remove_indices' for subtask '{}'",
                                                  task_name));
         }
+
 
         TaskIsSubtask e;
         e.real_task_name = task_node["task"].as<std::string>();
         e.indices = task_node["indices"].as<std::vector<int>>();
+        e.remove_indices = task_node["remove_indices"].as<std::vector<int>>();
 
         throw e;
     }
@@ -176,6 +183,16 @@ TaskDescription::Ptr TaskFactory::makeTask(std::string task_name)
         {
             throw std::runtime_error(fmt::format("Task '{}' type is not a TaskDescriptionImpl",
                                                  _subtask_map.at(e.real_task_name)->getName()));
+        }
+
+        if(e.remove_indices.size() > 0)
+        {
+            for(unsigned int i = 0; i < task_desc->getSize(); ++i)
+            {
+                if(std::find(e.remove_indices.begin(), e.remove_indices.end(), i) == e.remove_indices.end())
+                    e.indices.push_back(i);
+            }
+
         }
 
         task_desc = std::make_shared<SubtaskImpl>(task_impl,
