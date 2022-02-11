@@ -213,12 +213,22 @@ bool OpenSotConstraintAdapter::initialize(const OpenSoT::OptvarHelper& vars)
     _vars = vars;
 
     _opensot_constr = constructConstraint();
+    _sub_constr = _opensot_constr;
 
     if(!_opensot_constr)
     {
         throw std::runtime_error(fmt::format("OpenSotConstraintAdapter: "
                                              "constructConstraint() for constraint '{}' returned null pointer",
                                              _ci_constr->getName()));
+    }
+
+    // indices
+    if(_ci_constr->getIndices().size() != _ci_constr->getSize())
+    {
+        std::list<uint> indices_list(_ci_constr->getIndices().begin(),
+                                     _ci_constr->getIndices().end());
+
+        _sub_constr = _opensot_constr % indices_list;
     }
 
     /* Register observer */
@@ -243,7 +253,7 @@ void OpenSotConstraintAdapter::processSolution(const Eigen::VectorXd& solution)
 
 ConstraintPtr OpenSotConstraintAdapter::getOpenSotConstraint()
 {
-    return _opensot_constr;
+    return _sub_constr;
 }
 
 ConstraintDescription::Ptr OpenSotConstraintAdapter::getConstraintDescription() const
