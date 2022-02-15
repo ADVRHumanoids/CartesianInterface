@@ -57,8 +57,10 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
 
         TaskIsSubtask e;
         e.real_task_name = task_node["task"].as<std::string>();
-        e.indices = task_node["indices"].as<std::vector<int>>();
-        e.remove_indices = task_node["remove_indices"].as<std::vector<int>>();
+        if(task_node["indices"])
+            e.indices = task_node["indices"].as<std::vector<int>>();
+        if(task_node["remove_indices"])
+            e.remove_indices = task_node["remove_indices"].as<std::vector<int>>();
 
         throw e;
     }
