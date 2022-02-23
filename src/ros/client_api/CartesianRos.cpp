@@ -25,10 +25,10 @@ CartesianRos::CartesianRos(std::string name,
                                              _cart_info_cli.getService()));
     }
 
-    if(!_action_cli.isServerConnected())
+    if(!_action_cli.waitForServer(ros::Duration(2.0)))
     {
-//        throw std::runtime_error(fmt::format("Unable to reach action server '{}'",
-//                                             nh.resolveName(name + "/reach")));
+        throw std::runtime_error(fmt::format("Unable to reach action server '{}'",
+                                             _nh.resolveName(getName() + "/reach")));
     }
 
     _set_base_link_cli = _nh.serviceClient<SetBaseLink>(name + "/set_base_link");

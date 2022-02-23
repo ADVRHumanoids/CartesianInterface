@@ -6,8 +6,10 @@ using namespace XBot::Cartesian;
 InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
                                          Context::ConstPtr context):
     CartesianTaskImpl(task_node, context),
-    _ref_timeout(-1),
-    _fref(Eigen::Vector6d::Zero())
+    _ref_timeout  (-1),
+    _state        (State::Online),
+    _fref         (Eigen::Vector6d::Zero()),
+	_interpolator (new Interpolator<Eigen::Matrix6d>)
 {
     std::vector<double> stiffness, damping, inertia, fmin, fmax;
 
@@ -18,7 +20,7 @@ InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
         {
             throw std::runtime_error("'stiffness' field for interaction tasks requires six values");
         }
-        _k = Eigen::Vector6d::Map(stiffness.data()).asDiagonal();
+        _impedance.stiffness = Eigen::Vector6d::Map(stiffness.data()).asDiagonal();
     }
     else
     {
@@ -33,7 +35,7 @@ InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
         {
             throw std::runtime_error("'damping' field for interaction tasks requires six values");
         }
-        _d = Eigen::Vector6d::Map(damping.data()).asDiagonal();
+        _impedance.damping = Eigen::Vector6d::Map(damping.data()).asDiagonal();
     }
     else
     {
@@ -47,11 +49,11 @@ InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
         {
             throw std::runtime_error("'inertia' field for interaction tasks requires six values");
         }
-        _m = Eigen::Vector6d::Map(inertia.data()).asDiagonal();
+        _impedance.mass = Eigen::Vector6d::Map(inertia.data()).asDiagonal();
     }
     else
     {
-        _m.setIdentity();
+        _impedance.mass.setIdentity();
     }
 
     _fmin.setConstant(-1000.0);
@@ -86,28 +88,16 @@ InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
         throw std::runtime_error("'force_max' must be >= 0 && 'force_min' must be <= 0");
     }
 
-    if(_k.minCoeff() < 0 || _d.minCoeff() < 0 || _m.minCoeff() < 0)
+    if(_impedance.stiffness.minCoeff() < 0 || _impedance.damping.minCoeff() < 0 || _impedance.mass.minCoeff() < 0)
     {
         throw std::runtime_error("Negative values detected in interaction parameters");
     }
 
 }
 
-
-const Eigen::Matrix6d& XBot::Cartesian::InteractionTaskImpl::getStiffness() const
+const Impedance & XBot::Cartesian::InteractionTaskImpl::getImpedance()
 {
-    return _k;
-}
-
-
-const Eigen::Matrix6d& XBot::Cartesian::InteractionTaskImpl::getDamping() const
-{
-    return _d;
-}
-
-const Eigen::Matrix6d& XBot::Cartesian::InteractionTaskImpl::getInertia() const
-{
-    return _m;
+	return _impedance;
 }
 
 const Eigen::Vector6d& XBot::Cartesian::InteractionTaskImpl::getForceReference() const
@@ -122,19 +112,17 @@ void XBot::Cartesian::InteractionTaskImpl::getForceLimits(Eigen::Vector6d& fmin,
     fmax = _fmax;
 }
 
-void XBot::Cartesian::InteractionTaskImpl::setStiffness(const Eigen::Matrix6d& k)
+bool XBot::Cartesian::InteractionTaskImpl::setImpedance(const Impedance& impedance)
 {
-    _k = k;
-}
-
-void XBot::Cartesian::InteractionTaskImpl::setDamping(const Eigen::Matrix6d& d)
-{
-    _d = d;
-}
-
-void XBot::Cartesian::InteractionTaskImpl::setInertia(const Eigen::Matrix6d& m)
-{
-    _m = m;
+	if(_state == State::Reaching)
+    {
+        XBot::Logger::error("Unable to set pose reference. Task '%s' is in REACHING state \n",
+                            getName().c_str());
+        return false;
+    }
+    
+    _impedance = impedance;
+    return true;
 }
 
 void XBot::Cartesian::InteractionTaskImpl::setForceReference(const Eigen::Vector6d& f)
@@ -164,12 +152,61 @@ bool XBot::Cartesian::InteractionTaskImpl::setForceLimits(const Eigen::Vector6d&
 
 }
 
+bool XBot::Cartesian::InteractionTaskImpl::setStiffnessTransition(const Interpolator<Eigen::Matrix6d>::WayPointVector & way_points)
+{
+    if(_state == State::Reaching)
+    {
+        XBot::Logger::error("Unable to set target pose. Task '%s' is in already in REACHING mode \n",
+                            getName().c_str());
+        return false;
+    }
+    
+    _state = State::Reaching;
+    
+	_interpolator->clear();
+	_interpolator->addWayPoint(getTime(), _impedance.stiffness);
+	
+    for(const auto& wp : way_points)
+    {
+		_interpolator->addWayPoint(wp, getTime());
+    }
+    
+    _interpolator->compute();
+	
+    return true;
+}
+
+void XBot::Cartesian::InteractionTaskImpl::abortStiffnessTransition()
+{
+    if(_state == State::Reaching)
+    {
+        _state = State::Online;
+        _interpolator->clear();
+    }
+}
 
 void XBot::Cartesian::InteractionTaskImpl::update(double time, double period)
 {
     CartesianTaskImpl::update(time, period);
 
     if(time > _ref_timeout) _fref.setZero();
+	
+	TaskDescriptionImpl::update(time, period);
+
+    if (_state == State::Reaching)
+    {
+        _impedance.stiffness = _interpolator->evaluate(time);
+		
+		if (_interpolator->isTrajectoryEnded(time))
+        {
+			_state = State::Online;
+        }
+    }
+}
+
+State XBot::Cartesian::InteractionTaskImpl::getStiffnessState() const
+{
+	return _state;
 }
 
 
@@ -189,10 +226,10 @@ void XBot::Cartesian::InteractionTaskImpl::log(MatLogger2::Ptr logger,
         return;
     }
 
-    logger->add(getName() + "_fref", _fref);
-    logger->add(getName() + "_k",    _k);
-    logger->add(getName() + "_d",    _d);
-    logger->add(getName() + "_m",    _m);
+    logger->add(getName() + "_fref", _fref               );
+    logger->add(getName() + "_k",    _impedance.stiffness);
+    logger->add(getName() + "_d",    _impedance.damping  );
+    logger->add(getName() + "_m",    _impedance.mass     );
 
 }
 

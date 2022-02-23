@@ -63,6 +63,13 @@ public:
     bool waitReachCompleted(const std::string& ee_name, double timeout_sec = 0);
 
     //        virtual bool abort(const std::string& end_effector);
+	
+	bool setStiffnessTransition(const std::string& end_effector,
+                      const Interpolator<Eigen::Matrix6d>::WayPointVector & way_points);
+
+    bool waitStiffnessTransitionCompleted(const std::string& ee_name, double timeout_sec = 0);
+	
+	bool abortStiffnessTransition(const std::string& end_effector);
 
     virtual bool update(double time, double period);
 

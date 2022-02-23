@@ -39,6 +39,12 @@ if(${pybind11_FOUND})
 
     install(TARGETS affine3
             DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
+
+    pybind11_add_module(impedance pyImpedance.cpp)
+    target_link_libraries(impedance PRIVATE CartesianInterface)
+
+    install(TARGETS impedance
+            DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
             
     install(FILES pyci_all.py
             DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})

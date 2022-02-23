@@ -123,6 +123,22 @@ void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task
     _task_map[task_desc->getName()] = task_desc;
     _task_list.push_back(task_desc->getName());
 
+    if(auto cart_desc = std::dynamic_pointer_cast<InteractionTask>(task_desc))
+    {
+        _cint_task_map[cart_desc->getName()] = cart_desc;
+
+        auto com_desc = std::dynamic_pointer_cast<ComTask>(task_desc);
+
+        if(com_desc)
+        {
+            _com_task_map[cart_desc->getName()] = com_desc;
+        }
+
+        Logger::success(Logger::Severity::HIGH) <<  "Successfully added Cartesian Interaction task with\n" <<
+                                                    "   BASE LINK:   " << XBot::bold_on << cart_desc->getBaseLink() << XBot::bold_off  << "\n" << XBot::color_yellow <<
+                                                    "   DISTAL LINK: " << XBot::bold_on << cart_desc->getDistalLink() << XBot::bold_off << Logger::endl();
+    }
+    
     if(auto cart_desc = std::dynamic_pointer_cast<CartesianTask>(task_desc))
     {
         _cart_task_map[cart_desc->getName()] = cart_desc;
@@ -205,6 +221,19 @@ bool CartesianInterfaceImpl::setActivationState(const std::string & ee_name, Act
     return task->setActivationState(activ_state);
 }
 
+
+InteractionTask::Ptr CartesianInterfaceImpl::get_cint_task(const std::string& ee_name) const
+{
+    auto it = _cint_task_map.find(ee_name);
+    
+    if(it == _cint_task_map.end())
+    {
+        XBot::Logger::error("Cartesian Interaction task '%s' undefined \n", ee_name.c_str());
+        return nullptr;
+    }
+    
+    return it->second;
+}
 
 CartesianTask::Ptr CartesianInterfaceImpl::get_cart_task(const std::string& ee_name) const
 {
@@ -916,7 +945,21 @@ bool XBot::Cartesian::CartesianInterfaceImpl::getDesiredInteraction(const std::s
                                                                     Eigen::Matrix6d& stiffness,
                                                                     Eigen::Matrix6d& damping) const
 {
-    return false;
+	auto task = get_cint_task(end_effector);
+    
+    if(!task)
+    {
+        return false;
+    }
+    
+    force.setZero();
+	
+	// Logger::warning(Logger::Severity::HIGH, "No force setting available in this version of interaction task\n");
+	
+	stiffness = task->getImpedance().stiffness;
+	damping   = task->getImpedance().damping  ;
+    
+    return true;
 }
 
 CartesianInterfaceImpl::~CartesianInterfaceImpl()

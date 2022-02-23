@@ -104,10 +104,6 @@ private:
 
     std::unique_ptr<ReachActionManager> _reach_action_manager;
 
-
-
-
-
 };
 
 } }
