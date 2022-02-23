@@ -137,6 +137,12 @@ public:
     virtual bool setVelocityReference(const Eigen::Vector6d& base_vel_ref) = 0;
 
     /**
+     * @brief setAccelerationReference sets a new desired acceleration for the task.
+     * @return
+     */
+    virtual bool setAccelerationReference(const Eigen::Vector6d& base_acc_ref) = 0;
+
+    /**
      * @brief getPoseTarget returns the current of the reaching motion being
      * performed by the task, if the task state is Reaching.
      * @return  true if the task state is Reaching, false otherwise

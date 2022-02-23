@@ -57,6 +57,10 @@ CartesianRos::CartesianRos(CartesianTask::Ptr cart_task,
                 _task->getName() + "/current_velocity_reference", 1
                 );
 
+    _acc_ref_pub = _ctx->nh().advertise<geometry_msgs::TwistStamped>(
+                _task->getName() + "/current_acceleration_reference", 1
+                );
+
     _pose_ref_sub = _ctx->nh().subscribe(_task->getName() + "/reference", 1,
                                          &CartesianRos::online_position_reference_cb,
                                          this);
@@ -103,8 +107,8 @@ void CartesianRos::publish_ref(ros::Time time)
     pose_msg.header.frame_id = _ctx->tf_prefix_slash() + _cart->getBaseLink();
 
     Eigen::Affine3d base_T_ee;
-    Eigen::Vector6d vel;
-    _cart->getPoseReference(base_T_ee, &vel);
+    Eigen::Vector6d vel, acc;
+    _cart->getPoseReference(base_T_ee, &vel, &acc);
     tf::poseEigenToMsg(base_T_ee, pose_msg.pose);
 
     _pose_ref_pub.publish(pose_msg);
@@ -117,6 +121,14 @@ void CartesianRos::publish_ref(ros::Time time)
     tf::twistEigenToMsg(vel, vel_msg.twist);
 
     _vel_ref_pub.publish(vel_msg);
+
+    /* Acceleration reference */
+    geometry_msgs::TwistStamped acc_msg;
+
+    acc_msg.header = pose_msg.header;
+    tf::twistEigenToMsg(acc, acc_msg.twist);
+
+    _acc_ref_pub.publish(acc_msg);
 
 
 }

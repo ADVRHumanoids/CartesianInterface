@@ -96,7 +96,7 @@ private:
 
 
 
-    ros::Publisher _pose_ref_pub, _vel_ref_pub, _task_info_pub;
+    ros::Publisher _pose_ref_pub, _vel_ref_pub, _acc_ref_pub, _task_info_pub;
     ros::Subscriber _pose_ref_sub, _vel_ref_sub;
     ros::ServiceServer _get_info_srv, _set_base_link_srv, _set_ctrl_srv, _set_safety_srv;
 

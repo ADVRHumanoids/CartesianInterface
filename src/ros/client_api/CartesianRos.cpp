@@ -230,6 +230,12 @@ bool CartesianRos::setVelocityReference(const Eigen::Vector6d& base_vel_ref)
     return setVelocityReference(base_vel_ref, "");
 }
 
+bool CartesianRos::setAccelerationReference(const Eigen::Vector6d &base_acc_ref)
+{
+    throw std::runtime_error(fmt::format("Unsupported function '{}'",
+                                         __PRETTY_FUNCTION__));
+}
+
 bool CartesianRos::setVelocityReference(const Eigen::Vector6d& base_vel_ref,
                                         const std::string& base_frame)
 {

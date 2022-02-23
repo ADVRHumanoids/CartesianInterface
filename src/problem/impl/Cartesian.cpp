@@ -31,7 +31,8 @@ CartesianTaskImpl::CartesianTaskImpl(Context::ConstPtr context,
     _is_body_jacobian(false),
     _ctrl_mode(ControlType::Position),
     _state(State::Online),
-    _vref_time_to_live(-1.0)
+    _vref_time_to_live(-1.0),
+    _aref_time_to_live(-1.0)
 {
     _otg_maxvel.setConstant(1.0);
     _otg_maxacc.setConstant(10.0);
@@ -317,13 +318,40 @@ bool CartesianTaskImpl::setVelocityReference(const Eigen::Vector6d & base_vel_re
 {
     if(getActivationState() == ActivationState::Disabled)
     {
-        XBot::Logger::error("Unable to set pose reference. Task '%s' is in DISABLED mode \n",
+        XBot::Logger::error("Unable to set velocity reference. Task '%s' is in DISABLED mode \n",
                             getName().c_str());
         return false;
     }
 
-    _vel = base_vel_ref;
+    // apply velocity limits
+    double max_vel_lin, max_vel_ang;
+    getVelocityLimits(max_vel_lin, max_vel_ang);
+    _vel.head<3>() = base_vel_ref.head<3>().cwiseMin(max_vel_lin).cwiseMax(-max_vel_lin);
+    _vel.tail<3>() = base_vel_ref.tail<3>().cwiseMin(max_vel_ang).cwiseMax(-max_vel_ang);
+
+    // set timeout
     _vref_time_to_live = DEFAULT_TTL;
+
+    return true;
+}
+
+bool CartesianTaskImpl::setAccelerationReference(const Eigen::Vector6d &base_acc_ref)
+{
+    if(getActivationState() == ActivationState::Disabled)
+    {
+        XBot::Logger::error("Unable to set acceleration reference. Task '%s' is in DISABLED mode \n",
+                            getName().c_str());
+        return false;
+    }
+
+    // apply acceleration limits
+    double max_acc_lin, max_acc_ang;
+    getAccelerationLimits(max_acc_lin, max_acc_ang);
+    _acc.head<3>() = base_acc_ref.head<3>().cwiseMin(max_acc_lin).cwiseMax(-max_acc_lin);
+    _acc.tail<3>() = base_acc_ref.tail<3>().cwiseMin(max_acc_ang).cwiseMax(-max_acc_ang);
+
+    // set timeout
+    _aref_time_to_live = DEFAULT_TTL;
 
     return true;
 }
@@ -401,7 +429,9 @@ void CartesianTaskImpl::update(double time, double period)
 {
     TaskDescriptionImpl::update(time, period);
 
+    // update timeouts for velocity and acceleration refs
     _vref_time_to_live -= period;
+    _aref_time_to_live -= period;
 
     if(_state == State::Reaching)
     {
@@ -414,11 +444,12 @@ void CartesianTaskImpl::update(double time, double period)
     }
     else
     {
-        if(_vref_time_to_live <= 0.0)
+        if(_vref_time_to_live < 0.0 || _aref_time_to_live < 0.0)
         {
             _vel.setZero();
             _acc.setZero();
             _vref_time_to_live = -1.0;
+            _aref_time_to_live = -1.0;
         }
     }
 
@@ -513,7 +544,6 @@ void CartesianTaskImpl::apply_otg()
     /* Compute pdot + qdot 7d vector */
     EigenVector7d otg_vdes;
     otg_vdes.setZero();
-//    otg_vdes.head<3>() = _vel.head<3>();
 
     _otg->setReference(_otg_des, otg_vdes);
     _otg->update(_otg_ref, _otg_vref);
