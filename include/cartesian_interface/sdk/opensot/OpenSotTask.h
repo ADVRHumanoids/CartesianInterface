@@ -115,6 +115,7 @@ protected:
 private:
 
     ConstraintPtr _opensot_constr;
+    ConstraintPtr _sub_constr;
 
 };
 
