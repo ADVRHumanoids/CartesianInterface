@@ -138,14 +138,7 @@ int Trajectory::getCurrentSegmentId(double time) const
 }
 
 
-void XBot::Cartesian::Trajectory::compute()
+void Trajectory::compute()
 {
 
 }
-
-
-
-
-
-
-

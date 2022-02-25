@@ -25,10 +25,10 @@ CartesianRos::CartesianRos(std::string name,
                                              _cart_info_cli.getService()));
     }
 
-    if(!_action_cli.isServerConnected())
+    if(!_action_cli.waitForServer(ros::Duration(2.0)))
     {
-//        throw std::runtime_error(fmt::format("Unable to reach action server '{}'",
-//                                             nh.resolveName(name + "/reach")));
+        throw std::runtime_error(fmt::format("Unable to reach action server '{}'",
+                                             _nh.resolveName(getName() + "/reach")));
     }
 
     _set_base_link_cli = _nh.serviceClient<SetBaseLink>(name + "/set_base_link");
@@ -228,6 +228,12 @@ bool CartesianRos::setPoseReferenceRaw(const Eigen::Affine3d& base_T_ref)
 bool CartesianRos::setVelocityReference(const Eigen::Vector6d& base_vel_ref)
 {
     return setVelocityReference(base_vel_ref, "");
+}
+
+bool CartesianRos::setAccelerationReference(const Eigen::Vector6d &base_acc_ref)
+{
+    throw std::runtime_error(fmt::format("Unsupported function '{}'",
+                                         __PRETTY_FUNCTION__));
 }
 
 bool CartesianRos::setVelocityReference(const Eigen::Vector6d& base_vel_ref,

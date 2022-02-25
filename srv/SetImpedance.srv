@@ -1,3 +1,4 @@
----
 cartesian_interface/CartesianImpedance impedance
-
+---
+bool success
+string message
