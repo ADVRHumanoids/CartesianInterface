@@ -156,9 +156,9 @@ TEST(TestCartesian, checkAdmittance)
     ASSERT_EQ(t.getDistalLink(), "arm1_8");
     ASSERT_EQ(t.getBaseLink(), "pelvis");
     ASSERT_EQ(t.getForceDeadzone(), vec);
-    ASSERT_EQ(t.getStiffness(), mat);
-    ASSERT_EQ(t.getDamping(), mat);
-    ASSERT_EQ(t.getInertia(), mat);
+    ASSERT_EQ(t.getImpedance().stiffness, mat);
+    ASSERT_EQ(t.getImpedance().damping, mat);
+    ASSERT_EQ(t.getImpedance().mass, mat);
     ASSERT_EQ(t.getForceEstimationChains(), std::vector<std::string>{"left_arm"});
 
 
