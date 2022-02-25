@@ -248,6 +248,7 @@ bool InteractionRos::get_task_info_cb(cartesian_interface::GetInteractionTaskInf
 									  cartesian_interface::GetInteractionTaskInfoResponse& res)
 {
 	res.state = EnumToString(_ci_inter->getStiffnessState());
+    return true;
 }
 
 bool InteractionRos::get_impedance_cb(cartesian_interface::GetImpedanceRequest&  req,

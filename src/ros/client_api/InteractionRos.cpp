@@ -144,7 +144,8 @@ void InteractionRos::setForceReference (const Eigen::Vector6d& f)
 
 bool InteractionRos::setForceLimits (const Eigen::Vector6d& fmin, const Eigen::Vector6d& fmax)
 {
-	ROS_WARN("unsupported function: getForceLimits");
+    ROS_WARN("unsupported function: setForceLimits");
+    return false;
 }
 
 State InteractionRos::getStiffnessState() const

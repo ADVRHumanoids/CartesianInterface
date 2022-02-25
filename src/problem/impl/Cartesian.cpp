@@ -326,6 +326,7 @@ bool CartesianTaskImpl::setVelocityReference(const Eigen::Vector6d & base_vel_re
     // apply velocity limits
     double max_vel_lin, max_vel_ang;
     getVelocityLimits(max_vel_lin, max_vel_ang);
+
     _vel.head<3>() = base_vel_ref.head<3>().cwiseMin(max_vel_lin).cwiseMax(-max_vel_lin);
     _vel.tail<3>() = base_vel_ref.tail<3>().cwiseMin(max_vel_ang).cwiseMax(-max_vel_ang);
 
@@ -444,11 +445,15 @@ void CartesianTaskImpl::update(double time, double period)
     }
     else
     {
-        if(_vref_time_to_live < 0.0 || _aref_time_to_live < 0.0)
+        if(_vref_time_to_live < 0.0)
         {
             _vel.setZero();
-            _acc.setZero();
             _vref_time_to_live = -1.0;
+        }
+
+        if(_aref_time_to_live < 0.0)
+        {
+            _acc.setZero();
             _aref_time_to_live = -1.0;
         }
     }
