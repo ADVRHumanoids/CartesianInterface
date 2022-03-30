@@ -173,6 +173,7 @@ void RosExecutor::init_load_model()
 
 void RosExecutor::reset_model_state()
 {
+    bool home_from_joint_states = _nh_priv.param<bool>("home_from_joint_states", false);
 
     if(_robot)
     {
@@ -204,6 +205,23 @@ void RosExecutor::reset_model_state()
         XBot::JointNameMap qref(joint_map.begin(),
                                 joint_map.end());
 
+
+        _model->setJointPosition(qref);
+        _model->update();
+    }
+    else if(home_from_joint_states)
+    {
+        auto msg = ros::topic::waitForMessage<sensor_msgs::JointState>("joint_states", ros::Duration(1.0));
+        if(!msg || msg->name.size() == 0)
+        {
+            throw std::runtime_error("Unable to get current joint states from joint_states");
+        }
+
+        XBot::JointNameMap qref;
+        for(unsigned int i = 0; i < msg->name.size(); ++i)
+        {
+            qref[msg->name[i]] = msg->position[i];
+        }
 
         _model->setJointPosition(qref);
         _model->update();

@@ -12,6 +12,7 @@
     <arg name="world_frame_link" default="!"/>
     <arg name="solution_topic" default="!"/>
     <arg name="enable_otg" default="true"/>
+    <arg name="home_from_joint_states" default="false"/>
 
     <group ns="$(arg namespace)">
 
@@ -31,6 +32,7 @@
             <param name="tf_prefix" value="$(arg tf_prefix)"/>
             <param if="$(eval arg('world_frame_link') != '!')" name="world_frame_link" value="$(arg world_frame_link)"/>
             <remap if="$(eval arg('solution_topic') != '!')" from="cartesian/solution" to="$(arg solution_topic)"/>
+            <param name="home_from_joint_states" value="$(arg home_from_joint_states)"/>
 
         </node>
 
