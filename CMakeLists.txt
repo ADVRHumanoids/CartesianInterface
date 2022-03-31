@@ -182,6 +182,7 @@ set(CartesianInterfaceROS_SRC
     src/ros/JoyStick.cpp
     #        src/ros/CartesianAnalyzer.cpp
     src/ros/RosExecutor.cpp
+    src/ros/RosControlTopicApi.cpp
     )
 
 # Trajectory

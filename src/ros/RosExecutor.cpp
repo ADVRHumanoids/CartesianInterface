@@ -30,8 +30,9 @@ RosExecutor::RosExecutor(std::string ns):
 
     init_load_torque_offset();
 
-    init_create_loop_timer();
+    init_ros_control_topic_api();
 
+    init_create_loop_timer();
 
 }
 
@@ -496,6 +497,10 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
         _robot->setReferenceFrom(*_model, Sync::Position, Sync::Velocity);
         _robot->move();
     }
+    else if(_ros_control)// do we want to make it mutually exclusive???
+    {
+        _ros_control->setReference(_q);
+    }
 
 
     /* logging */
@@ -555,6 +560,18 @@ void RosExecutor::floating_base_pose_callback(geometry_msgs::PoseStampedConstPtr
 RosExecutor::~RosExecutor()
 {
     world_frame_to_param();
+}
+
+void RosExecutor::init_ros_control_topic_api()
+{
+    bool _ros_control_mode = _nh_priv.param("ros_control_mode", false);
+    if(_ros_control_mode)
+    {
+        _ros_control = std::make_shared<RosControlTopicAPI>(_nh, "hardware_interface::PositionJointInterface", _period, _model); //<-add support to further interface in the future?
+
+        if(!_ros_control->startStoppedControllers())
+            throw std::runtime_error("Can not start stopped controllers");
+    }
 }
 
 

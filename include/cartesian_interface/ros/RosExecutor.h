@@ -21,6 +21,7 @@
 #include <cartesian_interface/LoadController.h>
 #include <cartesian_interface/utils/LoadConfig.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
+#include <cartesian_interface/ros/RosControlTopicApi.h>
 
 
 
@@ -51,6 +52,7 @@ namespace XBot { namespace Cartesian {
         void init_load_torque_offset();
         void init_load_world_frame();
         void init_create_loop_timer();
+        void init_ros_control_topic_api();
         
         CartesianInterfaceImpl::Ptr load_controller(std::string impl_name, 
                                                     ProblemDescription ik_problem);
@@ -98,7 +100,7 @@ namespace XBot { namespace Cartesian {
         
         MatLogger2::Ptr _logger;
         
-        
+        RosControlTopicAPI::Ptr _ros_control;
         
     };
 
