@@ -24,6 +24,7 @@
 #include <cartesian_interface/CartesianInterface.h>
 #include <cartesian_interface/trajectory/Trajectory.h>
 #include <cartesian_interface/problem/ProblemDescription.h>
+#include <cartesian_interface/problem/Interaction.h>
 #include <cartesian_interface/problem/Cartesian.h>
 #include <cartesian_interface/problem/Com.h>
 #include <cartesian_interface/problem/Postural.h>
@@ -235,11 +236,13 @@ private:
    
     std::vector<std::string> _task_list;
     
-    TaskDescription::Ptr get_task(const std::string& name) const;
-    CartesianTask::Ptr get_cart_task(const std::string& name) const;
-    ComTask::Ptr get_com_task() const;
+    TaskDescription::Ptr get_task     (const std::string& name) const;
+    InteractionTask::Ptr get_cint_task(const std::string& name) const;
+	CartesianTask::Ptr   get_cart_task(const std::string& name) const;
+    ComTask::Ptr         get_com_task (                       ) const;
     
     std::map<std::string, TaskDescription::Ptr> _task_map;
+	std::map<std::string, InteractionTask::Ptr> _cint_task_map;
     std::map<std::string, CartesianTask::Ptr> _cart_task_map;
     std::map<std::string, ComTask::Ptr> _com_task_map;
     std::map<std::string, PosturalTask::Ptr> _postural_task_map;

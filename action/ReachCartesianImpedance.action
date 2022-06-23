@@ -1,0 +1,21 @@
+# Goal
+
+cartesian_interface/CartesianImpedanceTimed[] target
+
+---
+
+# Result
+
+cartesian_interface/CartesianImpedance        impedance_final
+float32                                       error_mean
+float32                                       error_sigma
+
+---
+
+# Feedback message
+
+cartesian_interface/CartesianImpedance        impedance_reference
+cartesian_interface/CartesianImpedance        impedance_actual
+float32                                       progress
+float32                                       time_to_finish
+

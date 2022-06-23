@@ -238,7 +238,14 @@ TEST_F(TestOpensot, checkVelocityCtrl)
     for(int i = 0; i < 1.0/dt; i++)
     {
         EXPECT_TRUE(ct->setVelocityReference(vref));
-        ci->update(time, dt);
+        EXPECT_TRUE(ci->update(time, dt));
+
+        Eigen::Affine3d Tref;
+        Eigen::Vector6d vref_check;
+        EXPECT_TRUE(ct->getPoseReference(Tref, &vref_check));
+
+        EXPECT_TRUE(Tref.isApprox(pose0));
+        EXPECT_TRUE(vref_check.isApprox(vref));
 
         time += dt;
 
@@ -247,6 +254,7 @@ TEST_F(TestOpensot, checkVelocityCtrl)
         q += dq * dt;
         ci->getModel()->setJointPosition(q);
         ci->getModel()->update();
+
     }
 
     Eigen::Affine3d pose1;

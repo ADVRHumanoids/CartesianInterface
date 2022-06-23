@@ -176,6 +176,14 @@ bool CartesianRt::setVelocityReference(const Eigen::Vector6d & base_vel_ref)
     return _cb_queue.push(cb);
 }
 
+bool CartesianRt::setAccelerationReference(const Eigen::Vector6d &base_acc_ref)
+{
+    auto cb = std::bind(&CartesianTask::setAccelerationReference,
+                        pl::_1, base_acc_ref);
+
+    return _cb_queue.push(cb);
+}
+
 bool CartesianRt::getPoseTarget(Eigen::Affine3d & base_T_ref) const
 {
     return false;

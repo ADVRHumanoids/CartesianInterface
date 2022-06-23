@@ -42,6 +42,7 @@ public:
     bool setPoseReference(const Eigen::Affine3d & base_T_ref) override;
     bool setPoseReferenceRaw(const Eigen::Affine3d & base_T_ref) override;
     bool setVelocityReference(const Eigen::Vector6d & base_vel_ref) override;
+    bool setAccelerationReference(const Eigen::Vector6d & base_acc_ref) override;
     bool getPoseTarget(Eigen::Affine3d & base_T_ref) const override;
     bool setPoseTarget(const Eigen::Affine3d & base_T_ref, double time) override;
     int getCurrentSegmentId() const override;

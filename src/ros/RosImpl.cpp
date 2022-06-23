@@ -12,6 +12,7 @@
 
 #include "ros/client_api/TaskRos.h"
 #include "ros/client_api/CartesianRos.h"
+#include "ros/client_api/InteractionRos.h"
 
 #define THROW_NOT_IMPL throw std::runtime_error("Not implemented function " + std::string(__func__));
 
@@ -588,6 +589,35 @@ bool RosClient::waitReachCompleted(const std::string & ee_name, double timeout_s
     return cart_ros->waitReachCompleted(timeout_sec);
 }
 
+bool RosClient::setStiffnessTransition(const std::string& end_effector,
+                      const Interpolator<Eigen::Matrix6d>::WayPointVector & way_points)
+{
+    auto interaction_ros = std::dynamic_pointer_cast<ClientApi::InteractionRos>(getTask(end_effector));
+
+    if(!interaction_ros) return false;
+
+    return interaction_ros->setStiffnessTransition(way_points);
+}
+
+bool RosClient::waitStiffnessTransitionCompleted(const std::string& ee_name, double timeout_sec)
+{
+    auto interaction_ros = std::dynamic_pointer_cast<ClientApi::InteractionRos>(getTask(ee_name));
+
+    if(!interaction_ros) return false;
+
+    return interaction_ros->waitTransitionCompleted(timeout_sec);
+}
+
+bool RosClient::abortStiffnessTransition(const std::string& end_effector)
+{
+	auto interaction_ros = std::dynamic_pointer_cast<ClientApi::InteractionRos>(getTask(end_effector));
+
+    if(!interaction_ros) return false;
+	
+	interaction_ros->abortStiffnessTransition();
+    return true;
+}
+	
 
 //RosClient::~RosClient()
 //{

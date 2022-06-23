@@ -1,3 +1,6 @@
+#ifndef LOCKFREE_BUFFER_IMPL_H
+#define LOCKFREE_BUFFER_IMPL_H
+
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include "utils/spsc_queue_ci.hpp"
 #include "TaskRt.h"
@@ -42,10 +45,10 @@ namespace XBot { namespace Cartesian {
         ModelInterface::Ptr _model;
         
         std::vector<TaskRt::Ptr> _tasks;
-        
-        
-    };
-    
 
-    
-} }
+    };
+
+} // Cartesian
+} // XBot
+
+#endif

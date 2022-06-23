@@ -50,6 +50,7 @@ public:
     bool setPoseReference(const Eigen::Affine3d & base_T_ref) override;
     bool setPoseReferenceRaw(const Eigen::Affine3d & base_T_ref) override;
     bool setVelocityReference(const Eigen::Vector6d & base_vel_ref) override;
+    bool setAccelerationReference(const Eigen::Vector6d & base_acc_ref) override;
     bool setVelocityReference(const Eigen::Vector6d& base_vel_ref,
                               const std::string& base_frame);
     bool getPoseTarget(Eigen::Affine3d & base_T_ref) const override;
