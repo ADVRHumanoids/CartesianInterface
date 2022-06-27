@@ -10,7 +10,6 @@ option(XBOT2_ENABLE_XENO OFF "Compile against xenomai")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 find_package(XBotInterface REQUIRED)
-find_package(XCM QUIET)
 find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
 find_package(matlogger2 REQUIRED)
@@ -214,6 +213,7 @@ target_link_libraries(CartesianInterface
 
     )
 
+
 target_compile_definitions(CartesianInterface
     PUBLIC -DFMT_HEADER_ONLY=1)
 
@@ -325,11 +325,6 @@ include(GenerateDeb)
 
 
 option(CARTESIO_COMPILE_XBOT_PLUGIN "Build plugins for XBotCore" OFF)
-
-if(${XCM_FOUND} AND ${CARTESIO_COMPILE_XBOT_PLUGIN})
-    add_subdirectory(xbotcore)
-endif()
-
 
 # Mark cpp header files for installation
 install(DIRECTORY include/cartesian_interface/
