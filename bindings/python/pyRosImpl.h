@@ -25,6 +25,11 @@ CartesianInterfaceImpl::Ptr make_ci(std::string solver_name,
 
     ProblemDescription ik_pb(ik_pb_yaml, ctx);
 
+    if(solver_name.empty())
+    {
+        return std::make_shared<CartesianInterfaceImpl>(ik_pb, ctx);
+    }
+
     return CartesianInterfaceImpl::MakeInstance(solver_name, ik_pb, ctx);
 
 }
