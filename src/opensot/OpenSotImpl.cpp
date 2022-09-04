@@ -59,6 +59,10 @@ OpenSoT::solvers::solver_back_ends backend_from_string(std::string back_end_stri
     {
         return OpenSoT::solvers::solver_back_ends::qpSWIFT;
     }
+    else if(back_end_string == "proxQP")
+    {
+        return OpenSoT::solvers::solver_back_ends::proxQP;
+    }
     else
     {
         throw std::runtime_error("Invalid back end '" + back_end_string + "'");
