@@ -10,6 +10,7 @@
 #include <tf/transform_listener.h>
 #include <std_msgs/Empty.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/TwistStamped.h>
 
 #include <XBotInterface/RobotInterface.h>
 #include <XBotInterface/Utils.h>
@@ -67,6 +68,8 @@ namespace XBot { namespace Cartesian {
                             std_srvs::TriggerResponse& res);
         
         void timer_callback(const ros::TimerEvent& timer_ev);
+
+        void publish_fb_cmd_vel();
         
         Context::Ptr _ctx;
 
@@ -77,6 +80,7 @@ namespace XBot { namespace Cartesian {
         Utils::LoadFrom _options_source;
         
         RobotInterface::Ptr _robot;
+        ros::Publisher _fb_pub;
         bool _visual_mode;
         ModelInterface::Ptr _model;
         
