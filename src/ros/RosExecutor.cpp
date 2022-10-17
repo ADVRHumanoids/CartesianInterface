@@ -155,7 +155,19 @@ void RosExecutor::init_customize_command()
             throw std::runtime_error("Velocity whitelist contains non existing joint '" + j + "'");
         }
 
-        ctrl_map[j] = XBot::ControlMode::Position() + XBot::ControlMode::Velocity();
+        // if joint blacklisted, only velocity
+        if(std::find(joint_blacklist.begin(), joint_blacklist.end(), j) !=
+                joint_blacklist.end())
+        {
+            ctrl_map[j] = XBot::ControlMode::Velocity();
+        }
+        // else, also position
+        else
+        {
+            ctrl_map[j] = XBot::ControlMode::Position() + XBot::ControlMode::Velocity();
+        }
+
+
     }
 
     _robot->setControlMode(ctrl_map);
