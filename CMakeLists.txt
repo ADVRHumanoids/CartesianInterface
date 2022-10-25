@@ -17,6 +17,7 @@ find_package(Eigen3 REQUIRED)
 set(CATKIN_BUILD_BINARY_PACKAGE TRUE)
 find_package(catkin REQUIRED COMPONENTS roscpp
     std_msgs
+    xbot_msgs
     geometry_msgs
     sensor_msgs
     actionlib
