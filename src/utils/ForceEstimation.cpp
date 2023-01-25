@@ -1,6 +1,5 @@
 #include <cartesian_interface/utils/estimation/ForceEstimation.h>
 
-
 using namespace XBot::Cartesian::Utils;
 
 const double ForceEstimation::DEFAULT_SVD_THRESHOLD = 0.05;
@@ -276,15 +275,15 @@ void ForceEstimationMomentumBased::compute_residual(Eigen::VectorXd& res)
     _p_k = _M_k * _qdot_k;
     _Mdot_k = (_M_k - _M_km1) * _rate;
 
-    _to_be_integrated = _h_k + _tau_k - _M_dot_k * _qdot_k;
+    _to_be_integrated = _h_k + _tau_k - _Mdot_k * _qdot_k;
 
     _integrator.add_sample(_to_be_integrated);
     _integrator.get(_integral);
 
-    _y_k = _y_km1 * _c1 / _c2 +
-            _k_obs / _c2 * (_p_k - _p_km1 + _integral));
+    _y = _y_km1 * _c1 / _c2 +
+            _k_obs / _c2 * (_p_k - _p_km1 + _integral);
 
-    _y_km1 = _y_k;
+    _y_km1 = _y;
     _p_km1 = _p_k;
     _M_km1 = _M_k;
 
@@ -294,10 +293,9 @@ void ForceEstimationMomentumBased::compute_residual(Eigen::VectorXd& res)
 
 void ForceEstimationMomentumBased::init_momentum_obs()
 {
-    _y_k.setZero(_model->getJointNum());
+    _y.setZero(_model->getJointNum());
     _y_km1.setZero(_model->getJointNum());
     _tau_k.setZero(_model->getJointNum());
-    _g_k.setZero(_model->getJointNum());
     _h_k.setZero(_model->getJointNum());
     _p_k.setZero(_model->getJointNum());
     _p_km1.setZero(_model->getJointNum());
@@ -305,7 +303,7 @@ void ForceEstimationMomentumBased::init_momentum_obs()
     _model->getInertiaMatrix(_M_k);
     _model->getJointVelocity(_qdot_k);
 
-    _integrator = NumInt(_g_k.size(), 1.0/_rate, 1.0/_rate);
+    _integrator = NumInt(_y.size(), 1.0/_rate, 1.0/_rate);
 
     _M_km1 = _M_k;
 
