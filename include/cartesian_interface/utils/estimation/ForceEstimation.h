@@ -109,12 +109,46 @@ private:
 
     double _rate, _k_obs;
 
-    Eigen::VectorXd _y, _tau, _g, _b, _sol;
-    Eigen::VectorXd _p0, _p1, _p2, _q, _qdot, _q_old, _h, _coriolis, _y_static;
-    Eigen::MatrixXd _M, _M_old, _Mdot;
+    double _c1, _c2,
+           _integral, _to_be_integrated; // auxiliary variables (preallocated here for efficiency)
+
+    Eigen::VectorXd _y_k, _y_km1,
+                    _tau_k,
+                    _sol,
+                    _p_k, p_km1;
+    Eigen::VectorXd _qdot_k, _h_k;
+    Eigen::MatrixXd _M_k, _M_km1, _Mdot_k;
+
+    NumInt _integrator;
 };
 
 
+/// \brief Class to perform numerical integration of a
+/// constant rate signal over a fixed time horizon.
+class NumInt
+{
+  public:
+
+    NumInt() = default;
+
+    NumInt(int n_jnts, double dt, double T_horizon);
+
+    void add_sample(Eigen::VectorXd sample);
+
+    void get(Eigen::VectorXd& _int_sample); // get an estimate of integral
+    // of the variable along the specified T_horizon (from 0 to T_horizon)
+    // (assuming constant dt)
+
+  private:
+
+    Eigen::MatrixXd _window_data;
+
+    double _dt = 0.0; // assuming evenly spaced samples
+    double _T_horizon = 0.0;
+
+    int _n_jnts = -1, _n_intervals = -1, _n_samples = -1;
+
+};
 
 } } }
 

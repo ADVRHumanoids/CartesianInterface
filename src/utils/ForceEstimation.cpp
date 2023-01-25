@@ -5,6 +5,54 @@ using namespace XBot::Cartesian::Utils;
 
 const double ForceEstimation::DEFAULT_SVD_THRESHOLD = 0.05;
 
+NumInt::NumInt(int n_jnts, double dt, double T_horizon)
+    :_n_jnts{n_jnts}, _dt{dt}, _T_horizon{T_horizon}
+{
+    _n_intervals = std::round(_T_horizon / _dt);
+
+    _n_samples = _n_intervals + 1;
+
+    _window_data = Eigen::MatrixXd::Zero(_n_jnts, _n_samples);
+
+}
+
+void NumInt::add_sample(Eigen::VectorXd sample)
+{
+  int sample_size = sample.size();
+
+  if(sample_size != _n_jnts)
+  {
+      std::string exception = std::string("NumInt::add_sample(): Trying to add a sample of size ") +
+                              std::to_string(sample_size) + std::string(", which is different from ") +
+                              std::to_string(_n_jnts) + std::string(", (number of joints) \n");
+
+      throw std::invalid_argument(exception);
+  }
+
+  // shifting data to the right (discarting most remote sample, which is the
+  // one on the extreme right)
+  for (int i = _n_samples - 1; i > 0; i--)
+  {
+     _window_data.block(0, i, _n_jnts, 1) = _window_data.block(0, i - 1, _n_jnts, 1);
+
+  }
+
+  _window_data.block(0, 0 , _n_jnts, 1) = sample; // assign most recent sample
+
+}
+
+void NumInt::get(Eigen::VectorXd& sample_integral)
+{
+    sample_integral = Eigen::VectorXd::Zero(_n_jnts);
+
+    for(int i = _n_intervals; i > 0; i--)
+    { // we integrate all the data in the window
+        sample_integral = sample_integral +
+                ( _window_data.block(0, i, _n_jnts, 1) +
+                  _window_data.block(0, i - 1, _n_jnts, 1) ) / 2.0 * _dt;
+    }
+}
+
 ForceEstimation::ForceEstimation(ModelInterface::ConstPtr model, 
                                  double svd_threshold):
     _model(model),
@@ -220,40 +268,47 @@ bool ForceEstimationMomentumBased::getResiduals(Eigen::VectorXd& res) const
 
 void ForceEstimationMomentumBased::compute_residual(Eigen::VectorXd& res)
 {
-    _model->getJointVelocity(_qdot);
-    _model->getJointEffort(_tau);
-    _model->computeGravityCompensation(_g);
+    _model->getJointVelocity(_qdot_k);
+    _model->getJointEffort(_tau_k);
+    _model->getInertiaMatrix(_M_k);
+    _model->computeNonlinearTerm(_h_k);
 
-    /* Observer */
-    _model->getInertiaMatrix(_M);
-    _p1 = _M * _qdot;
+    _p_k = _M_k * _qdot_k;
+    _Mdot_k = (_M_k - _M_km1) * _rate;
 
-    _Mdot = (_M - _M_old) * _rate;
-    _M_old = _M;
-    _model->computeNonlinearTerm(_h);
-    _model->computeGravityCompensation(_g);
-    _coriolis = _h - _g;
-    _p2 += (_tau + (_Mdot * _qdot - _coriolis) - _g + _y) / _rate;
+    _to_be_integrated = _h_k + _tau_k - _M_dot_k * _qdot_k;
 
-    _y = _k_obs*(_p1 - _p2 - _p0);
-      
+    _integrator.add_sample(_to_be_integrated);
+    _integrator.get(_integral);
+
+    _y_k = _y_km1 * _c1 / _c2 +
+            _k_obs / _c2 * (_p_k - _p_km1 + _integral));
+
+    _y_km1 = _y_k;
+    _p_km1 = _p_k;
+    _M_km1 = _M_k;
+
     getResiduals(res);
     
 }
 
 void ForceEstimationMomentumBased::init_momentum_obs()
 {
-    _p1.setZero(_model->getJointNum());
-    _p2.setZero(_model->getJointNum());
-    _y.setZero(_model->getJointNum());
-    _coriolis.setZero(_model->getJointNum());
-    _h.setZero(_model->getJointNum());
+    _y_k.setZero(_model->getJointNum());
+    _y_km1.setZero(_model->getJointNum());
+    _tau_k.setZero(_model->getJointNum());
+    _g_k.setZero(_model->getJointNum());
+    _h_k.setZero(_model->getJointNum());
+    _p_k.setZero(_model->getJointNum());
+    _p_km1.setZero(_model->getJointNum());
 
-    _model->getInertiaMatrix(_M);
-    _model->getJointPosition(_q);
-    _model->getJointVelocity(_qdot);
-    _p0 = _M * _qdot;
+    _model->getInertiaMatrix(_M_k);
+    _model->getJointVelocity(_qdot_k);
 
-    _M_old = _M;
-    _q_old = _q;
+    _integrator = NumInt(_g_k.size(), 1.0/_rate, 1.0/_rate);
+
+    _M_km1 = _M_k;
+
+    _c1 = 1 - 1.0/(2 * _rate) * _k_obs;
+    _c2 = 1 + 1.0/(2 * _rate) * _k_obs;
 }
