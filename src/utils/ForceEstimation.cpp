@@ -297,8 +297,10 @@ void ForceEstimationMomentumBased::init_momentum_obs()
     _y_km1.setZero(_model->getJointNum());
     _tau_k.setZero(_model->getJointNum());
     _h_k.setZero(_model->getJointNum());
-    _p_k.setZero(_model->getJointNum());
     _p_km1.setZero(_model->getJointNum());
+    _p_k.setZero(_model->getJointNum());
+
+    _b.setZero(_model->getJointNum());
 
     _model->getInertiaMatrix(_M_k);
     _model->getJointVelocity(_qdot_k);

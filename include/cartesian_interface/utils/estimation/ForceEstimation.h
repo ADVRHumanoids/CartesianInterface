@@ -142,6 +142,7 @@ private:
                     _tau_k,
                     _sol,
                     _p_k, _p_km1;
+    Eigen::VectorXd _b;
     Eigen::VectorXd _qdot_k, _h_k;
     Eigen::MatrixXd _M_k, _M_km1, _Mdot_k;
     Eigen::VectorXd _integral, _to_be_integrated;
