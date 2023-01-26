@@ -270,12 +270,13 @@ void ForceEstimationMomentumBased::compute_residual(Eigen::VectorXd& res)
     _model->getJointVelocity(_qdot_k);
     _model->getJointEffort(_tau_k);
     _model->getInertiaMatrix(_M_k);
-    _model->computeNonlinearTerm(_h_k);
+    _model->computeNonlinearTerm(_h_k); // only Coriolis terms
+    _model->computeGravityCompensation(_g_k);
 
     _p_k = _M_k * _qdot_k;
     _Mdot_k = (_M_k - _M_km1) * _rate;
 
-    _to_be_integrated = _h_k + _tau_k - _Mdot_k * _qdot_k;
+    _to_be_integrated = _h_k + _g_k + _tau_k - _Mdot_k * _qdot_k;
 
     _integrator.add_sample(_to_be_integrated);
     _integrator.get(_integral);
@@ -287,6 +288,7 @@ void ForceEstimationMomentumBased::compute_residual(Eigen::VectorXd& res)
     _p_km1 = _p_k;
     _M_km1 = _M_k;
 
+    std::cout << "\n\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n" << std::endl;
     getResiduals(res);
     
 }
@@ -299,6 +301,7 @@ void ForceEstimationMomentumBased::init_momentum_obs()
     _h_k.setZero(_model->getJointNum());
     _p_km1.setZero(_model->getJointNum());
     _p_k.setZero(_model->getJointNum());
+    _g_k.setZero(_model->getJointNum());
 
     _b.setZero(_model->getJointNum());
 
