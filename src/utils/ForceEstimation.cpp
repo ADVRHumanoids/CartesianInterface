@@ -287,7 +287,7 @@ void ForceEstimationMomentumBased::compute_residual(Eigen::VectorXd& res)
     _p_km1 = _p_k;
     _M_km1 = _M_k;
 
-    std::cout << "\n\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n" << std::endl;
+    std::cout << "\n\n Using mom. obs. with trapezoidal integration\n\n" << std::endl;
     getResiduals(res);
     
 }
