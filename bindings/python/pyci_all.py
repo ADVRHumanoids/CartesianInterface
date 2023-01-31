@@ -5,7 +5,7 @@ from cartesian_interface.affine3 import Affine3
 from cartesian_interface.impedance import Impedance
 
 
-def get_xbot_config(is_floating_base=True, prefix='', model_type='RBDL', urdf=None, srdf=None):
+def get_xbot_config(is_floating_base=True, prefix='', model_type='RBDL', urdf=None, srdf=None, framework='ROS'):
     import rospy
     from xbot_interface import config_options as co
 
@@ -21,6 +21,8 @@ def get_xbot_config(is_floating_base=True, prefix='', model_type='RBDL', urdf=No
     cfg.generate_jidmap()
     cfg.set_string_parameter('model_type', model_type)
     cfg.set_bool_parameter('is_model_floating_base', is_floating_base)
+
+    cfg.set_string_parameter('framework', framework)
 
     return cfg
 
