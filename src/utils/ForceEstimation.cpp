@@ -275,7 +275,7 @@ void ForceEstimationMomentumBased::compute_residual(Eigen::VectorXd& res)
     _p_k = _M_k * _qdot_k;
     _Mdot_k = (_M_k - _M_km1) * _rate;
 
-    _to_be_integrated = _h_k + _tau_k - _Mdot_k * _qdot_k;
+    _to_be_integrated = _h_k - _tau_k - _Mdot_k * _qdot_k;
 
     _integrator.add_sample(_to_be_integrated);
     _integrator.get(_integral);
