@@ -52,7 +52,7 @@ void NumInt::get(Eigen::VectorXd& sample_integral)
     }
 }
 
-ForceEstimation::ForceEstimation(ModelInterface::ConstPtr model, 
+ForceEstimation::ForceEstimation(ModelInterface::ConstPtr model,
                                  double svd_threshold):
     _model(model),
     _ndofs(0)
@@ -61,39 +61,39 @@ ForceEstimation::ForceEstimation(ModelInterface::ConstPtr model,
 }
 
 
-XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name, 
+XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
                                                             std::vector<int> dofs,
                                                             std::vector<std::string> chains)
 {
     // check link exists
     auto urdf_link = _model->getUrdf().getLink(name);
-    
+
     if(!urdf_link)
     {
         throw std::invalid_argument("Invalid link '" + name + "'");
     }
-    
+
     // wrench dofs if not provided
     if(dofs.size() == 0)
     {
         dofs = {0, 1, 2, 3, 4, 5};
     }
-    
+
     // chains to use for estimation if not provided
     if(chains.size() == 0)
     {
         chains = _model->getChainNames();
     }
-    
+
     // check dofs are valid
-    auto it = std::find_if(dofs.begin(), 
-                           dofs.end(), 
+    auto it = std::find_if(dofs.begin(),
+                           dofs.end(),
                            [](int dof){ return dof >= 6 || dof < 0; });
     if(it != dofs.end())
     {
         throw std::invalid_argument("Dofs must be >= 0 && < 6");
     }
-    
+
     // add torque sensing dofs for the requested chains
     std::vector<int> meas_dofs;
     for(auto ch : chains)
@@ -102,13 +102,13 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
         {
             throw std::invalid_argument("Invalid chain '" + ch + "'");
         }
-        
+
         for(int id : _model->chain(ch).getJointIds())
         {
             meas_dofs.push_back(_model->getDofIndex(id));
         }
     }
-    
+
     _meas_idx.insert(meas_dofs.begin(), meas_dofs.end());
 
     // remove ignored ids
@@ -116,20 +116,20 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
     {
         _meas_idx.erase(ignid);
     }
-    
+
     // make virtual sensor and task info struct
     TaskInfo t;
     t.link_name = name;
     static int id = -1;
     t.sensor = std::make_shared<ForceTorqueSensor>(urdf_link, id--);
     t.dofs = dofs;
-    
+
     _tasks.push_back(t);
-    
+
     _ndofs += dofs.size();
-    
+
     return t.sensor;
-    
+
 }
 
 void ForceEstimation::setIgnoredJoint(const std::string &jname)
@@ -154,7 +154,7 @@ void ForceEstimation::compute_A_b()
     _Jtmp.setZero(6, _model->getJointNum());
     _b.setZero(_meas_idx.size());
     _A.setZero(_meas_idx.size(), _ndofs);
-    
+
     int dof_idx = 0;
     for(TaskInfo& t : _tasks)
     {
@@ -164,9 +164,9 @@ void ForceEstimation::compute_A_b()
             _Jtot.row(dof_idx++) = _Jtmp.row(i);
         }
     }
-    
+
     compute_residual(_y);
-    
+
     int idx = 0;
     for(int i : _meas_idx)
     {
@@ -174,7 +174,7 @@ void ForceEstimation::compute_A_b()
         _A.row(idx) = _Jtot.col(i);
         idx++;
     }
-    
+
 }
 
 void ForceEstimation::solve()
@@ -199,29 +199,29 @@ void ForceEstimation::compute_residual(Eigen::VectorXd& res)
 void ForceEstimation::update()
 {
     compute_A_b();
-    
+
     solve();
-    
+
     int dof_idx = 0;
     for(TaskInfo& t : _tasks)
     {
         Eigen::Vector6d wrench;
         wrench.setZero();
-        
+
         for(int i : t.dofs)
         {
             wrench(i) = _sol(dof_idx++);
         }
-        
+
         Eigen::Matrix3d sensor_R_w;
         _model->getOrientation(t.link_name, sensor_R_w);
         sensor_R_w.transposeInPlace();
-        
+
         wrench.head<3>() = sensor_R_w * wrench.head<3>();
         wrench.tail<3>() = sensor_R_w * wrench.tail<3>();
-        
+
         t.sensor->setWrench(wrench, 0.0);
-        
+
     }
 }
 
@@ -231,16 +231,16 @@ void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger2::Ptr logger) const
     {
         Eigen::Vector6d wrench;
         t.sensor->getWrench(wrench);
-        
+
         Eigen::Matrix3d w_R_s;
         _model->getOrientation(t.link_name, w_R_s);
-        
+
         wrench.head<3>() = w_R_s * wrench.head<3>();
         wrench.tail<3>() = w_R_s * wrench.tail<3>();
-        
+
         logger->add(t.link_name + "_f_est", wrench);
     }
-    
+
     logger->add("fest_A", _A);
     logger->add("fest_b", _b);
     logger->add("fest_tau", _tau);
@@ -288,7 +288,7 @@ void ForceEstimationMomentumBased::compute_residual(Eigen::VectorXd& res)
     _M_km1 = _M_k;
 
     getResiduals(res);
-    
+
 }
 
 void ForceEstimationMomentumBased::init_momentum_obs()
@@ -311,4 +311,7 @@ void ForceEstimationMomentumBased::init_momentum_obs()
 
     _c1 = 1 - 1.0/(2 * _rate) * _k_obs;
     _c2 = 1 + 1.0/(2 * _rate) * _k_obs;
+
+    std::cout << "\n\n **Using mom. obs. with trapezoidal integration**\n\n" << std::endl;
+
 }
