@@ -1,14 +1,15 @@
 cmake_minimum_required(VERSION 3.0)
-project(cartesian_interface VERSION 2.0.0)
+project(cartesian_interface VERSION 2.1.0)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+option(XBOT2_ENABLE_XENO OFF "Compile against xenomai")
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 find_package(XBotInterface REQUIRED)
-find_package(XCM QUIET)
 find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
 find_package(matlogger2 REQUIRED)
@@ -16,6 +17,7 @@ find_package(Eigen3 REQUIRED)
 set(CATKIN_BUILD_BINARY_PACKAGE TRUE)
 find_package(catkin REQUIRED COMPONENTS roscpp
     std_msgs
+    xbot_msgs
     geometry_msgs
     sensor_msgs
     actionlib
@@ -44,7 +46,7 @@ include_directories(include
     ${XBotInterface_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIRS}
     ${catkin_INCLUDE_DIRS}
-    ${ReflexxesTypeII_INCLUDE_DIRS}
+    ${ReflexxesTypeII_INCLUDE_DIRS}/..
     ${alglib_INCLUDE_DIRS}
     )
 
@@ -58,9 +60,13 @@ add_message_files(
     FILES
     Impedance3.msg
     Impedance6.msg
+    CartesianImpedanceBase.msg
+    CartesianImpedance.msg
+    CartesianImpedanceTimed.msg
     JoystickStatus.msg
     TaskInfo.msg
     CartesianTaskInfo.msg
+    InteractionTaskInfo.msg
     )
 
 # Generate services in the 'srv' folder
@@ -72,12 +78,14 @@ add_service_files(
     GetTaskList.srv
     ResetWorld.srv
     GetImpedance.srv
+    SetImpedance.srv
     ToggleAxis.srv
     SetContactFrame.srv
     SetJoystickActiveTask.srv
     SetJoystickTaskMaxSpeed.srv
     SetJoystickTaskBaseFrame.srv
     GetCartesianTaskInfo.srv
+    GetInteractionTaskInfo.srv
     SetWeight.srv
     SetLambda.srv
     SetLambda2.srv
@@ -92,6 +100,7 @@ add_service_files(
 add_action_files(
     FILES
     ReachPose.action
+    ReachCartesianImpedance.action
     )
 
 ## Generate added messages and services with any dependencies listed here
@@ -136,6 +145,7 @@ set(CartesianInterface_SRC
     src/problem/impl/Constraint.cpp
     src/rt/TaskRt.cpp
     src/rt/CartesianRt.cpp
+    src/rt/CInteractionRt.cpp
     src/utils/ForceEstimation.cpp
     src/utils/RobotStatePublisher.cpp
     #        src/problem/MinJointVel.cpp
@@ -164,6 +174,7 @@ set(CartesianInterfaceROS_SRC
     src/ros/server_api/PosturalRos.cpp
     src/ros/client_api/TaskRos.cpp
     src/ros/client_api/CartesianRos.cpp
+    src/ros/client_api/InteractionRos.cpp
     src/ros/client_api/PosturalRos.cpp
     src/ros/RosImpl.cpp
     src/ros/RosServerClass.cpp
@@ -202,6 +213,7 @@ target_link_libraries(CartesianInterface
     ${alglib_LIBRARIES}
 
     )
+
 
 target_compile_definitions(CartesianInterface
     PUBLIC -DFMT_HEADER_ONLY=1)
@@ -314,11 +326,6 @@ include(GenerateDeb)
 
 
 option(CARTESIO_COMPILE_XBOT_PLUGIN "Build plugins for XBotCore" OFF)
-
-if(${XCM_FOUND} AND ${CARTESIO_COMPILE_XBOT_PLUGIN})
-    add_subdirectory(xbotcore)
-endif()
-
 
 # Mark cpp header files for installation
 install(DIRECTORY include/cartesian_interface/

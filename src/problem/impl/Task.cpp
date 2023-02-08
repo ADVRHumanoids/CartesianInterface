@@ -152,9 +152,26 @@ TaskDescriptionImpl::TaskDescriptionImpl(YAML::Node task_node,
         _lambda2 = -1.0;
     }
 
+    if(task_node["indices"] && task_node["remove_indices"])
+    {
+        throw std::invalid_argument("indices and remove_indices can not be set contemporary");
+    }
+
     if(task_node["indices"])
     {
         std::vector<int> indices = task_node["indices"].as<std::vector<int>>();
+        setIndices(indices);
+    }
+
+    if(task_node["remove_indices"])
+    {
+        std::vector<int> indices;
+        std::vector<int> remove_indices = task_node["remove_indices"].as<std::vector<int>>();
+        for(unsigned int i = 0; i < size; ++i)
+        {
+            if(std::find(remove_indices.begin(), remove_indices.end(), i) == remove_indices.end())
+                indices.push_back(i);
+        }
         setIndices(indices);
     }
 

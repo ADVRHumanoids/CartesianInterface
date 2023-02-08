@@ -90,6 +90,22 @@ bool ProblemDescription::validate(bool verbose) const
     return ret;
 }
 
+TaskDescription::Ptr ProblemDescription::getTask(const std::string &name)
+{
+    for(auto& aggr : _stack)
+    {
+        for(auto& t : aggr)
+        {
+            if(t->getName() == name)
+            {
+                return t;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
 
 ProblemDescription& ProblemDescription::operator<<(ConstraintDescription::Ptr constraint)
 {

@@ -107,6 +107,11 @@ void RosExecutor::init_load_robot()
         _robot->setControlMode(XBot::ControlMode::Position());
     }
 
+    if(_robot && _robot->model().isFloatingBase())
+    {
+        _fb_pub = _nh.advertise<geometry_msgs::Twist>("floating_base_velocity", 1);
+    }
+
 
     /* Obtain robot (if connection available) */
     if(!_visual_mode)
@@ -150,7 +155,19 @@ void RosExecutor::init_customize_command()
             throw std::runtime_error("Velocity whitelist contains non existing joint '" + j + "'");
         }
 
-        ctrl_map[j] = XBot::ControlMode::Position() + XBot::ControlMode::Velocity();
+        // if joint blacklisted, only velocity
+        if(std::find(joint_blacklist.begin(), joint_blacklist.end(), j) !=
+                joint_blacklist.end())
+        {
+            ctrl_map[j] = XBot::ControlMode::Velocity();
+        }
+        // else, also position
+        else
+        {
+            ctrl_map[j] = XBot::ControlMode::Position() + XBot::ControlMode::Velocity();
+        }
+
+
     }
 
     _robot->setControlMode(ctrl_map);
@@ -447,6 +464,11 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
     /* Update references from ros */
     auto tic_ros = high_resolution_clock::now();
     _ros_api->run();
+
+    if(_model->isFloatingBase())
+    {
+        publish_fb_cmd_vel();
+    }
     auto toc_ros = high_resolution_clock::now();
 
     /* Solve ik */
@@ -490,6 +512,27 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
     _logger->add("run_time", run_time_us);
     double ros_time_us = std::chrono::duration_cast<std::chrono::microseconds>(toc_ros-tic_ros).count();
     _logger->add("ros_time", ros_time_us);
+}
+
+void RosExecutor::publish_fb_cmd_vel()
+{
+    // get floating base state from solution
+    Eigen::Affine3d T;
+    Eigen::Vector6d v;
+
+    _model->getFloatingBasePose(T);
+    _model->getFloatingBaseTwist(v);
+
+    // turn twist to local coordinates
+    v.head<3>() = T.linear().transpose()*v.head<3>();
+    v.tail<3>() = T.linear().transpose()*v.tail<3>();
+
+    // fill in msg
+    geometry_msgs::Twist cmd;
+    tf::twistEigenToMsg(v, cmd);
+
+    // publish
+    _fb_pub.publish(cmd);
 }
 
 bool RosExecutor::reset_callback(std_srvs::TriggerRequest& req,

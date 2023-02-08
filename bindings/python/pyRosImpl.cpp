@@ -3,6 +3,9 @@
 
 #include "ros/client_api/CartesianRos.h"
 #include "ros/client_api/PosturalRos.h"
+#include "ros/client_api/InteractionRos.h"
+
+
 #include "problem/Cartesian.h"
 #include "problem/Postural.h"
 #include "problem/Interaction.h"
@@ -11,7 +14,7 @@
 #include <cartesian_interface/utils/RobotStatePublisher.h>
 
 PYBIND11_MODULE(pyci, m) {
-    
+
     /* Create binding for ControlType enum */
     py::enum_<ControlType>(m, "ControlType", py::arithmetic())
             .value("Position", ControlType::Position)
@@ -31,6 +34,23 @@ PYBIND11_MODULE(pyci, m) {
             .def_readwrite("frame", &Trajectory::WayPoint::frame)
             .def_readwrite("time", &Trajectory::WayPoint::time)
             .def("__repr__", waypoint_repr);
+
+    py::class_<ProblemDescription>(m, "ProblemDescription")
+            .def("getNumTasks", &ProblemDescription::getNumTasks)
+            .def("getTask", pb_get_task_id)
+            .def("getTaskByName", pb_get_task_name)
+            .def("getBounds", &ProblemDescription::getBounds)
+            ;
+
+    py::class_<RosServerClass>(m, "RosServerClass")
+            .def(py::init(&make_ros_server_class),
+                 py::arg("ci"),
+                 py::arg("ros_namespace") = "cartesian",
+                 py::arg("tf_prefix") = "ci",
+                 py::arg("publish_tf") = true)
+            .def("run", &RosServerClass::run)
+            ;
+
 
     py::class_<TaskDescription,
             TaskDescription::Ptr>(m, "Task")
@@ -82,12 +102,30 @@ PYBIND11_MODULE(pyci, m) {
 
     py::class_<InteractionTask,
             CartesianTask,
-            InteractionTask::Ptr>(m, "InteractionTask", py::multiple_inheritance());
+            InteractionTask::Ptr>(m, "InteractionTask", py::multiple_inheritance())
+            .def("getImpedance", &InteractionTask::getImpedance)
+            .def("getForceReference", &InteractionTask::getForceReference)
+            .def("getForceLimits", py_task_get_force_lims)
+            .def("setImpedance", &InteractionTask::setImpedance)
+            .def("setForceReference", &InteractionTask::setForceReference)
+            .def("setForceLimits", &InteractionTask::setForceLimits)
+            .def("setStiffnessTransition", &InteractionTask::setStiffnessTransition)
+            .def("abortStiffnessTransition", &InteractionTask::abortStiffnessTransition)
+            .def("getStiffnessState", &InteractionTask::getStiffnessState);
+
+    py::class_<ClientApi::InteractionRos,
+            InteractionTask,
+            ClientApi::InteractionRos::Ptr>(m, "InteractionRos", py::multiple_inheritance())
+            .def("waitReachCompleted", py_wait_reach_completed_gil_release_inte);
+
+    py::class_<InteractionTaskImpl,
+            InteractionTask,
+            InteractionTaskImpl::Ptr>(m, "InteractionTaskImpl", py::multiple_inheritance());
 
     py::class_<ClientApi::CartesianRos,
             CartesianTask,
             ClientApi::CartesianRos::Ptr>(m, "CartesianTaskRos", py::multiple_inheritance())
-            .def("waitReachCompleted", &ClientApi::CartesianRos::waitReachCompleted);
+            .def("waitReachCompleted", py_wait_reach_completed_gil_release_cart);
 
     py::class_<ClientApi::PosturalRos,
             PosturalTask,
@@ -104,10 +142,6 @@ PYBIND11_MODULE(pyci, m) {
     py::class_<PosturalTaskImpl,
             PosturalTask,
             PosturalTaskImpl::Ptr>(m, "PosturalTaskImpl", py::multiple_inheritance());
-
-    py::class_<InteractionTaskImpl,
-            CartesianTaskImpl, InteractionTask,
-            InteractionTaskImpl::Ptr>(m, "InteractionTaskImpl", py::multiple_inheritance());
 
     py::class_<CartesianInterfaceImpl,
             CartesianInterfaceImpl::Ptr>(m, "CartesianInterface")
@@ -161,6 +195,16 @@ PYBIND11_MODULE(pyci, m) {
             .def("setForceReference", &RosClient::setForceReference)
             .def("setDesiredStiffness", &RosClient::setDesiredStiffness)
             .def("setDesiredDamping", &RosClient::setDesiredDamping)
+            .def("setStiffnessTransition", py_send_stiffness_waypoints,
+                 py::arg("task_name"),
+                 py::arg("translational_stiffness"),
+                 py::arg("rotational_stiffness"),
+                 py::arg("time"))
+            .def("waitStiffnessTransitionCompleted", &RosClient::waitStiffnessTransitionCompleted,
+                 py::arg("task_name"),
+                 py::arg("timeout") = 0.0)
+            .def("abortStiffnessTransition", &RosClient::abortStiffnessTransition,
+                 py::arg("task_name"))
             .def("resetWorld", (bool (RosClient::*)(const Eigen::Affine3d&)) &RosClient::resetWorld)
             .def("resetWorld", (bool (RosClient::*)(const std::string&))     &RosClient::resetWorld)
             .def("setVelocityReference", (bool (RosClient::*)(const std::string&,
@@ -183,7 +227,7 @@ PYBIND11_MODULE(pyci, m) {
              })
         ;
 
-    
+
 }
 
 

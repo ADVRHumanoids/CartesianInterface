@@ -92,6 +92,8 @@ public:
 
     virtual bool setVelocityReference(const Eigen::Vector6d& base_vel_ref);
 
+    virtual bool setAccelerationReference(const Eigen::Vector6d& base_acc_ref);
+
     virtual bool getPoseTarget(Eigen::Affine3d& base_T_ref) const;
 
     virtual bool setPoseTarget(const Eigen::Affine3d& base_T_ref,
@@ -155,6 +157,7 @@ private:
 
     State _state;
     double _vref_time_to_live;
+    double _aref_time_to_live;
 
     Trajectory::Ptr _trajectory;
     std::shared_ptr<Reflexxes::Utils::TrajectoryGenerator> _otg;

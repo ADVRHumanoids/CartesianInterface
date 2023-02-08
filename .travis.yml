@@ -85,7 +85,11 @@ before_script:
 - . /opt/ros/$ROS_DISTRO/setup.bash  # NOTE, re-source to update ld library path based on installed packages (e.g. fcl)
 
 # xbot2 framework install 
-- sudo sh -c 'echo "deb http://xbot.cloud/xbot2/ubuntu/$(lsb_release -sc) /" > /etc/apt/sources.list.d/xbot-latest.list'
+- if [[ "$TRAVIS_BRANCH" == *"devel"* ]]; then export XBOT2_DEB_TYPE="xbot2-nightly"; else export XBOT2_DEB_TYPE="xbot2"; fi
+- echo $TRAVIS_BRANCH
+- echo $XBOT2_DEB_TYPE
+- sudo sh -c 'echo "deb http://xbot.cloud/$XBOT2_DEB_TYPE/ubuntu/$(lsb_release -sc) /" > /etc/apt/sources.list.d/xbot-latest.list'
+- cat /etc/apt/sources.list.d/xbot-latest.list
 - wget -q -O - http://xbot.cloud/xbot2/ubuntu/KEY.gpg | sudo apt-key add -  
 - sudo apt update
 - sudo apt install xbot2_desktop_full

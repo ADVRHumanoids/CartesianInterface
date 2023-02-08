@@ -46,6 +46,7 @@ struct TaskIsSubtask : public std::exception
 {
     std::string real_task_name;
     std::vector<int> indices;
+    std::vector<int> remove_indices;
 };
 
 } } 

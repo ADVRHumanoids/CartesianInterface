@@ -10,7 +10,10 @@
 #include <OpenSoT/solvers/iHQP.h>
 #include <OpenSoT/solvers/nHQP.h>
 #include <OpenSoT/solvers/l1HQP.h>
+
+#ifdef OPENSOT_HAS_SOTH_FRONT_END
 #include <OpenSoT/solvers/HCOD.h>
+#endif
 
 #ifdef _GLPK_FOUND
     #define GLPK_FOUND true
@@ -54,6 +57,14 @@ OpenSoT::solvers::solver_back_ends backend_from_string(std::string back_end_stri
     else if(back_end_string == "glpk")
     {
         return OpenSoT::solvers::solver_back_ends::GLPK;
+    }
+    else if(back_end_string == "qpSWIFT")
+    {
+        return OpenSoT::solvers::solver_back_ends::qpSWIFT;
+    }
+    else if(back_end_string == "proxQP")
+    {
+        return OpenSoT::solvers::solver_back_ends::proxQP;
     }
     else
     {
@@ -129,6 +140,7 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
 
         return std::move(frontend);
     }
+#ifdef OPENSOT_HAS_SOTH_FRONT_END
     else if(front_end_string == "hcod")
     {
         auto frontend = SotUtils::make_shared<OpenSoT::solvers::HCOD>(
@@ -145,6 +157,7 @@ OpenSoT::Solver<Eigen::MatrixXd, Eigen::VectorXd>::SolverPtr frontend_from_strin
 
         return std::move(frontend);
     }
+#endif
     else
     {
         throw std::runtime_error("Invalid front end '" + front_end_string + "'");

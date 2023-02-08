@@ -1,7 +1,11 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 #include <pybind11/stl.h>
+#include <cartesian_interface/ros/RosServerClass.h>
 #include <cartesian_interface/ros/RosClient.h>
+#include <cartesian_interface/problem/Interaction.h>
+#include "ros/client_api/CartesianRos.h"
+#include "ros/client_api/InteractionRos.h"
 
 namespace py = pybind11;
 using namespace XBot::Cartesian;
@@ -21,14 +25,46 @@ CartesianInterfaceImpl::Ptr make_ci(std::string solver_name,
 
     ProblemDescription ik_pb(ik_pb_yaml, ctx);
 
+    if(solver_name.empty())
+    {
+        return std::make_shared<CartesianInterfaceImpl>(ik_pb, ctx);
+    }
+
     return CartesianInterfaceImpl::MakeInstance(solver_name, ik_pb, ctx);
 
 }
 
+RosServerClass::UniquePtr make_ros_server_class(
+        CartesianInterfaceImpl::Ptr ci,
+        std::string ros_namespace,
+        std::string tf_prefix,
+        bool publish_tf)
+{
+    RosServerClass::Options opt;
+    opt.ros_namespace = ros_namespace;
+    opt.tf_prefix = tf_prefix;
+    opt.publish_tf = publish_tf;
+
+    return std::make_unique<RosServerClass>(ci, opt);
+}
+
+auto pb_get_task_id(const ProblemDescription& self,
+                 int id)
+{
+    return self.getTask(id);
+}
+
+auto pb_get_task_name(ProblemDescription& self,
+                      std::string name)
+{
+    return self.getTask(name);
+}
+
+
 std::string waypoint_repr(const Trajectory::WayPoint& w)
 {
     Eigen::IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
-    
+
     std::stringstream ss;
     ss <<   "translation: " << w.frame.translation().transpose().format(CleanFmt);
     ss << "\nrotation   : " << Eigen::Quaterniond(w.frame.linear()).coeffs().transpose().format(CleanFmt);
@@ -82,26 +118,33 @@ auto py_task_get_acc_lims(const CartesianTask& t)
     return std::make_tuple(l, a);
 }
 
+auto py_task_get_force_lims(const InteractionTask& t)
+{
+    Eigen::Vector6d l, a;
+    t.getForceLimits(l, a);
+    return std::make_tuple(l, a);
+}
+
 auto py_get_pose_reference(const RosClient& r, const std::string& ee)
 {
     Eigen::Affine3d T;
     Eigen::Vector6d v, a;
-    
+
     r.getPoseReference(ee, T, &v, &a);
-    
+
     return std::make_tuple(T, v, a);
-    
+
 }
 
 auto py_get_interaction_reference(const RosClient& r, const std::string& ee)
 {
     Eigen::Matrix6d k, d;
     Eigen::Vector6d f;
-    
+
     r.getDesiredInteraction(ee, f, k, d);
-    
+
     return std::make_tuple(f, k, d);
-    
+
 }
 
 auto py_send_waypoints(RosClient& r,
@@ -124,6 +167,34 @@ auto py_send_target_pose(RosClient& r,
     wp.time = time;
     wp.frame = T;
     return r.setWayPoints(ee, {wp}, incremental);
+}
+
+auto py_send_stiffness_waypoints(RosClient& r,
+                       const std::string& ee,
+                       const std::vector<Eigen::Vector3d> kt,
+                       const std::vector<Eigen::Vector3d> kr,
+                       const std::vector<double> t)
+{
+    if (kt.size() != kr.size() || kt.size() != t.size() || kt.size() < 1)
+    {
+        return false;
+    }
+
+    Interpolator<Eigen::Matrix6d>::WayPointVector wpv;
+
+    for (int i = 0; i < t.size(); i++)
+    {
+        Interpolator<Eigen::Matrix6d>::WayPoint wp;
+        wp.value.setZero();
+
+        wp.value.diagonal().head(3) = kt[i];
+        wp.value.diagonal().tail(3) = kr[i];
+        wp.time = t[i];
+
+        wpv.push_back(wp);
+    }
+
+    return r.setStiffnessTransition(ee, wpv);
 }
 
 auto py_get_velocity_limits(RosClient& r, const std::string& ee)
@@ -152,4 +223,18 @@ auto py_get_pose_from_tf(RosClient& r, const std::string& source_frame, const st
 
     return T;
 
+}
+
+
+
+
+auto py_wait_reach_completed_gil_release_cart(ClientApi::CartesianRos& c, double timeout)
+{
+    py::gil_scoped_release gil_release;
+    return c.waitReachCompleted(timeout);
+}
+
+auto py_wait_reach_completed_gil_release_inte(ClientApi::InteractionRos& c, double timeout)
+{
+    return py_wait_reach_completed_gil_release_cart(c, timeout);
 }

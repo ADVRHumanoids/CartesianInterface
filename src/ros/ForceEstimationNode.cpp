@@ -20,7 +20,16 @@ int main(int argc, char ** argv)
     // get robot, model, and one imu
     auto robot = XBot::RobotInterface::getRobot(XBot::ConfigOptionsFromParamServer());
     auto model = XBot::ModelInterface::getModel(XBot::ConfigOptionsFromParamServer());
-    auto imu = robot->getImu().begin()->second;
+    XBot::ImuSensor::ConstPtr imu;
+    
+    if(robot->getImu().size() > 0)
+    {
+        imu = robot->getImu().begin()->second;
+    }
+    else
+    {
+        ROS_INFO("IMU not found: map is empty\n");
+    }
     
     // configure node
     double rate = nh_priv.param("rate", 100.0);
@@ -97,7 +106,11 @@ int main(int argc, char ** argv)
         // update model from robot, set imu
         robot->sense(false);
         model->syncFrom(*robot, XBot::Sync::All, XBot::Sync::MotorSide);
-        model->setFloatingBaseState(imu);
+        if(model->isFloatingBase() && imu)
+        {
+            model->setFloatingBaseState(imu);
+            model->update();
+        }
         model->update();
         model->getJointEffort(tau);
         tau += tau_offset;
