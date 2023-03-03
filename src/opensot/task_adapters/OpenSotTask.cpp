@@ -11,6 +11,7 @@
 #include "opensot/OpenSotPostural.h"
 #include "opensot/OpenSotCom.h"
 #include "opensot/OpenSotSubtask.h"
+#include "opensot/OpenSotOmniWheels4X.h"
 
 #include "fmt/format.h"
 
@@ -286,6 +287,10 @@ OpenSotConstraintAdapter::Ptr OpenSotConstraintAdapter::MakeInstance(ConstraintD
     else if(constr->getType() == "VelocityLimits")
     {
         constr_adapter = new OpenSotVelocityLimitsAdapter(constr, context);
+    }
+    else if(constr->getType() == "OmniWheels4X")
+    {
+        constr_adapter = new OpenSotOmniWheels4XAdapter(constr, context);
     }
     else
     {

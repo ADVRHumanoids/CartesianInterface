@@ -10,6 +10,8 @@
 
 #include "problem/Subtask.h"
 
+#include "problem/OmniWheels4X.h"
+
 #include "fmt/format.h"
 
 namespace XBot { namespace Cartesian { 
@@ -124,6 +126,10 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
     else if(task_type == "VelocityLimits")
     {
         task_desc = std::make_shared<VelocityLimitsImpl>(task_node,  context);
+    }
+    else if(task_type == "OmniWheels4X")
+    {
+        task_desc = std::make_shared<OmniWheels4X>(task_node,  context);
     }
     //        else if(task_type == "Gaze")
     //        {
