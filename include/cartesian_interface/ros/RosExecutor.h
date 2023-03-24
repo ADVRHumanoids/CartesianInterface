@@ -66,6 +66,9 @@ namespace XBot { namespace Cartesian {
         
         bool reset_callback(std_srvs::TriggerRequest& req, 
                             std_srvs::TriggerResponse& res);
+
+        bool reset_car_transform_callback(std_srvs::TriggerRequest& req,
+                                          std_srvs::TriggerResponse& res);
         
         void timer_callback(const ros::TimerEvent& timer_ev);
 
@@ -95,6 +98,7 @@ namespace XBot { namespace Cartesian {
         ros::Publisher _ctrl_changed_pub;
         ros::ServiceServer _loader_srv;
         ros::ServiceServer _reset_srv;
+        ros::ServiceServer _reset_car_transform_srv;
         ros::Subscriber _fb_sub;
         
         ros::Timer _loop_timer;
