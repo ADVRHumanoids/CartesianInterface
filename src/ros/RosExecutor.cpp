@@ -45,7 +45,7 @@ void RosExecutor::init_ros()
 
     /* Load reset service */
     _reset_srv = _nh.advertiseService("reset", &RosExecutor::reset_callback, this);
-    _reset_car_transform_srv = _nh.advertiseService("reset_car_transform", &RosExecutor::reset_car_transform_callback, this);
+    _reset_joints_srv = _nh.advertiseService("reset_joints", &RosExecutor::reset_joints_callback, this);
 
     /* Floating base override topic */
     ros::NodeHandle nh_fb_queue(_nh);
@@ -552,30 +552,24 @@ bool RosExecutor::reset_callback(std_srvs::TriggerRequest& req,
     return true;
 }
 
-bool RosExecutor::reset_car_transform_callback(std_srvs::TriggerRequest& req,
-                                               std_srvs::TriggerResponse& res)
+bool RosExecutor::reset_joints_callback(cartesian_interface::ResetJointsRequest& req,
+                                        cartesian_interface::ResetJointsResponse& res)
 {
-    if(_model->isFloatingBase()){
-        XBot::JointNameMap q_map;
-        _model->getJointPosition(q_map);
-        _model->getJointVelocity(_qdot);
-        _model->getJointAcceleration(_qddot);
+    XBot::JointNameMap q_map;
+    _model->getJointPosition(q_map);
 
-        std::string virtual_joints[6] = {"car_frame_tx", "car_frame_ty", "car_frame_tz", "car_frame_rx", "car_frame_ry", "car_frame_rz"};
-
-        for(const std::string& s : virtual_joints)
-        {
-            auto it = q_map.find(s);
-            if(it != q_map.end())
-                it->second = 0;
-        }
-        _model->setJointPosition(q_map);
-        _model->update();
-
-        _current_impl->reset(_time);
-
-        _current_impl->setReferencePosture(q_map);
+    for(int i = 0; i < req.joint_names.size(); i++)
+    {
+        auto it = q_map.find(req.joint_names[i]);
+        if(it != q_map.end())
+            it->second = req.joint_values[i];
     }
+    _model->setJointPosition(q_map);
+    _model->update();
+
+    _current_impl->reset(_time);
+
+    _current_impl->setReferencePosture(q_map);
 
     return true;
 }

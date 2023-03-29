@@ -22,6 +22,7 @@
 #include <cartesian_interface/LoadController.h>
 #include <cartesian_interface/utils/LoadConfig.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
+#include <cartesian_interface/ResetJoints.h>
 
 
 
@@ -67,8 +68,8 @@ namespace XBot { namespace Cartesian {
         bool reset_callback(std_srvs::TriggerRequest& req, 
                             std_srvs::TriggerResponse& res);
 
-        bool reset_car_transform_callback(std_srvs::TriggerRequest& req,
-                                          std_srvs::TriggerResponse& res);
+        bool reset_joints_callback(cartesian_interface::ResetJointsRequest& req,
+                                   cartesian_interface::ResetJointsResponse& res);
         
         void timer_callback(const ros::TimerEvent& timer_ev);
 
@@ -98,7 +99,7 @@ namespace XBot { namespace Cartesian {
         ros::Publisher _ctrl_changed_pub;
         ros::ServiceServer _loader_srv;
         ros::ServiceServer _reset_srv;
-        ros::ServiceServer _reset_car_transform_srv;
+        ros::ServiceServer _reset_joints_srv;
         ros::Subscriber _fb_sub;
         
         ros::Timer _loop_timer;
