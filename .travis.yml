@@ -102,6 +102,7 @@ before_script:
 script: 
 - source setup.bash  # source forest ws
 - FOREST_ARGS="-m test --clone-protocol https --verbose -j2"
+- forest pybind11 $FOREST_ARGS  # force build from source due to MALEFICENT pybind11_catkin
 - forest cartesian_interface $FOREST_ARGS  
 - cd build/cartesian_interface  # run tests
 - ctest --output-on-failure
