@@ -76,6 +76,7 @@ add_service_files(
     SetTaskActive.srv
     LoadController.srv
     GetTaskList.srv
+    ResetJoints.srv
     ResetWorld.srv
     GetImpedance.srv
     SetImpedance.srv
