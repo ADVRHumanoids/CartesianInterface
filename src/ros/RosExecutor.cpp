@@ -45,6 +45,7 @@ void RosExecutor::init_ros()
 
     /* Load reset service */
     _reset_srv = _nh.advertiseService("reset", &RosExecutor::reset_callback, this);
+    _reset_joints_srv = _nh.advertiseService("reset_joints", &RosExecutor::reset_joints_callback, this);
 
     /* Floating base override topic */
     ros::NodeHandle nh_fb_queue(_nh);
@@ -547,6 +548,28 @@ bool RosExecutor::reset_callback(std_srvs::TriggerRequest& req,
     _current_impl->setReferencePosture(q_map);
 
     Logger::info(Logger::Severity::HIGH, "Reset was performed successfully\n");
+
+    return true;
+}
+
+bool RosExecutor::reset_joints_callback(cartesian_interface::ResetJointsRequest& req,
+                                        cartesian_interface::ResetJointsResponse& res)
+{
+    XBot::JointNameMap q_map;
+    _model->getJointPosition(q_map);
+
+    for(int i = 0; i < req.joint_names.size(); i++)
+    {
+        auto it = q_map.find(req.joint_names[i]);
+        if(it != q_map.end())
+            it->second = req.joint_values[i];
+    }
+    _model->setJointPosition(q_map);
+    _model->update();
+
+    _current_impl->reset(_time);
+
+    _current_impl->setReferencePosture(q_map);
 
     return true;
 }
