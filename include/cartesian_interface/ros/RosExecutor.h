@@ -26,6 +26,8 @@
 
 
 
+
+
 namespace XBot { namespace Cartesian {
    
     class RosExecutor
@@ -70,6 +72,13 @@ namespace XBot { namespace Cartesian {
 
         bool reset_joints_callback(cartesian_interface::ResetJointsRequest& req,
                                    cartesian_interface::ResetJointsResponse& res);
+
+        //  Note  new service for wall following
+        bool on_stop(std_srvs::TriggerRequest& req, 
+                              std_srvs::TriggerResponse& res);
+        
+        bool on_start(std_srvs::TriggerRequest& req, 
+                               std_srvs::TriggerResponse& res);
         
         void timer_callback(const ros::TimerEvent& timer_ev);
 
@@ -100,12 +109,17 @@ namespace XBot { namespace Cartesian {
         ros::ServiceServer _loader_srv;
         ros::ServiceServer _reset_srv;
         ros::ServiceServer _reset_joints_srv;
+        
+        ros::ServiceServer _on_start_srv, _on_stop_srv;
+
         ros::Subscriber _fb_sub;
         
         ros::Timer _loop_timer;
         double _time, _period;
         
         MatLogger2::Ptr _logger;
+
+
         
         
         

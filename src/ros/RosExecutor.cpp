@@ -47,6 +47,9 @@ void RosExecutor::init_ros()
     _reset_srv = _nh.advertiseService("reset", &RosExecutor::reset_callback, this);
     _reset_joints_srv = _nh.advertiseService("reset_joints", &RosExecutor::reset_joints_callback, this);
 
+    _on_start_srv = _nh.advertiseService("on_start", &RosExecutor::on_start, this);
+    _on_stop_srv = _nh.advertiseService("on_stop", &RosExecutor::on_stop, this);
+
     /* Floating base override topic */
     ros::NodeHandle nh_fb_queue(_nh);
     nh_fb_queue.setCallbackQueue(&_fb_queue);
@@ -515,6 +518,31 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
     _logger->add("ros_time", ros_time_us);
 }
 
+bool RosExecutor::on_start(std_srvs::TriggerRequest& req,
+                          std_srvs::TriggerResponse& res)
+{
+    // reset_model_state();
+    
+    if(reset_callback(req, res))
+    {
+        _loop_timer.start();
+        Logger::info(Logger::Severity::HIGH, "Starting Cartesio\n");
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool RosExecutor::on_stop(std_srvs::TriggerRequest& req,
+                          std_srvs::TriggerResponse& res)
+{
+    Logger::info(Logger::Severity::HIGH, "Stopping Cartesio\n");
+    _loop_timer.stop();
+    return true;
+}
+    
 void RosExecutor::publish_fb_cmd_vel()
 {
     // get floating base state from solution
