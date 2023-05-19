@@ -119,7 +119,7 @@ namespace XBot { namespace Cartesian {
         
         MatLogger2::Ptr _logger;
 
-
+        std::string _ns;
         
         
         

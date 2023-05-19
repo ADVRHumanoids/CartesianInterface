@@ -4,11 +4,15 @@
 using namespace XBot::Cartesian;
 
 RosExecutor::RosExecutor(std::string ns):
-    _nh(ns),
+    _ns(ns),
     _nh_priv("~"),
     _visual_mode(false)
 {
-
+    if(_nh_priv.getParam("cartesian_ns", _ns))
+    {
+        Logger::info(Logger::Severity::HIGH, "Using custom namespace: %s \n", _ns.c_str());
+    }
+    _nh = ros::NodeHandle(_ns);
     /* Create logger */
     MatLogger2::Options logger_opt;
     logger_opt.default_buffer_size = 1e5;
@@ -203,7 +207,7 @@ void RosExecutor::reset_model_state()
             throw std::runtime_error("Unable to get current joint states from xbotcore");
         }
 
-        XBot::JointNameMap qref;
+        XBot::JointNameMap qref, qdotref;
         for(auto j : _robot->getEnabledJointNames())
         {
             auto it = std::find(msg->name.begin(), msg->name.end(), j);
@@ -213,8 +217,10 @@ void RosExecutor::reset_model_state()
             }
             int idx = std::distance(msg->name.begin(), it);
             qref[j] = msg->position_reference.at(idx);
+            qdotref[j] = msg->velocity_reference.at(idx);
         }
         _model->setJointPosition(qref);
+        _model->setJointVelocity(qref);
         _model->update();
     }
     else if(_nh.hasParam("home"))
@@ -521,7 +527,7 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
 bool RosExecutor::on_start(std_srvs::TriggerRequest& req,
                           std_srvs::TriggerResponse& res)
 {
-    // reset_model_state();
+    _robot->sense();
     
     if(reset_callback(req, res))
     {
