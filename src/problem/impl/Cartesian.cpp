@@ -445,6 +445,19 @@ void CartesianTaskImpl::update(double time, double period)
     }
     else
     {
+        // in velocity mode, we integrate the pose reference
+        if(_ctrl_mode == ControlType::Velocity)
+        {
+            _T.translation() += _vel.head<3>() * period;
+
+            if(!_vel.tail<3>().isZero())
+            {
+                Eigen::AngleAxisd delta_R(_vel.tail<3>().norm() * period, _vel.tail<3>().normalized());
+                _T.linear() = delta_R * _T.linear();
+            }
+
+        }
+
         if(_vref_time_to_live < 0.0)
         {
             _vel.setZero();
