@@ -36,6 +36,29 @@ namespace XBot { namespace Cartesian {
 
     };
 
+    class JointLimitsInvarianceImpl : public virtual JointLimitsInvariance,
+            public TaskDescriptionImpl
+    {
+    private:
+        Eigen::VectorXd _qddotmax;
+        JointLimitsImpl::Ptr _joint_lims;
+
+    public:
+        CARTESIO_DECLARE_SMART_PTR(JointLimitsInvarianceImpl)
+        JointLimitsInvarianceImpl(YAML::Node yaml, Context::ConstPtr context);
+        Eigen::VectorXd getQddotMax() const override;
+
+        bool setBoundScaling(double value) override {return false;}
+        double getBoundScaling() const override {return 0.0;}
+
+        Eigen::VectorXd getQmin() const override {return _joint_lims->getQmin();}
+        Eigen::VectorXd getQmax() const override {return _joint_lims->getQmax();}
+
+        bool validate() override {return _joint_lims->validate();}
+        void update(double time, double period) override {_joint_lims->update(time, period);}
+        void reset() override {_joint_lims->reset();}
+    };
+
     class VelocityLimitsImpl : public virtual VelocityLimits,
             public TaskDescriptionImpl
     {

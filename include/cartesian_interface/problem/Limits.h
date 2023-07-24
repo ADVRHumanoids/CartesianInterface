@@ -21,6 +21,16 @@ namespace XBot { namespace Cartesian {
 
     };
 
+    class JointLimitsInvariance : public JointLimits
+    {
+    public:
+
+        CARTESIO_DECLARE_SMART_PTR(JointLimitsInvariance)
+
+        virtual Eigen::VectorXd getQddotMax() const = 0;
+
+    };
+
     class VelocityLimits : public virtual ConstraintDescription
     {
 

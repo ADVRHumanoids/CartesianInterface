@@ -4,6 +4,42 @@
 
 using namespace XBot::Cartesian;
 
+JointLimitsInvarianceImpl::JointLimitsInvarianceImpl(YAML::Node yaml, Context::ConstPtr context):
+    TaskDescriptionImpl("JointLimitsInvariance",
+                        "JointLimitsInvariance",
+                        context->model()->getJointNum(),
+                        context)
+{
+    _joint_lims = std::make_shared<JointLimitsImpl>(yaml, context);
+
+    _qddotmax.setZero(this->getQmax().size());
+    if(yaml["qddot_limits"])
+    {
+        try
+        { ///if just a double is passed
+          for(unsigned int i = 0; i < _qddotmax.size(); ++i)
+              _qddotmax[i] = yaml["qddot_limits"].as<double>();
+
+        }
+        catch (const YAML::BadConversion& e)
+        {
+          throw std::invalid_argument(fmt::format("qddot_limits param supported only as double!"));
+          ///TODO: accept also map!
+        }
+    }
+    else
+    {
+        throw std::invalid_argument(fmt::format("qddot_limits param is mandatory!"));
+        ///TODO: provide procedure from max torque from model!
+    }
+
+}
+
+Eigen::VectorXd JointLimitsInvarianceImpl::getQddotMax() const
+{
+    return _qddotmax;
+}
+
 Eigen::VectorXd JointLimitsImpl::getQmin() const
 {
     return 0.5*(_qmin + _qmax) - 0.5*(_qmax - _qmin)*_bound_scaling;
