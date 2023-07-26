@@ -7,7 +7,7 @@ stack:
     - ["LeftArm", "RightArm"]
     - ["Postural"]
 
-constraints: ["JointLimits", "VelocityLimits"]
+constraints: ["JointLimitsInvariance", "VelocityLimits"]
 
 LeftFoot:
     type: "Cartesian"
@@ -50,6 +50,11 @@ ComXY:
 
 JointLimits:
     type: "JointLimits"
+    remove_indices: [0, 1, 2, 3, 4, 5]
+    
+JointLimitsInvariance:
+    type: "JointLimitsInvariance"
+    qddot_limits: 20.
     remove_indices: [0, 1, 2, 3, 4, 5]
 
 

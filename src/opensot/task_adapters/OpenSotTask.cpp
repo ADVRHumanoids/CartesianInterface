@@ -283,6 +283,10 @@ OpenSotConstraintAdapter::Ptr OpenSotConstraintAdapter::MakeInstance(ConstraintD
     {
         constr_adapter = new OpenSotJointLimitsAdapter(constr, context);
     }
+    else if(constr->getType() == "JointLimitsInvariance") /* Otherwise, construct supported tasks */
+    {
+        constr_adapter = new OpenSoTJointLimitsInvarianceAdapter(constr, context);
+    }
     else if(constr->getType() == "VelocityLimits")
     {
         constr_adapter = new OpenSotVelocityLimitsAdapter(constr, context);
