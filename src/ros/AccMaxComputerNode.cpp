@@ -28,5 +28,16 @@ int main(int argc, char ** argv)
         ROS_INFO_STREAM(joint_names[i]<<" qddot_min: "<<qddot_limits.first[i]<<" qddot_max: "<<qddot_limits.second[i]);
 
 
+
+    std::map<std::string,double> map_acc_lims;
+    for(unsigned int i = 0; i < joint_names.size(); ++i)
+    {
+        unsigned int id = model->getDofIndex(joint_names[i]);
+        map_acc_lims[joint_names[i]] = std::max(std::fabs(qddot_limits.first[id]), std::fabs(qddot_limits.second[id]));
+    }
+    nh.setParam("qddot_max", map_acc_lims);
+
+    ROS_INFO("Added ros parameter qddot_max");
+
     return 0;
 }
