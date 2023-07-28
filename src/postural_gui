@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 # THIS GUI IS BASED ON THE ONE IN joint_state_publisher:
 #
 # https://github.com/ros/joint_state_publisher/blob/kinetic-devel/joint_state_publisher/joint_state_publisher/joint_state_publisher
-# 
+#
 # THE GUI IS INITIALIZED WITH THE ACTUAL REFERENCE OF THE POSTURAL TASK
 #
 # - Center BUTTON IS USED TO RETURN TO THE ZERO VALUE OF THE GUI
@@ -183,7 +183,7 @@ class JointStatePublisher():
             self.sources.append(rospy.Subscriber(source, JointState, self.source_cb))
 
         self.pub = rospy.Publisher('cartesian/Postural/reference', JointState, queue_size=5)
-    
+
 
     def source_cb(self, msg):
         for i in range(len(msg.name)):
@@ -406,7 +406,7 @@ class JointStatePublisherGui(QWidget):
         self.maxrowsupdown.valueChanged.connect(self.reorggrid_event)
         self.vlayout.addWidget(self.maxrowsupdown)
         self.setLayout(self.vlayout)
-        
+
 
     @pyqtSlot(int)
     def onValueChanged(self, event):
@@ -466,14 +466,14 @@ class JointStatePublisherGui(QWidget):
         self.set_()
 
     def set_(self):
-        rospy.loginfo("Set Reference")        
+        rospy.loginfo("Set Reference")
         msg = rospy.wait_for_message('/cartesian/Postural/current_reference', JointState)
         for i in range(len(msg.name)):
             if msg.name[i] in self.joint_map:
                 rospy.loginfo("%s : %d [rad]", msg.name[i], msg.position[i])
                 self.joint_map[msg.name[i]]['joint']['zero'] = msg.position[i]
         self.center()
-                 
+
 
     def sliderUpdate(self, event):
         for name, joint_info in self.joint_map.items():
@@ -488,7 +488,7 @@ class JointStatePublisherGui(QWidget):
         return joint['min'] + (joint['max']-joint['min']) * pctvalue
 
 
-def joints_callback(msg):         
+def joints_callback(msg):
     rospy.loginfo("Initializing joints: ")
     zeros = {}
     for i in range(len(msg.name)):
@@ -498,7 +498,7 @@ def joints_callback(msg):
 
 if __name__ == '__main__':
     try:
-        
+
         rospy.init_node('task_postural_gui')
 
         disabled_joint_list = []
@@ -509,12 +509,12 @@ if __name__ == '__main__':
             print(f"Disabled joints: {disabled_joint_list}")
         except rospy.ServiceException as e:
             print(f"Service call failed: {e}")
-        
+
         msg = rospy.wait_for_message('/cartesian/Postural/current_reference', JointState)
         joints_callback(msg)
-                    
+
         jsp = JointStatePublisher(disabled_joint_list)
-        
+
         if jsp.gui is None:
             jsp.loop()
         else:

@@ -111,12 +111,12 @@ protected:
         const size_t write_index = write_index_.load(memory_order_relaxed);  // only written from push thread
         const size_t next = next_index(write_index, max_size);
 
-	
-        if (next == read_index_.load(memory_order_acquire)) 
+
+        if (next == read_index_.load(memory_order_acquire))
             return false; /* ringbuffer is full */
 
         // NOTE: placement new + copy constructor -> pre-construction + copy assignment
-        *(buffer + write_index) = t; 
+        *(buffer + write_index) = t;
 
         write_index_.store(next, memory_order_release);
 
@@ -455,16 +455,16 @@ protected:
     }
 
 public:
-  
+
     // NOTE: default constructor to initialize buffer with newly-constructed elements [XBOT]
     compile_time_sized_ringbuffer()
     {
         for(int i = 0; i < max_size; i++)
         {
-            new (data() + i) T; 
+            new (data() + i) T;
         }
     }
-    
+
     bool push(T const & t)
     {
         return ringbuffer_base<T>::push(t, data(), max_size);
@@ -717,7 +717,7 @@ public:
     typedef T value_type;
     typedef typename implementation_defined::allocator allocator;
     typedef typename implementation_defined::size_type size_type;
-    
+
 
     /** Constructs a spsc_queue
      *
@@ -739,10 +739,10 @@ public:
         while(push(t)){}
         while(pop()){}
     }
-    
-    
+
+
     template <typename U>
-    explicit spsc_queue(typename allocator::template rebind<U>::other const & alloc)
+    explicit spsc_queue(typename boost::allocator_rebind<Alloc, U>::type const & alloc)
     {
         // just for API compatibility: we don't actually need an allocator
         BOOST_STATIC_ASSERT(!runtime_sized);
@@ -768,7 +768,7 @@ public:
     }
 
     template <typename U>
-    spsc_queue(size_type element_count, typename allocator::template rebind<U>::other const & alloc):
+    spsc_queue(size_type element_count, typename boost::allocator_rebind<Alloc, U>::type const & alloc):
         base_type(alloc, element_count)
     {
         BOOST_STATIC_ASSERT(runtime_sized);
@@ -1005,7 +1005,7 @@ public:
             base_type::read_index_.store(0, memory_order_release);
         }
    }
-   
+
    /** reset the ringbuffer
      *
      * \note Not thread-safe

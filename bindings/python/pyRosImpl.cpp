@@ -129,7 +129,7 @@ PYBIND11_MODULE(pyci, m) {
 
     py::class_<ClientApi::PosturalRos,
             PosturalTask,
-            ClientApi::PosturalRos::Ptr>(m, "PosturalRos", py::multiple_inheritance());
+            ClientApi::PosturalRos::Ptr>(m, "PosturalRos", py::multiple_inheritance())
 
     py::class_<CartesianTaskImpl,
             CartesianTask,

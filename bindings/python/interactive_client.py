@@ -1,4 +1,4 @@
-#!/usr/bin/ipython -i
+#!/usr/bin/env ipython3 -i
 
 from cartesian_interface.pyci_all import *
 import numpy as np

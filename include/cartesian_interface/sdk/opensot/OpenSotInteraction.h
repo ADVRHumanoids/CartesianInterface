@@ -8,7 +8,7 @@
 
 #include <OpenSoT/tasks/velocity/CartesianAdmittance.h>
 
-#include <cartesian_interface/utils/estimation/ForceEstimation.h>
+#include <estimation_utils/payload/force_estimation.h>
 
 using AdmittanceSoT = OpenSoT::tasks::velocity::CartesianAdmittance;
 
@@ -37,9 +37,9 @@ private:
 
     AdmittanceTask::Ptr _ci_adm;
     bool _fest_upd;
-    Utils::ForceEstimation::Ptr _fest;
+    estimation_utils::ForceEstimation::Ptr _fest;
 
-    static Utils::ForceEstimation::WeakPtr _fest_weak;
+    static estimation_utils::ForceEstimation::WeakPtr _fest_weak;
 
 };
 

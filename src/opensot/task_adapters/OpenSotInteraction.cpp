@@ -2,7 +2,7 @@
 
 using namespace XBot::Cartesian;
 
-Utils::ForceEstimation::WeakPtr OpenSotInteractionAdapter::_fest_weak;
+estimation_utils::ForceEstimation::WeakPtr OpenSotInteractionAdapter::_fest_weak;
 
 OpenSotInteractionAdapter::OpenSotInteractionAdapter(TaskDescription::Ptr task,
                                                      Context::ConstPtr context):
@@ -34,7 +34,7 @@ TaskPtr OpenSotInteractionAdapter::constructTask()
         _fest = _fest_weak.lock();
         if(!_fest)
         {
-            _fest = std::make_shared<Utils::ForceEstimation>(_model);
+            _fest = std::make_shared<estimation_utils::ForceEstimation>(_model);
             _fest_weak = _fest;
             _fest_upd = true;
         }

@@ -3,7 +3,7 @@
 
 
 #include <cartesian_interface/CartesianInterfaceImpl.h>
-#include <cartesian_interface/utils/estimation/ForceEstimation.h>
+#include <estimation_utils/payload/force_estimation.h>
 #include "opensot/OpenSotTask.h"
 
 #include <OpenSoT/Solver.h>
