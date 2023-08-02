@@ -10,6 +10,8 @@
 #include <actionlib/client/simple_action_client.h>
 #include <cartesian_interface/ReachPoseAction.h>
 
+#include <tf/transform_listener.h>
+
 namespace XBot { namespace Cartesian {
 
 namespace ClientApi
@@ -75,6 +77,8 @@ private:
     typedef actionlib::SimpleActionClient<ActionType> ActionClient;
 
     cartesian_interface::GetCartesianTaskInfoResponse get_task_info() const;
+
+    tf::TransformListener _listener;
 
     ros::Publisher _pose_ref_pub;
     ros::Publisher _vel_ref_pub;

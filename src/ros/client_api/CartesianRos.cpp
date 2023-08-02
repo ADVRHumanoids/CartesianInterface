@@ -188,8 +188,27 @@ bool CartesianRos::setControlMode(const ControlType & value)
 
 bool CartesianRos::getCurrentPose(Eigen::Affine3d& base_T_ee) const
 {
-    throw std::runtime_error(fmt::format("Unsupported function '{}'",
-                                         __PRETTY_FUNCTION__));
+    tf::StampedTransform T;
+
+    if(!_listener.waitForTransform(target_frame, source_frame, ros::Time(0), ros::Duration(1.0)))
+    {
+        ROS_ERROR("Wait for transform timed out");
+        return false;
+    }
+
+
+    try
+    {
+        _listener.lookupTransform(target_frame, source_frame, ros::Time(0), T);
+    }
+    catch(tf::TransformException ex)
+    {
+        ROS_ERROR("%s", ex.what());
+        return false;
+    }
+
+    tf::transformTFToEigen(T, t_T_s);
+    return true;
 }
 
 bool CartesianRos::getPoseReference(Eigen::Affine3d& base_T_ref,
