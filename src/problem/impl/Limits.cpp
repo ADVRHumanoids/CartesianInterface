@@ -4,6 +4,60 @@
 
 using namespace XBot::Cartesian;
 
+JointLimitsInvarianceImpl::JointLimitsInvarianceImpl(YAML::Node yaml, Context::ConstPtr context):
+    TaskDescriptionImpl("JointLimitsInvariance",
+                        "JointLimitsInvariance",
+                        context->model()->getJointNum(),
+                        context)
+{
+    _joint_lims = std::make_shared<JointLimitsImpl>(yaml, context);
+
+    _qddotmax = Eigen::VectorXd::Constant(_model->getJointNum(), 1e4);
+    if(yaml["qddot_limits"])
+    {
+        try
+        { ///if just a double is passed
+            for(unsigned int i = 0; i < _qddotmax.size(); ++i)
+                _qddotmax[i] = yaml["qddot_limits"].as<double>();
+
+        }
+        catch (const YAML::BadConversion& e)
+        {
+          try
+          { ///if a map is passed
+            for(auto lim : yaml["qddot_limits"])
+            {
+                auto jname = lim.first.as<std::string>();
+                auto lim_value = lim.second.as<double>();
+                int idx = _model->getDofIndex(jname);
+
+                if(!_model->hasJoint(jname))
+                {
+                    throw std::invalid_argument(fmt::format("Invalid joint '{}' in joint limits", jname));
+                }
+                Logger::warning("Joint qddot_max for joint '%s' to %.1f \n", jname.c_str(), lim_value);
+
+                _qddotmax[idx] = lim_value;
+            }
+          }
+          catch (const YAML::BadConversion& e)
+          {
+                throw std::invalid_argument(fmt::format("qddot_limits param supported only as double or map"));
+          }
+
+        }
+    }
+    else
+    {
+        throw std::invalid_argument(fmt::format("qddot_limits param is mandatory!"));
+    }
+}
+
+Eigen::VectorXd JointLimitsInvarianceImpl::getQddotMax() const
+{
+    return _qddotmax;
+}
+
 Eigen::VectorXd JointLimitsImpl::getQmin() const
 {
     return 0.5*(_qmin + _qmax) - 0.5*(_qmax - _qmin)*_bound_scaling;
