@@ -58,6 +58,7 @@ JointLimits:
 JointLimitsInvariance:
     type: "JointLimitsInvariance"
     remove_indices: [0, 1, 2, 3, 4, 5]
+    bound_scaling: 0.9
     qddot_limits:
         LAnkLat: 1000.0
         LAnkSag: 1000.0

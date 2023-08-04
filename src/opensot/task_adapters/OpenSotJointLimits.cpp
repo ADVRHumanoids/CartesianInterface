@@ -19,12 +19,17 @@ ConstraintPtr OpenSoTJointLimitsInvarianceAdapter::constructConstraint()
     Eigen::VectorXd q;
     _model->getJointPosition(q);
 
-    return SotUtils::make_shared<JointLimitsInvarianceSoT>(q,
+    auto jliSoT =  SotUtils::make_shared<JointLimitsInvarianceSoT>(q,
                                                            _ci_jlim->getQmax(),
                                                            _ci_jlim->getQmin(),
                                                            _ci_jlim->getQddotMax(),
                                                            const_cast<ModelInterface&>(*_model),
                                                            _ctx->params()->getControlPeriod());
+    if(!jliSoT->setPStepAheadPredictor(_ci_jlim->getBoundScaling()))
+    {
+        throw std::runtime_error("Error when setting PStepAheadPredictor value!");
+    }
+    return jliSoT;
 }
 
 bool OpenSoTJointLimitsInvarianceAdapter::initialize(const OpenSoT::OptvarHelper& vars)

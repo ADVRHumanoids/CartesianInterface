@@ -48,8 +48,8 @@ namespace XBot { namespace Cartesian {
         JointLimitsInvarianceImpl(YAML::Node yaml, Context::ConstPtr context);
         Eigen::VectorXd getQddotMax() const override;
 
-        bool setBoundScaling(double value) override {return false;}
-        double getBoundScaling() const override {return 0.0;}
+        bool setBoundScaling(double value) override {return _joint_lims->setBoundScaling(value);}
+        double getBoundScaling() const override {return _joint_lims->getBoundScaling();}
 
         Eigen::VectorXd getQmin() const override {return _joint_lims->getQmin();}
         Eigen::VectorXd getQmax() const override {return _joint_lims->getQmax();}
