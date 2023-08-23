@@ -136,7 +136,8 @@ void XBot::Cartesian::CartesianInterfaceImpl::add_task(TaskDescription::Ptr task
 
         Logger::success(Logger::Severity::HIGH) <<  "Successfully added Cartesian Interaction task with\n" <<
                                                     "   BASE LINK:   " << XBot::bold_on << cart_desc->getBaseLink() << XBot::bold_off  << "\n" << XBot::color_yellow <<
-                                                    "   DISTAL LINK: " << XBot::bold_on << cart_desc->getDistalLink() << XBot::bold_off << Logger::endl();
+                                                    "   DISTAL LINK: " << XBot::bold_on << cart_desc->getDistalLink() << XBot::bold_off << "\n" << XBot::color_yellow <<
+                                                    "   IMPEDANCE REF LINK: " << XBot::bold_on << cart_desc->getImpedanceRefLink() << XBot::bold_off << Logger::endl();
     }
     
     if(auto cart_desc = std::dynamic_pointer_cast<CartesianTask>(task_desc))

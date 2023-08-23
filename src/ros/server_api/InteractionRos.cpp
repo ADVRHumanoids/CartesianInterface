@@ -231,6 +231,10 @@ InteractionRos::InteractionRos(InteractionTask::Ptr task,
 	
 	_impd_pub = _ctx->nh().advertise<cartesian_interface::CartesianImpedance>(task->getName() + "/current_impedance"      , 1);
     _fref_pub = _ctx->nh().advertise<geometry_msgs::WrenchStamped           >(task->getName() + "/current_force_reference", 1);
+
+    _task_info_pub = _ctx->nh().advertise<cartesian_interface::InteractionTaskInfo>(
+                _task->getName() + "/interaction_task_properties", 1
+                );
 	
     _fref_sub = _ctx->nh().subscribe(task->getName() + "/force_reference", 1, &InteractionRos::on_fref_recv, this);
 	
@@ -242,12 +246,17 @@ InteractionRos::InteractionRos(InteractionTask::Ptr task,
 
     _set_impedance_srv = _ctx->nh().advertiseService(_task->getName() + "/set_impedance",
                                                      &InteractionRos::set_impedance_cb, this);
+
+    _set_impedance_ref_link_srv = _ctx->nh().advertiseService(_task->getName() + "/set_impedance_ref_link",
+                                                     &InteractionRos::set_impedance_ref_link_cb, this);
 }
 
 bool InteractionRos::get_task_info_cb(cartesian_interface::GetInteractionTaskInfoRequest&  req,
 									  cartesian_interface::GetInteractionTaskInfoResponse& res)
 {
 	res.state = EnumToString(_ci_inter->getStiffnessState());
+    res.impedance_ref_link = _ci_inter->getImpedanceRefLink();
+    
     return true;
 }
 
@@ -329,6 +338,8 @@ void InteractionRos::run(ros::Time time)
 	
     _fref_pub.publish(fr);
 	_impd_pub.publish(cimp);
+
+    publish_task_info();
 }
 
 void InteractionRos::on_fref_recv(geometry_msgs::WrenchStampedConstPtr msg)
