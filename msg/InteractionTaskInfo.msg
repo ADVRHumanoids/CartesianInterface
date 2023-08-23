@@ -1,2 +1,3 @@
 string state
+string impedance_ref_link
 

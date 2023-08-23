@@ -338,3 +338,36 @@ void InteractionRos::on_fref_recv(geometry_msgs::WrenchStampedConstPtr msg)
 
     _ci_inter->setForceReference(fref);
 }
+
+void InteractionRos::publish_task_info()
+{
+    cartesian_interface::GetInteractionTaskInfo srv;
+    get_task_info_cb(srv.request, srv.response);
+
+    cartesian_interface::InteractionTaskInfo msg;
+    msg.state = srv.response.state;
+    msg.impedance_ref_link = srv.response.impedance_ref_link;
+
+    _task_info_pub.publish(msg);
+
+}
+
+bool InteractionRos::set_impedance_ref_link_cb(cartesian_interface::SetImpedanceRefLinkRequest & req,
+                                    cartesian_interface::SetImpedanceRefLinkResponse & res)
+{
+    auto old_impedance_ref_link = _ci_inter->getImpedanceRefLink();
+    res.success = _ci_inter->setImpedanceRefLink(req.impedance_ref_link);
+
+    if(res.success)
+    {
+        res.message = fmt::format("Successfully changed base link from '{}' to '{}' for task '{}'",
+                                  old_impedance_ref_link, _ci_inter->getImpedanceRefLink(), _ci_inter->getName());
+    }
+    else
+    {
+        res.message = fmt::format("Unable to change base link from '{}' to '{}' for task '{}'",
+                                  old_impedance_ref_link, req.impedance_ref_link, _ci_inter->getName());
+    }
+
+    return true;
+}

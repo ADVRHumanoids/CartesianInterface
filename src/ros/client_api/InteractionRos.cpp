@@ -38,6 +38,17 @@ InteractionRos::InteractionRos(std::string name,
         throw std::runtime_error(fmt::format("Non existent service '{}'",
                                              _set_impedance_cli.getService()));
     }
+
+    _set_impedance_ref_link_cli = _nh.serviceClient<SetImpedanceRefLink>(name + "/set_impedance_ref_link");
+
+    if(!_set_impedance_ref_link_cli.waitForExistence(ros::Duration(1.0)) || !_set_impedance_ref_link_cli.exists())
+    {
+        throw std::runtime_error(fmt::format("Non existent service '{}'",
+                                             _set_impedance_ref_link_cli.getService()));
+    }
+
+    _task_info_sub = _nh.subscribe(name + "/interaction_task_properties", 10,
+                                 &InteractionRos::on_task_info_recv, this);
         
     if(!_action_cli.isServerConnected())
     {
@@ -55,6 +66,7 @@ GetInteractionTaskInfoResponse InteractionRos::get_task_info() const
         GetInteractionTaskInfoResponse res;
         
 		res.state = _info.state;
+        res.state = _info.impedance_ref_link;
         
         return res;
     }
@@ -189,6 +201,33 @@ bool InteractionRos::setStiffnessTransition(const Interpolator<Eigen::Matrix6d>:
                          boost::bind(&InteractionRos::on_action_active, this),
                          boost::bind(&InteractionRos::on_action_feedback, this, _1));
     return true;
+}
+
+const std::string & InteractionRos::getImpedanceRefLink() const
+{
+    _impedance_ref_link = get_task_info().impedance_ref_link;
+    return _impedance_ref_link;
+}
+
+bool InteractionRos::setImpedanceRefLink(const std::string & new_impedance_ref_link)
+{
+    SetImpedanceRefLink srv;
+    srv.request.impedance_ref_link = new_impedance_ref_link;
+
+    if(!_set_impedance_ref_link_cli.call(srv))
+    {
+        throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                             _set_impedance_ref_link_cli.getService()));
+    }
+
+    ROS_INFO("%s", srv.response.message.c_str());
+
+    return srv.response.success;
+}
+
+void InteractionRos::on_task_info_recv(InteractionTaskInfoConstPtr msg)
+{
+    _info = *msg;
 }
 
 void InteractionRos::on_action_feedback(const ReachCartesianImpedanceFeedbackConstPtr & feedback)

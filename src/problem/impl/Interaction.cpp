@@ -93,6 +93,13 @@ InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
         throw std::runtime_error("Negative values detected in interaction parameters");
     }
 
+    _impedance_ref_link = this->getBaseLink();
+    if(task_node["impedance_ref_link"])
+    {
+        _impedance_ref_link = task_node["impedance_ref_link"].as<std::string>();
+    }
+
+
 }
 
 const Impedance & XBot::Cartesian::InteractionTaskImpl::getImpedance()
@@ -207,6 +214,37 @@ void XBot::Cartesian::InteractionTaskImpl::update(double time, double period)
 State XBot::Cartesian::InteractionTaskImpl::getStiffnessState() const
 {
 	return _state;
+}
+
+bool InteractionTaskImpl::setImpedanceRefLink(const std::string & new_impedance_ref_link)
+{
+    /* Check that new base link exists */
+    Eigen::Affine3d T;
+    if(!_model->getPose(new_impedance_ref_link, T))
+    {
+        XBot::Logger::error("New impedance ref link '%s' in not defined\n",
+                            new_impedance_ref_link.c_str());
+        return false;
+    }
+
+    /* Check that the task is not in reaching mode */
+    if( _state != State::Online )
+    {
+        XBot::Logger::error("Task '%s': unable to change impedance ref link while performing a reach\n",
+                            this->getDistalLink().c_str());
+        return false;
+    }
+
+    /* Update task */
+    _impedance_ref_link = new_impedance_ref_link;
+
+    //todo: reset stiffnes
+    return true;
+}
+
+const std::string & InteractionTaskImpl::getImpedanceRefLink() const
+{
+    return _impedance_ref_link;
 }
 
 

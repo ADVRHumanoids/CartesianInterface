@@ -102,6 +102,19 @@ bool InteractionRt::setStiffnessTransition(const Interpolator<Eigen::Matrix6d>::
     return _cb_queue.push(cb);
 }
 
+const std::string & InteractionRt::getImpedanceRefLink() const
+{
+    return _rt_data._impedance_ref_link;
+}
+
+bool InteractionRt::setImpedanceRefLink(const std::string & new_impedance_ref_link)
+{
+    auto cb = std::bind(&InteractionTask::setImpedanceRefLink,
+                        pl::_1, new_impedance_ref_link);
+
+    return _cb_queue.push(cb);
+}
+
 void InteractionRt::update(double time, double period)
 {
     CartesianRt::update(time, period);

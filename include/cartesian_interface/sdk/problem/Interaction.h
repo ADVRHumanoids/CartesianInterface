@@ -51,6 +51,9 @@ public:
 	bool  setStiffnessTransition(const Interpolator<Eigen::Matrix6d>::WayPointVector & way_points);
 	State getStiffnessState() const;
 
+    const std::string& getImpedanceRefLink() const;
+    bool setImpedanceRefLink(const std::string& new_impedance_ref_link);
+
 private:
 
     static constexpr double REF_TTL = 0.3;
@@ -62,6 +65,8 @@ private:
 	
 	State                              _state;
 	Interpolator<Eigen::Matrix6d>::Ptr _interpolator;
+
+    std::string _impedance_ref_link;
 
 };
 

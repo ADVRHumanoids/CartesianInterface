@@ -42,6 +42,9 @@ public:
 	bool  setStiffnessTransition(const Interpolator<Eigen::Matrix6d>::WayPointVector & way_points) override;
 	State getStiffnessState() const override;
 
+    const std::string& getImpedanceRefLink() const override;
+    bool setImpedanceRefLink(const std::string& new_impedance_ref_link) override;
+
 private:
 
     typedef std::function<void(InteractionTask&)> CallbackType;
@@ -56,6 +59,8 @@ private:
 		Eigen::Vector6d _force_min;
 		
 		State _stiffness_state;
+
+        std::string _impedance_ref_link;
 	};
 
     LockFreeQueue<DataToClient, 1024> _to_cli_queue;

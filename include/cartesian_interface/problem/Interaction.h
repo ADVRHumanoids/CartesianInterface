@@ -49,6 +49,10 @@ public:
 	virtual bool  setStiffnessTransition (const Interpolator<Eigen::Matrix6d>::WayPointVector & way_points) = 0;
 	virtual State getStiffnessState () const = 0;
 
+    virtual const std::string& getImpedanceRefLink() const = 0;
+    virtual bool setImpedanceRefLink(const std::string& new_impedance_ref_link) = 0;
+
+
 };
 
 class AdmittanceTask : public virtual InteractionTask

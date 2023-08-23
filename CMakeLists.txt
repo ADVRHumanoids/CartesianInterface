@@ -94,6 +94,7 @@ add_service_files(
     SetControlMode.srv
     SetSafetyLimits.srv
     SetTransform.srv
+    SetImpedanceRefLink.srv
     )
 
 
