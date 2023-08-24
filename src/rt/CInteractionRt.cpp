@@ -42,6 +42,8 @@ void InteractionRt::sendState(bool send)
 	_task_impl->getForceLimits(_rt_data._force_min,
 							   _rt_data._force_max);
 	
+	_rt_data._impedance_ref_link = _task_impl->getImpedanceRefLink();
+	
 	_to_cli_queue.push(_rt_data);
 }
 
