@@ -271,6 +271,8 @@ bool InteractionRos::get_impedance_cb(cartesian_interface::GetImpedanceRequest& 
 	tf::vectorEigenToMsg (impedance.damping.diagonal().head(3), res.impedance.linear.damping_ratio);
 	tf::vectorEigenToMsg (impedance.damping.diagonal().tail(3), res.impedance.angular.damping_ratio);
 
+    res.impedance.header.frame_id = _ci_inter->getImpedanceRefLink();
+
     return true;
 }
 
