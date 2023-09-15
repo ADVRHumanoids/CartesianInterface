@@ -238,7 +238,6 @@ bool InteractionTaskImpl::setImpedanceRefLink(const std::string & new_impedance_
     /* Update task */
     _impedance_ref_link = new_impedance_ref_link;
 
-    //todo: reset stiffnes
     return true;
 }
 

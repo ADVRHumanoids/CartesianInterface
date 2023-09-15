@@ -371,12 +371,12 @@ bool InteractionRos::set_impedance_ref_link_cb(cartesian_interface::SetImpedance
 
     if(res.success)
     {
-        res.message = fmt::format("Successfully changed base link from '{}' to '{}' for task '{}'",
+        res.message = fmt::format("Successfully changed impedance ref link from '{}' to '{}' for task '{}'",
                                   old_impedance_ref_link, _ci_inter->getImpedanceRefLink(), _ci_inter->getName());
     }
     else
     {
-        res.message = fmt::format("Unable to change base link from '{}' to '{}' for task '{}'",
+        res.message = fmt::format("Unable to change impedance ref link from '{}' to '{}' for task '{}'",
                                   old_impedance_ref_link, req.impedance_ref_link, _ci_inter->getName());
     }
 
