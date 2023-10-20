@@ -36,14 +36,12 @@ public:
     const Impedance & getImpedance () override;
 	
     const Eigen::Vector6d& getForceReference() const override;
-    void getForceLimits(Eigen::Vector6d& fmin,
-                        Eigen::Vector6d& fmax) const override;
+    void getForceLimits(Eigen::Vector6d& fmax) const override;
 
     bool setImpedance (const Impedance & impedance) override;
 	
 	void setForceReference(const Eigen::Vector6d& f) override;
-    bool setForceLimits(const Eigen::Vector6d& fmin,
-                        const Eigen::Vector6d& fmax) override;
+    bool setForceLimits(const Eigen::Vector6d& fmax) override;
 	
 	/* these methods are used to change the stiffness in a smooth way... */
 	
@@ -60,7 +58,7 @@ private:
 	
 	Impedance       _impedance;
 	
-    Eigen::Vector6d _fref, _fmin, _fmax;
+    Eigen::Vector6d _fref, _fmax;
     double          _ref_timeout;
 	
 	State                              _state;

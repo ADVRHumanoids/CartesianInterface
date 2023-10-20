@@ -249,6 +249,12 @@ InteractionRos::InteractionRos(InteractionTask::Ptr task,
 
     _set_impedance_ref_link_srv = _ctx->nh().advertiseService(_task->getName() + "/set_impedance_ref_link",
                                                      &InteractionRos::set_impedance_ref_link_cb, this);
+
+    _set_force_limits_srv = _ctx->nh().advertiseService(_task->getName() + "/set_force_limits",
+                                                     &InteractionRos::set_force_limits_cb, this);
+    
+    _get_force_limits_srv = _ctx->nh().advertiseService(_task->getName() + "/get_force_limits",
+                                                     &InteractionRos::get_force_limits_cb, this);
 }
 
 bool InteractionRos::get_task_info_cb(cartesian_interface::GetInteractionTaskInfoRequest&  req,
@@ -313,6 +319,46 @@ bool InteractionRos::set_impedance_cb(cartesian_interface::SetImpedanceRequest& 
     else
     {
         res.message = fmt::format("Unable to set impedance");   // to:\n{}", impedance);
+        res.success = false;
+        return false;
+    }
+
+}
+
+bool InteractionRos::get_force_limits_cb(cartesian_interface::GetForceLimitsRequest&  req,
+									     cartesian_interface::GetForceLimitsResponse& res)
+{
+    Eigen::Vector6d fmax;
+    _ci_inter->getForceLimits(fmax);
+
+    tf::vectorEigenToMsg(fmax.head(3), res.fmax.force);
+    tf::vectorEigenToMsg(fmax.tail(3), res.fmax.torque);
+
+    return true;
+}
+
+bool InteractionRos::set_force_limits_cb(cartesian_interface::SetForceLimitsRequest& req,
+                                         cartesian_interface::SetForceLimitsResponse& res)
+
+{
+    Eigen::Vector3d force, torque;
+    Eigen::Vector6d fmax;
+
+    tf::vectorMsgToEigen(req.fmax.force, force);
+    tf::vectorMsgToEigen(req.fmax.torque, torque);
+
+    fmax << force, torque;
+
+    if (_ci_inter->setForceLimits(fmax))
+    {
+        res.message = fmt::format("Successfully set force limits"); // to: {}", fmax);
+        res.success = true;
+        return true;
+    }
+
+    else
+    {
+        res.message = fmt::format("Unable to set force limits"); // to: {}", fmax);
         res.success = false;
         return false;
     }

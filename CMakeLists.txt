@@ -95,6 +95,8 @@ add_service_files(
     SetSafetyLimits.srv
     SetTransform.srv
     SetImpedanceRefLink.srv
+    GetForceLimits.srv
+    SetForceLimits.srv
     )
 
 

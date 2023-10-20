@@ -13,6 +13,9 @@
 
 #include <cartesian_interface/SetImpedanceRefLink.h>
 
+#include <cartesian_interface/GetForceLimits.h>
+#include <cartesian_interface/SetForceLimits.h>
+
 
 namespace XBot { namespace Cartesian {
 
@@ -35,12 +38,12 @@ public:
     const Impedance & getImpedance ();
 	
 	const Eigen::Vector6d& getForceReference () const override;
-    void getForceLimits (Eigen::Vector6d& fmin, Eigen::Vector6d& fmax) const override;
+    void getForceLimits (Eigen::Vector6d& fmax) const override;
 
     bool setImpedance (const Impedance & impedance) override;
 	
 	void setForceReference (const Eigen::Vector6d& f) override;
-    bool setForceLimits (const Eigen::Vector6d& fmin, const Eigen::Vector6d& fmax) override;
+    bool setForceLimits (const Eigen::Vector6d& fmax) override;
 	
 	bool  waitTransitionCompleted (double timeout);
 	void  abortStiffnessTransition () override;
@@ -62,6 +65,8 @@ private:
     mutable ros::ServiceClient _set_impedance_cli;
     mutable ros::ServiceClient _interaction_info_cli;
     ros::ServiceClient _set_impedance_ref_link_cli;
+    mutable ros::ServiceClient _get_force_limits_cli;
+    mutable ros::ServiceClient _set_force_limits_cli;
 
     ros::Subscriber _task_info_sub;
 

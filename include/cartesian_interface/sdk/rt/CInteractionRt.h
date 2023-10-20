@@ -29,14 +29,12 @@ public:
     const Impedance& getImpedance() override;
 	
     const Eigen::Vector6d& getForceReference() const override;
-    void getForceLimits(Eigen::Vector6d& fmin,
-						Eigen::Vector6d& fmax) const override;
+    void getForceLimits(Eigen::Vector6d& fmax) const override;
 
     bool setImpedance(const Impedance & impedance) override;
 	
     void setForceReference(const Eigen::Vector6d& f) override;
-    bool setForceLimits(const Eigen::Vector6d& fmin,
-						const Eigen::Vector6d& fmax) override;
+    bool setForceLimits(const Eigen::Vector6d& fmax) override;
 						
 	void  abortStiffnessTransition() override;
 	bool  setStiffnessTransition(const Interpolator<Eigen::Matrix6d>::WayPointVector & way_points) override;
@@ -56,7 +54,6 @@ private:
 
 		Eigen::Vector6d _force    ;
 		Eigen::Vector6d _force_max;
-		Eigen::Vector6d _force_min;
 		
 		State _stiffness_state;
 
