@@ -71,6 +71,9 @@ namespace XBot { namespace Cartesian {
         bool reset_joints_callback(cartesian_interface::ResetJointsRequest& req,
                                    cartesian_interface::ResetJointsResponse& res);
         
+        bool pause_cartesio_callback(std_srvs::SetBoolRequest& req,
+                                     std_srvs::SetBoolRequest& res);
+
         void timer_callback(const ros::TimerEvent& timer_ev);
 
         void publish_fb_cmd_vel();
@@ -100,14 +103,15 @@ namespace XBot { namespace Cartesian {
         ros::ServiceServer _loader_srv;
         ros::ServiceServer _reset_srv;
         ros::ServiceServer _reset_joints_srv;
+        ros::ServiceServer _pause_ci_srv;
         ros::Subscriber _fb_sub;
         
         ros::Timer _loop_timer;
         double _time, _period;
         
         MatLogger2::Ptr _logger;
-        
-        
+
+        bool _pause_command;       
         
     };
 

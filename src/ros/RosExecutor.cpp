@@ -47,6 +47,9 @@ void RosExecutor::init_ros()
     _reset_srv = _nh.advertiseService("reset", &RosExecutor::reset_callback, this);
     _reset_joints_srv = _nh.advertiseService("reset_joints", &RosExecutor::reset_joints_callback, this);
 
+    /* Pause Cartesio to publish commands */
+    _pause_ci_srv = _nh.advertiseService("pause", &RosExecutor::pause_cartesio_callback, this);
+
     /* Floating base override topic */
     ros::NodeHandle nh_fb_queue(_nh);
     nh_fb_queue.setCallbackQueue(&_fb_queue);
@@ -84,6 +87,7 @@ void RosExecutor::init_load_config()
 
     _period = 1.0 / _nh_priv.param("rate", 100.0);
 
+    _pause_command = false;
 }
 
 void RosExecutor::init_load_robot()
@@ -496,7 +500,7 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
 
     _model->update();
 
-    if(_robot && !_visual_mode)
+    if(!_pause_command && _robot && !_visual_mode)
     {
         _robot->setReferenceFrom(*_model, Sync::Position, Sync::Velocity);
         _robot->move();
@@ -574,6 +578,25 @@ bool RosExecutor::reset_joints_callback(cartesian_interface::ResetJointsRequest&
     return true;
 }
 
+
+bool RosExecutor::pause_cartesio_callback(std_srvs::SetBoolRequest& req,
+                                          std_srvs::SetBoolRequest& res)
+{
+    /* If resume --> Update robot pos */
+    if(_pause_command && !req.data){
+        reset_model_state();
+
+        _current_impl->reset(_time);
+
+        XBot::JointNameMap q_map;
+        _model->getJointPosition(q_map);
+        _current_impl->setReferencePosture(q_map);
+    }
+
+    _pause_command = req.data;
+
+    return true;
+}
 
 void RosExecutor::world_frame_to_param()
 {
