@@ -4,10 +4,11 @@ solver_options:
 
 stack:
     - ["LeftFoot", "RightFoot", "ComXY"]
-    - ["LeftArm", "RightArm"]
+    - ["LeftArm"]
+    - ["RightArm"]
     - ["Postural"]
 
-constraints: ["JointLimitsInvariance", "VelocityLimits"]
+constraints: ["JointLimits", "VelocityLimits"]
 
 LeftFoot:
     type: "Cartesian"
@@ -18,18 +19,30 @@ RightFoot:
     type: "Cartesian"
     name: "right_foot"
     distal_link: "r_sole"
-
+    
 LeftArm:
     type: "Cartesian"
     name: "left_hand"
     distal_link: "LSoftHand"
-    lambda: 0.1
+    lambda: 0.05
+    normalize: true
+    marey_gain: false
+    e0: 5e-3
+    e1: 1e-2
+    norm_regularization: 1e-6
 
+            
 RightArm:
     type: "Cartesian"
     name: "right_hand"
     distal_link: "RSoftHand"
-    lambda: 0.1
+    lambda: 0.05
+    normalize: true
+    marey_gain: false
+    e0: 5e-3
+    e1: 1e-2
+    norm_regularization: 1e-6
+
 
 Postural:
     type: "Postural"

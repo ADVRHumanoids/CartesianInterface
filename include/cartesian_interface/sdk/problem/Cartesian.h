@@ -117,11 +117,11 @@ public:
 
     virtual bool getNormalizedFlag() const;
     virtual bool getMareyGainFlag() const;
+    virtual double getMareyGainE0() const;
+    virtual double getMareyGainE1() const;
+    virtual double getRegularization() const;
 
 private:
-
-    bool _is_normalized;
-    bool _marey_gain;
 
     ControlType _ctrl_mode;
 
@@ -167,6 +167,10 @@ private:
 
     Trajectory::Ptr _trajectory;
     std::shared_ptr<Reflexxes::Utils::TrajectoryGenerator> _otg;
+
+    double _norm_e0, _norm_e1, _reg;
+    bool _is_normalized;
+    bool _marey_gain;
 
 
 };

@@ -204,6 +204,9 @@ public:
 
     virtual bool getNormalizedFlag() const = 0;
     virtual bool getMareyGainFlag() const = 0;
+    virtual double getMareyGainE0() const = 0;
+    virtual double getMareyGainE1() const = 0;
+    virtual double getRegularization() const = 0;
 
 };
 

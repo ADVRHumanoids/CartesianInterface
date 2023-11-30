@@ -28,6 +28,8 @@ TaskPtr OpenSotCartesianAdapter::constructTask()
     {
         bool marey_gain = _ci_cart->getMareyGainFlag();
         _opensot_norm = SotUtils::make_shared<NormTaskSoT>(_opensot_cart, marey_gain);
+        _opensot_norm->setThresholds(_ci_cart->getMareyGainE0(), _ci_cart->getMareyGainE1());
+        _opensot_norm->setRegularization(_ci_cart->getRegularization());
         return _opensot_norm;
     }
 

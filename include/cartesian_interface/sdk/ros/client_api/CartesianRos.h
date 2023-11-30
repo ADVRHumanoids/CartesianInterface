@@ -69,6 +69,10 @@ public:
 
     virtual bool getMareyGainFlag() const;
 
+    virtual double getMareyGainE0() const {};
+    virtual double getMareyGainE1() const {};
+    virtual double getRegularization() const {};
+
 protected:
 
     void notifyTaskChanged(const std::string & message) override;

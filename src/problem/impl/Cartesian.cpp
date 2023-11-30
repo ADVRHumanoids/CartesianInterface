@@ -34,7 +34,10 @@ CartesianTaskImpl::CartesianTaskImpl(Context::ConstPtr context,
     _vref_time_to_live(-1.0),
     _aref_time_to_live(-1.0),
     _is_normalized(false),
-    _marey_gain(true)
+    _marey_gain(true),
+    _norm_e1(1e-1),
+    _norm_e0(1e-3),
+    _reg(1e-9)
 {
     _otg_maxvel.setConstant(1.0);
     _otg_maxacc.setConstant(10.0);
@@ -124,6 +127,21 @@ CartesianTaskImpl::CartesianTaskImpl(YAML::Node task_node, Context::ConstPtr con
         if(task_node["marey_gain"])
         {
             _marey_gain = task_node["marey_gain"].as<bool>();
+        }
+
+        if(task_node["e0"])
+        {
+            _norm_e0 = task_node["e0"].as<double>();
+        }
+
+        if(task_node["e1"])
+        {
+            _norm_e1 = task_node["e1"].as<double>();
+        }
+
+        if(task_node["norm_regularization"])
+        {
+            _reg = task_node["norm_regularization"].as<double>();
         }
     }
 
@@ -684,3 +702,19 @@ bool CartesianTaskImpl::getMareyGainFlag() const
 {
     return _marey_gain;
 }
+
+double CartesianTaskImpl::getMareyGainE0() const
+{
+    return _norm_e0;
+}
+
+double CartesianTaskImpl::getMareyGainE1() const
+{
+    return _norm_e1;
+}
+
+double CartesianTaskImpl::getRegularization() const
+{
+    return _reg;
+}
+
