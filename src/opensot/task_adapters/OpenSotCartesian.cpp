@@ -24,6 +24,13 @@ TaskPtr OpenSotCartesianAdapter::constructTask()
                                                      _ci_cart->getDistalLink(),
                                                      _ci_cart->getBaseLink());
 
+    if(_ci_cart->getNormalizedFlag())
+    {
+        bool marey_gain = _ci_cart->getMareyGainFlag();
+        _opensot_norm = SotUtils::make_shared<NormTaskSoT>(_opensot_cart, marey_gain);
+        return _opensot_norm;
+    }
+
     return _opensot_cart;
 }
 

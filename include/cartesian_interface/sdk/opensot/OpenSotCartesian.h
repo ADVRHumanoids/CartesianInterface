@@ -7,8 +7,10 @@
 #include "OpenSotTask.h"
 
 #include <OpenSoT/tasks/velocity/Cartesian.h>
+#include <opensot_norm_task/include/opensot_norm_task/tasks/NormTask.h>
 
 using CartesianSoT = OpenSoT::tasks::velocity::Cartesian;
+using NormTaskSoT = OpenSoT::task::NormTask;
 
 namespace XBot { namespace Cartesian {
 
@@ -37,6 +39,7 @@ public:
 protected:
 
     CartesianSoT::Ptr _opensot_cart;
+    NormTaskSoT::Ptr _opensot_norm;
 
 private:
 
