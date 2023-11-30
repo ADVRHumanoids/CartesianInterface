@@ -32,7 +32,9 @@ CartesianTaskImpl::CartesianTaskImpl(Context::ConstPtr context,
     _ctrl_mode(ControlType::Position),
     _state(State::Online),
     _vref_time_to_live(-1.0),
-    _aref_time_to_live(-1.0)
+    _aref_time_to_live(-1.0),
+    _is_normalized(false),
+    _marey_gain(true)
 {
     _otg_maxvel.setConstant(1.0);
     _otg_maxacc.setConstant(10.0);
@@ -68,6 +70,18 @@ int get_size(YAML::Node task_node)
         return 3;
     }
 
+    if(task_node["normalize"])
+    {
+        if(task_node["normalize"].as<bool>())
+        {
+            if(task_node["marey_gain"])
+            {
+                if(!task_node["marey_gain"].as<bool>())
+                    return 1;
+            }
+        }
+    }
+
     return 6;
 }
 
@@ -79,7 +93,9 @@ CartesianTaskImpl::CartesianTaskImpl(YAML::Node task_node, Context::ConstPtr con
     _state(State::Online),
     _vref_time_to_live(-1.0),
     _orientation_gain(1.0),
-    _is_body_jacobian(false)
+    _is_body_jacobian(false),
+    _is_normalized(false),
+    _marey_gain(true)
 {
     bool is_com = task_node["type"].as<std::string>() == "Com";
 
@@ -99,6 +115,16 @@ CartesianTaskImpl::CartesianTaskImpl(YAML::Node task_node, Context::ConstPtr con
     if(task_node["use_local_subtasks"] && task_node["use_local_subtasks"].as<bool>())
     {
         _is_body_jacobian = true;
+    }
+
+    if(task_node["normalize"])
+    {
+        _is_normalized = task_node["normalize"].as<bool>();
+
+        if(task_node["marey_gain"])
+        {
+            _marey_gain = task_node["marey_gain"].as<bool>();
+        }
     }
 
     _otg_maxvel.setConstant(1.0);
@@ -647,4 +673,14 @@ void CartesianTaskImpl::enableOnlineTrajectoryGeneration()
     reset_otg();
     setVelocityLimits(1.0, 1.0);
     setAccelerationLimits(10., 10.);
+}
+
+bool CartesianTaskImpl::getNormalizedFlag() const
+{
+    return _is_normalized;
+}
+
+bool CartesianTaskImpl::getMareyGainFlag() const
+{
+    return _marey_gain;
 }

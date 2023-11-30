@@ -202,6 +202,9 @@ public:
     virtual void setAccelerationLimits(double max_acc_lin,
                                        double max_acc_ang) = 0;
 
+    virtual bool getNormalizedFlag() const = 0;
+    virtual bool getMareyGainFlag() const = 0;
+
 };
 
 } }
