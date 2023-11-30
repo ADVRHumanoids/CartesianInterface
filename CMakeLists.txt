@@ -14,6 +14,7 @@ find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
 find_package(matlogger2 REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(opensot_norm_task REQUIRED)
 set(CATKIN_BUILD_BINARY_PACKAGE TRUE)
 find_package(catkin REQUIRED COMPONENTS roscpp
     std_msgs
@@ -43,6 +44,7 @@ include_directories(include
     include/${PROJECT_NAME}/sdk
     src
     ${OpenSoT_INCLUDE_DIRS}
+    ${opensot_norm_task_INCLUDE_DIRS}
     ${XBotInterface_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIRS}
     ${catkin_INCLUDE_DIRS}
@@ -207,6 +209,7 @@ target_link_libraries(CartesianInterface
     PUBLIC
     XBotInterface::XBotInterface
     OpenSoT::OpenSoT
+    ${opensot_norm_task_LIBRARIES}
     matlogger2::matlogger2
     ${catkin_LIBRARIES}
     yaml-cpp
