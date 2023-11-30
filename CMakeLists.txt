@@ -149,6 +149,7 @@ set(CartesianInterface_SRC
     src/rt/CInteractionRt.cpp
     src/utils/ForceEstimation.cpp
     src/utils/RobotStatePublisher.cpp
+    src/utils/AccMaxComputer.cpp
     #        src/problem/MinJointVel.cpp
     )
 
@@ -247,6 +248,15 @@ target_link_libraries(CartesianInterfaceSolverOpenSot PUBLIC
     matlogger2::matlogger2
     )
 install(TARGETS CartesianInterfaceSolverOpenSot
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+    )
+
+# AccMaxComputer executable
+add_executable(acc_max_computer_node src/ros/AccMaxComputerNode.cpp)
+target_link_libraries(acc_max_computer_node CartesianInterface)
+install(TARGETS acc_max_computer_node acc_max_computer_node
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

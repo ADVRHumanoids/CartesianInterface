@@ -1,0 +1,18 @@
+<launch>
+
+    <arg name="configs" default="1e6"/>
+    <arg name="initial_qddotmax" default="1e4"/>
+    
+    
+    <param name="robot_description" 
+        textfile="$(find cartesian_interface)/examples/urdf/coman.urdf"/>
+    
+    <param name="robot_description_semantic"
+        textfile="$(find cartesian_interface)/examples/srdf/coman.srdf"/>
+        
+    <include file="$(find cartesian_interface)/launch/acceleration_max_computer.launch">
+        <arg name="configs" value="$(arg configs)"/>
+        <arg name="initial_qddotmax" value="$(arg initial_qddotmax)"/>
+    </include>
+        
+</launch>

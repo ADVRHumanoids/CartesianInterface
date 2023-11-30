@@ -121,6 +121,10 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
     {
         task_desc = std::make_shared<JointLimitsImpl>(task_node,  context);
     }
+    else if(task_type == "JointLimitsInvariance")
+    {
+        task_desc = std::make_shared<JointLimitsInvarianceImpl>(task_node,  context);
+    }
     else if(task_type == "VelocityLimits")
     {
         task_desc = std::make_shared<VelocityLimitsImpl>(task_node,  context);

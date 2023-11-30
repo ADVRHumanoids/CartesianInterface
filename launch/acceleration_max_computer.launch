@@ -1,0 +1,12 @@
+<launch>
+
+    <arg name="configs" default="1e6"/>
+    <arg name="initial_qddotmax" default="1e4"/>
+    
+    
+    <node type="acc_max_computer_node" name="acc_max_computer_node" pkg="cartesian_interface" output="screen">
+    	<param name="configs" value="$(arg configs)"/>
+    	<param name="initial_qddotmax" value="$(arg initial_qddotmax)"/>
+    </node>
+            
+</launch>
