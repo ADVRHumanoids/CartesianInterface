@@ -65,6 +65,10 @@ public:
     bool setWayPoints(const Trajectory::WayPointVector& way_points,
                       bool incremental
                       );
+    virtual bool getNormalizedFlag() const;
+
+    virtual bool getMareyGainFlag() const;
+
 protected:
 
     void notifyTaskChanged(const std::string & message) override;

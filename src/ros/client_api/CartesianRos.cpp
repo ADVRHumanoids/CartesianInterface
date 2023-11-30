@@ -381,3 +381,8 @@ void CartesianRos::notifyTaskChanged(const std::string & message)
         NOTIFY_OBSERVERS(ControlMode);
     }
 }
+
+bool CartesianRos::getNormalizedFlag() const {throw std::runtime_error(fmt::format("Unsupported function '{}'",
+                                                                     __PRETTY_FUNCTION__));}
+bool CartesianRos::getMareyGainFlag() const {throw std::runtime_error(fmt::format("Unsupported function '{}'",
+                                                                            __PRETTY_FUNCTION__));}
