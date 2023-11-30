@@ -49,6 +49,9 @@ public:
     bool setWayPoints(const Trajectory::WayPointVector & way_points) override;
     void abort() override;
 
+    virtual bool getNormalizedFlag() const {};
+    virtual bool getMareyGainFlag() const {};
+
 private:
 
     typedef std::function<void(CartesianTask&)> CallbackType;

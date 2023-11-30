@@ -115,7 +115,13 @@ public:
 
     virtual void registerObserver(TaskObserver::WeakPtr observer);
 
+    virtual bool getNormalizedFlag() const;
+    virtual bool getMareyGainFlag() const;
+
 private:
+
+    bool _is_normalized;
+    bool _marey_gain;
 
     ControlType _ctrl_mode;
 
