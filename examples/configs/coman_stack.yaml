@@ -1,11 +1,12 @@
 solver_options:
     regularization: 1e-3
+    #front_end: nhqp
     back_end: "qpoases"
 
 stack:
     - ["LeftFoot", "RightFoot", "ComXY"]
-    - ["LeftArm"]
-    - ["RightArm"]
+    - ["LeftArm", "RightArm"]
+    - ["LeftArm2", "RightArm2"]
     - ["Postural"]
 
 constraints: ["JointLimits", "VelocityLimits"]
@@ -27,9 +28,9 @@ LeftArm:
     lambda: 0.05
     normalize: true
     marey_gain: false
-    e0: 5e-3
+    e0: 1e-3
     e1: 1e-2
-    norm_regularization: 1e-6
+    norm_regularization: 1e-3
 
             
 RightArm:
@@ -39,14 +40,26 @@ RightArm:
     lambda: 0.05
     normalize: true
     marey_gain: false
-    e0: 5e-3
+    e0: 1e-3
     e1: 1e-2
-    norm_regularization: 1e-6
+    norm_regularization: 1e-3
+    
+LeftArm2:
+    type: "Cartesian"
+    name: "left_hand2"
+    distal_link: "LSoftHand"
+    lambda: 0.
 
+            
+RightArm2:
+    type: "Cartesian"
+    name: "right_hand2"
+    distal_link: "RSoftHand"
+    lambda: 0.
 
 Postural:
     type: "Postural"
-    lambda: 0.01
+    lambda: 0.0
     weight:
         VIRTUALJOINT_1: 0.0
         VIRTUALJOINT_2: 0.0
