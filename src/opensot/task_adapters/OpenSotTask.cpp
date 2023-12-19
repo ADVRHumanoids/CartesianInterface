@@ -12,6 +12,7 @@
 #include "opensot/OpenSotCom.h"
 #include "opensot/OpenSotSubtask.h"
 #include "opensot/OpenSotOmniWheels4X.h"
+#include "opensot/OpenSotGaze.h"
 
 #include "fmt/format.h"
 
@@ -169,6 +170,10 @@ OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr ta
     else if(task->getType() == "Com")
     {
         task_adapter = new OpenSotComAdapter(task, context);
+    }
+    else if(task->getType() == "Gaze")
+    {
+        task_adapter = new OpenSotGazeAdapter(task, context);
     }
     else if(task->getType() == "Subtask") /* Otherwise, construct supported tasks */
     {

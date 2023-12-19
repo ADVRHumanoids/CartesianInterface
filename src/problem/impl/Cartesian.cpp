@@ -68,6 +68,11 @@ int get_size(YAML::Node task_node)
         return 3;
     }
 
+    if(task_node["type"].as<std::string>() == "Gaze")
+    {
+        return 2;
+    }
+
     return 6;
 }
 
