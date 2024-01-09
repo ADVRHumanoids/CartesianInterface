@@ -1,5 +1,5 @@
 #include <cartesian_interface/trajectory/Trajectory.h>
-#include <XBotInterface/Utils.h>
+#include <xbot2_interface/common/utils.h>
 
 using namespace XBot::Cartesian;
 
@@ -94,8 +94,8 @@ Eigen::Affine3d Trajectory::evaluate(double time,
     Eigen::Quaterniond q_start(start.linear());
     Eigen::Quaterniond q_end(end.linear());
     
-    double tau, dtau, ddtau;
-    XBot::Utils::FifthOrderPlanning(0, 0, 0, 1, t_start, t_end, time, tau, dtau, ddtau);
+    auto [tau, dtau, ddtau] =
+        XBot::Utils::quinticSplineDerivatives(t_start, t_end, time);
     
     Eigen::Affine3d interpolated;
     interpolated.setIdentity();
