@@ -60,25 +60,11 @@ void RosExecutor::init_ros()
 
 void RosExecutor::init_load_config()
 {
-    /* Obtain xbot config object */
-    bool use_xbot_config = _nh_priv.param("use_xbot_config", false);
-
-    if(use_xbot_config)
-    {
-        _options_source = Utils::LoadFrom::CONFIG;
-        Logger::info("Configuring from file %s\n", XBot::Utils::getXBotConfig().c_str());
-    }
-    else
-    {
-        _options_source = Utils::LoadFrom::PARAM;
-        Logger::info("Configuring from ROS parameter server\n");
-    }
-
-    _xbot_cfg_robot = Utils::LoadOptions(_options_source);
+    _xbot_cfg_robot = Utils::LoadOptionsFromParamServer();
 
     try
     {
-        _xbot_cfg = Utils::LoadOptions(_options_source, "model_description");
+        _xbot_cfg = Utils::LoadOptionsFromParamServer("model_description");
     }
     catch(std::exception& e)
     {
@@ -135,7 +121,7 @@ void RosExecutor::init_customize_command()
         return;
     }
 
-    std::map<std::string, XBot::ControlMode> ctrl_map;
+    XBot::CtrlModeMap ctrl_map;
 
     std::vector<std::string> joint_blacklist;
     _xbot_cfg.get_parameter("joint_blacklist", joint_blacklist);
@@ -147,7 +133,7 @@ void RosExecutor::init_customize_command()
             throw std::runtime_error("Joint blacklist contains non existing joint '" + j + "'");
         }
 
-        ctrl_map[j] = XBot::ControlMode::Idle();
+        ctrl_map[j] = XBot::ControlMode::None();
     }
 
     std::vector<std::string> velocity_whitelist;
@@ -198,24 +184,37 @@ void RosExecutor::reset_model_state()
 
     if(_robot)
     {
-        auto msg = ros::topic::waitForMessage<xbot_msgs::JointState>("xbotcore/joint_states", ros::Duration(1.0));
+        auto msg = ros::topic::waitForMessage<xbot_msgs::JointState>(
+            "xbotcore/joint_states",
+            ros::Duration(1.0)
+            );
+
         if(!msg || msg->name.size() == 0)
         {
             throw std::runtime_error("Unable to get current joint states from xbotcore");
         }
 
-        XBot::JointNameMap qref;
-        for(auto j : _robot->getEnabledJointNames())
+        for(auto j : _robot->getJoints())
         {
-            auto it = std::find(msg->name.begin(), msg->name.end(), j);
+            if(j->getNv() > 1)
+            {
+                // we skip floating joints
+                continue;
+            }
+
+            auto it = std::find(msg->name.begin(), msg->name.end(), j->getName());
+
             if(it == msg->name.end())
             {
-                throw std::runtime_error("Unable to get current joint state for joint '" + j + "'");
+                throw std::runtime_error("Unable to get current joint state for joint '" + j->getName() + "'");
             }
+
             int idx = std::distance(msg->name.begin(), it);
-            qref[j] = msg->position_reference.at(idx);
+
+            j->setPositionReference(Eigen::Scalard(msg->position_reference.at(idx)));
+
         }
-        _model->setJointPosition(qref);
+
         _model->update();
     }
     else if(_nh.hasParam("home"))
@@ -226,8 +225,16 @@ void RosExecutor::reset_model_state()
         XBot::JointNameMap qref(joint_map.begin(),
                                 joint_map.end());
 
+        // to deal with non-euclidean joints, we interpret this as
+        // the log of the actual q home
 
-        _model->setJointPosition(qref);
+        Eigen::VectorXd qhome;
+        _robot->mapToV(qref, qhome);
+
+        // apply exp map to get the q config
+        qhome = _robot->sum(_robot->getNeutralQ(), qhome);
+
+        _model->setJointPosition(qhome);
         _model->update();
     }
     else
@@ -244,11 +251,11 @@ void RosExecutor::reset_model_state()
 void RosExecutor::init_load_torque_offset()
 {
     /* Get torque offsets if available */
-    _tau_offset.setZero(_model->getJointNum());
+    _tau_offset.setZero(_model->getNv());
     XBot::JointNameMap tau_off_map;
     if(_xbot_cfg.get_parameter("torque_offset", tau_off_map))
     {
-        _model->mapToEigen(tau_off_map, _tau_offset);
+        _model->mapToV(tau_off_map, _tau_offset);
     }
 }
 
@@ -324,8 +331,7 @@ bool RosExecutor::loader_callback(cartesian_interface::LoadControllerRequest& re
     }
     else if(!req.problem_description_name.empty()) // then, look if it was passed by name
     {
-        auto ik_yaml = Utils::LoadProblemDescription(_options_source,
-                                                     req.problem_description_name);
+        auto ik_yaml = Utils::LoadProblemDescription(req.problem_description_name);
 
         ik_prob = ProblemDescription(ik_yaml, _ctx);
 
@@ -333,7 +339,7 @@ bool RosExecutor::loader_callback(cartesian_interface::LoadControllerRequest& re
     }
     else // use problem_description
     {
-        auto ik_yaml = Utils::LoadProblemDescription(_options_source);
+        auto ik_yaml = Utils::LoadProblemDescription();
 
         ik_prob = ProblemDescription(ik_yaml, _ctx);
 
@@ -457,7 +463,8 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
     if(_robot && !_visual_mode)
     {
         _robot->sense(false);
-        _model->syncFrom_no_update(*_robot, XBot::Sync::Sensors, XBot::Sync::Effort);
+        _model->syncFrom(*_robot, XBot::ControlMode::EFFORT);
+        _model->syncSensors(*_robot);
         _model->getJointEffort(_tau);
         _tau += _tau_offset;
         _model->setJointEffort(_tau);
@@ -489,7 +496,7 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
     _model->getJointVelocity(_qdot);
     _model->getJointAcceleration(_qddot);
 
-    _q += _period * _qdot + 0.5 * std::pow(_period, 2) * _qddot;
+    _q = _model->sum(_q, _period * _qdot + 0.5 * std::pow(_period, 2) * _qddot);
     _qdot += _period * _qddot;
 
     _model->setJointPosition(_q);
@@ -502,7 +509,7 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
 
     if(!_pause_command && _robot && !_visual_mode)
     {
-        _robot->setReferenceFrom(*_model, Sync::Position, Sync::Velocity);
+        _robot->setReferenceFrom(*_model, XBot::ControlMode::POSITION|XBot::ControlMode::VELOCITY);
         _robot->move();
     }
 

@@ -90,8 +90,7 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     _rspub->publishTransforms(time, _tf_prefix);
     
     /* Publish CoM position */
-    Eigen::Vector3d com;
-    _model->getCOM(com);
+    Eigen::Vector3d com = _model->getCOM();
     
     geometry_msgs::PointStamped com_msg;
     tf::pointEigenToMsg(com, com_msg.point);
@@ -142,13 +141,21 @@ void XBot::Cartesian::RosServerClass::publish_solution(ros::Time time)
     _model->getJointPosition(_sol_q);
     _model->getJointVelocity(_sol_qdot);
     _model->getJointEffort(_sol_tau);
+
+    // apply log map to retrieve the motion representation of q
+    // this has size = nv
+    _sol_q = _model->difference(_sol_q, _model->getNeutralQ());
     
+    // to deal with non-euclidean joints, we will publish the
+    // log map of q, i.e. the motion that brings the robot to q
+    // when applied for unit time starting from q0
+
     msg.header.stamp = time;
-    msg.name.reserve(_model->getJointNum());
-    msg.position.reserve(_model->getJointNum());
-    msg.velocity.reserve(_model->getJointNum());
+    msg.name.reserve(_model->getNv());
+    msg.position.reserve(_model->getNv());
+    msg.velocity.reserve(_model->getNv());
     int i = 0;
-    for(const std::string& jname : _model->getEnabledJointNames())
+    for(const std::string& jname : _model->getVNames())
     {
         msg.name.push_back(jname);
         msg.position.push_back(_sol_q[i]);
