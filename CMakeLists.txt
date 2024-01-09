@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.15)
 project(cartesian_interface VERSION 2.1.0)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -9,11 +9,12 @@ option(XBOT2_ENABLE_XENO OFF "Compile against xenomai")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-find_package(XBotInterface REQUIRED)
+find_package(xbot2_interface REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
 find_package(matlogger2 REQUIRED)
-find_package(Eigen3 REQUIRED)
+
 set(CATKIN_BUILD_BINARY_PACKAGE TRUE)
 find_package(catkin REQUIRED COMPONENTS roscpp
     std_msgs
@@ -24,6 +25,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp
     robot_state_publisher
     message_generation
     interactive_markers
+    eigen_conversions
     tf tf_conversions)
 
 find_package(GLPK QUIET)
@@ -38,12 +40,13 @@ if(${CARTESIO_USE_ALGLIB})
     find_package(alglib QUIET)
 endif()
 
+add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS)
+
 include_directories(include
     include/${PROJECT_NAME}/external
     include/${PROJECT_NAME}/sdk
     src
     ${OpenSoT_INCLUDE_DIRS}
-    ${XBotInterface_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIRS}
     ${catkin_INCLUDE_DIRS}
     ${ReflexxesTypeII_INCLUDE_DIRS}/..
@@ -52,7 +55,6 @@ include_directories(include
 
 
 # C++ 11
-add_compile_options(-std=c++14)
 add_compile_options(-Wl,--no-undefined)
 
 # Generate messages in the 'msg' folder
@@ -157,7 +159,7 @@ set(CartesianInterface_SRC
 set(CartesianInterfaceSOT_SRC
     src/opensot/task_adapters/OpenSotTask.cpp
     src/opensot/task_adapters/OpenSotCartesian.cpp
-    src/opensot/task_adapters/OpenSotInteraction.cpp
+    # src/opensot/task_adapters/OpenSotInteraction.cpp
     src/opensot/task_adapters/OpenSotCom.cpp
     src/opensot/task_adapters/OpenSotPostural.cpp
     src/opensot/task_adapters/OpenSotSubtask.cpp
@@ -205,7 +207,7 @@ add_library(CartesianInterface SHARED
 
 target_link_libraries(CartesianInterface
     PUBLIC
-    XBotInterface::XBotInterface
+    xbot2_interface::xbot2_interface
     OpenSoT::OpenSoT
     matlogger2::matlogger2
     ${catkin_LIBRARIES}
