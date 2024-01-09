@@ -1,5 +1,5 @@
 #include "problem/Limits.h"
-
+#include <xbot2_interface/logger.h>
 #include <fmt/format.h>
 
 using namespace XBot::Cartesian;
@@ -7,12 +7,13 @@ using namespace XBot::Cartesian;
 JointLimitsInvarianceImpl::JointLimitsInvarianceImpl(YAML::Node yaml, Context::ConstPtr context):
     TaskDescriptionImpl("JointLimitsInvariance",
                         "JointLimitsInvariance",
-                        context->model()->getJointNum(),
+                        context->model()->getNv(),
                         context)
 {
     _joint_lims = std::make_shared<JointLimitsImpl>(yaml, context);
 
-    _qddotmax = Eigen::VectorXd::Constant(_model->getJointNum(), 1e4);
+    _qddotmax = Eigen::VectorXd::Constant(_model->getNv(), 1e4);
+
     if(yaml["qddot_limits"])
     {
         try
@@ -29,12 +30,13 @@ JointLimitsInvarianceImpl::JointLimitsInvarianceImpl(YAML::Node yaml, Context::C
             {
                 auto jname = lim.first.as<std::string>();
                 auto lim_value = lim.second.as<double>();
-                int idx = _model->getDofIndex(jname);
+                int idx = _model->getVIndexFromVName(jname);
 
-                if(!_model->hasJoint(jname))
+                if(idx < 0)
                 {
                     throw std::invalid_argument(fmt::format("Invalid joint '{}' in joint limits", jname));
                 }
+
                 Logger::warning("Joint qddot_max for joint '%s' to %.1f \n", jname.c_str(), lim_value);
 
                 _qddotmax[idx] = lim_value;
@@ -71,10 +73,11 @@ Eigen::VectorXd JointLimitsImpl::getQmax() const
 JointLimitsImpl::JointLimitsImpl(Context::ConstPtr context):
     TaskDescriptionImpl("JointLimits",
                         "JointLimits",
-                        context->model()->getJointNum(),
+                        context->model()->getNv(),
                         context),
     _bound_scaling(1.0)
 {
+    // note: R^nv motion vectors !
    _model->getJointLimits(_qmin, _qmax);
 }
 
@@ -82,9 +85,10 @@ JointLimitsImpl::JointLimitsImpl(YAML::Node yaml, Context::ConstPtr context):
     TaskDescriptionImpl(yaml,
                         context,
                         "JointLimits",
-                        context->model()->getJointNum()),
+                        context->model()->getNv()),
     _bound_scaling(1.0)
 {
+    // note: R^nv motion vectors !
     _model->getJointLimits(_qmin, _qmax);
 
     if(yaml["bound_scaling"])
@@ -99,7 +103,9 @@ JointLimitsImpl::JointLimitsImpl(YAML::Node yaml, Context::ConstPtr context):
             auto jname = lim.first.as<std::string>();
             auto lim_value = lim.second.as<std::pair<double, double>>();
 
-            if(!_model->hasJoint(jname))
+            int idx = _model->getVIndexFromVName(jname);
+
+            if(idx < 0)
             {
                 throw std::invalid_argument(fmt::format("Invalid joint '{}' in joint limits", jname));
             }
@@ -111,11 +117,12 @@ JointLimitsImpl::JointLimitsImpl(YAML::Node yaml, Context::ConstPtr context):
                                                         jname, lim_value.first, lim_value.second));
             }
 
-            int idx = _model->getDofIndex(jname);
+
 
             if(lim_value.first < _qmin[idx] || lim_value.second > _qmax[idx])
             {
-                Logger::warning("Joint limit for joint '%s' [%.1f, %.1f] extend URDF limits [%.1f, %.1f] \n",
+                Logger::warning("Joint limit for joint '%s' [%.1f, %.1f] "
+                                "extend URDF limits [%.1f, %.1f] \n",
                                 jname.c_str(), lim_value.first, lim_value.second,
                                 _qmin[idx], _qmax[idx]);
             }
@@ -157,7 +164,7 @@ void XBot::Cartesian::JointLimitsImpl::reset()
 VelocityLimitsImpl::VelocityLimitsImpl(Context::ConstPtr context):
     TaskDescriptionImpl("VelocityLimits",
                         "VelocityLimits",
-                        context->model()->getJointNum(),
+                        context->model()->getNv(),
                         context),
     _bound_scaling(1.0)
 {
@@ -169,7 +176,7 @@ VelocityLimitsImpl::VelocityLimitsImpl(YAML::Node yaml,
     TaskDescriptionImpl(yaml,
                         context,
                         "VelocityLimits",
-                        context->model()->getJointNum()),
+                        context->model()->getNv()),
     _bound_scaling(1.0)
 {
     _model->getVelocityLimits(_qdot_max);
@@ -185,8 +192,9 @@ VelocityLimitsImpl::VelocityLimitsImpl(YAML::Node yaml,
         {
             auto jname = lim.first.as<std::string>();
             auto lim_value = lim.second.as<double>();
+            int idx = _model->getVIndexFromVName(jname);
 
-            if(!_model->hasJoint(jname))
+            if(idx < 0)
             {
                 throw std::invalid_argument(fmt::format("Invalid joint '{}' in joint limits", jname));
             }
@@ -197,8 +205,6 @@ VelocityLimitsImpl::VelocityLimitsImpl(YAML::Node yaml,
                                                         "qdot_max ({}) < 0",
                                                         jname, lim_value));
             }
-
-            int idx = _model->getDofIndex(jname);
 
             if(lim_value > _qdot_max[idx])
             {
@@ -214,7 +220,7 @@ VelocityLimitsImpl::VelocityLimitsImpl(YAML::Node yaml,
 
     if(yaml["limits"] && yaml["limits"].IsScalar())
     {
-        _qdot_max.setConstant(_model->getJointNum(), yaml["limits"].as<double>());
+        _qdot_max.setConstant(_model->getNv(), yaml["limits"].as<double>());
     }
 
 }
