@@ -12,10 +12,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 
-#include <XBotInterface/RobotInterface.h>
-#include <XBotInterface/Utils.h>
-#include <XBotInterface/SoLib.h>
-
+#include <xbot2_interface/robotinterface2.h>
 
 #include <cartesian_interface/ros/RosServerClass.h>
 #include <cartesian_interface/problem/ProblemDescription.h>
@@ -84,7 +81,6 @@ namespace XBot { namespace Cartesian {
         ros::NodeHandle _nh, _nh_priv;
         
         XBot::ConfigOptions _xbot_cfg, _xbot_cfg_robot;
-        Utils::LoadFrom _options_source;
         
         RobotInterface::Ptr _robot;
         ros::Publisher _fb_pub;

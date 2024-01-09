@@ -1,110 +1,21 @@
 #ifndef __CARTESIAN_INTERFACE_LOAD_CONFIG_H__
 #define __CARTESIAN_INTERFACE_LOAD_CONFIG_H__
 
-#include <XBotInterface/ConfigOptions.h>
-#include <RobotInterfaceROS/ConfigFromParam.h>
+#include <xbot2_interface/ros/config_from_param.hpp>
+#include <yaml-cpp/yaml.h>
 
 namespace XBot { namespace Cartesian { namespace Utils {
     
-    enum class LoadFrom { CONFIG, PARAM };
-    
-    ConfigOptions LoadOptionsFromConfig(std::string ns = "");
     ConfigOptions LoadOptionsFromParamServer(std::string ns = "");
-    ConfigOptions LoadOptions(LoadFrom options_source, std::string ns = "");
-    YAML::Node LoadProblemDescription(LoadFrom description_source, 
-                                      std::string pd_name = "problem_description");
+    YAML::Node LoadProblemDescription(std::string pd_name = "problem_description");
     
     
 } } }
 
 
-inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptions(XBot::Cartesian::Utils::LoadFrom options_source, 
-    std::string ns
-)
-{
-    switch(options_source)
-    {
-        case LoadFrom::CONFIG:
-            return LoadOptionsFromConfig(ns);
-            break;
-            
-        case LoadFrom::PARAM:
-            return LoadOptionsFromParamServer(ns);
-            break;
-            
-        default:
-            throw std::runtime_error("Invalid options source");
-            
-    }
-    
-}
-
-namespace
-{
-    YAML::Node GetCiYamlNode()
-    {
-        std::string xbot_path_to_cfg = XBot::Utils::getXBotConfig();
-        if(xbot_path_to_cfg == "")
-        {
-            throw std::invalid_argument("Unable to obtain path to xbot config: did you call set_xbot_config?");
-        }
-        
-        YAML::Node ci_node = YAML::LoadFile(xbot_path_to_cfg)["CartesianInterface"]; 
-        if(!ci_node)
-        {
-            throw std::invalid_argument("Unable to find mandatory node CartesianInterface");
-        }
-        return ci_node;
-    }
-}
-
-inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromConfig(std::string)
-{
-    
-    YAML::Node ci_node = ::GetCiYamlNode();
-    
-    auto xbot_cfg = XBot::ConfigOptions::FromConfigFile(XBot::Utils::getXBotConfig());
-    
-    if(ci_node["solver"])
-    {
-        std::string solver = ci_node["solver"].as<std::string>();
-        xbot_cfg.set_parameter("solver", solver);
-    }
-    
-    if(ci_node["joint_blacklist"])
-    {
-        std::vector<std::string> joint_blacklist = ci_node["joint_blacklist"].as<std::vector<std::string>>();
-        xbot_cfg.set_parameter("joint_blacklist", joint_blacklist);
-    }
-    
-    if(ci_node["velocity_whitelist"])
-    {
-        std::vector<std::string> velocity_whitelist = ci_node["velocity_whitelist"].as<std::vector<std::string>>();
-        xbot_cfg.set_parameter("velocity_whitelist", velocity_whitelist);
-    }
-    
-    if(ci_node["world_frame"])
-    {
-        std::string world_frame = ci_node["world_frame"].as<std::string>();
-        xbot_cfg.set_parameter("world_frame", world_frame);
-    }
-    
-    std::string tf_prefix = "ci";
-    if(ci_node["tf_prefix"])
-    {
-        tf_prefix = ci_node["tf_prefix"].as<std::string>();
-    }
-    xbot_cfg.set_parameter("tf_prefix", tf_prefix);
-        
-    
-    
-    return xbot_cfg;
-    
-}
-
 inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromParamServer(std::string ns)
 {
-    auto xbot_cfg = XBot::ConfigOptionsFromParamServer(ros::NodeHandle(ns));
+    auto xbot_cfg = XBot::Utils::ConfigOptionsFromParamServer(ros::NodeHandle(ns));
     ros::NodeHandle nh_private("~");
     ros::NodeHandle nh("cartesian");
     
@@ -166,45 +77,23 @@ inline XBot::ConfigOptions XBot::Cartesian::Utils::LoadOptionsFromParamServer(st
 }
 
 
-inline YAML::Node XBot::Cartesian::Utils::LoadProblemDescription(XBot::Cartesian::Utils::LoadFrom description_source,
-                                                          std::string pd_name)
-
+inline YAML::Node XBot::Cartesian::Utils::LoadProblemDescription(std::string pd_name)
 {
-    switch(description_source)
+    ros::NodeHandle nh("cartesian");
+
+    std::string problem_description_string;
+
+    if(!nh.hasParam(pd_name) ||
+        !nh.getParam(pd_name,
+                     problem_description_string))
     {
-        case LoadFrom::CONFIG:
-        {
-            YAML::Node ci_node = ::GetCiYamlNode();
-            if(ci_node[pd_name])
-            {
-                return ci_node[pd_name];
-            }
-            else
-            {
-                throw std::invalid_argument("Unable to find mandatory node CartesianInterface/" + pd_name);
-            }
-            break;
-        }   
-        case LoadFrom::PARAM:
-        {
-            ros::NodeHandle nh("cartesian");
-            std::string problem_description_string;
-            if(!nh.hasParam(pd_name) || 
-                !nh.getParam(pd_name,
-                             problem_description_string))
-            {
-                throw std::runtime_error("problem_description '" + pd_name + "' parameter missing");
-            }
-            else
-            {
-                return YAML::Load(problem_description_string);
-            }
-            break;
-        }   
-        default:
-            throw std::runtime_error("Invalid options source");
-            
+        throw std::runtime_error("problem_description '" + pd_name + "' parameter missing");
     }
+    else
+    {
+        return YAML::Load(problem_description_string);
+    }
+
 }
 
 
