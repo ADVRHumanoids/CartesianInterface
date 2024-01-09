@@ -27,13 +27,22 @@ void PosturalRos::run(ros::Time time)
         return;
     }
 
+    // get posture reference (size = nq)
     _postural->getReferencePosture(_posture_ref);
 
+    // apply log map to retrieve the motion representation of q
+    // this has size = nv
+    _posture_ref = _model->difference(_posture_ref, _model->getNeutralQ());
+
+    // to deal with non-euclidean joints, we will publish the
+    // log map of q, i.e. the motion that brings the robot to q
+    // when applied for unit time starting from q0
+
     msg.header.stamp = time;
-    msg.name.reserve(_model->getJointNum());
-    msg.position.reserve(_model->getJointNum());
+    msg.name.reserve(_model->getNv());
+    msg.position.reserve(_model->getNv());
     int i = 0;
-    for(const std::string& jname : _model->getEnabledJointNames())
+    for(const std::string& jname : _model->getVNames())
     {
         msg.name.push_back(jname);
         msg.position.push_back(_posture_ref[i]);

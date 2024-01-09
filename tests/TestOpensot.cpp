@@ -165,7 +165,7 @@ TEST_F(TestOpensot, checkNoInitialMotion)
         ci->getModel()->getJointPosition(q);
         ci->getModel()->getJointVelocity(dq);
 
-        q += dq * dt;
+        q = ci->getModel()->sum(q, dq * dt);
         ci->getModel()->setJointPosition(q);
         ci->getModel()->update();
 
