@@ -1,5 +1,5 @@
 #include <cartesian_interface/utils/TaskFactory.h>
-
+#include <xbot2_interface/logger.h>
 #include "problem/Postural.h"
 
 using namespace XBot::Cartesian;
@@ -16,7 +16,7 @@ PosturalTaskImpl::PosturalTaskImpl(YAML::Node task_node,
     TaskDescriptionImpl(task_node,
                         context,
                         "Postural",
-                        context->model()->getJointNum()),
+                        context->model()->getNv()),
     _use_inertia_matrix(false)
 {
     Eigen::MatrixXd weight;
@@ -26,13 +26,14 @@ PosturalTaskImpl::PosturalTaskImpl(YAML::Node task_node,
     {
         for(const auto& pair : task_node["weight"])
         {
-            if(!_model->hasJoint(pair.first.as<std::string>()))
+            int idx = _model->getVIndexFromVName(pair.first.as<std::string>());
+
+            if(idx < 0)
             {
                 std::string err = "Joint " + pair.first.as<std::string>() + " is undefined";
                 throw std::invalid_argument(err);
             }
 
-            int idx = _model->getDofIndex(pair.first.as<std::string>());
             weight(idx, idx) = pair.second.as<double>();
 
         }
@@ -68,7 +69,7 @@ void PosturalTaskImpl::getReferencePosture(Eigen::VectorXd & qref) const
 
 void PosturalTaskImpl::getReferencePosture(XBot::JointNameMap & qref) const
 {
-    _model->eigenToMap(_qref, qref);
+    _model->qToMap(_qref, qref);
 }
 
 void PosturalTaskImpl::getReferenceVelocity(Eigen::VectorXd& qdotref) const
@@ -78,7 +79,7 @@ void PosturalTaskImpl::getReferenceVelocity(Eigen::VectorXd& qdotref) const
 
 void PosturalTaskImpl::setReferencePosture(const XBot::JointNameMap & qref)
 {
-    _model->mapToEigen(qref, _qref);
+    _model->mapToQ(qref, _qref);
 }
 
 void PosturalTaskImpl::setReferencePosture(const Eigen::VectorXd& qref)
@@ -92,7 +93,7 @@ void PosturalTaskImpl::setReferencePosture(const Eigen::VectorXd& qref)
 
 void PosturalTaskImpl::setReferenceVelocity(const XBot::JointNameMap& qdotref)
 {
-    _model->mapToEigen(qdotref, _qdotref);
+    _model->mapToV(qdotref, _qdotref);
 }
 
 void PosturalTaskImpl::setReferenceVelocity(const Eigen::VectorXd& qdotref)
@@ -115,10 +116,8 @@ void PosturalTaskImpl::update(double time, double period)
 void PosturalTaskImpl::reset()
 {
     _model->getJointPosition(_qref);
-    _qdotref.setZero(_qref.size());
+    _qdotref.setZero(_model->getNv());
 }
-
-
 
 void PosturalTaskImpl::setIndices(const std::vector<int>&)
 {
@@ -138,8 +137,16 @@ void PosturalTaskImpl::setDisabledJoints(const std::vector<std::string>& value)
 
     auto to_be_removed = [this, value](auto i)
     {
-        return std::find(value.begin(), value.end(),
-                  _model->getEnabledJointNames().at(i)) != value.end();
+        bool vname_found = value.end() !=
+                           std::find(value.begin(), value.end(), _model->getVNames().at(i));
+
+        bool jname_found = value.end() !=
+                           std::find_if(value.begin(), value.end(), [i, this](const auto &item) {
+            auto jinfo = _model->getJointInfo(item);
+            return i >= jinfo.iv && i < jinfo.iv + jinfo.nv;
+        });
+
+        return jname_found || vname_found;
     };
 
     auto first_invalid = std::remove_if(indices.begin(),
