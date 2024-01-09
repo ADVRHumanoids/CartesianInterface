@@ -14,15 +14,12 @@ int main(int argc, char **argv)
     xbot_cfg.set_urdf_path(URDF_PATH);
     xbot_cfg.set_srdf_path(SRDF_PATH);
 
-    // the following call is needed to generate some default joint IDs
-    xbot_cfg.generate_jidmap();
-
     // some additional parameters..
     xbot_cfg.set_parameter("is_model_floating_base", true);
     xbot_cfg.set_parameter<std::string>("model_type", "RBDL");
 
     // and we can make the model class
-    auto model = XBot::ModelInterface::getModel(xbot_cfg);
+    XBot::ModelInterface::Ptr model = XBot::ModelInterface::getModel(xbot_cfg);
 
     // initialize to a homing configuration
     Eigen::VectorXd qhome;

@@ -20,7 +20,7 @@
 #ifndef __XBOT_CARTESIAN_INTERFACE_H__
 #define __XBOT_CARTESIAN_INTERFACE_H__
 
-#include <XBotInterface/ModelInterface.h>
+#include <xbot2_interface/xbotinterface2.h>
 
 #include <cartesian_interface/trajectory/Trajectory.h>
 #include <cartesian_interface/problem/Task.h>

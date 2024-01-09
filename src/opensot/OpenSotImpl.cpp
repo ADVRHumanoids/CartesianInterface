@@ -1,5 +1,7 @@
 #include "OpenSotImpl.h"
 
+#include <chrono>
+
 #include <cartesian_interface/sdk/SolverPlugin.h>
 
 #include <cartesian_interface/problem/ProblemDescription.h>

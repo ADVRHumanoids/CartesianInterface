@@ -1,7 +1,7 @@
 #ifndef __CI_ACCMAXCOMPUTER_H__
 #define __CI_ACCMAXCOMPUTER_H__
 
-#include <XBotInterface/ModelInterface.h>
+#include <xbot2_interface/xbotinterface2.h>
 
 namespace XBot { namespace Cartesian { namespace Utils{
 

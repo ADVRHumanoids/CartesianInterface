@@ -8,7 +8,7 @@
 #include <cartesian_interface/problem/Limits.h>
 #include <cartesian_interface/utils/TaskFactory.h>
 #include <cartesian_interface/problem/MinJointVel.h>
-#include <XBotInterface/Logger.hpp>
+#include <xbot2_interface/logger.h>
 
 #include "problem/Subtask.h"
 

@@ -1,7 +1,7 @@
 #ifndef TESTUTILS_H
 #define TESTUTILS_H
 
-#include <XBotInterface/ModelInterface.h>
+#include <xbot2_interface/xbotinterface2.h>
 
 #include <unistd.h>
 #include <stdio.h>

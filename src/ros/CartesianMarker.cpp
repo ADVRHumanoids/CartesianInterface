@@ -1,8 +1,8 @@
 #include <cartesian_interface/markers/CartesianMarker.h>
 #include <cartesian_interface/GetTaskInfo.h>
 #include <std_srvs/SetBool.h>
-#include <numeric> 
-#include <XBotInterface/RtLog.hpp>
+#include <numeric>
+#include <xbot2_interface/logger.h>
 #include <tf_conversions/tf_kdl.h>
 #include <eigen_conversions/eigen_msg.h>
 

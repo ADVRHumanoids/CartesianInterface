@@ -3,7 +3,7 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <std_msgs/Empty.h>
 #include <eigen3/Eigen/Dense>
-#include <XBotInterface/Utils.h>
+#include <xbot2_interface/common/utils.h>
 #include <cartesian_interface/SetJoystickActiveTask.h>
 #include <cartesian_interface/SetJoystickTaskMaxSpeed.h>
 #include <cartesian_interface/SetJoystickTaskBaseFrame.h>

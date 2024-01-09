@@ -1,7 +1,7 @@
 #ifndef __XBOT_CARTESIAN_PROBLEM_TASK_IMPL_H__
 #define __XBOT_CARTESIAN_PROBLEM_TASK_IMPL_H__
 
-#include <XBotInterface/ModelInterface.h>
+#include <xbot2_interface/xbotinterface2.h>
 #include <cartesian_interface/problem/Task.h>
 #include <cartesian_interface/sdk/problem/Plugin.h>
 #include <cartesian_interface/Context.h>

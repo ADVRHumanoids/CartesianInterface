@@ -1,8 +1,10 @@
 #include "fmt/format.h"
 
 #include "ros/server_api/InteractionRos.h"
+
 #include <eigen_conversions/eigen_msg.h>
 
+#include <xbot2_interface/logger.h>
 
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ServerApi;

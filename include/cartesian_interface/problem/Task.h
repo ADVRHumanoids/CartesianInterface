@@ -1,7 +1,9 @@
 #ifndef __XBOT_CARTESIAN_PROBLEM_TASK_H__
 #define __XBOT_CARTESIAN_PROBLEM_TASK_H__
 
-#include <XBotInterface/ModelInterface.h>
+#include <yaml-cpp/yaml.h>
+
+#include <xbot2_interface/xbotinterface2.h>
 #include <cartesian_interface/Enum.h>
 #include <cartesian_interface/Macro.h>
 #include <matlogger2/matlogger2.h>

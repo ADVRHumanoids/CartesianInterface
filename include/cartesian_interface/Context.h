@@ -4,7 +4,7 @@
 #include <memory>
 #include <stdexcept>
 #include <cartesian_interface/Macro.h>
-#include <XBotInterface/ModelInterface.h>
+#include <xbot2_interface/xbotinterface2.h>
 
 namespace XBot { namespace Cartesian {
 

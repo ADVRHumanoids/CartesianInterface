@@ -1,6 +1,6 @@
 #include <pyRosImpl.h>
 #include <cartesian_interface/utils/estimation/ForceEstimation.h>
-#include <XBotInterface/ModelInterface.h>
+#include <xbot2_interface/xbotinterface2.h>
 
 namespace py = pybind11;
 using namespace XBot::Cartesian::Utils;

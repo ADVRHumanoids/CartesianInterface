@@ -1,7 +1,7 @@
 #ifndef __CARTESIAN_INTERFACE_UTILS_FORCE_EST_H__
 #define __CARTESIAN_INTERFACE_UTILS_FORCE_EST_H__
 
-#include <XBotInterface/ModelInterface.h>
+#include <xbot2_interface/xbotinterface2.h>
 #include <algorithm>
 #include <cartesian_interface/Macro.h>
 #include <matlogger2/matlogger2.h>
@@ -66,6 +66,7 @@ private:
         ForceTorqueSensor::Ptr sensor;
         std::vector<int> dofs;
         std::string link_name;
+        int link_id;
 
     };
 
