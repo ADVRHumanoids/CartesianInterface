@@ -52,11 +52,16 @@ bool OpenSotTaskAdapter::initialize(const OpenSoT::OptvarHelper& vars)
     // active joint mask
     if(_ci_task->getDisabledJoints().size() > 0)
     {
-        std::vector<bool> active_joints_mask(_model->getJointNum(), true);
+        std::vector<bool> active_joints_mask(_model->getNv(), true);
 
         for(auto jstr : _ci_task->getDisabledJoints())
         {
-            active_joints_mask.at(_model->getDofIndex(jstr)) = false;
+            auto jinfo = _model->getJointInfo(jstr);
+
+            std::fill_n(active_joints_mask.begin() + jinfo.iv,
+                        jinfo.nv,
+                        false);
+
         }
 
         _opensot_task->setActiveJointsMask(active_joints_mask);
