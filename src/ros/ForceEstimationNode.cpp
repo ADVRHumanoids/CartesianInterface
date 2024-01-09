@@ -2,8 +2,8 @@
 #include <geometry_msgs/WrenchStamped.h>
 #include <eigen_conversions/eigen_msg.h>
 
-#include <XBotInterface/RobotInterface.h>
-#include <RobotInterfaceROS/ConfigFromParam.h>
+#include <xbot2_interface/robotinterface2.h>
+#include <xbot2_interface/ros/config_from_param.hpp>
 
 #include <cartesian_interface/utils/estimation/ForceEstimation.h>
 #include <matlogger2/matlogger2.h>
@@ -18,8 +18,12 @@ int main(int argc, char ** argv)
     ros::NodeHandle nh_priv("~");
     
     // get robot, model, and one imu
-    auto robot = XBot::RobotInterface::getRobot(XBot::ConfigOptionsFromParamServer());
-    auto model = XBot::ModelInterface::getModel(XBot::ConfigOptionsFromParamServer());
+    auto robot =
+        XBot::RobotInterface::getRobot(XBot::Utils::ConfigOptionsFromParamServer());
+
+    XBot::ModelInterface::Ptr model =
+        XBot::ModelInterface::getModel(XBot::Utils::ConfigOptionsFromParamServer());
+
     XBot::ImuSensor::ConstPtr imu;
     
     if(robot->getImu().size() > 0)
@@ -53,8 +57,8 @@ int main(int argc, char ** argv)
     auto tau_off_map = nh_priv.param("torque_offset", std::map<std::string, double>());
     XBot::JointNameMap tau_off_map_xbot(tau_off_map.begin(), tau_off_map.end());
     Eigen::VectorXd tau_offset;
-    tau_offset.setZero(model->getJointNum());
-    model->mapToEigen(tau_off_map_xbot, tau_offset);
+    tau_offset.setZero(model->getNv());
+    model->mapToV(tau_off_map_xbot, tau_offset);
     
     // construct force estimation class
     Utils::ForceEstimation::Ptr f_est_ptr;
@@ -105,10 +109,10 @@ int main(int argc, char ** argv)
     {
         // update model from robot, set imu
         robot->sense(false);
-        model->syncFrom(*robot, XBot::Sync::All, XBot::Sync::MotorSide);
+        model->syncFrom(*robot, XBot::ControlMode::ALL, XBot::Sync::MotorSide);
         if(model->isFloatingBase() && imu)
         {
-            model->setFloatingBaseState(imu);
+            model->setFloatingBaseState(*imu);
             model->update();
         }
         model->update();
@@ -129,7 +133,7 @@ int main(int argc, char ** argv)
             
             tf::wrenchEigenToMsg(wrench, msg.wrench);
             
-            msg.header.frame_id = ft_pub.first->getSensorName();
+            msg.header.frame_id = ft_pub.first->getName();
             msg.header.stamp = ros::Time::now();
             
             ft_pub.second.publish(msg);
