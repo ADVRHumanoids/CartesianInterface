@@ -1,7 +1,9 @@
 #include "problem/Cartesian.h"
 #include <ReflexxesTypeII/Wrappers/TrajectoryGenerator.h>
+#include <xbot2_interface/logger.h>
 
 using namespace XBot::Cartesian;
+using XBot::Logger;
 
 namespace
 {
@@ -598,8 +600,7 @@ Eigen::Affine3d CartesianTaskImpl::get_current_pose() const
 
     if(_distal_link == "com")
     {
-        Eigen::Vector3d com;
-        _model->getCOM(com);
+        Eigen::Vector3d com = _model->getCOM();
         ret.setIdentity();
         ret.translation() = com;
 

@@ -19,7 +19,7 @@ TaskPtr OpenSotPosturalAdapter::constructTask()
     Eigen::VectorXd q;
     _model->getJointPosition(q);
 
-    _opensot_postural = SotUtils::make_shared<PosturalSoT>(q);
+    _opensot_postural = SotUtils::make_shared<PosturalSoT>(*_model, q);
 
     return _opensot_postural;
 }
@@ -47,7 +47,7 @@ void OpenSotPosturalAdapter::update(double time, double period)
 
     if(_use_inertia_matrix)
     {
-        _model->getInertiaMatrix(_inertia_matrix);
+        _model->computeInertiaMatrix(_inertia_matrix);
         _opensot_postural->setWeight(_inertia_matrix);
     }
 

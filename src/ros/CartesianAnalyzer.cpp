@@ -1,4 +1,5 @@
 #include <cartesian_interface/utils/Manipulability.h>
+#include <cartesian_interface/utils/LoadConfig.h>
 #include <sensor_msgs/JointState.h>
 
 
@@ -17,8 +18,8 @@ int main(int argc, char **argv)
     
     XBot::Logger::SetVerbosityLevel(XBot::Logger::Severity::HIGH);
     
-    auto problem_yaml = Utils::LoadProblemDescription(Utils::LoadFrom::PARAM);
-    auto xbot_cfg = Utils::LoadOptions(Utils::LoadFrom::PARAM);
+    auto problem_yaml = Utils::LoadProblemDescription();
+    auto xbot_cfg = Utils::LoadOptionsFromParamServer();
     
     _model = XBot::ModelInterface::getModel(xbot_cfg);
 

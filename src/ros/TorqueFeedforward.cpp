@@ -3,8 +3,8 @@
 #include <cartesian_interface/SetContactFrame.h>
 #include <eigen_conversions/eigen_msg.h>
 
-#include <XBotInterface/RobotInterface.h>
-#include <RobotInterfaceROS/ConfigFromParam.h>
+#include <xbot2_interface/robotinterface2.h>
+#include <xbot2_interface/ros/config_from_param.hpp>
 
 #include "opensot/OpenSotUtils.h"
 #include <OpenSoT/utils/ForceOptimization.h>
@@ -50,8 +50,8 @@ int main(int argc, char ** argv)
     ros::NodeHandle nh_priv("~");
 
     // create robot and model
-    auto robot = XBot::RobotInterface::getRobot(XBot::ConfigOptionsFromParamServer());
-    auto model = XBot::ModelInterface::getModel(XBot::ConfigOptionsFromParamServer());
+    auto robot = XBot::RobotInterface::getRobot(XBot::Utils::ConfigOptionsFromParamServer());
+    XBot::ModelInterface::Ptr model = XBot::ModelInterface::getModel(XBot::Utils::ConfigOptionsFromParamServer());
 
     // retrieve imu
     XBot::ImuSensor::ConstPtr imu;
@@ -90,7 +90,7 @@ int main(int argc, char ** argv)
     double friction_coeff = nh_priv.param("friction_coeff", 0.5);
 
     /* Set joint blacklist */
-    std::map<std::string, XBot::ControlMode> ctrl_map;
+    XBot::CtrlModeMap ctrl_map;
     for(auto j : blacklist)
     {
         if(!robot->hasJoint(j))
@@ -101,17 +101,17 @@ int main(int argc, char ** argv)
             }
             else
             {
-                for(auto jc: robot->chain(j).getJointNames())
+                for(auto jc: robot->getChain(j)->getJointNames())
                 {
                     ROS_INFO("Joint '%s' is blacklisted", jc.c_str());
-                    ctrl_map[jc] = XBot::ControlMode::Idle();
+                    ctrl_map[jc] = XBot::ControlMode::None();
                 }
             }
 
         }
 
         ROS_INFO("Joint '%s' is blacklisted", j.c_str());
-        ctrl_map[j] = XBot::ControlMode::Idle();
+        ctrl_map[j] = XBot::ControlMode::None();
     }
     robot->setControlMode(ctrl_map);
 
@@ -119,8 +119,8 @@ int main(int argc, char ** argv)
     auto tau_off_map = nh_priv.param("torque_offset", std::map<std::string, double>());
     XBot::JointNameMap tau_off_map_xbot(tau_off_map.begin(), tau_off_map.end());
     Eigen::VectorXd tau_offset;
-    tau_offset.setZero(model->getJointNum());
-    model->mapToEigen(tau_off_map_xbot, tau_offset);
+    tau_offset.setZero(model->getNv());
+    model->mapToV(tau_off_map_xbot, tau_offset);
     std::cout << "Torque offset: " << tau_offset.transpose() << std::endl;
 
     /* Subscribe to force ffwd topics */
@@ -182,11 +182,11 @@ int main(int argc, char ** argv)
 
         /* Sense robot state and update model */
         robot->sense(false);
-        model->syncFrom(*robot, XBot::Sync::All, XBot::Sync::MotorSide);
+        model->syncFrom(*robot, XBot::ControlMode::ALL, XBot::Sync::MotorSide);
 
         if(model->isFloatingBase() && imu)
         {
-            model->setFloatingBaseState(imu);
+            model->setFloatingBaseState(*imu);
             model->update();
         }
 
@@ -247,7 +247,7 @@ int main(int argc, char ** argv)
 
         /* Send torque to joints */
         model->setJointEffort(tau);
-        robot->setReferenceFrom(*model, XBot::Sync::Effort);
+        robot->setReferenceFrom(*model, XBot::ControlMode::EFFORT);
         robot->move();
 
         loop_rate.sleep();

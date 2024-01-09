@@ -19,7 +19,7 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
                                                             std::vector<std::string> chains)
 {
     // check link exists
-    auto urdf_link = _model->getUrdf().getLink(name);
+    auto urdf_link = _model->getUrdf()->getLink(name);
     
     if(!urdf_link)
     {
@@ -55,10 +55,13 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
         {
             throw std::invalid_argument("Invalid chain '" + ch + "'");
         }
+
+        int ch_iv = _model->getChain(ch)->getVIndex();
+        int ch_nv = _model->getChain(ch)->getNv();
         
-        for(int id : _model->chain(ch).getJointIds())
+        for(int i = ch_iv; i < ch_iv + ch_nv; i++)
         {
-            meas_dofs.push_back(_model->getDofIndex(id));
+            meas_dofs.push_back(i);
         }
     }
     
@@ -73,10 +76,10 @@ XBot::ForceTorqueSensor::ConstPtr ForceEstimation::add_link(std::string name,
     // make virtual sensor and task info struct
     TaskInfo t;
     t.link_name = name;
-    static int id = -1;
-    t.sensor = std::make_shared<ForceTorqueSensor>(urdf_link, id--);
+    t.link_id = _model->getLinkId(name);
+    t.sensor = std::make_shared<ForceTorqueSensor>(name);
     t.dofs = dofs;
-    
+
     _tasks.push_back(t);
     
     _ndofs += dofs.size();
@@ -103,15 +106,16 @@ void ForceEstimation::setIgnoredJoint(const std::string &jname)
 
 void ForceEstimation::compute_A_b()
 {
-    _Jtot.setZero(_ndofs, _model->getJointNum());
-    _Jtmp.setZero(6, _model->getJointNum());
+    _Jtot.setZero(_ndofs, _model->getNv());
+    _Jtmp.setZero(6, _model->getNv());
     _b.setZero(_meas_idx.size());
     _A.setZero(_meas_idx.size(), _ndofs);
     
     int dof_idx = 0;
     for(TaskInfo& t : _tasks)
     {
-        _model->getJacobian(t.link_name, _Jtmp);
+        _model->getJacobian(t.link_id, _Jtmp);
+
         for(int i : t.dofs)
         {
             _Jtot.row(dof_idx++) = _Jtmp.row(i);
@@ -166,14 +170,12 @@ void ForceEstimation::update()
             wrench(i) = _sol(dof_idx++);
         }
         
-        Eigen::Matrix3d sensor_R_w;
-        _model->getOrientation(t.link_name, sensor_R_w);
-        sensor_R_w.transposeInPlace();
+        Eigen::Matrix3d sensor_R_w = _model->getPose(t.link_name).linear().transpose();
         
         wrench.head<3>() = sensor_R_w * wrench.head<3>();
         wrench.tail<3>() = sensor_R_w * wrench.tail<3>();
         
-        t.sensor->setWrench(wrench, 0.0);
+        t.sensor->setMeasurement(wrench, wall_time::clock::now());
         
     }
 }
@@ -185,8 +187,7 @@ void XBot::Cartesian::Utils::ForceEstimation::log(MatLogger2::Ptr logger) const
         Eigen::Vector6d wrench;
         t.sensor->getWrench(wrench);
         
-        Eigen::Matrix3d w_R_s;
-        _model->getOrientation(t.link_name, w_R_s);
+        Eigen::Matrix3d w_R_s = _model->getPose(t.link_name).linear();
         
         wrench.head<3>() = w_R_s * wrench.head<3>();
         wrench.tail<3>() = w_R_s * wrench.tail<3>();
@@ -225,7 +226,7 @@ void ForceEstimationMomentumBased::compute_residual(Eigen::VectorXd& res)
     _model->computeGravityCompensation(_g);
 
     /* Observer */
-    _model->getInertiaMatrix(_M);
+    _model->computeInertiaMatrix(_M);
     _p1 = _M * _qdot;
 
     _Mdot = (_M - _M_old) * _rate;
@@ -243,13 +244,13 @@ void ForceEstimationMomentumBased::compute_residual(Eigen::VectorXd& res)
 
 void ForceEstimationMomentumBased::init_momentum_obs()
 {
-    _p1.setZero(_model->getJointNum());
-    _p2.setZero(_model->getJointNum());
-    _y.setZero(_model->getJointNum());
-    _coriolis.setZero(_model->getJointNum());
-    _h.setZero(_model->getJointNum());
+    _p1.setZero(_model->getNv());
+    _p2.setZero(_model->getNv());
+    _y.setZero(_model->getNv());
+    _coriolis.setZero(_model->getNv());
+    _h.setZero(_model->getNv());
 
-    _model->getInertiaMatrix(_M);
+    _model->computeInertiaMatrix(_M);
     _model->getJointPosition(_q);
     _model->getJointVelocity(_qdot);
     _p0 = _M * _qdot;

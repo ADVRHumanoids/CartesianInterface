@@ -67,10 +67,11 @@ ConstraintPtr OpenSotJointLimitsAdapter::constructConstraint()
     Eigen::VectorXd q;
     _model->getJointPosition(q);
 
-    return SotUtils::make_shared<JointLimitsSoT>(q,
-                                              _ci_jlim->getQmax(),
-                                              _ci_jlim->getQmin(),
-                                              _ci_jlim->getBoundScaling());
+    return SotUtils::make_shared<JointLimitsSoT>(*_model,
+                                                 q,
+                                                 _ci_jlim->getQmax(),
+                                                 _ci_jlim->getQmin(),
+                                                 _ci_jlim->getBoundScaling());
 }
 
 bool OpenSotJointLimitsAdapter::initialize(const OpenSoT::OptvarHelper& vars)

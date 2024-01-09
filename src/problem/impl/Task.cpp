@@ -1,4 +1,5 @@
 #include "problem/Task.h"
+#include <xbot2_interface/logger.h>
 
 using namespace XBot::Cartesian;
 
@@ -198,7 +199,7 @@ TaskDescriptionImpl::TaskDescriptionImpl(YAML::Node task_node,
             throw std::runtime_error("Cannot specify both 'enabled_joints' and 'disabled_joints'");
         }
 
-        _disabled_joints = _model->getEnabledJointNames();
+        _disabled_joints = _model->getJointNames();
 
         for(auto jnode : task_node["enabled_joints"])
         {

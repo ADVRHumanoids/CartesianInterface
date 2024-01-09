@@ -23,8 +23,8 @@ LockfreeBufferImpl::LockfreeBufferImpl(CartesianInterfaceImpl * ci,
                                        Context::Ptr context):
     CartesianInterfaceImpl(create_ik_prob(ci), context),
     _model(context->model()),
-    _q_tmp(context->model()->getJointNum()),
-    _q_tmp_read(context->model()->getJointNum())
+    _q_tmp(context->model()->getNq()),
+    _q_tmp_read(context->model()->getNq())
 {
     _model_state_queue.reset(_q_tmp);
 

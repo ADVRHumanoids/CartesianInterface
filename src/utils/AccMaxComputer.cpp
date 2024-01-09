@@ -57,7 +57,7 @@ std::pair<QDDotMin, QDDotMax> AccMaxComputer::computeAccMax(XBot::ModelInterface
         model->update();
 
         model->computeNonlinearTerm(h);
-        model->getInertiaMatrix(M);
+        model->computeInertiaMatrix(M);
 
         for(unsigned int j = s; j < n; ++j)
         {
