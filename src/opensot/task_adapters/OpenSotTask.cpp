@@ -46,6 +46,13 @@ bool OpenSotTaskAdapter::initialize(const OpenSoT::OptvarHelper& vars)
                                              _ci_task->getName()));
     }
 
+    if(!_opensot_task->checkConsistency())
+    {
+        throw std::runtime_error(
+            fmt::format("OpenSotTaskAdapter: checkConsistency() for task '{}' returned false",
+                        _ci_task->getName()));
+    }
+
 
     /* Set generic task parameters */
 
