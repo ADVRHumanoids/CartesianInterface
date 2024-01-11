@@ -169,6 +169,13 @@ void RosExecutor::init_load_model()
     /* Get model */
     _model = XBot::ModelInterface::getModel(_xbot_cfg);
 
+    std::cout <<
+        "model '" << _model->getName() <<
+        "' type '" << _model->getType() <<
+        "  nj = " << _model->getJointNum() <<
+        "  nq = " << _model->getNq() <<
+        "  nv = " << _model->getNv() << std::endl;
+
     /* Initialize to home or to current robot state */
     reset_model_state();
 

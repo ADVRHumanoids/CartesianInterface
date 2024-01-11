@@ -1,5 +1,6 @@
 #include "problem/Task.h"
 #include <xbot2_interface/logger.h>
+#include <fmt/format.h>
 
 using namespace XBot::Cartesian;
 
@@ -182,9 +183,14 @@ TaskDescriptionImpl::TaskDescriptionImpl(YAML::Node task_node,
         {
             std::string jstr = jnode.as<std::string>();
 
-            if(!_model->hasJoint(jstr))
+            if(_model->getVIndexFromVName(jstr) < 0)
             {
-                throw std::runtime_error("Undefined joint '" + jstr + "' listed among disabled joints");
+                std::string err = fmt::format(
+                    "dof '{}' is undefined: valid names are [{}]",
+                    jstr,
+                    fmt::join(_model->getVNames(), ", "));
+
+                throw std::invalid_argument(err);
             }
 
             _disabled_joints.push_back(jstr);
@@ -199,15 +205,20 @@ TaskDescriptionImpl::TaskDescriptionImpl(YAML::Node task_node,
             throw std::runtime_error("Cannot specify both 'enabled_joints' and 'disabled_joints'");
         }
 
-        _disabled_joints = _model->getJointNames();
+        _disabled_joints = _model->getVNames();
 
         for(auto jnode : task_node["enabled_joints"])
         {
             std::string jstr = jnode.as<std::string>();
 
-            if(!_model->hasJoint(jstr))
+            if(_model->getVIndexFromVName(jstr) < 0)
             {
-                throw std::runtime_error("Undefined joint '" + jstr + "' listed among enabled joints");
+                std::string err = fmt::format(
+                    "dof '{}' is undefined: valid names are [{}]",
+                    jstr,
+                    fmt::join(_model->getVNames(), ", "));
+
+                throw std::invalid_argument(err);
             }
 
             auto it = std::find(_disabled_joints.begin(), _disabled_joints.end(), jstr);

@@ -30,13 +30,12 @@ void PosturalRos::run(ros::Time time)
     // get posture reference (size = nq)
     _postural->getReferencePosture(_posture_ref);
 
-    // apply log map to retrieve the motion representation of q
+    // get minimal representation of q
     // this has size = nv
-    _posture_ref = _model->difference(_posture_ref, _model->getNeutralQ());
+    _model->positionToMinimal(_posture_ref, _posture_ref);
 
     // to deal with non-euclidean joints, we will publish the
-    // log map of q, i.e. the motion that brings the robot to q
-    // when applied for unit time starting from q0
+    // minimal representation of q
 
     msg.header.stamp = time;
     msg.name.reserve(_model->getNv());

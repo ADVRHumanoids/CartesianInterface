@@ -34,7 +34,12 @@ JointLimitsInvarianceImpl::JointLimitsInvarianceImpl(YAML::Node yaml, Context::C
 
                 if(idx < 0)
                 {
-                    throw std::invalid_argument(fmt::format("Invalid joint '{}' in joint limits", jname));
+                    std::string err = fmt::format(
+                        "dof '{}' is undefined: valid names are [{}]",
+                        jname,
+                        fmt::join(_model->getVNames(), ", "));
+
+                    throw std::invalid_argument(err);
                 }
 
                 Logger::warning("Joint qddot_max for joint '%s' to %.1f \n", jname.c_str(), lim_value);

@@ -2,6 +2,9 @@
 #include <xbot2_interface/logger.h>
 #include "problem/Postural.h"
 
+#include <fmt/core.h>
+#include <fmt/format.h>
+
 using namespace XBot::Cartesian;
 
 PosturalTaskImpl::PosturalTaskImpl(Context::ConstPtr context, int ndof):
@@ -30,7 +33,11 @@ PosturalTaskImpl::PosturalTaskImpl(YAML::Node task_node,
 
             if(idx < 0)
             {
-                std::string err = "Joint " + pair.first.as<std::string>() + " is undefined";
+                std::string err = fmt::format(
+                    "joint '{}' is undefined: valid names are [{}]",
+                    pair.first.as<std::string>(),
+                    fmt::join(_model->getVNames(), ", "));
+
                 throw std::invalid_argument(err);
             }
 
@@ -69,7 +76,7 @@ void PosturalTaskImpl::getReferencePosture(Eigen::VectorXd & qref) const
 
 void PosturalTaskImpl::getReferencePosture(XBot::JointNameMap & qref) const
 {
-    _model->qToMap(_qref, qref);
+    _model->positionToMinimal(_qref, qref);
 }
 
 void PosturalTaskImpl::getReferenceVelocity(Eigen::VectorXd& qdotref) const
@@ -79,7 +86,7 @@ void PosturalTaskImpl::getReferenceVelocity(Eigen::VectorXd& qdotref) const
 
 void PosturalTaskImpl::setReferencePosture(const XBot::JointNameMap & qref)
 {
-    _model->mapToQ(qref, _qref);
+    _model->minimalToPosition(qref, _qref);
 }
 
 void PosturalTaskImpl::setReferencePosture(const Eigen::VectorXd& qref)
