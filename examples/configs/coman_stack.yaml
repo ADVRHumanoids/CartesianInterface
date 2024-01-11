@@ -7,7 +7,11 @@ stack:
     - ["LeftArm", "RightArm"]
     - ["Postural"]
 
-constraints: ["JointLimitsInvariance", "VelocityLimits"]
+constraints: ["JointLimits", "VelocityLimits"]
+
+Base:
+    type: Cartesian
+    distal_link: base_link
 
 LeftFoot:
     type: "Cartesian"
@@ -35,12 +39,12 @@ Postural:
     type: "Postural"
     lambda: 0.01
     weight:
-        VIRTUALJOINT_1: 0.0
-        VIRTUALJOINT_2: 0.0
-        VIRTUALJOINT_3: 0.0
-        VIRTUALJOINT_4: 0.0
-        VIRTUALJOINT_5: 0.0
-        VIRTUALJOINT_6: 0.0
+        reference@v0: 0.0
+        reference@v1: 0.0
+        reference@v2: 0.0
+        reference@v3: 0.0
+        reference@v4: 0.0
+        reference@v5: 0.0
 
 ComXY:
     type: "Com"
@@ -53,7 +57,6 @@ VelocityLimits:
 
 JointLimits:
     type: "JointLimits"
-    remove_indices: [0, 1, 2, 3, 4, 5]
     
 JointLimitsInvariance:
     type: "JointLimitsInvariance"
@@ -86,12 +89,12 @@ JointLimitsInvariance:
         RShYaw: 1000.0
         RWrj1: 1000.0
         RWrj2: 1000.0
-        VIRTUALJOINT_1: 1000.0
-        VIRTUALJOINT_2: 1000.0
-        VIRTUALJOINT_3: 1000.0
-        VIRTUALJOINT_4: 1000.0
-        VIRTUALJOINT_5: 1000.0
-        VIRTUALJOINT_6: 1000.0
+        reference@v0: 1000.0
+        reference@v1: 1000.0
+        reference@v2: 1000.0
+        reference@v3: 1000.0
+        reference@v4: 1000.0
+        reference@v5: 1000.0
         WaistLat: 20. #0.035005731334820885
         WaistSag: 20. #0.04650792686525558
         WaistYaw: 20. #4.703598955062342
