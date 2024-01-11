@@ -241,7 +241,7 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
     }
 
     _model->getJointPosition(_q);
-    _dq.setZero(_q.size());
+    _dq.setZero(_model->getNv());
     _ddq = _dq;
     _tau.setZero(_dq.size());
     _J.setZero(6, _dq.size());
@@ -311,7 +311,7 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
     _x.setZero(_vars.getSize());
     if(_x.size() == 0)
     {
-        _x.setZero(_q.size());
+        _x.setZero(_dq.size());
         _solution["qdot"].setZero(_x.size());
     }
 
