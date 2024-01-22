@@ -22,6 +22,8 @@
     #define GLPK_FOUND false
 #endif
 
+#include <chrono>
+
 #include "utils/DynamicLoading.h"
 
 #include "opensot/OpenSotTask.h"

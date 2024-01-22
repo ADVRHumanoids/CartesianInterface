@@ -723,7 +723,7 @@ const YAML::Node& XBot::Cartesian::CartesianInterfaceImpl::get_config() const
 
 bool XBot::Cartesian::CartesianInterfaceImpl::has_config() const
 {
-    return _solver_options;
+    return bool(_solver_options);
 }
 
 bool XBot::Cartesian::CartesianInterfaceImpl::postural_task_defined() const
