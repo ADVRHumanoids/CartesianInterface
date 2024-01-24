@@ -9,6 +9,8 @@
 #include <OpenSoT/Solver.h>
 #include <OpenSoT/utils/AutoStack.h>
 
+#include <chrono>
+
 
 namespace XBot { namespace Cartesian {
 
