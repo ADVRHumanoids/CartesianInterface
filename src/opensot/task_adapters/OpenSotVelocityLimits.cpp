@@ -18,10 +18,7 @@ OpenSotVelocityLimitsAdapter::OpenSotVelocityLimitsAdapter(ConstraintDescription
 
 ConstraintPtr OpenSotVelocityLimitsAdapter::constructConstraint()
 {
-    Eigen::VectorXd q;
-    _model->getJointPosition(q);
-
-    _opensot_vlim = SotUtils::make_shared<VelocityLimitsSoT>(_ci_vlim->getQdotMax(),
+    _opensot_vlim = SotUtils::make_shared<VelocityLimitsSoT>(const_cast<ModelInterface&>(*_model), _ci_vlim->getQdotMax(),
                                                  _ctx->params()->getControlPeriod());
 
     return _opensot_vlim;

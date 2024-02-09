@@ -24,7 +24,7 @@
                                         rosmon-stop-timeout="1000">
             <param name="enable_otg" value="$(arg enable_otg)"/>
             <param name="is_model_floating_base" value="$(arg is_model_floating_base)"/>
-            <param name="model_type" value="RBDL"/>
+            <param name="model_type" value="pin"/>
             <param name="solver" value="$(arg solver)"/>
             <param name="use_xbot_config" value="$(arg use_xbot_config)"/>
             <param name="rate" value="$(arg rate)"/>

@@ -14,11 +14,7 @@ OpenSotComAdapter::OpenSotComAdapter(TaskDescription::Ptr task,
 
 TaskPtr OpenSotComAdapter::constructTask()
 {
-    Eigen::VectorXd q;
-    _model->getJointPosition(q);
-
-    _opensot_com = SotUtils::make_shared<ComSoT>(q,
-                                              const_cast<ModelInterface&>(*_model));
+    _opensot_com = SotUtils::make_shared<ComSoT>(const_cast<ModelInterface&>(*_model));
 
     return _opensot_com;
 }

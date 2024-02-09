@@ -16,10 +16,7 @@ OpenSotPosturalAdapter::OpenSotPosturalAdapter(TaskDescription::Ptr task,
 
 TaskPtr OpenSotPosturalAdapter::constructTask()
 {
-    Eigen::VectorXd q;
-    _model->getJointPosition(q);
-
-    _opensot_postural = SotUtils::make_shared<PosturalSoT>(*_model, q);
+    _opensot_postural = SotUtils::make_shared<PosturalSoT>(const_cast<ModelInterface&>(*_model));
 
     return _opensot_postural;
 }

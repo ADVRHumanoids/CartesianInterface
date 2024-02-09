@@ -15,11 +15,7 @@ OpenSotCartesianAdapter::OpenSotCartesianAdapter(TaskDescription::Ptr task,
 
 TaskPtr OpenSotCartesianAdapter::constructTask()
 {
-    Eigen::VectorXd q;
-    _model->getJointPosition(q);
-
     _opensot_cart = SotUtils::make_shared<CartesianSoT>(_ci_cart->getName(),
-                                                     q,
                                                      const_cast<ModelInterface&>(*_model),
                                                      _ci_cart->getDistalLink(),
                                                      _ci_cart->getBaseLink());
