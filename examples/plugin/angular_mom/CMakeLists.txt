@@ -1,5 +1,3 @@
-project(cartesian_interface_angmom_plugin)
-
 #AngularMomentumAddon (Velocity)
 add_library(CartesioAngularMomentumAddon SHARED
     src/AngularMomentum.cpp
