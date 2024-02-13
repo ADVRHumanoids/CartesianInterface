@@ -8,7 +8,7 @@ stack:
     - ["LeftFoot", "RightFoot"] 
     - ["ComXY"]
     - ["LeftArm", "RightArm"]
-    - ["Postural"]
+    - ["Postural", "MinEffort"]
 
 constraints: ["JointLimits", "VelocityLimits"]
 
@@ -45,6 +45,10 @@ Postural:
         reference@v3: 0.0
         reference@v4: 0.0
         reference@v5: 0.0
+
+MinEffort:
+  type: MinimumEffort
+  lib_name: libCartesioMinimumEffortAddon.so
 
 ComXY:
     type: "Com"
