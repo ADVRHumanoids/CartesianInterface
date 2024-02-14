@@ -1,0 +1,34 @@
+solver_options:
+    regularization: 1e-6
+    back_end: "qpoases" 
+stack:
+    - ["Base"]
+    - ["MinEffort"]
+
+constraints: ["JointLimits", "VelocityLimits"]
+    
+Base:
+    type: "Cartesian"
+    name: "base"
+    distal_link: "base_link"
+    lambda: 0.1
+
+MinEffort:
+  type: MinimumEffort
+  lib_name: libCartesioMinimumEffortAddon.so
+  step_size: 1e-2
+  lambda: 0.02
+  weight:
+        reference@v0: 0.0
+        reference@v1: 0.0
+        reference@v2: 0.0
+        reference@v3: 0.0
+        reference@v4: 0.0
+        reference@v5: 0.0
+
+JointLimits:
+    type: "JointLimits"
+
+
+VelocityLimits:
+    type: "VelocityLimits"
