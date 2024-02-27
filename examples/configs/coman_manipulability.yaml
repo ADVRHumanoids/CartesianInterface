@@ -1,0 +1,87 @@
+solver_options:
+    regularization: 1e-3
+    back_end: "qpoases"
+
+stack:
+    - ["LeftFoot", "RightFoot", "ComXY"]
+    - ["LeftArm", "RightArm"]
+    - ["ManipulabilityLA", "ManipulabilityRA"]
+
+constraints: ["JointLimits", "VelocityLimits"]
+
+Base:
+    type: Cartesian
+    distal_link: base_link
+
+LeftFoot:
+    type: "Cartesian"
+    name: "left_foot"
+    distal_link: "l_sole"
+
+RightFoot:
+    type: "Cartesian"
+    name: "right_foot"
+    distal_link: "r_sole"
+
+LeftArm:
+    type: "Cartesian"
+    name: "left_hand"
+    distal_link: "LSoftHand"
+    lambda: 0.1
+
+RightArm:
+    type: "Cartesian"
+    name: "right_hand"
+    distal_link: "RSoftHand"
+    lambda: 0.1
+
+Postural:
+    type: "Postural"
+    lambda: 0.01
+    weight:
+        reference@v0: 0.0
+        reference@v1: 0.0
+        reference@v2: 0.0
+        reference@v3: 0.0
+        reference@v4: 0.0
+        reference@v5: 0.0
+
+ComXY:
+    type: "Com"
+    lambda: 0.1
+    indices: [0, 1]
+    weight: 10
+    
+VelocityLimits:
+    type: "VelocityLimits"
+
+JointLimits:
+    type: "JointLimits"
+    
+ManipulabilityLA:
+  type: Manipulability
+  lib_name: libCartesioManipulabilityAddon.so
+  step_size: 1e-2
+  lambda: 1.
+  base_link: torso
+  distal_link: LSoftHand 
+ 
+
+ManipulabilityRA:
+  type: Manipulability
+  lib_name: libCartesioManipulabilityAddon.so
+  step_size: 1e-2
+  lambda: 1.
+  base_link: torso
+  distal_link: RSoftHand 
+  
+ManipulabilityCOM:
+  type: Manipulability
+  lib_name: libCartesioManipulabilityAddon.so
+  step_size: 1e-2
+  lambda: 1.
+  distal_link: com
+  weight: 1000
+
+
+    

@@ -7,7 +7,7 @@ stack:
     - ["LeftArm", "RightArm"]
     - ["Postural"]
 
-constraints: ["JointLimits", "VelocityLimits"]
+constraints: ["JointLimits", "VelocityLimitsInvariance"]
 
 Base:
     type: Cartesian

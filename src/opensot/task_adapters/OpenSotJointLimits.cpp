@@ -19,7 +19,7 @@ ConstraintPtr OpenSoTJointLimitsInvarianceAdapter::constructConstraint()
     Eigen::VectorXd q;
     _model->getJointPosition(q);
 
-    auto jliSoT =  SotUtils::make_shared<JointLimitsInvarianceSoT>(q,
+    auto jliSoT =  SotUtils::make_shared<JointLimitsInvarianceSoT>(
                                                            _ci_jlim->getQmax(),
                                                            _ci_jlim->getQmin(),
                                                            _ci_jlim->getQddotMax(),

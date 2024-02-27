@@ -10,7 +10,7 @@
         textfile="$(find cartesian_interface)/examples/srdf/coman.srdf"/>
     
     <param name="cartesian/problem_description" 
-        textfile="$(find cartesian_interface)/examples/configs/coman_stack_alternative.yaml"/>
+        textfile="$(find cartesian_interface)/examples/configs/coman_stack.yaml"/>
     
     <include file="$(find cartesian_interface)/launch/cartesio.launch">
         <arg name="rate" value="100.0"/>
