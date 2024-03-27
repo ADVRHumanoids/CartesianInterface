@@ -435,7 +435,7 @@ bool OpenSotImpl::update(double time, double period)
     }
 
     /* Update tasks and solve */
-    _autostack->update(_x);
+    _autostack->update();
 
     if(_logger)
     {
