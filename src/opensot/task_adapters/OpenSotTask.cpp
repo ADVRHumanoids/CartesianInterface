@@ -11,6 +11,8 @@
 #include "opensot/OpenSotPostural.h"
 #include "opensot/OpenSotCom.h"
 #include "opensot/OpenSotSubtask.h"
+#include "opensot/OpenSotOmniWheels4X.h"
+#include "opensot/OpenSotGaze.h"
 
 #include "fmt/format.h"
 
@@ -181,6 +183,10 @@ OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr ta
     {
         task_adapter = new OpenSotComAdapter(task, context);
     }
+    else if(task->getType() == "Gaze")
+    {
+        task_adapter = new OpenSotGazeAdapter(task, context);
+    }
     else if(task->getType() == "Subtask") /* Otherwise, construct supported tasks */
     {
         task_adapter = new OpenSotSubtaskAdapter(task, context);
@@ -302,6 +308,10 @@ OpenSotConstraintAdapter::Ptr OpenSotConstraintAdapter::MakeInstance(ConstraintD
     else if(constr->getType() == "VelocityLimits")
     {
         constr_adapter = new OpenSotVelocityLimitsAdapter(constr, context);
+    }
+    else if(constr->getType() == "OmniWheels4X")
+    {
+        constr_adapter = new OpenSotOmniWheels4XAdapter(constr, context);
     }
     else
     {
