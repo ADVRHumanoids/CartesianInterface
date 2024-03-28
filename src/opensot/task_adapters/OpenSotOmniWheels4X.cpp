@@ -13,15 +13,12 @@ OpenSotOmniWheels4XAdapter::OpenSotOmniWheels4XAdapter(ConstraintDescription::Pt
 
 ConstraintPtr OpenSotOmniWheels4XAdapter::constructConstraint()
 {
-    Eigen::VectorXd q;
-    _model->getJointPosition(q);
-
     _opensot_omniwheels4x = SotUtils::make_shared<OmniWheels4XSoT>(_ci_omniwheels4x->getl1(),
                                                                    _ci_omniwheels4x->getl2(),
                                                                    _ci_omniwheels4x->getr(),
                                                                    _ci_omniwheels4x->get_joint_wheels_name(),
                                                                    _ci_omniwheels4x->get_base_link(),
-                                                                   q, const_cast<ModelInterface&>(*_model));
+                                                                   const_cast<ModelInterface&>(*_model));
 
     return _opensot_omniwheels4x;
 }

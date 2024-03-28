@@ -15,11 +15,7 @@ OpenSotGazeAdapter::OpenSotGazeAdapter(TaskDescription::Ptr task,
 
 TaskPtr OpenSotGazeAdapter::constructTask()
 {
-    Eigen::VectorXd q;
-    _model->getJointPosition(q);
-
     _opensot_cart = SotUtils::make_shared<GazeSoT>(_ci_cart->getName(),
-                                                     q,
                                                      const_cast<ModelInterface&>(*_model),
                                                      _ci_cart->getBaseLink(),
                                                      _ci_cart->getDistalLink());
