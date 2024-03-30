@@ -226,8 +226,45 @@ void RosExecutor::reset_model_state()
     }
     else if(_nh.hasParam("home"))
     {
+        std::map<std::string, double> joint_map_orig;
+        _nh.getParam("home", joint_map_orig);
+
+        /**
+         * @hack: when setting the map in the launch file it is not possible to use the character '@' which is used to set the the reference for
+         * the base, e.g. reference@v0. So we set in the launch file the character '_' and then we substitute it here:
+         */
         std::map<std::string, double> joint_map;
-        _nh.getParam("home", joint_map);
+        for(auto pair : joint_map_orig)
+        {
+            if(pair.first == "reference_v0")
+            {
+                joint_map["reference@v0"] = pair.second;
+            }
+            else if(pair.first == "reference_v1")
+            {
+                joint_map["reference@v1"] = pair.second;
+            }
+            else if(pair.first == "reference_v2")
+            {
+                joint_map["reference@v2"] = pair.second;
+            }
+            else if(pair.first == "reference_v3")
+            {
+                joint_map["reference@v3"] = pair.second;
+            }
+            else if(pair.first == "reference_v4")
+            {
+                joint_map["reference@v4"] = pair.second;
+            }
+            else if(pair.first == "reference_v5")
+            {
+                joint_map["reference@v5"] = pair.second;
+            }
+            else
+            {
+                joint_map[pair.first] = pair.second;
+            }
+        }
 
         XBot::JointNameMap qref(joint_map.begin(),
                                 joint_map.end());
@@ -235,19 +272,21 @@ void RosExecutor::reset_model_state()
         // to deal with non-euclidean joints, we interpret this as
         // the log of the actual q home
 
-        Eigen::VectorXd qhome;
-        _robot->mapToV(qref, qhome);
+        Eigen::VectorXd qhome(_model->getNv()); qhome.setZero();
+        _model->mapToV(qref, qhome);
 
         // apply exp map to get the q config
-        qhome = _robot->sum(_robot->getNeutralQ(), qhome);
+        Eigen::VectorXd q = _model->sum(_model->getNeutralQ(), qhome);
 
-        _model->setJointPosition(qhome);
+        _model->setJointPosition(q);
         _model->update();
     }
     else
     {
         Eigen::VectorXd qhome;
         _model->getRobotState("home", qhome);
+        if(qhome.size() == 0)
+            qhome = _model->getNeutralQ();
         _model->setJointPosition(qhome);
         _model->update();
     }
