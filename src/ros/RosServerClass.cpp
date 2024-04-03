@@ -195,9 +195,6 @@ void XBot::Cartesian::RosServerClass::publish_solution(ros::Time time)
         ww.segment(0,3) = w_T_f.linear().inverse() * ww.segment(0,3);
         ww.segment(3,3) = w_T_f.linear().inverse() * ww.segment(3,3);
 
-        ww.segment(0,3) = ww.segment(0,3)/ww.segment(0,3).norm();
-        ww.segment(3,3) = ww.segment(3,3)/ww.segment(3,3).norm();
-
         w.wrench.force.x = ww[0];
         w.wrench.force.y = ww[1];
         w.wrench.force.z = ww[2];
