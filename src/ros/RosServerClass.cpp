@@ -1,6 +1,7 @@
 #include <cartesian_interface/ros/RosServerClass.h>
 #include <cartesian_interface/GetTaskListResponse.h>
 #include <std_msgs/Empty.h>
+#include <geometry_msgs/WrenchStamped.h>
 
 using namespace XBot::Cartesian;
 
@@ -43,7 +44,8 @@ RosServerClass::RosServerClass(CartesianInterfaceImpl::Ptr intfc,
     _ci(intfc),
     _model(intfc->getModel()),
     _opt(opt),
-    _nh(opt.ros_namespace)
+    _nh(opt.ros_namespace),
+    _wrench_pubs_inited(false)
 {
     _tf_prefix = _opt.tf_prefix;
     _nh.setCallbackQueue(&_cbk_queue);
@@ -131,12 +133,38 @@ void RosServerClass::heartbeat_cb(const ros::TimerEvent & ev)
 void XBot::Cartesian::RosServerClass::publish_solution(ros::Time time)
 {
     sensor_msgs::JointState msg;
+    std::vector<geometry_msgs::WrenchStamped> w_msg;
     Eigen::VectorXd _sol_q, _sol_qdot, _sol_tau;
+    auto solution = _ci->getSolution();
 
-    if(_solution_pub.getNumSubscribers() == 0)
+    if(!_wrench_pubs_inited)
     {
-        return;
+        for(auto& p : solution)
+        {
+            if(p.first.find("force_") != 0)
+            {
+                continue;
+            }
+            _wrench_pubs.push_back(_nh.advertise<geometry_msgs::WrenchStamped>(p.first, 1, true));
+        }
+        _wrench_pubs_inited = true;
     }
+
+    bool no_subsribers = true;
+
+    if(_solution_pub.getNumSubscribers() != 0)
+    {
+        no_subsribers = false;
+    }
+
+    for(auto& pub : _wrench_pubs)
+    {
+        if(pub.getNumSubscribers() != 0)
+            no_subsribers = false;
+    }
+
+    if(no_subsribers)
+        return;
     
     _model->getJointPosition(_sol_q);
     _model->getJointVelocity(_sol_qdot);
@@ -149,6 +177,42 @@ void XBot::Cartesian::RosServerClass::publish_solution(ros::Time time)
     // to deal with non-euclidean joints, we will publish the
     // log map of q, i.e. the motion that brings the robot to q
     // when applied for unit time starting from q0
+
+    for(auto& p : solution)
+    {
+        if(p.first.find("force_") != 0)
+        {
+            continue;
+        }
+
+        geometry_msgs::WrenchStamped w;
+        w.header.stamp = time;
+        auto frame = p.first.substr(6); // removes "force_"
+
+        Eigen::Affine3d w_T_f = _model->getPose(frame);
+        Eigen::Vector6d ww = p.second;
+        //in local frame
+        ww.segment(0,3) = w_T_f.linear().inverse() * ww.segment(0,3);
+        ww.segment(3,3) = w_T_f.linear().inverse() * ww.segment(3,3);
+
+        ww.segment(0,3) = ww.segment(0,3)/ww.segment(0,3).norm();
+        ww.segment(3,3) = ww.segment(3,3)/ww.segment(3,3).norm();
+
+        w.wrench.force.x = ww[0];
+        w.wrench.force.y = ww[1];
+        w.wrench.force.z = ww[2];
+        w.wrench.torque.x = ww[3];
+        w.wrench.torque.y = ww[4];
+        w.wrench.torque.z = ww[5];
+
+        w.header.frame_id = "ci/" + frame;
+
+        w_msg.push_back(w);
+    }
+
+
+    for(unsigned int i = 0; i < _wrench_pubs.size(); ++i)
+        _wrench_pubs[i].publish(w_msg[i]);
 
     msg.header.stamp = time;
     msg.name.reserve(_model->getNv());

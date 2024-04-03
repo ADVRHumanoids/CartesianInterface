@@ -53,6 +53,7 @@ public:
     CartesianInterface& operator=(const CartesianInterface& rhs) = delete;
     CartesianInterface& operator=(const CartesianInterface&& rhs) = delete;
     
+    virtual const std::map<std::string, Eigen::VectorXd>& getSolution() const = 0;
     
     /**
      * @brief Update function. It must be called periodically inside the user
