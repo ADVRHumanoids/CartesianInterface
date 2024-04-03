@@ -187,7 +187,7 @@ set(CartesianInterfaceROS_SRC
     src/ros/RosServerClass.cpp
     src/ros/CartesianMarker.cpp
     src/ros/JoyStick.cpp
-    #        src/ros/CartesianAnalyzer.cpp
+    src/ros/CartesianAnalyzer.cpp
     src/ros/RosExecutor.cpp
     )
 
