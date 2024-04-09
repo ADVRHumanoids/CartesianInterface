@@ -12,3 +12,8 @@ install(TARGETS CartesioAngularMomentumAddon CartesioAngularMomentumAddon
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+# Mark cpp header files for installation
+install(FILES "src/AngularMomentum.h"
+    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+    )
