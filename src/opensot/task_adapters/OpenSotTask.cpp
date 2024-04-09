@@ -65,11 +65,17 @@ bool OpenSotTaskAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 
         for(auto jstr : _ci_task->getDisabledJoints())
         {
-            auto jinfo = _model->getJointInfo(jstr);
-
-            std::fill_n(active_joints_mask.begin() + jinfo.iv,
-                        jinfo.nv,
-                        false);
+            try{
+                auto jinfo = _model->getJointInfo(jstr);
+                std::fill_n(active_joints_mask.begin() + jinfo.iv,
+                            jinfo.nv,
+                            false);
+            }
+            catch(...)
+            {
+                auto id = _model->getVIndexFromVName(jstr);
+                active_joints_mask[id] = false;
+            }
 
         }
 

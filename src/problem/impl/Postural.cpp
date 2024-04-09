@@ -142,6 +142,7 @@ void PosturalTaskImpl::setDisabledJoints(const std::vector<std::string>& value)
         indices.push_back(i);
     }
 
+
     auto to_be_removed = [this, value](auto i)
     {
         bool vname_found = value.end() !=
@@ -149,8 +150,16 @@ void PosturalTaskImpl::setDisabledJoints(const std::vector<std::string>& value)
 
         bool jname_found = value.end() !=
                            std::find_if(value.begin(), value.end(), [i, this](const auto &item) {
-            auto jinfo = _model->getJointInfo(item);
-            return i >= jinfo.iv && i < jinfo.iv + jinfo.nv;
+
+            try
+            {
+                auto jinfo = _model->getJointInfo(item);
+                return i >= jinfo.iv && i < jinfo.iv + jinfo.nv;
+            }
+            catch(...)
+            {
+                return false;
+            }
         });
 
         return jname_found || vname_found;
