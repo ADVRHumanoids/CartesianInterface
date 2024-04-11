@@ -8,7 +8,8 @@ target_link_libraries(CartesioAngularMomentumAddon PRIVATE
     ${OpenSoT_LIBRARIES}
     CartesianInterface)
 
-install(TARGETS CartesioAngularMomentumAddon CartesioAngularMomentumAddon
+install(TARGETS CartesioAngularMomentumAddon
+    EXPORT ${PROJECT_NAME}Targets
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
