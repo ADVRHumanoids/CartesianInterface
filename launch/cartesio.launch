@@ -12,12 +12,13 @@
     <arg name="world_frame_link" default="!"/>
     <arg name="solution_topic" default="!"/>
     <arg name="enable_otg" default="true"/>
+    <arg name="run_ros_server" default="true"/>
 
     <group ns="$(arg namespace)">
 
         <remap if="$(arg xbot)" from="robot_description" to="xbotcore/robot_description"/>
 
-        <node pkg="cartesian_interface" type="ros_server_node"
+        <node if="$(arg run_ros_server)" pkg="cartesian_interface" type="ros_server_node"
                                         name="ros_server_node"
                                         output="screen"
                                         launch-prefix="$(arg prefix)"
