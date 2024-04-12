@@ -333,7 +333,11 @@ add_subdirectory(bindings/python/)
 include(GenerateDeb)
 
 
-option(CARTESIO_COMPILE_XBOT_PLUGIN "Build plugins for XBotCore" OFF)
+option(CARTESIO_COMPILE_XBOT2_PLUGIN "Build plugins for XBot2" OFF)
+
+if(CARTESIO_COMPILE_XBOT2_PLUGIN)
+    add_subdirectory(src/xbot2)
+endif()
 
 # Mark cpp header files for installation
 install(DIRECTORY include/cartesian_interface/
