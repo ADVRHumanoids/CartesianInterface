@@ -41,6 +41,10 @@ private:
     std::unique_ptr<thread> _nrt_th;
 
     Hal::LinkStateSensor::Ptr _lss;
+
+    void init_load_world_frame();
+
+    Eigen::Affine3d _fb_T_l;
 };
 
 

@@ -87,8 +87,9 @@ bool CartesioRt::on_initialize()
         });
 
     /* Set robot control mode */
-    // setDefaultControlMode(ControlMode::Position() + ControlMode::Effort());
-    setDefaultControlMode(ControlMode::Position());
+    setDefaultControlMode(ControlMode::Effort());
+    //setDefaultControlMode(ControlMode::Position() + ControlMode::Effort());
+    //setDefaultControlMode(ControlMode::Position());
 
     /* Feedback */
     _enable_feedback = getParamOr("~enable_feedback", false);
@@ -112,6 +113,30 @@ bool CartesioRt::on_initialize()
     return true;
 }
 
+void CartesioRt::init_load_world_frame()
+{
+    if(!_rt_model->isFloatingBase())
+    {
+        return;
+    }
+
+    /* If set_world_from_param is false, and a world_frame_link is defined... */
+    std::string world_frame_link = getParamOr<std::string>("~world_frame_link", "");
+    if(world_frame_link != "")
+    {
+        std::string floating_base_link;
+        _rt_model->getFloatingBaseLink(floating_base_link);
+        if(!_rt_model->getPose(world_frame_link, floating_base_link, _fb_T_l))
+        {
+            throw std::runtime_error("World frame link '" + world_frame_link + "' is undefined");
+        }
+        jinfo("Setting world frame in: " + world_frame_link);
+
+        _rt_model->setFloatingBasePose(_fb_T_l.inverse());
+        _rt_model->update();
+    }
+}
+
 void CartesioRt::starting()
 {
     // we use a fake time, and integrate it by the expected dt
@@ -122,10 +147,13 @@ void CartesioRt::starting()
     _rt_model->setJointPosition(_robot->getMotorPosition());
     _rt_model->update();
 
+    /* world frame */
+    init_load_world_frame();
+
     if(_lss)
     {
         _lss->sense();
-        _rt_model->setFloatingBasePose(_lss->getPose());
+        _rt_model->setFloatingBasePose(_fb_T_l.inverse() * _lss->getPose());
         _rt_model->setFloatingBaseTwist(_lss->getTwist());
         _rt_model->update();
     }
@@ -155,7 +183,7 @@ void CartesioRt::run()
         if(_lss)
         {
             _lss->sense();
-            _rt_model->setFloatingBasePose(_lss->getPose());
+            _rt_model->setFloatingBasePose(_fb_T_l.inverse() * _lss->getPose());
             _rt_model->setFloatingBaseTwist(_lss->getTwist());
             _rt_model->update();
         }
