@@ -131,10 +131,6 @@ bool CartesioRt::init_load_world_frame()
             throw std::runtime_error("World frame link '" + world_frame_link + "' is undefined");
         }
         jinfo("Setting world frame in: " + world_frame_link);
-        std::cout<<"_fb_T_l: "<<_fb_T_l.matrix()<<std::endl;
-
-//        _rt_model->setFloatingBasePose(_fb_T_l.inverse());
-//        _rt_model->update();
 
         return true;
     }
@@ -240,8 +236,7 @@ void CartesioRt::run()
     {
         _robot->setReferenceFrom(*_rt_model);
     }
-    _robot->setStiffness(_zeros);
-    _robot->setDamping(_zeros);
+
     _robot->move();
 }
 
