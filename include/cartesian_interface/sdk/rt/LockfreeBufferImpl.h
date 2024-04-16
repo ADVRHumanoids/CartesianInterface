@@ -38,10 +38,15 @@ namespace XBot { namespace Cartesian {
         
         LockFreeQueue<CallbackType, CALL_QUEUE_SIZE> _cb_queue;
 
-        Eigen::VectorXd _q_tmp;
-        LockFreeQueue<Eigen::VectorXd> _model_state_queue;
+        struct ModelState
+        {
+            Eigen::VectorXd q, v, tau;
+        };
+
+        ModelState _state_tmp;
+        LockFreeQueue<ModelState> _model_state_queue;
         
-        Eigen::VectorXd _q_tmp_read;
+        ModelState _state_tmp_read;
         ModelInterface::Ptr _model;
         
         std::vector<TaskRt::Ptr> _tasks;
