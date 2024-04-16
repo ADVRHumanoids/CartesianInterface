@@ -87,7 +87,7 @@ bool CartesioRt::on_initialize()
         });
 
     /* Set robot control mode */
-    setDefaultControlMode(ControlMode::Effort());
+    setDefaultControlMode(ControlMode::Effort() + ControlMode::Impedance());
     //setDefaultControlMode(ControlMode::Position() + ControlMode::Effort());
     //setDefaultControlMode(ControlMode::Position());
 
@@ -113,11 +113,11 @@ bool CartesioRt::on_initialize()
     return true;
 }
 
-void CartesioRt::init_load_world_frame()
+bool CartesioRt::init_load_world_frame()
 {
     if(!_rt_model->isFloatingBase())
     {
-        return;
+        return false;
     }
 
     /* If set_world_from_param is false, and a world_frame_link is defined... */
@@ -131,10 +131,14 @@ void CartesioRt::init_load_world_frame()
             throw std::runtime_error("World frame link '" + world_frame_link + "' is undefined");
         }
         jinfo("Setting world frame in: " + world_frame_link);
+        std::cout<<"_fb_T_l: "<<_fb_T_l.matrix()<<std::endl;
 
-        _rt_model->setFloatingBasePose(_fb_T_l.inverse());
-        _rt_model->update();
+//        _rt_model->setFloatingBasePose(_fb_T_l.inverse());
+//        _rt_model->update();
+
+        return true;
     }
+    return false;
 }
 
 void CartesioRt::starting()
@@ -147,13 +151,22 @@ void CartesioRt::starting()
     _rt_model->setJointPosition(_robot->getMotorPosition());
     _rt_model->update();
 
-    /* world frame */
-    init_load_world_frame();
 
     if(_lss)
     {
         _lss->sense();
-        _rt_model->setFloatingBasePose(_fb_T_l.inverse() * _lss->getPose());
+
+        /* world frame */
+        if(init_load_world_frame())
+        {
+            _l_T_m = _fb_T_l.inverse() * _lss->getPose().inverse();
+        }
+        else
+        {
+            _l_T_m.setIdentity();
+        }
+
+        _rt_model->setFloatingBasePose(_l_T_m * _lss->getPose());
         _rt_model->setFloatingBaseTwist(_lss->getTwist());
         _rt_model->update();
     }
@@ -163,6 +176,14 @@ void CartesioRt::starting()
 
     // signal nrt thread that rt is active
     _rt_active = true;
+
+    // setting zero stiffness and damping
+    _robot->getStiffness(_initial_stiffness);
+    _robot->getDamping(_initial_damping);
+    _zeros.setZero(_initial_stiffness.size());
+    _robot->setStiffness(_zeros);
+    _robot->setDamping(_zeros);
+    _robot->move();
 
     // transit to run
     start_completed();
@@ -183,7 +204,8 @@ void CartesioRt::run()
         if(_lss)
         {
             _lss->sense();
-            _rt_model->setFloatingBasePose(_fb_T_l.inverse() * _lss->getPose());
+
+            _rt_model->setFloatingBasePose(_l_T_m * _lss->getPose());
             _rt_model->setFloatingBaseTwist(_lss->getTwist());
             _rt_model->update();
         }
@@ -218,13 +240,20 @@ void CartesioRt::run()
     {
         _robot->setReferenceFrom(*_rt_model);
     }
-
+    _robot->setStiffness(_zeros);
+    _robot->setDamping(_zeros);
     _robot->move();
 }
 
 void CartesioRt::stopping()
 {
     _rt_active = false;
+
+    _robot->setStiffness(_initial_stiffness);
+    _robot->setDamping(_initial_damping);
+    _robot->setEffortReference(_zeros);
+    _robot->move();
+
     stop_completed();
 }
 

@@ -42,9 +42,11 @@ private:
 
     Hal::LinkStateSensor::Ptr _lss;
 
-    void init_load_world_frame();
+    bool init_load_world_frame();
 
-    Eigen::Affine3d _fb_T_l;
+    Eigen::Affine3d _fb_T_l, _l_T_m;
+
+    Eigen::VectorXd _zeros, _initial_stiffness, _initial_damping;
 };
 
 
