@@ -87,7 +87,8 @@ bool CartesioRt::on_initialize()
         });
 
     /* Set robot control mode */
-    setDefaultControlMode(ControlMode::Effort() + ControlMode::Impedance());
+    setDefaultControlMode(ControlMode::Effort());
+    //setDefaultControlMode(ControlMode::Effort() + ControlMode::Impedance());
     //setDefaultControlMode(ControlMode::Position() + ControlMode::Effort());
     //setDefaultControlMode(ControlMode::Position());
 
@@ -144,7 +145,7 @@ void CartesioRt::starting()
 
     // align model to current position reference
     _robot->sense(false);
-    _rt_model->setJointPosition(_robot->getMotorPosition());
+    _rt_model->syncFrom(*_robot);
     _rt_model->update();
 
 
@@ -170,16 +171,24 @@ void CartesioRt::starting()
     // reset ci
     _rt_ci->reset(_fake_time);
 
+    _rt_ci->update(_fake_time, getPeriodSec());
+
     // signal nrt thread that rt is active
     _rt_active = true;
 
     // setting zero stiffness and damping
     _robot->getStiffness(_initial_stiffness);
+    std::cout<<"_initial_stiffness: "<<_initial_stiffness.transpose()<<std::endl;
     _robot->getDamping(_initial_damping);
+    std::cout<<"_initial_damping: "<<_initial_damping.transpose()<<std::endl;
     _zeros.setZero(_initial_stiffness.size());
-    _robot->setStiffness(_zeros);
-    _robot->setDamping(_zeros);
-    _robot->move();
+//    auto joints = _robot->getDevices<Hal::JointBase>();
+//    for(auto d : joints.get_device_vector())
+//    {
+//        d->set_stiffness_ref(0.);
+//        d->set_damping_ref(0.);
+//        d->move();
+//    }
 
     // transit to run
     start_completed();
@@ -188,6 +197,7 @@ void CartesioRt::starting()
 
 void CartesioRt::run()
 {
+
     /* Receive commands from nrt */
     _nrt_ci->callAvailable(_rt_ci.get());
 
@@ -205,6 +215,7 @@ void CartesioRt::run()
             _rt_model->setFloatingBaseTwist(_lss->getTwist());
             _rt_model->update();
         }
+
     }
 
     /* Solve IK */
@@ -244,8 +255,17 @@ void CartesioRt::stopping()
 {
     _rt_active = false;
 
-    _robot->setStiffness(_initial_stiffness);
-    _robot->setDamping(_initial_damping);
+
+//    auto joints = _robot->getDevices<Hal::JointBase>();
+//    unsigned int i = 0;
+//    for(auto d : joints.get_device_vector())
+//    {
+//        d->set_stiffness_ref(_initial_stiffness[i]);
+//        d->set_damping_ref(_initial_damping[i]);
+//        d->move();
+//        i++;
+//    }
+
     _robot->setEffortReference(_zeros);
     _robot->move();
 
