@@ -190,7 +190,13 @@ void XBot::Cartesian::RosServerClass::publish_solution(ros::Time time)
         auto frame = p.first.substr(6); // removes "force_"
 
         Eigen::Affine3d w_T_f = _model->getPose(frame);
-        Eigen::Vector6d ww = p.second;
+        Eigen::Vector6d ww;
+        ww.setZero();
+        if(p.second.size() == 3)
+            ww.segment(0,3) = p.second;
+        else
+            ww = p.second;
+
         //in local frame
         ww.segment(0,3) = w_T_f.linear().inverse() * ww.segment(0,3);
         ww.segment(3,3) = w_T_f.linear().inverse() * ww.segment(3,3);

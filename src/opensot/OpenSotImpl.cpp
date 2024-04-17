@@ -507,10 +507,10 @@ bool OpenSotImpl::update(double time, double period)
 
         _model->getJacobian(link_name, _J);
 
-        Eigen::Vector6d f_value;
+        Eigen::VectorXd f_value;
         p.second.getValue(_x, f_value);
 
-        _tau.noalias() -= _J.transpose() * f_value;
+        _tau.noalias() -= _J.block(0, 0, f_value.size(), _J.cols()).transpose() * f_value;
 
         if(_logger)
         {
