@@ -26,6 +26,7 @@ bool CartesioRt::on_initialize()
     auto ik_yaml = YAML::Load(ik_str);
 
     /* Create model and ci for rt loop */
+    _robot->sense(true);
     _rt_model = _robot->model().clone();
 
     auto rt_ctx = std::make_shared<Cartesian::Context>(
@@ -87,8 +88,8 @@ bool CartesioRt::on_initialize()
         });
 
     /* Set robot control mode */
-    setDefaultControlMode(ControlMode::Effort());
-    //setDefaultControlMode(ControlMode::Effort() + ControlMode::Impedance());
+    //setDefaultControlMode(ControlMode::Effort());
+    setDefaultControlMode(ControlMode::Effort() + ControlMode::Impedance());
     //setDefaultControlMode(ControlMode::Position() + ControlMode::Effort());
     //setDefaultControlMode(ControlMode::Position());
 
@@ -178,17 +179,11 @@ void CartesioRt::starting()
 
     // setting zero stiffness and damping
     _robot->getStiffness(_initial_stiffness);
-    std::cout<<"_initial_stiffness: "<<_initial_stiffness.transpose()<<std::endl;
     _robot->getDamping(_initial_damping);
-    std::cout<<"_initial_damping: "<<_initial_damping.transpose()<<std::endl;
     _zeros.setZero(_initial_stiffness.size());
-//    auto joints = _robot->getDevices<Hal::JointBase>();
-//    for(auto d : joints.get_device_vector())
-//    {
-//        d->set_stiffness_ref(0.);
-//        d->set_damping_ref(0.);
-//        d->move();
-//    }
+    _robot->setStiffness(_zeros);
+    _robot->setDamping(_zeros);
+    _robot->move();
 
     // transit to run
     start_completed();
@@ -256,15 +251,8 @@ void CartesioRt::stopping()
     _rt_active = false;
 
 
-//    auto joints = _robot->getDevices<Hal::JointBase>();
-//    unsigned int i = 0;
-//    for(auto d : joints.get_device_vector())
-//    {
-//        d->set_stiffness_ref(_initial_stiffness[i]);
-//        d->set_damping_ref(_initial_damping[i]);
-//        d->move();
-//        i++;
-//    }
+    _robot->setStiffness(_initial_stiffness);
+    _robot->setDamping(_initial_damping);
 
     _robot->setEffortReference(_zeros);
     _robot->move();
