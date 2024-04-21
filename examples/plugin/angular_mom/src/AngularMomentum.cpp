@@ -18,6 +18,7 @@ AngularMomentumImpl::AngularMomentumImpl(YAML::Node task_node,
 
 }
 
+
 Eigen::Vector3d AngularMomentumImpl::getReference() const
 {
     return _lref;

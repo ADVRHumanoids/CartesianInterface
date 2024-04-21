@@ -15,6 +15,6 @@ install(TARGETS CartesioAngularMomentumAddon
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 # Mark cpp header files for installation
-install(FILES "src/AngularMomentum.h"
+install(FILES "src/AngularMomentum.h" "src/AngularMomentumRos.h"
     DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
     )

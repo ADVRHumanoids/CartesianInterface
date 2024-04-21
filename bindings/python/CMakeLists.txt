@@ -24,7 +24,7 @@ if(${pybind11_FOUND})
 
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
     pybind11_add_module(pyci pyRosImpl.cpp)
-    target_link_libraries(pyci PRIVATE CartesianInterface)
+    target_link_libraries(pyci PRIVATE CartesianInterface CartesioAngularMomentumAddon)
 
     install(TARGETS pyci
             DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
