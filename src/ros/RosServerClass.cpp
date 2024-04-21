@@ -93,6 +93,8 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     
     /* Publish CoM position */
     Eigen::Vector3d com = _model->getCOM();
+    if(std::isnan(com[0]) || std::isnan(com[1]) || std::isnan(com[2]))
+        com<<0.,0.,0.;
     
     geometry_msgs::PointStamped com_msg;
     tf::pointEigenToMsg(com, com_msg.point);
