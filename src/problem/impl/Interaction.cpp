@@ -56,7 +56,6 @@ InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
         _impedance.mass.setIdentity();
     }
 
-    // _fmax.setConstant(1000.0);
     if(task_node["force_max"])
     {
         fmax = task_node["force_max"].as<std::vector<double>>();
@@ -68,8 +67,8 @@ InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
     }
     else
     {
-        // prefered to hardcoded default value
-        throw std::runtime_error("'force_max' is a required parameter");
+        double Inf = std::numeric_limits<double>::infinity();
+        _fmax << Inf, Inf, Inf, Inf, Inf, Inf;
     }
 
     if(_fmax.minCoeff() < 0)
@@ -134,7 +133,7 @@ bool XBot::Cartesian::InteractionTaskImpl::setForceLimits(const Eigen::Vector6d&
     }
 
     _fmax = fmax;
-    _fref = _fref.cwiseMin(_fmax).cwiseMax(-_fmax);
+    //_fref = _fref.cwiseMin(_fmax).cwiseMax(-_fmax);
 
     return true;
 
