@@ -122,7 +122,7 @@ auto py_task_get_force_lims(const InteractionTask& t)
 {
     Eigen::Vector6d l;
     t.getForceLimits(l);
-    return std::make_tuple(l);
+    return l;
 }
 
 auto py_get_pose_reference(const RosClient& r, const std::string& ee)
