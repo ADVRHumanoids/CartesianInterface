@@ -34,12 +34,6 @@ if(${pybind11_FOUND})
 
     install(TARGETS roscpp_utils
             DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
-            
-            
-    pybind11_add_module(affine3 pyAffine3d.cpp)
-
-    install(TARGETS affine3
-            DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
 
     pybind11_add_module(impedance pyImpedance.cpp)
     target_link_libraries(impedance PRIVATE CartesianInterface)
