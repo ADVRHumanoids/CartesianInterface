@@ -444,7 +444,11 @@ bool OpenSotImpl::update(double time, double period)
 
     using namespace std::chrono;
     auto tic = high_resolution_clock::now();
-    bool solver_success = _solver->solve(_x);
+    bool solver_success = true;
+    if(period >= 0)
+    {
+        solver_success = _solver->solve(_x);
+    }
     auto toc = high_resolution_clock::now();
 
 
@@ -473,6 +477,11 @@ bool OpenSotImpl::update(double time, double period)
     for(auto c : _constr_adapters)
     {
         c->processSolution(_x);
+    }
+
+    if(period < 0)
+    {
+        return true;
     }
 
     /* Set solution to model */
