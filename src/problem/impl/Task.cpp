@@ -278,12 +278,30 @@ void TaskDescriptionImpl::setTaskError(const Eigen::VectorXd& e)
 
 bool TaskDescriptionImpl::getTaskError(Eigen::VectorXd& e) const
 {
-    if(_task_error.size() == 0)
+    if(!_task_error)
     {
         return false;
     }
 
-    e = _task_error;
+    e = *_task_error;
+
+    return true;
+}
+
+void TaskDescriptionImpl::setTaskErrorJacobian(const Eigen::MatrixXd &j)
+{
+    _task_error_jac = j;
+}
+
+bool TaskDescriptionImpl::getTaskErrorJacobian(Eigen::MatrixXd &J) const
+{
+    if(!_task_error_jac)
+    {
+        return false;
+    }
+
+    J = *_task_error_jac;
+
     return true;
 }
 
@@ -370,6 +388,7 @@ const std::vector<int>& TaskDescriptionImpl::getIndices() const
 void TaskDescriptionImpl::setIndices(const std::vector<int> & value)
 {
     auto invalid_idx_predicate = [this](int idx){ return idx >= _size || idx < 0; };
+
     if(std::any_of(value.begin(), value.end(), invalid_idx_predicate))
     {
         throw std::out_of_range("indices out of range");
@@ -419,11 +438,22 @@ void TaskDescriptionImpl::reset()
 
 }
 
-bool TaskObserver::onWeightChanged() { return true; }
+bool TaskObserver::onWeightChanged()
+{
+    return true;
+}
 
-bool TaskObserver::onActivationStateChanged() { return true; }
+bool TaskObserver::onActivationStateChanged()
+{
+    return true;
+}
 
 bool TaskDescription::getTaskError(Eigen::VectorXd& e) const
+{
+    return false;
+}
+
+bool TaskDescription::getTaskErrorJacobian(Eigen::MatrixXd &J) const
 {
     return false;
 }

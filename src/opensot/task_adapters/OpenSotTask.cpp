@@ -124,10 +124,11 @@ void OpenSotTaskAdapter::update(double time, double period)
 
 void OpenSotTaskAdapter::processSolution(const Eigen::VectorXd& solution)
 {
-    _task_err.noalias() = _opensot_task->getWA()*solution -
-                          _opensot_task->getWb();
+    _task_err.noalias() = _opensot_task->getb();
 
     _ci_task->setTaskError(_task_err);
+
+    _ci_task->setTaskErrorJacobian(_opensot_task->getA());
 }
 
 TaskPtr OpenSotTaskAdapter::getOpenSotTask()

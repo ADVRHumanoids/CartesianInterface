@@ -174,6 +174,8 @@ void XBot::Cartesian::RosServerClass::publish_solution(ros::Time time)
 
     // apply log map to retrieve the motion representation of q
     // this has size = nv
+
+    // TODO use positionToMinimal instead of difference
     _sol_q = _model->difference(_sol_q, _model->getNeutralQ());
     
     // to deal with non-euclidean joints, we will publish the

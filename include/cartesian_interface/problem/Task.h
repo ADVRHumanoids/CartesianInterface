@@ -160,6 +160,13 @@ public:
     virtual bool getTaskError(Eigen::VectorXd& e) const;
 
     /**
+     * @brief getTaskErrorJacobian
+     * @param J
+     * @return
+     */
+    virtual bool getTaskErrorJacobian(Eigen::MatrixXd& J) const;
+
+    /**
      * @brief update is a loop function which is called at each control iteration
      * @param time is the value of the current controller time
      * @param period is the difference between to consecutive time values
