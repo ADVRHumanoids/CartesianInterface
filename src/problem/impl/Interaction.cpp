@@ -56,42 +56,37 @@ InteractionTaskImpl::InteractionTaskImpl(YAML::Node task_node,
         _impedance.mass.setIdentity();
     }
 
-    _fmin.setConstant(-1000.0);
-    _fmax.setConstant(1000.0);
-    if(task_node["force_min"])
-    {
-        fmin = task_node["force_min"].as<std::vector<double>>();
-        if(inertia.size() != 6)
-        {
-            throw std::runtime_error("'force_min' field for interaction tasks requires six values");
-        }
-        _fmin = Eigen::Vector6d::Map(fmin.data());
-    }
-
     if(task_node["force_max"])
     {
         fmax = task_node["force_max"].as<std::vector<double>>();
-        if(inertia.size() != 6)
+        if(fmax.size() != 6)
         {
             throw std::runtime_error("'force_max' field for interaction tasks requires six values");
         }
         _fmax = Eigen::Vector6d::Map(fmax.data());
     }
-
-    if((_fmax - _fmin).minCoeff() < 0)
+    else
     {
-        throw std::runtime_error("'force_max' must be component-wise greater-equal than 'force_min'");
+        double Inf = std::numeric_limits<double>::infinity();
+        _fmax << Inf, Inf, Inf, Inf, Inf, Inf;
     }
 
-    if(_fmax.minCoeff() < 0 || _fmin.maxCoeff() > 0)
+    if(_fmax.minCoeff() < 0)
     {
-        throw std::runtime_error("'force_max' must be >= 0 && 'force_min' must be <= 0");
+        throw std::runtime_error("'force_max' must be >= 0 ");
     }
 
     if(_impedance.stiffness.minCoeff() < 0 || _impedance.damping.minCoeff() < 0 || _impedance.mass.minCoeff() < 0)
     {
         throw std::runtime_error("Negative values detected in interaction parameters");
     }
+
+    _impedance_ref_link = this->getBaseLink();
+    if(task_node["impedance_ref_link"])
+    {
+        _impedance_ref_link = task_node["impedance_ref_link"].as<std::string>();
+    }
+
 
 }
 
@@ -105,10 +100,8 @@ const Eigen::Vector6d& XBot::Cartesian::InteractionTaskImpl::getForceReference()
     return _fref;
 }
 
-void XBot::Cartesian::InteractionTaskImpl::getForceLimits(Eigen::Vector6d& fmin,
-                                                          Eigen::Vector6d& fmax) const
+void XBot::Cartesian::InteractionTaskImpl::getForceLimits(Eigen::Vector6d& fmax) const
 {
-    fmin = _fmin;
     fmax = _fmax;
 }
 
@@ -127,26 +120,20 @@ bool XBot::Cartesian::InteractionTaskImpl::setImpedance(const Impedance& impedan
 
 void XBot::Cartesian::InteractionTaskImpl::setForceReference(const Eigen::Vector6d& f)
 {
-    _fref = f.cwiseMin(_fmax).cwiseMax(_fmin);
+    _fref = f.cwiseMin(_fmax).cwiseMax(-_fmax);
     _ref_timeout = getTime() + REF_TTL;
 }
 
-bool XBot::Cartesian::InteractionTaskImpl::setForceLimits(const Eigen::Vector6d& fmin,
-                                                          const Eigen::Vector6d& fmax)
+bool XBot::Cartesian::InteractionTaskImpl::setForceLimits(const Eigen::Vector6d& fmax)
 {
-    if((fmax - fmin).minCoeff() < 0)
+
+    if(fmax.minCoeff() < 0)
     {
         return false;
     }
 
-    if(fmax.minCoeff() < 0 || fmin.maxCoeff() > 0)
-    {
-        return false;
-    }
-
-    _fmin = fmin;
     _fmax = fmax;
-    _fref = _fref.cwiseMin(_fmax).cwiseMax(_fmin);
+    //_fref = _fref.cwiseMin(_fmax).cwiseMax(-_fmax);
 
     return true;
 
@@ -207,6 +194,36 @@ void XBot::Cartesian::InteractionTaskImpl::update(double time, double period)
 State XBot::Cartesian::InteractionTaskImpl::getStiffnessState() const
 {
 	return _state;
+}
+
+bool InteractionTaskImpl::setImpedanceRefLink(const std::string & new_impedance_ref_link)
+{
+    /* Check that new base link exists */
+    Eigen::Affine3d T;
+    if(!_model->getPose(new_impedance_ref_link, T))
+    {
+        XBot::Logger::error("New impedance ref link '%s' in not defined\n",
+                            new_impedance_ref_link.c_str());
+        return false;
+    }
+
+    /* Check that the task is not in reaching mode */
+    if( _state != State::Online )
+    {
+        XBot::Logger::error("Task '%s': unable to change impedance ref link while performing a reach\n",
+                            this->getDistalLink().c_str());
+        return false;
+    }
+
+    /* Update task */
+    _impedance_ref_link = new_impedance_ref_link;
+
+    return true;
+}
+
+const std::string & InteractionTaskImpl::getImpedanceRefLink() const
+{
+    return _impedance_ref_link;
 }
 
 

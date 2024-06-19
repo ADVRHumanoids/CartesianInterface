@@ -231,6 +231,10 @@ InteractionRos::InteractionRos(InteractionTask::Ptr task,
 	
 	_impd_pub = _ctx->nh().advertise<cartesian_interface::CartesianImpedance>(task->getName() + "/current_impedance"      , 1);
     _fref_pub = _ctx->nh().advertise<geometry_msgs::WrenchStamped           >(task->getName() + "/current_force_reference", 1);
+
+    _task_info_pub = _ctx->nh().advertise<cartesian_interface::InteractionTaskInfo>(
+                _task->getName() + "/interaction_task_properties", 1
+                );
 	
     _fref_sub = _ctx->nh().subscribe(task->getName() + "/force_reference", 1, &InteractionRos::on_fref_recv, this);
 	
@@ -242,12 +246,23 @@ InteractionRos::InteractionRos(InteractionTask::Ptr task,
 
     _set_impedance_srv = _ctx->nh().advertiseService(_task->getName() + "/set_impedance",
                                                      &InteractionRos::set_impedance_cb, this);
+
+    _set_impedance_ref_link_srv = _ctx->nh().advertiseService(_task->getName() + "/set_impedance_ref_link",
+                                                     &InteractionRos::set_impedance_ref_link_cb, this);
+
+    _set_force_limits_srv = _ctx->nh().advertiseService(_task->getName() + "/set_force_limits",
+                                                     &InteractionRos::set_force_limits_cb, this);
+    
+    _get_force_limits_srv = _ctx->nh().advertiseService(_task->getName() + "/get_force_limits",
+                                                     &InteractionRos::get_force_limits_cb, this);
 }
 
 bool InteractionRos::get_task_info_cb(cartesian_interface::GetInteractionTaskInfoRequest&  req,
 									  cartesian_interface::GetInteractionTaskInfoResponse& res)
 {
 	res.state = EnumToString(_ci_inter->getStiffnessState());
+    res.impedance_ref_link = _ci_inter->getImpedanceRefLink();
+    
     return true;
 }
 
@@ -261,6 +276,8 @@ bool InteractionRos::get_impedance_cb(cartesian_interface::GetImpedanceRequest& 
 	
 	tf::vectorEigenToMsg (impedance.damping.diagonal().head(3), res.impedance.linear.damping_ratio);
 	tf::vectorEigenToMsg (impedance.damping.diagonal().tail(3), res.impedance.angular.damping_ratio);
+
+    res.impedance.header.frame_id = _ci_inter->getImpedanceRefLink();
 
     return true;
 }
@@ -308,6 +325,46 @@ bool InteractionRos::set_impedance_cb(cartesian_interface::SetImpedanceRequest& 
 
 }
 
+bool InteractionRos::get_force_limits_cb(cartesian_interface::GetForceLimitsRequest&  req,
+									     cartesian_interface::GetForceLimitsResponse& res)
+{
+    Eigen::Vector6d fmax;
+    _ci_inter->getForceLimits(fmax);
+
+    tf::vectorEigenToMsg(fmax.head(3), res.fmax.force);
+    tf::vectorEigenToMsg(fmax.tail(3), res.fmax.torque);
+
+    return true;
+}
+
+bool InteractionRos::set_force_limits_cb(cartesian_interface::SetForceLimitsRequest& req,
+                                         cartesian_interface::SetForceLimitsResponse& res)
+
+{
+    Eigen::Vector3d force, torque;
+    Eigen::Vector6d fmax;
+
+    tf::vectorMsgToEigen(req.fmax.force, force);
+    tf::vectorMsgToEigen(req.fmax.torque, torque);
+
+    fmax << force, torque;
+
+    if (_ci_inter->setForceLimits(fmax))
+    {
+        res.message = fmt::format("Successfully set force limits"); // to: {}", fmax);
+        res.success = true;
+        return true;
+    }
+
+    else
+    {
+        res.message = fmt::format("Unable to set force limits"); // to: {}", fmax);
+        res.success = false;
+        return false;
+    }
+
+}
+
 void InteractionRos::run(ros::Time time)
 {
     CartesianRos::run(time);
@@ -329,6 +386,8 @@ void InteractionRos::run(ros::Time time)
 	
     _fref_pub.publish(fr);
 	_impd_pub.publish(cimp);
+
+    publish_task_info();
 }
 
 void InteractionRos::on_fref_recv(geometry_msgs::WrenchStampedConstPtr msg)
@@ -337,4 +396,37 @@ void InteractionRos::on_fref_recv(geometry_msgs::WrenchStampedConstPtr msg)
     tf::wrenchMsgToEigen(msg->wrench, fref);
 
     _ci_inter->setForceReference(fref);
+}
+
+void InteractionRos::publish_task_info()
+{
+    cartesian_interface::GetInteractionTaskInfo srv;
+    get_task_info_cb(srv.request, srv.response);
+
+    cartesian_interface::InteractionTaskInfo msg;
+    msg.state = srv.response.state;
+    msg.impedance_ref_link = srv.response.impedance_ref_link;
+
+    _task_info_pub.publish(msg);
+
+}
+
+bool InteractionRos::set_impedance_ref_link_cb(cartesian_interface::SetImpedanceRefLinkRequest & req,
+                                    cartesian_interface::SetImpedanceRefLinkResponse & res)
+{
+    auto old_impedance_ref_link = _ci_inter->getImpedanceRefLink();
+    res.success = _ci_inter->setImpedanceRefLink(req.impedance_ref_link);
+
+    if(res.success)
+    {
+        res.message = fmt::format("Successfully changed impedance ref link from '{}' to '{}' for task '{}'",
+                                  old_impedance_ref_link, _ci_inter->getImpedanceRefLink(), _ci_inter->getName());
+    }
+    else
+    {
+        res.message = fmt::format("Unable to change impedance ref link from '{}' to '{}' for task '{}'",
+                                  old_impedance_ref_link, req.impedance_ref_link, _ci_inter->getName());
+    }
+
+    return true;
 }

@@ -29,18 +29,19 @@ public:
     const Impedance& getImpedance() override;
 	
     const Eigen::Vector6d& getForceReference() const override;
-    void getForceLimits(Eigen::Vector6d& fmin,
-						Eigen::Vector6d& fmax) const override;
+    void getForceLimits(Eigen::Vector6d& fmax) const override;
 
     bool setImpedance(const Impedance & impedance) override;
 	
     void setForceReference(const Eigen::Vector6d& f) override;
-    bool setForceLimits(const Eigen::Vector6d& fmin,
-						const Eigen::Vector6d& fmax) override;
+    bool setForceLimits(const Eigen::Vector6d& fmax) override;
 						
 	void  abortStiffnessTransition() override;
 	bool  setStiffnessTransition(const Interpolator<Eigen::Matrix6d>::WayPointVector & way_points) override;
 	State getStiffnessState() const override;
+
+    const std::string& getImpedanceRefLink() const override;
+    bool setImpedanceRefLink(const std::string& new_impedance_ref_link) override;
 
 private:
 
@@ -53,9 +54,10 @@ private:
 
 		Eigen::Vector6d _force    ;
 		Eigen::Vector6d _force_max;
-		Eigen::Vector6d _force_min;
 		
 		State _stiffness_state;
+
+        std::string _impedance_ref_link;
 	};
 
     LockFreeQueue<DataToClient, 1024> _to_cli_queue;

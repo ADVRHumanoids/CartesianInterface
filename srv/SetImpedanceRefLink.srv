@@ -1,0 +1,4 @@
+string impedance_ref_link
+---
+bool success
+string message

@@ -10,6 +10,11 @@
 #include <cartesian_interface/GetInteractionTaskInfo.h>
 #include <cartesian_interface/GetImpedance.h>
 #include <cartesian_interface/SetImpedance.h>
+#include <cartesian_interface/SetImpedanceRefLink.h>
+#include <cartesian_interface/GetForceLimits.h>
+#include <cartesian_interface/SetForceLimits.h>
+
+#include <cartesian_interface/InteractionTaskInfo.h>
 
 namespace XBot { namespace Cartesian {
 
@@ -79,15 +84,27 @@ private:
 
     bool set_impedance_cb(cartesian_interface::SetImpedanceRequest& req,
                           cartesian_interface::SetImpedanceResponse& res);
-
+    
+    bool get_force_limits_cb(cartesian_interface::GetForceLimitsRequest&  req,
+                             cartesian_interface::GetForceLimitsResponse& res);
+    
+    bool set_force_limits_cb(cartesian_interface::SetForceLimitsRequest&  req,
+                             cartesian_interface::SetForceLimitsResponse& res);
+    
     ros::Subscriber              _fref_sub;
-    ros::Publisher               _fref_pub, _impd_pub;
+    ros::Publisher               _fref_pub, _impd_pub, _task_info_pub;
 	
     ros::ServiceServer _get_info_srv, _get_impedance_srv, _set_impedance_srv;
+    ros::ServiceServer _set_impedance_ref_link_srv, _get_force_limits_srv, _set_force_limits_srv;
 
     InteractionTask::Ptr         _ci_inter;
 	
 	std::unique_ptr<RCIAManager> _action  ;
+
+    void publish_task_info();
+
+    bool set_impedance_ref_link_cb(cartesian_interface::SetImpedanceRefLinkRequest& req,
+                          cartesian_interface::SetImpedanceRefLinkResponse& res);
 
 };
 

@@ -35,19 +35,21 @@ public:
     virtual const Impedance & getImpedance () = 0;
 	
     virtual const Eigen::Vector6d& getForceReference () const = 0;
-    virtual void getForceLimits (Eigen::Vector6d& fmin,
-                                 Eigen::Vector6d& fmax) const = 0;
+    virtual void getForceLimits (Eigen::Vector6d& fmax) const = 0;
 
     virtual bool setImpedance (const Impedance & impedance) = 0;
 	
 	
 	virtual void setForceReference (const Eigen::Vector6d& f) = 0;
-    virtual bool setForceLimits (const Eigen::Vector6d& fmin,
-                                 const Eigen::Vector6d& fmax)= 0;
+    virtual bool setForceLimits (const Eigen::Vector6d& fmax)= 0;
 	
 	virtual void  abortStiffnessTransition () = 0;
 	virtual bool  setStiffnessTransition (const Interpolator<Eigen::Matrix6d>::WayPointVector & way_points) = 0;
 	virtual State getStiffnessState () const = 0;
+
+    virtual const std::string& getImpedanceRefLink() const = 0;
+    virtual bool setImpedanceRefLink(const std::string& new_impedance_ref_link) = 0;
+
 
 };
 

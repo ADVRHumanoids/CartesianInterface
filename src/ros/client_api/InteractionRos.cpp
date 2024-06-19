@@ -38,6 +38,33 @@ InteractionRos::InteractionRos(std::string name,
         throw std::runtime_error(fmt::format("Non existent service '{}'",
                                              _set_impedance_cli.getService()));
     }
+
+    _set_impedance_ref_link_cli = _nh.serviceClient<SetImpedanceRefLink>(name + "/set_impedance_ref_link");
+
+    if(!_set_impedance_ref_link_cli.waitForExistence(ros::Duration(1.0)) || !_set_impedance_ref_link_cli.exists())
+    {
+        throw std::runtime_error(fmt::format("Non existent service '{}'",
+                                             _set_impedance_ref_link_cli.getService()));
+    }
+
+    _get_force_limits_cli = _nh.serviceClient<GetForceLimits>(name + "/get_force_limits");
+    
+	if(!_get_force_limits_cli.waitForExistence(ros::Duration(1.0)) || !_get_force_limits_cli.exists())
+    {
+        throw std::runtime_error(fmt::format("Non existent service '{}'",
+                                             _get_force_limits_cli.getService()));
+    }
+
+    _set_force_limits_cli = _nh.serviceClient<SetForceLimits>(name + "/set_force_limits");
+    
+	if(!_set_force_limits_cli.waitForExistence(ros::Duration(1.0)) || !_set_force_limits_cli.exists())
+    {
+        throw std::runtime_error(fmt::format("Non existent service '{}'",
+                                             _set_force_limits_cli.getService()));
+    }
+
+    _task_info_sub = _nh.subscribe(name + "/interaction_task_properties", 10,
+                                 &InteractionRos::on_task_info_recv, this);
         
     if(!_action_cli.isServerConnected())
     {
@@ -55,6 +82,7 @@ GetInteractionTaskInfoResponse InteractionRos::get_task_info() const
         GetInteractionTaskInfoResponse res;
         
 		res.state = _info.state;
+        res.state = _info.impedance_ref_link;
         
         return res;
     }
@@ -108,14 +136,6 @@ const Eigen::Vector6d& InteractionRos::getForceReference () const
 	return _f;
 }
 
-void InteractionRos::getForceLimits (Eigen::Vector6d& fmin, Eigen::Vector6d& fmax) const
-{
-	ROS_WARN("unsupported function: getForceLimits");
-	
-	fmin.setZero();
-	fmax.setZero();
-}
-
 bool InteractionRos::setImpedance (const Impedance & impedance)
 {
     cartesian_interface::SetImpedance srv;
@@ -142,10 +162,39 @@ void InteractionRos::setForceReference (const Eigen::Vector6d& f)
 	ROS_WARN("unsupported function: setForceReference");
 }
 
-bool InteractionRos::setForceLimits (const Eigen::Vector6d& fmin, const Eigen::Vector6d& fmax)
+void InteractionRos::getForceLimits (Eigen::Vector6d& fmax) const
 {
-    ROS_WARN("unsupported function: setForceLimits");
-    return false;
+	cartesian_interface::GetForceLimits srv;
+    if(!_get_force_limits_cli.call(srv))
+    {
+        throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                             _get_force_limits_cli.getService()));
+    }
+	
+	// get current state for task (note: should it be getPoseReference instead?)
+	Eigen::Vector3d force, torque;
+		
+	tf::vectorMsgToEigen(srv.response.fmax.force, force);
+	tf::vectorMsgToEigen(srv.response.fmax.torque, torque);
+			
+	fmax << force, torque;
+}
+
+bool InteractionRos::setForceLimits (const Eigen::Vector6d& fmax)
+{
+    SetForceLimits srv;
+    tf::vectorEigenToMsg(fmax.head(3), srv.request.fmax.force);
+    tf::vectorEigenToMsg(fmax.tail(3), srv.request.fmax.torque);
+
+    if(!_set_force_limits_cli.call(srv))
+    {
+        throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                             _set_force_limits_cli.getService()));
+    }
+
+    ROS_INFO("%s", srv.response.message.c_str());
+
+    return srv.response.success;
 }
 
 State InteractionRos::getStiffnessState() const
@@ -189,6 +238,33 @@ bool InteractionRos::setStiffnessTransition(const Interpolator<Eigen::Matrix6d>:
                          boost::bind(&InteractionRos::on_action_active, this),
                          boost::bind(&InteractionRos::on_action_feedback, this, _1));
     return true;
+}
+
+const std::string & InteractionRos::getImpedanceRefLink() const
+{
+    _impedance_ref_link = get_task_info().impedance_ref_link;
+    return _impedance_ref_link;
+}
+
+bool InteractionRos::setImpedanceRefLink(const std::string & new_impedance_ref_link)
+{
+    SetImpedanceRefLink srv;
+    srv.request.impedance_ref_link = new_impedance_ref_link;
+
+    if(!_set_impedance_ref_link_cli.call(srv))
+    {
+        throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                             _set_impedance_ref_link_cli.getService()));
+    }
+
+    ROS_INFO("%s", srv.response.message.c_str());
+
+    return srv.response.success;
+}
+
+void InteractionRos::on_task_info_recv(InteractionTaskInfoConstPtr msg)
+{
+    _info = *msg;
 }
 
 void InteractionRos::on_action_feedback(const ReachCartesianImpedanceFeedbackConstPtr & feedback)

@@ -111,7 +111,9 @@ PYBIND11_MODULE(pyci, m) {
             .def("setForceLimits", &InteractionTask::setForceLimits)
             .def("setStiffnessTransition", &InteractionTask::setStiffnessTransition)
             .def("abortStiffnessTransition", &InteractionTask::abortStiffnessTransition)
-            .def("getStiffnessState", &InteractionTask::getStiffnessState);
+            .def("getStiffnessState", &InteractionTask::getStiffnessState)
+            .def("setImpedanceRefLink", &InteractionTask::setImpedanceRefLink)
+            .def("getImpedanceRefLink", &InteractionTask::getImpedanceRefLink);
 
     py::class_<ClientApi::InteractionRos,
             InteractionTask,
