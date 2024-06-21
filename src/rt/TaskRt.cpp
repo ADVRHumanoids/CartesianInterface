@@ -178,9 +178,6 @@ TaskRt::Ptr TaskRt::MakeInstance(TaskDescription::Ptr task)
     }
     else if(!task->getLibName().empty()) /* Otherwise, construct plugin, or fallback to generic Task interface */
     {
-        
-        std::cout << "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY" << task->getType() << std::endl;
-        
         TaskRt * task_rt = nullptr;
         try
         {
