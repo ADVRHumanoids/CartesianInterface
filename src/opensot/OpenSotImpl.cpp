@@ -418,10 +418,7 @@ bool OpenSotImpl::update(double time, double period)
 
     _model->getJointPosition(_q);
     _model->getJointVelocity(_dq);
-    if(_vars.getSize() == 0)
-    {
-        _x = _q;
-    }
+
     
     /* Update all plugin-based tasks and constraints */
     for(auto t : _task_adapters)
