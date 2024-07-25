@@ -98,10 +98,7 @@ void RosExecutor::init_load_robot()
         _robot->setControlMode(XBot::ControlMode::Position());
     }
 
-    if(_robot && _robot->model().isFloatingBase())
-    {
-        _fb_pub = _nh.advertise<geometry_msgs::Twist>("floating_base_velocity", 1);
-    }
+
 
 
     /* Obtain robot (if connection available) */
@@ -183,6 +180,11 @@ void RosExecutor::init_load_model()
     _ctx = std::make_shared<Context>(
         std::make_shared<Parameters>(_period),
         _model);
+
+    if(_model->isFloatingBase())
+    {
+        _fb_pub = _nh.advertise<geometry_msgs::Twist>("floating_base_velocity", 1);
+    }
 
 }
 
