@@ -6,7 +6,8 @@ add_library(CartesioAngularMomentumAddon SHARED
 
 target_link_libraries(CartesioAngularMomentumAddon PRIVATE
     ${OpenSoT_LIBRARIES}
-    CartesianInterface)
+    CartesianInterface
+    CartesianInterfaceRos)
 
 install(TARGETS CartesioAngularMomentumAddon
     EXPORT ${PROJECT_NAME}Targets

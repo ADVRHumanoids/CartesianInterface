@@ -2,46 +2,54 @@
 #include "fmt/format.h"
 #include "utils/DynamicLoading.h"
 
-#include <cartesian_interface/SetLambda.h>
-#include <cartesian_interface/SetLambda2.h>
-#include <cartesian_interface/SetWeight.h>
-#include <cartesian_interface/SetTaskActive.h>
+#include "../utils/RosUtils.h"
 
-#include "ros/client_api/CartesianRos.h"
-#include "ros/client_api/InteractionRos.h"
-#include "ros/client_api/PosturalRos.h"
+// #include "ros/client_api/CartesianRos.h"
+// #include "ros/client_api/InteractionRos.h"
+// #include "ros/client_api/PosturalRos.h"
 
 #include <xbot2_interface/logger.h>
 
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ClientApi;
+using namespace std::chrono_literals;
 
 TaskRos::TaskRos(std::string name,
-                 ros::NodeHandle nh):
-    _nh(nh),
+                 rclcpp::Node::SharedPtr node):
+    _node(node),
     _name(name),
     _async(false)
 {
     // task property getter service
-    _task_prop_cli = _nh.serviceClient<cartesian_interface::GetTaskInfo>(name + "/get_task_properties");
+    _task_prop_cli = _node->create_client<GetTaskInfo>(name + "/get_task_properties");
 
-    if(!_task_prop_cli.waitForExistence(ros::Duration(1.0)) || !_task_prop_cli.exists())
+    while(!_task_prop_cli->wait_for_service(1s))
     {
-        throw std::runtime_error(fmt::format("non existent service '{}'",
-                                             _task_prop_cli.getService()));
+        RCLCPP_INFO_STREAM(_node->get_logger(),
+                           fmt::format("waiting for service '{}'",
+                                       _task_prop_cli->get_service_name())
+                           );
     }
 
     // task property setter services
-    _set_lambda_cli = _nh.serviceClient<cartesian_interface::SetLambda>(name + "/set_lambda");
-    _set_lambda2_cli = _nh.serviceClient<cartesian_interface::SetLambda2>(name + "/set_lambda2");
-    _set_weight_cli = _nh.serviceClient<cartesian_interface::SetWeight>(name + "/set_weight");
-    _activate_cli = _nh.serviceClient<cartesian_interface::SetTaskActive>(name + "/set_active");
-    _task_changed_sub = _nh.subscribe(name + "/task_changed_event", 10,
-                                     &TaskRos::on_task_changed_ev_recv, this);
+    _set_lambda_cli = _node->create_client<SetLambda>(name + "/set_lambda");
+    _set_lambda2_cli = _node->create_client<SetLambda2>(name + "/set_lambda2");
+    _set_weight_cli = _node->create_client<SetWeight>(name + "/set_weight");
+    _activate_cli = _node->create_client<SetTaskActive>(name + "/set_active");
+
+    //
+    _task_changed_sub = ::create_subscription<std_msgs::msg::String>(
+        _node,
+        name + "/task_changed_event",
+        &TaskRos::on_task_changed_ev_recv, this,
+        10);
 
     // task property getter subscriber
-    _task_info_sub = _nh.subscribe(name + "/task_properties", 10,
-                                   &TaskRos::on_task_info_recv, this);
+    _task_info_sub = ::create_subscription<TaskInfo>(
+        _node,
+        name + "/task_properties",
+        &TaskRos::on_task_info_recv, this,
+        10);
 
 }
 
@@ -85,30 +93,41 @@ bool TaskRos::setWeight(const Eigen::MatrixXd& value)
 {
     int size = getSize();
 
+    // check weight size
     if(value.rows() != size || value.cols() != size)
     {
-
         Logger::error("%s \n",
-                      fmt::format("Invalid weight size ({} x {}), expected {} x {}",
+                      fmt::format("invalid weight size ({} x {}), expected {} x {}",
                                   value.rows(), value.cols(),
                                   size, size).c_str());
 
         return false;
     }
 
-    cartesian_interface::SetWeight srv;
-    srv.request.weight.resize(size*size);
-    Eigen::MatrixXf::Map(srv.request.weight.data(),
+    // fill in request
+    auto req = std::make_shared<SetWeight::Request>();
+    req->weight.resize(size*size);
+    Eigen::MatrixXf::Map(req->weight.data(),
                          size, size) = value.cast<float>();
 
-    if(!_set_weight_cli.call(srv))
+    auto fut = _set_weight_cli->async_send_request(req);
+
+    if(rclcpp::spin_until_future_complete(_node, fut, 1s)
+        == rclcpp::FutureReturnCode::SUCCESS)
     {
+        RCLCPP_INFO_STREAM(_node->get_logger(),
+                           fut.get()->message.c_str());
+    }
+    else
+    {
+        RCLCPP_ERROR(_node->get_logger(),
+                     "service %s failed",
+                     _set_weight_cli->get_service_name());
+
         return false;
     }
 
-    ROS_INFO("%s", srv.response.message.c_str());
-
-    return srv.response.success;
+    return fut.get()->success;
 
 }
 
@@ -132,28 +151,35 @@ double TaskRos::getLambda() const
 {
     auto res = get_task_info();
 
-    return res.lambda;
+    return res.lambda1;
 }
 
 void TaskRos::setLambda(double value)
 {
-    cartesian_interface::SetLambda srv;
-    srv.request.lambda = value;
+    auto req = std::make_shared<SetLambda::Request>();
 
-    if(!_set_lambda_cli.call(srv))
+    req->lambda1 = value;
+
+    auto fut = _set_lambda_cli->async_send_request(req);
+
+    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
     {
-        throw std::runtime_error(fmt::format("Unable to call service '{}'",
-                                             _set_lambda_cli.getService()));
-    }
+        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
 
-    if(!srv.response.success)
+        if(fut.get()->success)
+        {
+            return;
+        }
+
+        throw std::runtime_error(fmt::format("service '{}' returned false: {}",
+                                             _set_lambda_cli->get_service_name(),
+                                             fut.get()->message));
+    }
+    else
     {
-        throw std::runtime_error(fmt::format("Service '{}' returned false: {}",
-                                             _set_lambda_cli.getService(),
-                                             srv.response.message));
+        throw std::runtime_error(fmt::format("unable to call service '{}'",
+                                             _set_lambda_cli->get_service_name()));
     }
-
-    ROS_INFO("%s", srv.response.message.c_str());
 
 }
 
@@ -166,36 +192,45 @@ double TaskRos::getLambda2() const
 
 bool TaskRos::setLambda2(double value)
 {
-    cartesian_interface::SetLambda2 srv;
-    srv.request.lambda2 = value;
-    srv.request.auto_lambda2 = value == -1;
+    auto req = std::make_shared<SetLambda2::Request>();
 
-    if(!_set_lambda2_cli.call(srv))
+    auto cli = _set_lambda2_cli;
+
+    req->lambda2 = value;
+
+    req->auto_lambda2 = (value == -1.0);
+
+    auto fut = cli->async_send_request(req);
+
+    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
     {
-        throw std::runtime_error(fmt::format("Unable to call service '{}'",
-                                             _set_lambda2_cli.getService()));
-    }
+        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
 
-    if(!srv.response.success)
+        if(fut.get()->success)
+        {
+            return true;
+        }
+
+        throw std::runtime_error(fmt::format("service '{}' returned false: {}",
+                                             cli->get_service_name(),
+                                             fut.get()->message));
+    }
+    else
     {
-        throw std::runtime_error(fmt::format("Service '{}' returned false: {}",
-                                             _set_lambda2_cli.getService(),
-                                             srv.response.message));
+        throw std::runtime_error(fmt::format("unable to call service '{}'",
+                                             cli->get_service_name()));
     }
-
-    ROS_INFO("%s", srv.response.message.c_str());
-    return true;
 }
 
 const std::vector<std::string>& TaskRos::getDisabledJoints() const
 {
-    throw std::runtime_error(fmt::format("Unsupported function '{}'",
+    throw std::runtime_error(fmt::format("unsupported function '{}'",
                                          __PRETTY_FUNCTION__));
 }
 
 void TaskRos::setDisabledJoints(const std::vector<std::string>& value)
 {
-    throw std::runtime_error(fmt::format("Unsupported function '{}'",
+    throw std::runtime_error(fmt::format("unsupported function '{}'",
                                          __PRETTY_FUNCTION__));
 }
 
@@ -209,18 +244,32 @@ ActivationState TaskRos::getActivationState() const
 
 bool TaskRos::setActivationState(const ActivationState& value)
 {
-    cartesian_interface::SetTaskActive srv;
-    srv.request.activation_state = (value == ActivationState::Enabled);
+    auto req = std::make_shared<SetTaskActive::Request>();
 
-    if(!_activate_cli.call(srv))
+    auto cli = _activate_cli;
+
+    req->activation_state = (value == ActivationState::Enabled);
+
+    auto fut = cli->async_send_request(req);
+
+    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
     {
-        throw std::runtime_error(fmt::format("Unable to call service '{}'",
-                                             _activate_cli.getService()));
+        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
+
+        if(fut.get()->success)
+        {
+            return true;
+        }
+
+        throw std::runtime_error(fmt::format("service '{}' returned false: {}",
+                                             cli->get_service_name(),
+                                             fut.get()->message));
     }
-
-    ROS_INFO("%s", srv.response.message.c_str());
-
-    return srv.response.success;
+    else
+    {
+        throw std::runtime_error(fmt::format("unable to call service '{}'",
+                                             cli->get_service_name()));
+    }
 }
 
 
@@ -265,15 +314,15 @@ bool TaskRos::asyncMode() const
 }
 
 
-cartesian_interface::GetTaskInfoResponse TaskRos::get_task_info() const
+GetTaskInfo::Response TaskRos::get_task_info() const
 {
     if(asyncMode())
     {
-        cartesian_interface::GetTaskInfoResponse res;
+        GetTaskInfo::Response res;
         res.name = _info.name;
         res.size = _info.size;
         res.type = _info.type;
-        res.lambda = _info.lambda;
+        res.lambda1 = _info.lambda1;
         res.lambda2 = _info.lambda2;
         res.weight = _info.weight;
         res.indices = _info.indices;
@@ -283,23 +332,30 @@ cartesian_interface::GetTaskInfoResponse TaskRos::get_task_info() const
         return res;
     }
 
-    cartesian_interface::GetTaskInfo srv;
-    if(!_task_prop_cli.call(srv))
-    {
-        throw std::runtime_error(fmt::format("Unable to call service '{}'",
-                                             _task_prop_cli.getService()));
-    }
+    auto req = std::make_shared<GetTaskInfo::Request>();
 
-    return srv.response;
+    auto cli = _task_prop_cli;
+
+    auto fut = cli->async_send_request(req);
+
+    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        return *fut.get();
+    }
+    else
+    {
+        throw std::runtime_error(fmt::format("unable to call service '{}'",
+                                             cli->get_service_name()));
+    }
 
 }
 
-void TaskRos::on_task_info_recv(cartesian_interface::TaskInfoConstPtr msg)
+void TaskRos::on_task_info_recv(TaskInfo::ConstSharedPtr msg)
 {
     _info = *msg;
 }
 
-void TaskRos::on_task_changed_ev_recv(std_msgs::StringConstPtr msg)
+void TaskRos::on_task_changed_ev_recv(std_msgs::msg::String::ConstSharedPtr msg)
 {
     notifyTaskChanged(msg->data);
 }
@@ -307,7 +363,7 @@ void TaskRos::on_task_changed_ev_recv(std_msgs::StringConstPtr msg)
 TaskDescription::Ptr LoadFromLib(std::string name,
                                  std::string type,
                                  std::string lib_name,
-                                 ros::NodeHandle nh)
+                                 rclcpp::Node::SharedPtr node)
 {
     if(lib_name.empty())
     {
@@ -319,7 +375,7 @@ TaskDescription::Ptr LoadFromLib(std::string name,
         auto task_rawptr = CallFunction<TaskRos*>(lib_name,
                                                   "create_cartesio_" + type + "_ros_client_api",
                                                   name,
-                                                  nh,
+                                                  node,
                                                   detail::Version CARTESIO_ABI_VERSION);
 
         return TaskDescription::Ptr(task_rawptr);
@@ -345,35 +401,32 @@ TaskDescription::Ptr LoadFromLib(std::string name,
 TaskDescription::Ptr TaskRos::MakeInstance(std::string name,
                                            std::vector<std::string> type_list,
                                            std::string lib_name,
-                                           ros::NodeHandle nh)
+                                           rclcpp::Node::SharedPtr node)
 {
 
     for(auto type : type_list)
     {
-        if(auto task = LoadFromLib(name, type, lib_name, nh))
+        if(auto task = LoadFromLib(name, type, lib_name, node))
         {
             return task;
         }
-        else if(type == "Interaction")
-		{
-			return std::make_shared<InteractionRos>(name, nh);
-		}
-        else if(type == "Cartesian")
+  //       else if(type == "Interaction")
+        // {
+        // 	return std::make_shared<InteractionRos>(name, nh);
+        // }
+  //       else if(type == "Cartesian")
+  //       {
+  //           return std::make_shared<CartesianRos>(name, nh);
+  //       }
+  //       else if(type == "Postural")
+  //       {
+  //           return std::make_shared<PosturalRos>(name, nh);
+  //       }
+        else
         {
-            return std::make_shared<CartesianRos>(name, nh);
+            return std::make_shared<TaskRos>(name, node);
         }
-        else if(type == "Postural")
-        {
-            return std::make_shared<PosturalRos>(name, nh);
-        }
-        else if(type == "Task")
-        {
-            return std::make_shared<TaskRos>(name, nh);
-        }
-
     }
-
-
 
     return nullptr;
 

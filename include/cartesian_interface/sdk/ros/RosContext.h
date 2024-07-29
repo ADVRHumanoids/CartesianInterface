@@ -1,7 +1,7 @@
 #ifndef ROSCONTEXT_H
 #define ROSCONTEXT_H
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <cartesian_interface/Context.h>
 
 namespace XBot { namespace Cartesian {
@@ -13,18 +13,18 @@ public:
 
     CARTESIO_DECLARE_SMART_PTR(RosContext)
 
-    RosContext(ros::NodeHandle nh,
+    RosContext(rclcpp::Node::SharedPtr node,
                std::string tf_prefix,
                Context::ConstPtr ci_context);
 
-    ros::NodeHandle& nh();
+    rclcpp::Node::SharedPtr node();
     const std::string& tf_prefix() const;
     const std::string& tf_prefix_slash() const;
     Context::ConstPtr ci_context() const;
 
 private:
 
-    ros::NodeHandle _nh;
+    rclcpp::Node::SharedPtr _node;
     std::string _tf_prefix;
     std::string _tf_prefix_slash;
     Context::ConstPtr _ci_ctx;

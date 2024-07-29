@@ -4,7 +4,7 @@ project(cartesian_interface VERSION 3.0.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
@@ -14,6 +14,7 @@ find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
 find_package(estimation_utils REQUIRED)
 
+
 # optional packages
 find_package(GLPK QUIET)
 if(${GLPK_FOUND})
@@ -21,13 +22,10 @@ if(${GLPK_FOUND})
     add_definitions( -D_GLPK_FOUND=${GLPK_FOUND} )
 endif()
 
-
 option(CARTESIO_USE_ALGLIB "Support spline trajectories with alglib" OFF)
 if(${CARTESIO_USE_ALGLIB})
     find_package(alglib QUIET)
 endif()
-
-add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS)
 
 include_directories(include
     include/${PROJECT_NAME}/external
@@ -42,14 +40,10 @@ include_directories(include
 set(CartesianInterface_SRC
     src/Context.cpp
     src/CartesianInterfaceImpl.cpp
-    src/utils/LockfreeBufferImpl.cpp
-    src/utils/ManipulabilityAnalyzer.cpp
     src/problem/ProblemDescription.cpp
     src/problem/impl/Cartesian.cpp
     src/problem/impl/Com.cpp
     src/problem/impl/Limits.cpp
-    src/problem/impl/OmniWheels4X.cpp
-    src/problem/impl/Gaze.cpp
     src/problem/impl/Postural.cpp
     src/problem/impl/Subtask.cpp
     src/problem/impl/Interaction.cpp
@@ -65,11 +59,11 @@ set(CartesianInterface_SRC
     #        src/problem/MinJointVel.cpp
     )
 
-# OpenSot implementation
+# opensot sources
 set(CartesianInterfaceSOT_SRC
     src/opensot/task_adapters/OpenSotTask.cpp
     src/opensot/task_adapters/OpenSotCartesian.cpp
-    # src/opensot/task_adapters/OpenSotInteraction.cpp
+    src/opensot/task_adapters/OpenSotInteraction.cpp
     src/opensot/task_adapters/OpenSotCom.cpp
     src/opensot/task_adapters/OpenSotPostural.cpp
     src/opensot/task_adapters/OpenSotSubtask.cpp
@@ -119,7 +113,7 @@ add_library(CartesianInterface SHARED
     )
 
 # compile ros library
-#add_subdirectory(src/ros)
+add_subdirectory(src/ros)
 
 #target_link_libraries(CartesianInterface
 #    PRIVATE
@@ -145,7 +139,6 @@ install(TARGETS CartesianInterfaceCore
     LIBRARY DESTINATION lib
     )
 
-
 # compile opensot implementation
 add_library(CartesianInterfaceSolverOpenSot SHARED
     ${CartesianInterfaceSOT_SRC}
@@ -164,6 +157,7 @@ install(TARGETS CartesianInterfaceSolverOpenSot
     )
 
 
+
 option(CARTESIO_COMPILE_EXAMPLES "Compile examples" OFF)
 if(${CARTESIO_COMPILE_EXAMPLES})
     add_subdirectory(examples)
@@ -174,12 +168,18 @@ add_subdirectory(bindings/python/)
 include(GenerateDeb)
 
 
+
 # Mark cpp header files for installation
 install(DIRECTORY include/cartesian_interface/
     DESTINATION include/cartesian_interface
     FILES_MATCHING PATTERN "*.h*"
     PATTERN ".svn" EXCLUDE
     )
+
+install(DIRECTORY launch
+    DESTINATION share/${PROJECT_NAME}
+    )
+
 
 include(ExportCartesianInterface)
 export_cartesian_interface()

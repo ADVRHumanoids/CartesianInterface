@@ -1,4 +1,5 @@
 #include "ros/server_api/PosturalRos.h"
+#include "../utils/RosUtils.h"
 
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ServerApi;
@@ -10,19 +11,23 @@ PosturalRos::PosturalRos(PosturalTask::Ptr task,
 {
     registerType("Postural");
 
-    _current_ref_pub = _ctx->nh().advertise<sensor_msgs::JointState>(task->getName() + "/current_reference", 1);
+    _current_ref_pub = context->node()->create_publisher<JointState>(
+        task->getName() + "/current_reference", 1);
 
-    _ref_sub = _ctx->nh().subscribe(task->getName() + "/reference", 1,
-                                   &PosturalRos::on_ref_recv, this);
+    _ref_sub = ::create_subscription<JointState>(context->node(),
+                                                 task->getName() + "/reference",
+                                                 &PosturalRos::on_ref_recv,
+                                                 this,
+                                                 1);
 }
 
-void PosturalRos::run(ros::Time time)
+void PosturalRos::run(rclcpp::Time time)
 {
     TaskRos::run(time);
 
-    sensor_msgs::JointState msg;
+    JointState msg;
 
-    if(_current_ref_pub.getNumSubscribers() == 0)
+    if(_current_ref_pub->get_subscription_count() == 0)
     {
         return;
     }
@@ -48,10 +53,10 @@ void PosturalRos::run(ros::Time time)
         i++;
     }
 
-    _current_ref_pub.publish(msg);
+    _current_ref_pub->publish(msg);
 }
 
-void PosturalRos::on_ref_recv(sensor_msgs::JointStateConstPtr msg)
+void PosturalRos::on_ref_recv(JointState::ConstSharedPtr msg)
 {
     JointNameMap posture_ref;
 

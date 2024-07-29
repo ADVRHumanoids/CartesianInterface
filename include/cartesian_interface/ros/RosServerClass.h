@@ -3,28 +3,34 @@
 
 #include <functional>
 
-#include <ros/ros.h>
-#include <ros/callback_queue.h>
+#include <rclcpp/rclcpp.hpp>
 
-#include <eigen_conversions/eigen_msg.h>
-#include <cartesian_interface/GetTaskList.h>
-#include <cartesian_interface/ResetWorld.h>
-#include <cartesian_interface/SetTransform.h>
-#include <std_srvs/Empty.h>
-#include <std_srvs/SetBool.h>
-#include <std_srvs/Trigger.h>
-#include <sensor_msgs/JointState.h>
+#include <cartesian_interface/srv/get_task_list.hpp>
+#include <cartesian_interface/srv/reset_world.hpp>
+#include <cartesian_interface/srv/set_transform.hpp>
 
-#include <tf/transform_broadcaster.h>
-#include <tf_conversions/tf_eigen.h>
-#include <cartesian_interface/utils/RobotStatePublisher.h>
+#include <std_msgs/msg/empty.hpp>
+#include <std_srvs/srv/set_bool.hpp>
+#include <std_srvs/srv/trigger.hpp>
 
+#include <sensor_msgs/msg/joint_state.hpp>
+
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_eigen/tf2_eigen.hpp>
+
+#include <cartesian_interface/ros/utils/RobotStatePublisher.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
-
 #include <cartesian_interface/sdk/ros/RosContext.h>
 #include <cartesian_interface/sdk/ros/server_api/TaskRos.h>
 
 namespace XBot { namespace Cartesian {
+
+    using namespace cartesian_interface::msg;
+    using namespace cartesian_interface::srv;
+    using namespace geometry_msgs::msg;
+    using namespace sensor_msgs::msg;
+    using namespace std_srvs::srv;
+    using namespace std_msgs::msg;
 
     /**
      * @brief The RosServerClass exposes a complete ROS API to the world.
@@ -48,7 +54,8 @@ namespace XBot { namespace Cartesian {
         };
 
         RosServerClass(CartesianInterfaceImpl::Ptr intfc,
-                       Options opt = Options()
+                       Options opt = Options(),
+                       rclcpp::Node::SharedPtr node = rclcpp::Node::SharedPtr()
                       );
 
         /**
@@ -74,24 +81,27 @@ namespace XBot { namespace Cartesian {
         void init_reset_world_service();
         void init_heartbeat_pub();
         void init_load_ros_task_api();
-        void publish_solution(ros::Time time);
-        void publish_ref_tf(ros::Time time);
-        void publish_world_tf(ros::Time time);
+        void publish_solution(rclcpp::Time time);
+        void publish_ref_tf(rclcpp::Time time);
+        void publish_world_tf(rclcpp::Time time);
 
-        void heartbeat_cb(const ros::TimerEvent& ev);
-        bool reset_cb(std_srvs::SetBoolRequest& req,
-                      std_srvs::SetBoolResponse& res);
-        bool task_list_cb(cartesian_interface::GetTaskListRequest& req, 
-                          cartesian_interface::GetTaskListResponse& res);
+        void heartbeat_cb();
+
+        bool reset_cb(SetBool::Request::ConstSharedPtr req,
+                      SetBool::Response::SharedPtr res);
+
+        bool task_list_cb(GetTaskList::Request::ConstSharedPtr req,
+                          GetTaskList::Response::SharedPtr res);
         
-        bool reset_world_cb(cartesian_interface::ResetWorldRequest& req, 
-                            cartesian_interface::ResetWorldResponse& res);
+        bool reset_world_cb(ResetWorld::Request::ConstSharedPtr req,
+                            ResetWorld::Response::SharedPtr res);
 
-        bool reset_base_cb(cartesian_interface::SetTransformRequest &req,
-                           cartesian_interface::SetTransformResponse &res);
+        bool reset_base_cb(SetTransform::Request::ConstSharedPtr req,
+                           SetTransform::Response::SharedPtr res);
 
-        ros::CallbackQueue _cbk_queue;
-        ros::NodeHandle _nh;
+        rclcpp::Node::SharedPtr _node;
+
+        bool _spin_node;
 
         RosContext::Ptr _ros_ctx;
 
@@ -104,17 +114,15 @@ namespace XBot { namespace Cartesian {
 
         CartesianInterface::Ptr _ci;
         ModelInterface::ConstPtr _model;
-        tf::TransformBroadcaster _tf_broadcaster;
         std::unique_ptr<RsPub> _rspub;
-        ros::Publisher _com_pub, _solution_pub;
-        std::vector<ros::Publisher> _wrench_pubs;
-        bool _wrench_pubs_inited;
-        ros::ServiceServer _reset_srv, 
+        rclcpp::Publisher<PointStamped>::SharedPtr _com_pub;
+        rclcpp::Publisher<JointState>::SharedPtr _solution_pub;
+        rclcpp::ServiceBase::SharedPtr _reset_srv,
                            _tasklist_srv, 
                            _reset_world_srv, 
                            _reset_base_srv;
-        ros::Timer _heartbeat_timer;
-        ros::Publisher _heartbeat_pub;
+        rclcpp::TimerBase::SharedPtr _heartbeat_timer;
+        rclcpp::Publisher<Empty>::SharedPtr _heartbeat_pub;
 
         
         

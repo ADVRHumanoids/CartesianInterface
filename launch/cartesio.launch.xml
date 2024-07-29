@@ -1,0 +1,44 @@
+<launch>
+
+    <arg name="solver" default="OpenSot"/>
+    <arg name="prefix" default=""/>
+    <arg name="rate" default="100.0"/>
+    <arg name="tf_prefix" default="ci"/>
+    <arg name="markers" default="true"/>
+    <arg name="namespace" default="/"/>
+    <arg name="is_model_floating_base" default="true"/>
+    <arg name="xbot" default="false"/>
+    <arg name="world_frame_link" default="!"/>
+    <arg name="solution_topic" default="!"/>
+    <arg name="enable_otg" default="true"/>
+    <arg name="problem_description_filename"/>
+
+
+
+    <node pkg="cartesian_interface" exec="ros_server_node"
+                                    name="ros_server_node"
+                                    output="screen"
+                                    launch-prefix="$(var prefix)">
+<!--        <remap from="robot_description" to="/xbotcore/robot_description"/>-->
+<!--        <remap from="robot_description_semantic" to="/xbotcore/robot_description_semantic"/>-->
+        <param name="enable_otg" value="$(var enable_otg)"/>
+        <param name="is_model_floating_base" value="$(var is_model_floating_base)"/>
+        <param name="model_type" value="RBDL"/>
+        <param name="solver" value="$(var solver)"/>
+        <param name="use_xbot_config" value="false"/>
+        <param name="rate" value="$(var rate)"/>
+        <param name="tf_prefix" value="$(var tf_prefix)"/>
+        <param name="problem_description" type="str" value="$(command 'cat $(var problem_description_filename)')"/>
+<!--            <param if="$(eval arg('world_frame_link') != '!')" name="world_frame_link" value="$(arg world_frame_link)"/>-->
+<!--            <remap if="$(eval arg('solution_topic') != '!')" from="cartesian/solution" to="$(arg solution_topic)"/>-->
+
+    </node>
+
+    <node if="$(var markers)" pkg="cartesian_interface" exec="marker_spawner" name="interactive_markers" output="screen">
+        <param name="tf_prefix" value="$(var tf_prefix)"/>
+    </node>
+
+
+
+
+</launch>

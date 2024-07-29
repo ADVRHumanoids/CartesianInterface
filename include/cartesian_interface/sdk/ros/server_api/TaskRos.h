@@ -2,19 +2,27 @@
 #define TASKROS_SERVERAPI_H
 
 #include <cartesian_interface/problem/Task.h>
-#include <ros/ros.h>
-#include <std_msgs/Float32.h>
-#include <std_msgs/Float64MultiArray.h>
-#include <cartesian_interface/GetTaskInfo.h>
-#include <cartesian_interface/SetWeight.h>
-#include <cartesian_interface/SetLambda.h>
-#include <cartesian_interface/SetLambda2.h>
-#include <cartesian_interface/SetTaskActive.h>
+
+#include <rclcpp/rclcpp.hpp>
+
+#include <std_msgs/msg/string.hpp>
+#include <std_msgs/msg/float32.hpp>
+#include <std_msgs/msg/float64_multi_array.hpp>
+
+#include <cartesian_interface/srv/get_task_info.hpp>
+#include <cartesian_interface/srv/set_weight.hpp>
+#include <cartesian_interface/srv/set_lambda.hpp>
+#include <cartesian_interface/srv/set_lambda2.hpp>
+#include <cartesian_interface/srv/set_task_active.hpp>
+#include <cartesian_interface/msg/task_info.hpp>
+
 #include <cartesian_interface/sdk/ros/RosContext.h>
 #include <cartesian_interface/sdk/ros/Plugin.h>
-#include <cartesian_interface/TaskInfo.h>
 
 namespace XBot { namespace Cartesian {
+
+using namespace cartesian_interface::msg;
+using namespace cartesian_interface::srv;
 
 namespace ServerApi
 {
@@ -31,7 +39,7 @@ public:
     TaskRos(TaskDescription::Ptr task,
             RosContext::Ptr context);
 
-    virtual void run(ros::Time time);
+    virtual void run(rclcpp::Time time);
 
     bool onActivationStateChanged() override;
 
@@ -57,28 +65,32 @@ private:
     static std::string RosApiPluginName(TaskDescription::Ptr task);
 
 
-    bool get_task_info_cb(cartesian_interface::GetTaskInfoRequest& req,
-                          cartesian_interface::GetTaskInfoResponse& res);
+    bool get_task_info_cb(GetTaskInfo::Request::ConstSharedPtr req,
+                          GetTaskInfo::Response::SharedPtr res);
 
-    bool set_lambda_cb(cartesian_interface::SetLambdaRequest& req,
-                       cartesian_interface::SetLambdaResponse& res);
+    bool set_lambda_cb(SetLambda::Request::ConstSharedPtr req,
+                       SetLambda::Response::SharedPtr res);
 
-    bool set_lambda2_cb(cartesian_interface::SetLambda2Request& req,
-                        cartesian_interface::SetLambda2Response& res);
+    bool set_lambda2_cb(SetLambda2::Request::ConstSharedPtr req,
+                        SetLambda2::Response::SharedPtr res);
 
-    bool set_weight_cb(cartesian_interface::SetWeightRequest& req,
-                       cartesian_interface::SetWeightResponse& res);
+    bool set_weight_cb(SetWeight::Request::ConstSharedPtr req,
+                       SetWeight::Response::SharedPtr res);
 
-    bool set_active_cb(cartesian_interface::SetTaskActiveRequest& req,
-                       cartesian_interface::SetTaskActiveResponse& res);
+    bool set_active_cb(SetTaskActive::Request::ConstSharedPtr req,
+                       SetTaskActive::Response::SharedPtr res);
 
 
     std::list<std::string> _type_hierarchy;
 
-    ros::ServiceServer _get_task_info_srv, _set_lambda_srv, _set_lambda2_srv, _set_weight_srv;
-    ros::ServiceServer _set_active_srv;
+    std::vector<rclcpp::ServiceBase::SharedPtr> _srv;
 
-    ros::Publisher _task_changed_pub, _task_err_pub, _task_info_pub;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr _task_changed_pub;
+
+    rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr _task_err_pub;
+
+    rclcpp::Publisher<TaskInfo>::SharedPtr _task_info_pub;
+
     Eigen::VectorXd _err;
 
 };

@@ -12,9 +12,10 @@ class RobotStatePublisher
 
 public:
 
-    RobotStatePublisher(ModelInterface::ConstPtr model);
+    RobotStatePublisher(rclcpp::Node::SharedPtr node,
+                        ModelInterface::ConstPtr model);
 
-    void publishTransforms(const ros::Time& time,
+    void publishTransforms(const rclcpp::Time& time,
                            const std::string& tf_prefix);
 
 
@@ -22,8 +23,7 @@ private:
 
     ModelInterface::ConstPtr _model;
     tf2_ros::TransformBroadcaster _tf_broadcaster;
-    tf2_ros::StaticTransformBroadcaster _static_tf_broadcaster;
-    std::vector<geometry_msgs::TransformStamped> _tf_vector;
+    std::vector<geometry_msgs::msg::TransformStamped> _tf_vector;
 
 };
 

@@ -1,12 +1,14 @@
 #include <cartesian_interface/ros/RosExecutor.h>
-#include <xbot_msgs/JointState.h>
+#include <cartesian_interface/utils/LoadConfig.h>
+#include "utils/RosUtils.h"
+
+#include <rclcpp/wait_for_message.hpp>
 
 using namespace XBot::Cartesian;
 
 RosExecutor::RosExecutor(std::string ns):
-    _nh(ns),
-    _nh_priv("~"),
-    _visual_mode(false)
+    _visual_mode(false),
+    _fb_feedback(false)
 {
 
     /* Create logger */
@@ -37,41 +39,76 @@ RosExecutor::RosExecutor(std::string ns):
 
 void RosExecutor::init_ros()
 {
+    /* Create node*/
+    _node = rclcpp::Node::make_shared("ros_server_node",
+                                      rclcpp::NodeOptions()
+                                          .allow_undeclared_parameters(true)
+                                          .automatically_declare_parameters_from_overrides(true));
+
+    _cnode = _node->create_sub_node("cartesian");
+
+    _prnode = _node->create_sub_node(_node->get_name());
+
+    RCLCPP_INFO(_node->get_logger(), "hello");
+    RCLCPP_INFO(_cnode->get_logger(), "hello");
+    RCLCPP_INFO(_prnode->get_logger(), "hello");
+
+    // TBD declare parameters
+
     /* Broadcast a notification whenever a new controller is loaded */
-    _ctrl_changed_pub = _nh.advertise<std_msgs::Empty>("changed_controller_event", 1);
+    _ctrl_changed_pub = _cnode->create_publisher<std_msgs::msg::Empty>(
+        "changed_controller_event", 1);
 
     /* Load controller service */
-    _loader_srv = _nh.advertiseService("load_controller", &RosExecutor::loader_callback, this);
+    _loader_srv = ::create_service<LoadController>(_cnode,
+                                                   "load_controller",
+                                                   &RosExecutor::loader_callback, this);
 
     /* Load reset service */
-    _reset_srv = _nh.advertiseService("reset", &RosExecutor::reset_callback, this);
-    _reset_joints_srv = _nh.advertiseService("reset_joints", &RosExecutor::reset_joints_callback, this);
+    _reset_srv = ::create_service<Trigger>(_cnode,
+                                           "reset",
+                                           &RosExecutor::reset_callback, this);
 
-    /* Pause Cartesio to publish commands */
-    _pause_ci_srv = _nh.advertiseService("pause", &RosExecutor::pause_cartesio_callback, this);
+    _reset_joints_srv = ::create_service<ResetJoints>(_cnode,
+                                                      "reset_joints",
+                                                      &RosExecutor::reset_joints_callback, this);
 
     /* Floating base override topic */
-    ros::NodeHandle nh_fb_queue(_nh);
-    nh_fb_queue.setCallbackQueue(&_fb_queue);
-    _fb_sub = nh_fb_queue.subscribe("base_pose_override",
-                                    1,
-                                    &RosExecutor::floating_base_pose_callback, this);
+    _fb_sub = ::create_subscription<PoseStamped>(_cnode,
+                                                 "base_pose_override",
+                                                 &RosExecutor::floating_base_pose_callback,
+                                                 this,
+                                                 1);
 }
 
 void RosExecutor::init_load_config()
 {
-    _xbot_cfg_robot = Utils::LoadOptionsFromParamServer();
+    /* Obtain xbot config object */
+    bool use_xbot_config = _node->get_parameter_or("use_xbot_config", false);
+
+    if(use_xbot_config)
+    {
+        _options_source = Utils::LoadFrom::CONFIG;
+        Logger::info("Configuring from file %s\n", XBot::Utils::getXBotConfig().c_str());
+    }
+    else
+    {
+        _options_source = Utils::LoadFrom::PARAM;
+        Logger::info("Configuring from ROS parameter server\n");
+    }
+
+    _xbot_cfg_robot = Utils::LoadOptions(_options_source, _node);
 
     try
     {
-        _xbot_cfg = Utils::LoadOptionsFromParamServer("model_description");
+        _xbot_cfg = Utils::LoadOptions(_options_source, _node, "model_description/");
     }
     catch(std::exception& e)
     {
         _xbot_cfg = _xbot_cfg_robot;
     }
 
-    _period = 1.0 / _nh_priv.param("rate", 100.0);
+    _period = 1.0 / _node->get_parameter_or("rate", 100.0);
 
     _pause_command = false;
 }
@@ -79,7 +116,7 @@ void RosExecutor::init_load_config()
 void RosExecutor::init_load_robot()
 {
     /* Should we run in visual mode? */
-    _visual_mode = _nh_priv.param("visual_mode", false);
+    _visual_mode = _node->get_parameter_or("visual_mode", false);
 
     try
     {
@@ -100,14 +137,14 @@ void RosExecutor::init_load_robot()
 
 
 
-
     /* Obtain robot (if connection available) */
     if(!_visual_mode)
     {
     }
     else
     {
-        Logger::info(Logger::Severity::HIGH, "Running in visual mode: no commands sent to robot\n");
+        Logger::info(Logger::Severity::HIGH,
+                     "Running in visual mode: no commands sent to robot\n");
     }
 }
 
@@ -193,37 +230,22 @@ void RosExecutor::reset_model_state()
 
     if(_robot)
     {
-        auto msg = ros::topic::waitForMessage<xbot_msgs::JointState>(
-            "xbotcore/joint_states",
-            ros::Duration(1.0)
-            );
+        auto timeout = _node->get_clock()->now() + 10s;
 
-        if(!msg || msg->name.size() == 0)
+        while(!_robot->sense())
         {
-            throw std::runtime_error("Unable to get current joint states from xbotcore");
-        }
 
-        for(auto j : _robot->getJoints())
-        {
-            if(j->getNv() > 1)
+            if(_node->get_clock()->now() > timeout)
             {
-                // we skip floating joints
-                continue;
+                throw std::runtime_error("unable to receive state from robot");
             }
 
-            auto it = std::find(msg->name.begin(), msg->name.end(), j->getName());
-
-            if(it == msg->name.end())
-            {
-                throw std::runtime_error("Unable to get current joint state for joint '" + j->getName() + "'");
-            }
-
-            int idx = std::distance(msg->name.begin(), it);
-
-            j->setPositionReference(Eigen::Scalard(msg->position_reference.at(idx)));
-
+            _node->get_clock()->sleep_for(100ms);
         }
 
+        Eigen::VectorXd qref;
+        _robot->getPositionReferenceFeedback(qref);
+        _model->setJointPosition(qref);
         _model->update();
     }
     else if(_nh.hasParam("home"))
@@ -316,7 +338,7 @@ void RosExecutor::init_load_world_frame()
     }
 
     /* If the world pose is available from TF, use it */
-    bool set_world_from_tf = _nh_priv.param("set_world_from_param", false);
+    bool set_world_from_tf = _node->get_parameter_or("set_world_from_param", false);
     Eigen::Affine3d w_T_fb;
     if(_model->isFloatingBase() &&
         set_world_from_tf &&
@@ -365,69 +387,71 @@ CartesianInterfaceImpl::Ptr RosExecutor::load_controller(std::string impl_name,
 
 
 
-bool RosExecutor::loader_callback(cartesian_interface::LoadControllerRequest& req,
-                                  cartesian_interface::LoadControllerResponse& res)
+bool RosExecutor::loader_callback(LoadController::Request::ConstSharedPtr req,
+                                  LoadController::Response::SharedPtr res)
 {
     /* Construct problem description */
     ProblemDescription ik_prob;
 
-    if(!req.problem_description_string.empty()) // first look if problem was passed as string
+    if(!req->problem_description_string.empty()) // first look if problem was passed as string
     {
-        ik_prob = ProblemDescription(YAML::Load(req.problem_description_string),
+        ik_prob = ProblemDescription(YAML::Load(req->problem_description_string),
                                      _ctx);
-        res.message += "Problem description taken from string -- ";
+        res->message += "Problem description taken from string -- ";
     }
-    else if(!req.problem_description_name.empty()) // then, look if it was passed by name
+    else if(!req->problem_description_name.empty()) // then, look if it was passed by name
     {
-        auto ik_yaml = Utils::LoadProblemDescription(req.problem_description_name);
+        auto ik_yaml = Utils::LoadProblemDescription(_options_source,
+                                                     _node,
+                                                     req->problem_description_name);
 
         ik_prob = ProblemDescription(ik_yaml, _ctx);
 
-        res.message += "Problem description taken by name -- ";
+        res->message += "Problem description taken by name -- ";
     }
     else // use problem_description
     {
-        auto ik_yaml = Utils::LoadProblemDescription();
+        auto ik_yaml = Utils::LoadProblemDescription(_options_source, _node);
 
         ik_prob = ProblemDescription(ik_yaml, _ctx);
 
-        res.message += "Default problem description will be used -- ";
+        res->message += "Default problem description will be used -- ";
     }
 
 
     /* Find requested controller */
-    auto ik_it = _impl_map.find(req.controller_name);
+    auto ik_it = _impl_map.find(req->controller_name);
 
     if(ik_it == _impl_map.end()) // controller does not exist
     {
         // this throws on error
-        _current_impl = load_controller(req.controller_name, ik_prob);
+        _current_impl = load_controller(req->controller_name, ik_prob);
 
         // add controller to impl map
-        _impl_map[req.controller_name] = _current_impl;
+        _impl_map[req->controller_name] = _current_impl;
 
-        res.message += "Required controller will be loaded";
+        res->message += "Required controller will be loaded";
     }
-    else if(req.force_reload) // controller exists but force reload is true
+    else if(req->force_reload) // controller exists but force reload is true
     {
         Logger::info(Logger::Severity::HIGH, "Requested controller is being reloaded.. \n");
-        _current_impl = load_controller(req.controller_name, ik_prob);
+        _current_impl = load_controller(req->controller_name, ik_prob);
 
         _zombies.push_back(ik_it->second);
-        _impl_map.at(req.controller_name) = _current_impl;
+        _impl_map.at(req->controller_name) = _current_impl;
 
-        res.message += "Required controller has been found (will be reloaded)";
+        res->message += "Required controller has been found (will be reloaded)";
     }
     else // controller exists and force reload is false
     {
         Logger::info(Logger::Severity::HIGH, "Requested controller is already loaded\n");
         _current_impl = ik_it->second;
 
-        res.message += "Required controller already loaded";
+        res->message += "Required controller already loaded";
     }
 
     // enable otg
-    if(_nh_priv.param("enable_otg", true))
+    if(_node->get_parameter_or("enable_otg", true))
     {
         _current_impl->enableOtg(_period);
     }
@@ -443,15 +467,15 @@ bool RosExecutor::loader_callback(cartesian_interface::LoadControllerRequest& re
 
     if(!first_time_controller_loaded)
     {
-        std_msgs::Empty msg;
-        _ctrl_changed_pub.publish(msg);
+        std_msgs::msg::Empty msg;
+        _ctrl_changed_pub->publish(msg);
     }
 
     first_time_controller_loaded = false;
 
     /* If we arrive here, the controller was successfully loaded */
-    res.success = true;
-    XBot::Logger::success(Logger::Severity::HIGH, "Successfully loaded %s\n", req.controller_name.c_str());
+    res->success = true;
+    XBot::Logger::success(Logger::Severity::HIGH, "Successfully loaded %s\n", req->controller_name.c_str());
 
     return true;
 }
@@ -459,23 +483,27 @@ bool RosExecutor::loader_callback(cartesian_interface::LoadControllerRequest& re
 void RosExecutor::load_ros_api()
 {
     RosServerClass::Options opt;
-    opt.ros_namespace = _nh.getNamespace();
+    opt.ros_namespace = _node->get_namespace();
     _xbot_cfg.get_parameter("tf_prefix", opt.tf_prefix);
     _ros_api.reset();
-    _ros_api = std::make_shared<RosServerClass>(_current_impl, opt);
+    _ros_api = std::make_shared<RosServerClass>(_current_impl, opt, _cnode);
 }
 
 void RosExecutor::init_create_loop_timer()
 {
-    _loop_timer = _nh.createTimer(ros::Duration(_period),
-                                  &RosExecutor::timer_callback,
-                                  this, false, false);
+
+    _loop_timer = _node->create_timer(std::chrono::duration<double>(_period),
+                        [this]()
+                        {
+                            timer_callback();
+                        });
+
     _time = 0.0;
 
-    cartesian_interface::LoadControllerRequest load_ctrl_req;
-    cartesian_interface::LoadControllerResponse load_ctrl_res;
+    auto load_ctrl_req = std::make_shared<LoadController::Request>();
+    auto load_ctrl_res = std::make_shared<LoadController::Response>();
 
-    if(!_xbot_cfg.get_parameter("solver", load_ctrl_req.controller_name))
+    if(!_xbot_cfg.get_parameter("solver", load_ctrl_req->controller_name))
     {
         throw std::runtime_error("'solver' parameter missing");
     }
@@ -486,12 +514,10 @@ void RosExecutor::init_create_loop_timer()
 
 void RosExecutor::spin()
 {
-    _loop_timer.start();
-
     Logger::info(Logger::Severity::HIGH,
-                 "%s: started looping @%.1f Hz\n", ros::this_node::getName().c_str(), 1./_period);
+                 "%s: started looping @%.1f Hz\n", _node->get_name(), 1./_period);
 
-    ros::spin();
+    rclcpp::spin(_node);
 }
 
 CartesianInterfaceImpl& RosExecutor::solver()
@@ -504,7 +530,7 @@ const XBot::ModelInterface& RosExecutor::model()
     return *_model;
 }
 
-void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
+void RosExecutor::timer_callback()
 {
 
     /* Update sensors */
@@ -551,7 +577,8 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
     _model->setJointVelocity(_qdot);
 
     // override floating base from topic
-    _fb_queue.callAvailable();
+    // note: done by main node/executor
+    // is this ok ?
 
     _model->update();
 
@@ -576,6 +603,11 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
 
 void RosExecutor::publish_fb_cmd_vel()
 {
+    if(!_fb_pub)
+    {
+        return;
+    }
+
     // get floating base state from solution
     Eigen::Affine3d T;
     Eigen::Vector6d v;
@@ -588,15 +620,14 @@ void RosExecutor::publish_fb_cmd_vel()
     v.tail<3>() = T.linear().transpose()*v.tail<3>();
 
     // fill in msg
-    geometry_msgs::Twist cmd;
-    tf::twistEigenToMsg(v, cmd);
+    geometry_msgs::msg::Twist cmd = tf2::toMsg(v);
 
     // publish
-    _fb_pub.publish(cmd);
+    _fb_pub->publish(cmd);
 }
 
-bool RosExecutor::reset_callback(std_srvs::TriggerRequest& req,
-                                 std_srvs::TriggerResponse& res)
+bool RosExecutor::reset_callback(Trigger::Request::ConstSharedPtr req,
+                                 Trigger::Response::SharedPtr res)
 {
     reset_model_state();
 
@@ -611,17 +642,17 @@ bool RosExecutor::reset_callback(std_srvs::TriggerRequest& req,
     return true;
 }
 
-bool RosExecutor::reset_joints_callback(cartesian_interface::ResetJointsRequest& req,
-                                        cartesian_interface::ResetJointsResponse& res)
+bool RosExecutor::reset_joints_callback(ResetJoints::Request::ConstSharedPtr req,
+                                        ResetJoints::Response::SharedPtr res)
 {
     XBot::JointNameMap q_map;
     _model->getJointPosition(q_map);
 
-    for(int i = 0; i < req.joint_names.size(); i++)
+    for(int i = 0; i < req->joint_names.size(); i++)
     {
-        auto it = q_map.find(req.joint_names[i]);
+        auto it = q_map.find(req->joint_names[i]);
         if(it != q_map.end())
-            it->second = req.joint_values[i];
+            it->second = req->joint_values[i];
     }
     _model->setJointPosition(q_map);
     _model->update();
@@ -632,7 +663,6 @@ bool RosExecutor::reset_joints_callback(cartesian_interface::ResetJointsRequest&
 
     return true;
 }
-
 
 bool RosExecutor::pause_cartesio_callback(std_srvs::SetBoolRequest& req,
                                           std_srvs::SetBoolRequest& res)
@@ -653,34 +683,22 @@ bool RosExecutor::pause_cartesio_callback(std_srvs::SetBoolRequest& req,
     return true;
 }
 
-void RosExecutor::world_frame_to_param()
+void RosExecutor::floating_base_pose_callback(PoseStamped::ConstSharedPtr msg)
 {
-    /* Upload floating base pose to parameter server */
-    Eigen::Affine3d w_T_fb;
-    _model->getFloatingBasePose(w_T_fb);
+    if(!_fb_feedback)
+    {
+        return;
+    }
 
-    std::vector<double> linear(3);
-    Eigen::Vector3d::Map(linear.data()) = w_T_fb.translation();
-    _nh.setParam("floating_base_pose/linear", linear);
-
-
-    std::vector<double> angular(4);
-    Eigen::Vector4d::Map(angular.data()) = Eigen::Quaterniond(w_T_fb.linear()).coeffs();
-    _nh.setParam("floating_base_pose/angular", angular);
-}
-
-void RosExecutor::floating_base_pose_callback(geometry_msgs::PoseStampedConstPtr msg)
-{
     Eigen::Affine3d w_T_fb;
 
-    tf::poseMsgToEigen(msg->pose, w_T_fb);
+    tf2::fromMsg(msg->pose, w_T_fb);
 
     _model->setFloatingBasePose(w_T_fb);
 }
 
 RosExecutor::~RosExecutor()
 {
-    world_frame_to_param();
 }
 
 

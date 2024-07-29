@@ -2,11 +2,16 @@
 #define TASKROS_CLIENTAPI_H
 
 #include <cartesian_interface/problem/Task.h>
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
-#include <cartesian_interface/GetTaskInfo.h>
-#include <cartesian_interface/TaskInfo.h>
-#include <std_msgs/String.h>
+#include <cartesian_interface/srv/get_task_info.hpp>
+#include <cartesian_interface/msg/task_info.hpp>
+#include <std_msgs/msg/string.hpp>
+#include <cartesian_interface/srv/set_task_active.hpp>
+#include <cartesian_interface/srv/set_lambda.hpp>
+#include <cartesian_interface/srv/set_lambda2.hpp>
+#include <cartesian_interface/srv/set_weight.hpp>
+#include <cartesian_interface/srv/set_task_active.hpp>
 
 namespace XBot { namespace Cartesian {
 
@@ -15,13 +20,20 @@ namespace ClientApi
     class TaskRos;
 }
 
+using cartesian_interface::msg::TaskInfo;
+using cartesian_interface::srv::GetTaskInfo;
+using cartesian_interface::srv::SetWeight;
+using cartesian_interface::srv::SetLambda;
+using cartesian_interface::srv::SetLambda2;
+using cartesian_interface::srv::SetTaskActive;
+
 class ClientApi::TaskRos : virtual public TaskDescription
 {
 
 public:
 
     TaskRos(std::string name,
-            ros::NodeHandle nh);
+            rclcpp::Node::SharedPtr node);
 
     bool validate() override;
 
@@ -71,20 +83,20 @@ public:
     static Ptr MakeInstance(std::string name,
                             std::vector<std::string> type,
                             std::string lib_name,
-                            ros::NodeHandle nh);
+                            rclcpp::Node::SharedPtr node);
 
 protected:
 
-    ros::NodeHandle _nh;
+    rclcpp::Node::SharedPtr _node;
 
     virtual void notifyTaskChanged(const std::string& message);
 
 private:
 
-    cartesian_interface::GetTaskInfoResponse get_task_info() const;
+    GetTaskInfo::Response get_task_info() const;
 
-    void on_task_info_recv(cartesian_interface::TaskInfoConstPtr msg);
-    void on_task_changed_ev_recv(std_msgs::StringConstPtr msg);
+    void on_task_info_recv(cartesian_interface::msg::TaskInfo::ConstSharedPtr msg);
+    void on_task_changed_ev_recv(std_msgs::msg::String::ConstSharedPtr msg);
 
     bool _async_update;
 
@@ -100,14 +112,15 @@ private:
 
     std::list<TaskObserver::WeakPtr> _observers;
 
-    mutable ros::ServiceClient _task_prop_cli;
-    ros::ServiceClient _set_weight_cli;
-    ros::ServiceClient _set_lambda_cli, _set_lambda2_cli;
-    ros::ServiceClient _activate_cli;
-    ros::Subscriber _task_changed_sub;
-    ros::Subscriber _task_info_sub;
+    rclcpp::Client<GetTaskInfo>::SharedPtr _task_prop_cli;
+    rclcpp::Client<SetWeight>::SharedPtr _set_weight_cli;
+    rclcpp::Client<SetLambda>::SharedPtr _set_lambda_cli;
+    rclcpp::Client<SetLambda2>::SharedPtr _set_lambda2_cli;
+    rclcpp::Client<SetTaskActive>::SharedPtr _activate_cli;
+    rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _task_changed_sub;
+    rclcpp::Subscription<TaskInfo>::SharedPtr _task_info_sub;
 
-    cartesian_interface::TaskInfo _info;
+    cartesian_interface::msg::TaskInfo _info;
 
     bool _async;
 

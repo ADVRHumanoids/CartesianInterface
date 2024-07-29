@@ -1,7 +1,7 @@
 ---
 string name
 string[] type
-float32 lambda
+float32 lambda1
 float32 lambda2
 string activation_state
 float32[] weight
