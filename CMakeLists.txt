@@ -1,15 +1,15 @@
-cmake_minimum_required(VERSION 3.10)
-project(cartesian_interface VERSION 2.1.0)
+cmake_minimum_required(VERSION 3.20)
+project(cartesian_interface VERSION 3.0.0)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-# required packages
-find_package(XBotInterface REQUIRED)
+find_package(xbot2_interface REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
 find_package(estimation_utils REQUIRED)
@@ -21,10 +21,13 @@ if(${GLPK_FOUND})
     add_definitions( -D_GLPK_FOUND=${GLPK_FOUND} )
 endif()
 
+
 option(CARTESIO_USE_ALGLIB "Support spline trajectories with alglib" OFF)
 if(${CARTESIO_USE_ALGLIB})
     find_package(alglib QUIET)
 endif()
+
+add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS)
 
 include_directories(include
     include/${PROJECT_NAME}/external
@@ -39,33 +42,42 @@ include_directories(include
 set(CartesianInterface_SRC
     src/Context.cpp
     src/CartesianInterfaceImpl.cpp
+    src/utils/LockfreeBufferImpl.cpp
+    src/utils/ManipulabilityAnalyzer.cpp
     src/problem/ProblemDescription.cpp
     src/problem/impl/Cartesian.cpp
     src/problem/impl/Com.cpp
     src/problem/impl/Limits.cpp
+    src/problem/impl/OmniWheels4X.cpp
+    src/problem/impl/Gaze.cpp
     src/problem/impl/Postural.cpp
     src/problem/impl/Subtask.cpp
     src/problem/impl/Interaction.cpp
     src/problem/impl/TaskFactory.cpp
     src/problem/impl/Task.cpp
     src/problem/impl/Constraint.cpp
-#    src/utils/LockfreeBufferImpl.cpp
-#    src/rt/TaskRt.cpp
-#    src/rt/CartesianRt.cpp
-#    src/rt/CInteractionRt.cpp
+    src/rt/TaskRt.cpp
+    src/rt/CartesianRt.cpp
+    src/rt/CInteractionRt.cpp
+    src/utils/ForceEstimation.cpp
+    src/utils/RobotStatePublisher.cpp
+    src/utils/AccMaxComputer.cpp
+    #        src/problem/MinJointVel.cpp
     )
 
-# opensot sources
+# OpenSot implementation
 set(CartesianInterfaceSOT_SRC
     src/opensot/task_adapters/OpenSotTask.cpp
     src/opensot/task_adapters/OpenSotCartesian.cpp
-    src/opensot/task_adapters/OpenSotInteraction.cpp
+    # src/opensot/task_adapters/OpenSotInteraction.cpp
     src/opensot/task_adapters/OpenSotCom.cpp
     src/opensot/task_adapters/OpenSotPostural.cpp
     src/opensot/task_adapters/OpenSotSubtask.cpp
     src/opensot/task_adapters/OpenSotJointLimits.cpp
     src/opensot/task_adapters/OpenSotVelocityLimits.cpp
     src/opensot/task_adapters/OpenSotConstraintFromTask.cpp
+    src/opensot/task_adapters/OpenSotOmniWheels4X.cpp
+    src/opensot/task_adapters/OpenSotGaze.cpp
     src/opensot/OpenSotImpl.cpp
     )
 
@@ -133,6 +145,7 @@ install(TARGETS CartesianInterfaceCore
     LIBRARY DESTINATION lib
     )
 
+
 # compile opensot implementation
 add_library(CartesianInterfaceSolverOpenSot SHARED
     ${CartesianInterfaceSOT_SRC}
@@ -151,7 +164,6 @@ install(TARGETS CartesianInterfaceSolverOpenSot
     )
 
 
-
 option(CARTESIO_COMPILE_EXAMPLES "Compile examples" OFF)
 if(${CARTESIO_COMPILE_EXAMPLES})
     add_subdirectory(examples)
@@ -162,16 +174,12 @@ add_subdirectory(bindings/python/)
 include(GenerateDeb)
 
 
-option(CARTESIO_COMPILE_XBOT_PLUGIN "Build plugins for XBotCore" OFF)
-
 # Mark cpp header files for installation
 install(DIRECTORY include/cartesian_interface/
     DESTINATION include/cartesian_interface
     FILES_MATCHING PATTERN "*.h*"
     PATTERN ".svn" EXCLUDE
     )
-
-
 
 include(ExportCartesianInterface)
 export_cartesian_interface()

@@ -11,6 +11,8 @@
 #include "ros/client_api/InteractionRos.h"
 #include "ros/client_api/PosturalRos.h"
 
+#include <xbot2_interface/logger.h>
+
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ClientApi;
 

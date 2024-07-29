@@ -22,12 +22,16 @@ ProblemDescription create_ik_prob(CartesianInterface * ci)
 LockfreeBufferImpl::LockfreeBufferImpl(CartesianInterfaceImpl * ci,
                                        Context::Ptr context):
     CartesianInterfaceImpl(create_ik_prob(ci), context),
-    _model(context->model()),
-    _q_tmp(context->model()->getJointNum()),
-    _q_tmp_read(context->model()->getJointNum())
+    _model(context->model())
 {
-    _model_state_queue.reset(_q_tmp);
+    // preallocate state
+    _state_tmp.q.setZero(_model->getNq());
+    _state_tmp.v.setZero(_model->getNv());
+    _state_tmp.tau.setZero(_model->getNv());
+    _state_tmp_read = _state_tmp;
+    _model_state_queue.reset(_state_tmp);
 
+    // construct task wrappers
     for(auto tname : getTaskList())
     {
         auto t = getTask(tname);
@@ -61,8 +65,10 @@ void LockfreeBufferImpl::callAvailable(CartesianInterface* ci)
 void LockfreeBufferImpl::pushState(CartesianInterface const * ci,
                                    ModelInterface const * model)
 {
-    model->getJointPosition(_q_tmp);
-    _model_state_queue.push(_q_tmp);
+    model->getJointPosition(_state_tmp.q);
+    model->getJointVelocity(_state_tmp.v);
+    model->getJointEffort(_state_tmp.tau);
+    _model_state_queue.push(_state_tmp);
 
     for(auto tlf : _tasks)
     {
@@ -72,8 +78,10 @@ void LockfreeBufferImpl::pushState(CartesianInterface const * ci,
 
 void LockfreeBufferImpl::updateState()
 {
-    while(_model_state_queue.pop(_q_tmp_read));
-    _model->setJointPosition(_q_tmp_read);
+    while(_model_state_queue.pop(_state_tmp_read));
+    _model->setJointPosition(_state_tmp_read.q);
+    _model->setJointVelocity(_state_tmp_read.v);
+    _model->setJointEffort(_state_tmp_read.tau);
     _model->update();
 
     for(auto tlf : _tasks)

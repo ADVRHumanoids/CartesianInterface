@@ -47,6 +47,9 @@ void RosExecutor::init_ros()
     _reset_srv = _nh.advertiseService("reset", &RosExecutor::reset_callback, this);
     _reset_joints_srv = _nh.advertiseService("reset_joints", &RosExecutor::reset_joints_callback, this);
 
+    /* Pause Cartesio to publish commands */
+    _pause_ci_srv = _nh.advertiseService("pause", &RosExecutor::pause_cartesio_callback, this);
+
     /* Floating base override topic */
     ros::NodeHandle nh_fb_queue(_nh);
     nh_fb_queue.setCallbackQueue(&_fb_queue);
@@ -57,25 +60,11 @@ void RosExecutor::init_ros()
 
 void RosExecutor::init_load_config()
 {
-    /* Obtain xbot config object */
-    bool use_xbot_config = _nh_priv.param("use_xbot_config", false);
-
-    if(use_xbot_config)
-    {
-        _options_source = Utils::LoadFrom::CONFIG;
-        Logger::info("Configuring from file %s\n", XBot::Utils::getXBotConfig().c_str());
-    }
-    else
-    {
-        _options_source = Utils::LoadFrom::PARAM;
-        Logger::info("Configuring from ROS parameter server\n");
-    }
-
-    _xbot_cfg_robot = Utils::LoadOptions(_options_source);
+    _xbot_cfg_robot = Utils::LoadOptionsFromParamServer();
 
     try
     {
-        _xbot_cfg = Utils::LoadOptions(_options_source, "model_description");
+        _xbot_cfg = Utils::LoadOptionsFromParamServer("model_description");
     }
     catch(std::exception& e)
     {
@@ -84,6 +73,7 @@ void RosExecutor::init_load_config()
 
     _period = 1.0 / _nh_priv.param("rate", 100.0);
 
+    _pause_command = false;
 }
 
 void RosExecutor::init_load_robot()
@@ -108,10 +98,7 @@ void RosExecutor::init_load_robot()
         _robot->setControlMode(XBot::ControlMode::Position());
     }
 
-    if(_robot && _robot->model().isFloatingBase())
-    {
-        _fb_pub = _nh.advertise<geometry_msgs::Twist>("floating_base_velocity", 1);
-    }
+
 
 
     /* Obtain robot (if connection available) */
@@ -131,7 +118,7 @@ void RosExecutor::init_customize_command()
         return;
     }
 
-    std::map<std::string, XBot::ControlMode> ctrl_map;
+    XBot::CtrlModeMap ctrl_map;
 
     std::vector<std::string> joint_blacklist;
     _xbot_cfg.get_parameter("joint_blacklist", joint_blacklist);
@@ -143,7 +130,7 @@ void RosExecutor::init_customize_command()
             throw std::runtime_error("Joint blacklist contains non existing joint '" + j + "'");
         }
 
-        ctrl_map[j] = XBot::ControlMode::Idle();
+        ctrl_map[j] = XBot::ControlMode::None();
     }
 
     std::vector<std::string> velocity_whitelist;
@@ -179,6 +166,13 @@ void RosExecutor::init_load_model()
     /* Get model */
     _model = XBot::ModelInterface::getModel(_xbot_cfg);
 
+    std::cout <<
+        "model '" << _model->getName() <<
+        "' type '" << _model->getType() <<
+        "  nj = " << _model->getJointNum() <<
+        "  nq = " << _model->getNq() <<
+        "  nv = " << _model->getNv() << std::endl;
+
     /* Initialize to home or to current robot state */
     reset_model_state();
 
@@ -187,6 +181,11 @@ void RosExecutor::init_load_model()
         std::make_shared<Parameters>(_period),
         _model);
 
+    if(_model->isFloatingBase())
+    {
+        _fb_pub = _nh.advertise<geometry_msgs::Twist>("floating_base_velocity", 1);
+    }
+
 }
 
 void RosExecutor::reset_model_state()
@@ -194,42 +193,102 @@ void RosExecutor::reset_model_state()
 
     if(_robot)
     {
-        auto msg = ros::topic::waitForMessage<xbot_msgs::JointState>("xbotcore/joint_states", ros::Duration(1.0));
+        auto msg = ros::topic::waitForMessage<xbot_msgs::JointState>(
+            "xbotcore/joint_states",
+            ros::Duration(1.0)
+            );
+
         if(!msg || msg->name.size() == 0)
         {
             throw std::runtime_error("Unable to get current joint states from xbotcore");
         }
 
-        XBot::JointNameMap qref;
-        for(auto j : _robot->getEnabledJointNames())
+        for(auto j : _robot->getJoints())
         {
-            auto it = std::find(msg->name.begin(), msg->name.end(), j);
+            if(j->getNv() > 1)
+            {
+                // we skip floating joints
+                continue;
+            }
+
+            auto it = std::find(msg->name.begin(), msg->name.end(), j->getName());
+
             if(it == msg->name.end())
             {
-                throw std::runtime_error("Unable to get current joint state for joint '" + j + "'");
+                throw std::runtime_error("Unable to get current joint state for joint '" + j->getName() + "'");
             }
+
             int idx = std::distance(msg->name.begin(), it);
-            qref[j] = msg->position_reference.at(idx);
+
+            j->setPositionReference(Eigen::Scalard(msg->position_reference.at(idx)));
+
         }
-        _model->setJointPosition(qref);
+
         _model->update();
     }
     else if(_nh.hasParam("home"))
     {
+        std::map<std::string, double> joint_map_orig;
+        _nh.getParam("home", joint_map_orig);
+
+        /**
+         * @hack: when setting the map in the launch file it is not possible to use the character '@' which is used to set the the reference for
+         * the base, e.g. reference@v0. So we set in the launch file the character '_' and then we substitute it here:
+         */
         std::map<std::string, double> joint_map;
-        _nh.getParam("home", joint_map);
+        for(auto pair : joint_map_orig)
+        {
+            if(pair.first == "reference_v0")
+            {
+                joint_map["reference@v0"] = pair.second;
+            }
+            else if(pair.first == "reference_v1")
+            {
+                joint_map["reference@v1"] = pair.second;
+            }
+            else if(pair.first == "reference_v2")
+            {
+                joint_map["reference@v2"] = pair.second;
+            }
+            else if(pair.first == "reference_v3")
+            {
+                joint_map["reference@v3"] = pair.second;
+            }
+            else if(pair.first == "reference_v4")
+            {
+                joint_map["reference@v4"] = pair.second;
+            }
+            else if(pair.first == "reference_v5")
+            {
+                joint_map["reference@v5"] = pair.second;
+            }
+            else
+            {
+                joint_map[pair.first] = pair.second;
+            }
+        }
 
         XBot::JointNameMap qref(joint_map.begin(),
                                 joint_map.end());
 
+        // to deal with non-euclidean joints, we interpret this as
+        // the log of the actual q home
 
-        _model->setJointPosition(qref);
+        Eigen::VectorXd qhome(_model->getNv()); qhome.setZero();
+        _model->mapToV(qref, qhome);
+
+        // apply exp map to get the q config
+        Eigen::VectorXd q = _model->sum(_model->getNeutralQ(), qhome);
+
+        _model->setJointPosition(q);
         _model->update();
     }
     else
     {
         Eigen::VectorXd qhome;
         _model->getRobotState("home", qhome);
+        if(qhome.size() == 0)
+            qhome = _model->getNeutralQ();
         _model->setJointPosition(qhome);
         _model->update();
     }
@@ -240,11 +299,11 @@ void RosExecutor::reset_model_state()
 void RosExecutor::init_load_torque_offset()
 {
     /* Get torque offsets if available */
-    _tau_offset.setZero(_model->getJointNum());
+    _tau_offset.setZero(_model->getNv());
     XBot::JointNameMap tau_off_map;
     if(_xbot_cfg.get_parameter("torque_offset", tau_off_map))
     {
-        _model->mapToEigen(tau_off_map, _tau_offset);
+        _model->mapToV(tau_off_map, _tau_offset);
     }
 }
 
@@ -320,8 +379,7 @@ bool RosExecutor::loader_callback(cartesian_interface::LoadControllerRequest& re
     }
     else if(!req.problem_description_name.empty()) // then, look if it was passed by name
     {
-        auto ik_yaml = Utils::LoadProblemDescription(_options_source,
-                                                     req.problem_description_name);
+        auto ik_yaml = Utils::LoadProblemDescription(req.problem_description_name);
 
         ik_prob = ProblemDescription(ik_yaml, _ctx);
 
@@ -329,7 +387,7 @@ bool RosExecutor::loader_callback(cartesian_interface::LoadControllerRequest& re
     }
     else // use problem_description
     {
-        auto ik_yaml = Utils::LoadProblemDescription(_options_source);
+        auto ik_yaml = Utils::LoadProblemDescription();
 
         ik_prob = ProblemDescription(ik_yaml, _ctx);
 
@@ -453,7 +511,8 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
     if(_robot && !_visual_mode)
     {
         _robot->sense(false);
-        _model->syncFrom_no_update(*_robot, XBot::Sync::Sensors, XBot::Sync::Effort);
+        _model->syncFrom(*_robot, XBot::ControlMode::EFFORT);
+        _model->syncSensors(*_robot);
         _model->getJointEffort(_tau);
         _tau += _tau_offset;
         _model->setJointEffort(_tau);
@@ -485,7 +544,7 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
     _model->getJointVelocity(_qdot);
     _model->getJointAcceleration(_qddot);
 
-    _q += _period * _qdot + 0.5 * std::pow(_period, 2) * _qddot;
+    _q = _model->sum(_q, _period * _qdot + 0.5 * std::pow(_period, 2) * _qddot);
     _qdot += _period * _qddot;
 
     _model->setJointPosition(_q);
@@ -496,9 +555,9 @@ void RosExecutor::timer_callback(const ros::TimerEvent& timer_ev)
 
     _model->update();
 
-    if(_robot && !_visual_mode)
+    if(!_pause_command && _robot && !_visual_mode)
     {
-        _robot->setReferenceFrom(*_model, Sync::Position, Sync::Velocity);
+        _robot->setReferenceFrom(*_model, XBot::ControlMode::POSITION|XBot::ControlMode::VELOCITY);
         _robot->move();
     }
 
@@ -574,6 +633,25 @@ bool RosExecutor::reset_joints_callback(cartesian_interface::ResetJointsRequest&
     return true;
 }
 
+
+bool RosExecutor::pause_cartesio_callback(std_srvs::SetBoolRequest& req,
+                                          std_srvs::SetBoolRequest& res)
+{
+    /* If resume --> Update robot pos */
+    if(_pause_command && !req.data){
+        reset_model_state();
+
+        _current_impl->reset(_time);
+
+        XBot::JointNameMap q_map;
+        _model->getJointPosition(q_map);
+        _current_impl->setReferencePosture(q_map);
+    }
+
+    _pause_command = req.data;
+
+    return true;
+}
 
 void RosExecutor::world_frame_to_param()
 {

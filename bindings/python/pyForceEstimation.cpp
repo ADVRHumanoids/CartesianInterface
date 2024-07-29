@@ -1,7 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 #include <estimation_utils/payload/force_estimation.h>
-#include <XBotInterface/ModelInterface.h>
+#include <xbot2_interface/xbotinterface2.h>
 
 namespace py = pybind11;
 using namespace estimation_utils;

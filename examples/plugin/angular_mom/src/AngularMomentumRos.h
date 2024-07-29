@@ -3,6 +3,7 @@
 
 #include "AngularMomentum.h"
 #include <cartesian_interface/sdk/ros/server_api/TaskRos.h>
+#include <cartesian_interface/sdk/ros/client_api/TaskRos.h>
 #include <geometry_msgs/Vector3Stamped.h>
 
 namespace XBot { namespace Cartesian {
@@ -21,7 +22,6 @@ class ServerApi::AngularMomentumRos : public ServerApi::TaskRos
 
 public:
 
-    CARTESIO_DECLARE_SMART_PTR(AngularMomentumRos)
 
     AngularMomentumRos(TaskDescription::Ptr task,
                        RosContext::Ptr ros_context);
@@ -41,6 +41,29 @@ private:
 
 };
 
-} }
+
+namespace ClientApi
+{
+class AngularMomentumRos;
+}
+
+class ClientApi::AngularMomentumRos : virtual public AngularMomentum, public ClientApi::TaskRos
+{
+
+public:
+
+    CARTESIO_DECLARE_SMART_PTR(AngularMomentumRos)
+
+    AngularMomentumRos(std::string name,
+                ros::NodeHandle nh):TaskRos(name, nh) {}
+
+
+
+private:
+
+
+};
+
+}}
 
 #endif // ANGULARMOMENTUMROS_H

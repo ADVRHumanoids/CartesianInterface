@@ -6,6 +6,8 @@
 
 #include "fmt/format.h"
 
+#include <xbot2_interface/logger.h>
+
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ServerApi;
 
@@ -170,22 +172,12 @@ void CartesianRos::online_velocity_reference_cb(geometry_msgs::TwistStampedConst
 
     if(msg->header.frame_id == "world")
     {
-        _model->getOrientation(_cart->getBaseLink(), b_R_f);
-        b_R_f.transposeInPlace();
+        b_R_f = _model->getPose(_cart->getBaseLink()).linear().transpose();
     }
     else if(msg->header.frame_id != "")
     {
-
-        if(!_model->getOrientation(msg->header.frame_id, _cart->getBaseLink(), b_R_f))
-        {
-            XBot::Logger::error("Unable to set velocity reference for task '%s' (frame_id '%s' undefined)\n",
-                                _task->getName().c_str(),
-                                msg->header.frame_id.c_str()
-                                );
-
-            return;
-        }
-
+        // throws if frame_id does not exist
+        b_R_f = _model->getPose(msg->header.frame_id, _cart->getBaseLink()).linear();
     }
 
     vel.head<3>() = b_R_f * vel.head<3>();

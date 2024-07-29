@@ -1,7 +1,7 @@
 #ifndef ROBOTSTATEPUBLISHER_H
 #define ROBOTSTATEPUBLISHER_H
 
-#include <XBotInterface/ModelInterface.h>
+#include <xbot2_interface/xbotinterface2.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
 

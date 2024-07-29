@@ -10,7 +10,7 @@ int main(int argc, char ** argv)
 
     auto opt = Utils::LoadOptionsFromParamServer();
 
-    auto model = XBot::ModelInterface::getModel(opt);
+    XBot::ModelInterface::Ptr model = XBot::ModelInterface::getModel(opt);
 
     Eigen::VectorXd qhome;
     model->getRobotState("home", qhome);

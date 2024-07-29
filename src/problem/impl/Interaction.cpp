@@ -1,5 +1,6 @@
 #include "problem/Interaction.h"
 #include "fmt/format.h"
+#include <xbot2_interface/logger.h>
 
 using namespace XBot::Cartesian;
 

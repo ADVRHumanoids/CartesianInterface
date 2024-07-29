@@ -1,5 +1,7 @@
 #include "OpenSotImpl.h"
 
+#include <chrono>
+
 #include <cartesian_interface/sdk/SolverPlugin.h>
 
 #include <cartesian_interface/problem/ProblemDescription.h>
@@ -239,7 +241,7 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
     }
 
     _model->getJointPosition(_q);
-    _dq.setZero(_q.size());
+    _dq.setZero(_model->getNv());
     _ddq = _dq;
     _tau.setZero(_dq.size());
     _J.setZero(6, _dq.size());
@@ -309,7 +311,7 @@ OpenSotImpl::OpenSotImpl(ProblemDescription ik_problem,
     _x.setZero(_vars.getSize());
     if(_x.size() == 0)
     {
-        _x.setZero(_q.size());
+        _x.setZero(_dq.size());
         _solution["qdot"].setZero(_x.size());
     }
 
@@ -416,10 +418,7 @@ bool OpenSotImpl::update(double time, double period)
 
     _model->getJointPosition(_q);
     _model->getJointVelocity(_dq);
-    if(_vars.getSize() == 0)
-    {
-        _x = _q;
-    }
+
     
     /* Update all plugin-based tasks and constraints */
     for(auto t : _task_adapters)
@@ -433,7 +432,7 @@ bool OpenSotImpl::update(double time, double period)
     }
 
     /* Update tasks and solve */
-    _autostack->update(_x);
+    _autostack->update();
 
     if(_logger)
     {
@@ -442,7 +441,11 @@ bool OpenSotImpl::update(double time, double period)
 
     using namespace std::chrono;
     auto tic = high_resolution_clock::now();
-    bool solver_success = _solver->solve(_x);
+    bool solver_success = true;
+    if(period >= 0)
+    {
+        solver_success = _solver->solve(_x);
+    }
     auto toc = high_resolution_clock::now();
 
 
@@ -471,6 +474,11 @@ bool OpenSotImpl::update(double time, double period)
     for(auto c : _constr_adapters)
     {
         c->processSolution(_x);
+    }
+
+    if(period < 0)
+    {
+        return true;
     }
 
     /* Set solution to model */
@@ -505,10 +513,10 @@ bool OpenSotImpl::update(double time, double period)
 
         _model->getJacobian(link_name, _J);
 
-        Eigen::Vector6d f_value;
+        Eigen::VectorXd f_value;
         p.second.getValue(_x, f_value);
 
-        _tau.noalias() -= _J.transpose() * f_value;
+        _tau.noalias() -= _J.block(0, 0, f_value.size(), _J.cols()).transpose() * f_value;
 
         if(_logger)
         {

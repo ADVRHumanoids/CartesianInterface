@@ -5,11 +5,14 @@
 #include "ros/client_api/PosturalRos.h"
 #include "ros/client_api/InteractionRos.h"
 
+#include "../../examples/plugin/angular_mom/src/AngularMomentumRos.h"
+
 
 #include "problem/Cartesian.h"
 #include "problem/Postural.h"
 #include "problem/Interaction.h"
 #include "problem/Com.h"
+#include "../../examples/plugin/angular_mom/src/AngularMomentum.h"
 
 #include <cartesian_interface/utils/RobotStatePublisher.h>
 
@@ -94,6 +97,10 @@ PYBIND11_MODULE(pyci, m) {
             CartesianTask,
             ComTask::Ptr>(m, "ComTask", py::multiple_inheritance());
 
+    py::class_<AngularMomentum,
+            TaskDescription,
+            AngularMomentum::Ptr>(m, "AngularMomentum", py::multiple_inheritance());
+
     py::class_<PosturalTask,
             TaskDescription,
             PosturalTask::Ptr>(m, "PosturalTask", py::multiple_inheritance())
@@ -131,6 +138,10 @@ PYBIND11_MODULE(pyci, m) {
             PosturalTask,
             ClientApi::PosturalRos::Ptr>(m, "PosturalRos", py::multiple_inheritance())
 
+    py::class_<ClientApi::AngularMomentumRos,
+            AngularMomentum,
+            ClientApi::AngularMomentumRos::Ptr>(m, "AngularMomentumRos", py::multiple_inheritance());
+
     py::class_<CartesianTaskImpl,
             CartesianTask,
             CartesianTaskImpl::Ptr>(m, "CartesianTaskImpl", py::multiple_inheritance());
@@ -142,6 +153,10 @@ PYBIND11_MODULE(pyci, m) {
     py::class_<PosturalTaskImpl,
             PosturalTask,
             PosturalTaskImpl::Ptr>(m, "PosturalTaskImpl", py::multiple_inheritance());
+
+    py::class_<AngularMomentumImpl,
+            AngularMomentum,
+            AngularMomentumImpl::Ptr>(m, "AngularMomentumImpl", py::multiple_inheritance());
 
     py::class_<CartesianInterfaceImpl,
             CartesianInterfaceImpl::Ptr>(m, "CartesianInterface")

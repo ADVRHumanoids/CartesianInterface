@@ -11,6 +11,8 @@
 #include "opensot/OpenSotPostural.h"
 #include "opensot/OpenSotCom.h"
 #include "opensot/OpenSotSubtask.h"
+#include "opensot/OpenSotOmniWheels4X.h"
+#include "opensot/OpenSotGaze.h"
 
 #include "fmt/format.h"
 
@@ -46,17 +48,35 @@ bool OpenSotTaskAdapter::initialize(const OpenSoT::OptvarHelper& vars)
                                              _ci_task->getName()));
     }
 
+    if(!_opensot_task->checkConsistency())
+    {
+        throw std::runtime_error(
+            fmt::format("OpenSotTaskAdapter: checkConsistency() for task '{}' returned false",
+                        _ci_task->getName()));
+    }
+
 
     /* Set generic task parameters */
 
     // active joint mask
     if(_ci_task->getDisabledJoints().size() > 0)
     {
-        std::vector<bool> active_joints_mask(_model->getJointNum(), true);
+        std::vector<bool> active_joints_mask(_model->getNv(), true);
 
         for(auto jstr : _ci_task->getDisabledJoints())
         {
-            active_joints_mask.at(_model->getDofIndex(jstr)) = false;
+            try{
+                auto jinfo = _model->getJointInfo(jstr);
+                std::fill_n(active_joints_mask.begin() + jinfo.iv,
+                            jinfo.nv,
+                            false);
+            }
+            catch(...)
+            {
+                auto id = _model->getVIndexFromVName(jstr);
+                active_joints_mask[id] = false;
+            }
+
         }
 
         _opensot_task->setActiveJointsMask(active_joints_mask);
@@ -104,10 +124,11 @@ void OpenSotTaskAdapter::update(double time, double period)
 
 void OpenSotTaskAdapter::processSolution(const Eigen::VectorXd& solution)
 {
-    _task_err.noalias() = _opensot_task->getWA()*solution -
-                          _opensot_task->getWb();
+    _task_err.noalias() = _opensot_task->getb();
 
     _ci_task->setTaskError(_task_err);
+
+    _ci_task->setTaskErrorJacobian(_opensot_task->getA());
 }
 
 TaskPtr OpenSotTaskAdapter::getOpenSotTask()
@@ -168,6 +189,10 @@ OpenSotTaskAdapter::Ptr OpenSotTaskAdapter::MakeInstance(TaskDescription::Ptr ta
     else if(task->getType() == "Com")
     {
         task_adapter = new OpenSotComAdapter(task, context);
+    }
+    else if(task->getType() == "Gaze")
+    {
+        task_adapter = new OpenSotGazeAdapter(task, context);
     }
     else if(task->getType() == "Subtask") /* Otherwise, construct supported tasks */
     {
@@ -283,9 +308,17 @@ OpenSotConstraintAdapter::Ptr OpenSotConstraintAdapter::MakeInstance(ConstraintD
     {
         constr_adapter = new OpenSotJointLimitsAdapter(constr, context);
     }
+    else if(constr->getType() == "JointLimitsInvariance") /* Otherwise, construct supported tasks */
+    {
+        constr_adapter = new OpenSoTJointLimitsInvarianceAdapter(constr, context);
+    }
     else if(constr->getType() == "VelocityLimits")
     {
         constr_adapter = new OpenSotVelocityLimitsAdapter(constr, context);
+    }
+    else if(constr->getType() == "OmniWheels4X")
+    {
+        constr_adapter = new OpenSotOmniWheels4XAdapter(constr, context);
     }
     else
     {

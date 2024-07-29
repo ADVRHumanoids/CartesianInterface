@@ -1,4 +1,6 @@
 #include "problem/Task.h"
+#include <xbot2_interface/logger.h>
+#include <fmt/format.h>
 
 using namespace XBot::Cartesian;
 
@@ -181,9 +183,14 @@ TaskDescriptionImpl::TaskDescriptionImpl(YAML::Node task_node,
         {
             std::string jstr = jnode.as<std::string>();
 
-            if(!_model->hasJoint(jstr))
+            if(_model->getVIndexFromVName(jstr) < 0)
             {
-                throw std::runtime_error("Undefined joint '" + jstr + "' listed among disabled joints");
+                std::string err = fmt::format(
+                    "dof '{}' is undefined: valid names are [{}]",
+                    jstr,
+                    fmt::join(_model->getVNames(), ", "));
+
+                throw std::invalid_argument(err);
             }
 
             _disabled_joints.push_back(jstr);
@@ -198,15 +205,20 @@ TaskDescriptionImpl::TaskDescriptionImpl(YAML::Node task_node,
             throw std::runtime_error("Cannot specify both 'enabled_joints' and 'disabled_joints'");
         }
 
-        _disabled_joints = _model->getEnabledJointNames();
+        _disabled_joints = _model->getVNames();
 
         for(auto jnode : task_node["enabled_joints"])
         {
             std::string jstr = jnode.as<std::string>();
 
-            if(!_model->hasJoint(jstr))
+            if(_model->getVIndexFromVName(jstr) < 0)
             {
-                throw std::runtime_error("Undefined joint '" + jstr + "' listed among enabled joints");
+                std::string err = fmt::format(
+                    "dof '{}' is undefined: valid names are [{}]",
+                    jstr,
+                    fmt::join(_model->getVNames(), ", "));
+
+                throw std::invalid_argument(err);
             }
 
             auto it = std::find(_disabled_joints.begin(), _disabled_joints.end(), jstr);
@@ -266,12 +278,30 @@ void TaskDescriptionImpl::setTaskError(const Eigen::VectorXd& e)
 
 bool TaskDescriptionImpl::getTaskError(Eigen::VectorXd& e) const
 {
-    if(_task_error.size() == 0)
+    if(!_task_error)
     {
         return false;
     }
 
-    e = _task_error;
+    e = *_task_error;
+
+    return true;
+}
+
+void TaskDescriptionImpl::setTaskErrorJacobian(const Eigen::MatrixXd &j)
+{
+    _task_error_jac = j;
+}
+
+bool TaskDescriptionImpl::getTaskErrorJacobian(Eigen::MatrixXd &J) const
+{
+    if(!_task_error_jac)
+    {
+        return false;
+    }
+
+    J = *_task_error_jac;
+
     return true;
 }
 
@@ -358,6 +388,7 @@ const std::vector<int>& TaskDescriptionImpl::getIndices() const
 void TaskDescriptionImpl::setIndices(const std::vector<int> & value)
 {
     auto invalid_idx_predicate = [this](int idx){ return idx >= _size || idx < 0; };
+
     if(std::any_of(value.begin(), value.end(), invalid_idx_predicate))
     {
         throw std::out_of_range("indices out of range");
@@ -407,11 +438,22 @@ void TaskDescriptionImpl::reset()
 
 }
 
-bool TaskObserver::onWeightChanged() { return true; }
+bool TaskObserver::onWeightChanged()
+{
+    return true;
+}
 
-bool TaskObserver::onActivationStateChanged() { return true; }
+bool TaskObserver::onActivationStateChanged()
+{
+    return true;
+}
 
 bool TaskDescription::getTaskError(Eigen::VectorXd& e) const
+{
+    return false;
+}
+
+bool TaskDescription::getTaskErrorJacobian(Eigen::MatrixXd &J) const
 {
     return false;
 }

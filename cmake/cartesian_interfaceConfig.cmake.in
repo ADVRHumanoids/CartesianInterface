@@ -4,7 +4,8 @@ set_and_check(@PROJECT_NAME@_TARGETS
 "${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
 
 include(CMakeFindDependencyMacro)
-find_dependency(XBotInterface)
+find_dependency(xbot2_interface)
+#find_dependency(estimation_utils)
 find_dependency(OpenSoT)
 find_dependency(matlogger2)
 

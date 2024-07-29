@@ -19,11 +19,8 @@ OpenSotAngularMomentum::OpenSotAngularMomentum(TaskDescription::Ptr task,
 
 TaskPtr OpenSotAngularMomentum::constructTask()
 {
-    Eigen::VectorXd q;
-    _model->getJointPosition(q);
 
-    _sot_angmom = SotUtils::make_shared<AngularMomentumSoT>(q,
-                                                         const_cast<ModelInterface&>(*_model));
+    _sot_angmom = SotUtils::make_shared<AngularMomentumSoT>(const_cast<ModelInterface&>(*_model));
 
     return _sot_angmom;
 }

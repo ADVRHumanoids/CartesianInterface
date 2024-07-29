@@ -1,6 +1,6 @@
-#include <XBotInterface/RobotInterface.h>
-#include <XBotInterface/Utils.h>
-#include <XBotInterface/SoLib.h>
+#include <xbot2_interface/xbotinterface2.h>
+#include <xbot2_interface/common/utils.h>
+#include <xbot2_interface/logger.h>
 
 #include <cartesian_interface/GetTaskList.h>
 #include <cartesian_interface/ToggleAxis.h>
@@ -14,6 +14,7 @@
 #include <chrono>
 
 using namespace XBot::Cartesian;
+using XBot::Logger;
 
 std::shared_ptr<RosClient> ci_ros;
 std::unique_ptr<JoyStick> joystick;

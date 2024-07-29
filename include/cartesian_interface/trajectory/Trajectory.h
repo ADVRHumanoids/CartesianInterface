@@ -20,7 +20,7 @@
 #ifndef __XBOT_CARTESIAN_TRAJ_INTERPOLATION_H__
 #define __XBOT_CARTESIAN_TRAJ_INTERPOLATION_H__
 
-#include <XBotInterface/ModelInterface.h>
+#include <xbot2_interface/xbotinterface2.h>
 
 namespace XBot { namespace Cartesian {
 

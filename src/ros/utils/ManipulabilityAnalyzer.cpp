@@ -72,8 +72,7 @@ bool ManipulabilityAnalyzer::compute_task_matrix(CartesianTask::Ptr cart_ij,
         _model->getCOMJacobian(A);
         A.conservativeResize(6, A.cols());
         A.bottomRows(3).setZero();
-        Eigen::Vector3d compos;
-        _model->getCOM(compos);
+        Eigen::Vector3d compos = _model->getCOM();
         T.setIdentity();
         T.translation() = compos;
     }
@@ -107,7 +106,7 @@ bool ManipulabilityAnalyzer::compute_task_matrix(CartesianTask::Ptr cart_ij,
 void ManipulabilityAnalyzer::compute()
 {
     _nullspace_bases.resize(_ik_problem.getNumTasks() + 1);
-    _nullspace_bases[0] = Eigen::MatrixXd::Identity(_model->getJointNum(), _model->getJointNum());
+    _nullspace_bases[0] = Eigen::MatrixXd::Identity(_model->getNv(), _model->getNv());
     _tasks.resize(_ik_problem.getNumTasks());
     
     for(int i = 0; i < _ik_problem.getNumTasks(); i++)

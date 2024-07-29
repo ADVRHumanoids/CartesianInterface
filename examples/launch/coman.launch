@@ -2,6 +2,7 @@
 
     <arg name="prefix" default=""/>
     <arg name="gui" default="true"/>
+    <arg name="problem_description" default="$(find cartesian_interface)/examples/configs/coman_stack.yaml"/>
     
     <param name="robot_description" 
         textfile="$(find cartesian_interface)/examples/urdf/coman.urdf"/>
@@ -10,7 +11,7 @@
         textfile="$(find cartesian_interface)/examples/srdf/coman.srdf"/>
     
     <param name="cartesian/problem_description" 
-        textfile="$(find cartesian_interface)/examples/configs/coman_stack.yaml"/>
+        textfile="$(arg problem_description)"/>
     
     <include file="$(find cartesian_interface)/launch/cartesio.launch">
         <arg name="rate" value="100.0"/>

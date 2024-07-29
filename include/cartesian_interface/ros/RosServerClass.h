@@ -107,6 +107,8 @@ namespace XBot { namespace Cartesian {
         tf::TransformBroadcaster _tf_broadcaster;
         std::unique_ptr<RsPub> _rspub;
         ros::Publisher _com_pub, _solution_pub;
+        std::vector<ros::Publisher> _wrench_pubs;
+        bool _wrench_pubs_inited;
         ros::ServiceServer _reset_srv, 
                            _tasklist_srv, 
                            _reset_world_srv, 

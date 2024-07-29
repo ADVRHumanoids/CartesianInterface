@@ -27,13 +27,21 @@ void PosturalRos::run(ros::Time time)
         return;
     }
 
+    // get posture reference (size = nq)
     _postural->getReferencePosture(_posture_ref);
 
+    // get minimal representation of q
+    // this has size = nv
+    _model->positionToMinimal(_posture_ref, _posture_ref);
+
+    // to deal with non-euclidean joints, we will publish the
+    // minimal representation of q
+
     msg.header.stamp = time;
-    msg.name.reserve(_model->getJointNum());
-    msg.position.reserve(_model->getJointNum());
+    msg.name.reserve(_model->getNv());
+    msg.position.reserve(_model->getNv());
     int i = 0;
-    for(const std::string& jname : _model->getEnabledJointNames())
+    for(const std::string& jname : _model->getVNames())
     {
         msg.name.push_back(jname);
         msg.position.push_back(_posture_ref[i]);

@@ -1,8 +1,8 @@
 #include <cartesian_interface/markers/CartesianMarker.h>
 #include <cartesian_interface/GetTaskInfo.h>
 #include <std_srvs/SetBool.h>
-#include <numeric> 
-#include <XBotInterface/RtLog.hpp>
+#include <numeric>
+#include <xbot2_interface/logger.h>
 #include <tf_conversions/tf_kdl.h>
 #include <eigen_conversions/eigen_msg.h>
 
@@ -293,8 +293,9 @@ void CartesianMarker::wayPointCallBack(const visualization_msgs::InteractiveMark
 {
     //In base_link
     tf::poseMsgToKDL(feedback->pose, _actual_pose);
-    double qx,qy,qz,qw;
-    _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
+    Eigen::Vector4d q; // [qx,qy,qz,qw];
+    _actual_pose.M.GetQuaternion(q[0],q[1],q[2],q[3]);
+    q = q/q.norm();
 
     double T = double(feedback->menu_entry_id-offset_menu_entry);
 
@@ -304,7 +305,7 @@ void CartesianMarker::wayPointCallBack(const visualization_msgs::InteractiveMark
         ROS_INFO("\n %s set waypoint @: \n pos = [%f, %f, %f],\n orient = [%f, %f, %f, %f],\n of %.1f secs",
                  _int_marker.name.c_str(),
                  _actual_pose.p.x(), _actual_pose.p.y(), _actual_pose.p.z(),
-                 qx,qy,qz,qw, T);
+                 q[0],q[1],q[2],q[3], T);
 
         _waypoints.push_back(feedback->pose);
         _T.push_back(T);
@@ -578,9 +579,9 @@ void CartesianMarker::MakeMarker(const std::string &distal_link, const std::stri
 
     if(show)
     {
-        createInteractiveMarkerControl(1,1,0,0,interaction_mode);
-        createInteractiveMarkerControl(1,0,1,0,interaction_mode);
-        createInteractiveMarkerControl(1,0,0,1,interaction_mode);
+        createInteractiveMarkerControl(1,0,0,0,interaction_mode);
+        createInteractiveMarkerControl(0.707,0,0,0.707,interaction_mode);
+        createInteractiveMarkerControl(0.707,0,-0.707,0,interaction_mode);
     }
 
     KDLFrameToVisualizationPose(_start_pose, _int_marker);
@@ -593,8 +594,9 @@ void CartesianMarker::MarkerFeedback(const visualization_msgs::InteractiveMarker
     
     //In base_link
     tf::poseMsgToKDL(feedback->pose, _actual_pose);
-    double qx,qy,qz,qw;
-    _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
+    Eigen::Vector4d q; // [qx,qy,qz,qw];
+    _actual_pose.M.GetQuaternion(q[0],q[1],q[2],q[3]);
+    q = q/q.norm();
 
     if(_is_continuous == -1)
     {

@@ -3,9 +3,7 @@
 
 #include <cartesian_interface/problem/ProblemDescription.h>
 #include <cartesian_interface/problem/Cartesian.h>
-#include <cartesian_interface/utils/LoadConfig.h>
 
-#include <XBotInterface/MatLogger.hpp>
 #include <ros/ros.h>
 
 #include <functional>

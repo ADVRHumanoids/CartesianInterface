@@ -1,6 +1,6 @@
-#include <XBotInterface/RobotInterface.h>
-#include <XBotInterface/Utils.h>
-#include <XBotInterface/SoLib.h>
+#include <xbot2_interface/xbotinterface2.h>
+#include <xbot2_interface/common/utils.h>
+#include <xbot2_interface/logger.h>
 
 #include <std_srvs/Trigger.h>
 #include <cartesian_interface/GetTaskList.h>
@@ -14,7 +14,7 @@
 #include <boost/function.hpp>
 #include <chrono>
 
-
+using XBot::Logger;
 
 using namespace XBot::Cartesian;
 typedef std::map<std::string, CartesianMarker::Ptr> MarkerMap;

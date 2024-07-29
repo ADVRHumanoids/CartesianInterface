@@ -1,10 +1,12 @@
 #ifndef __XBOT_CARTESIAN_PROBLEM_TASK_IMPL_H__
 #define __XBOT_CARTESIAN_PROBLEM_TASK_IMPL_H__
 
-#include <XBotInterface/ModelInterface.h>
+#include <xbot2_interface/xbotinterface2.h>
 #include <cartesian_interface/problem/Task.h>
 #include <cartesian_interface/sdk/problem/Plugin.h>
 #include <cartesian_interface/Context.h>
+
+#include <optional>
 
 namespace XBot { namespace Cartesian {
 
@@ -61,6 +63,9 @@ public:
 
     void setTaskError(const Eigen::VectorXd& e);
     virtual bool getTaskError(Eigen::VectorXd& e) const override;
+
+    void setTaskErrorJacobian(const Eigen::MatrixXd& j);
+    virtual bool getTaskErrorJacobian(Eigen::MatrixXd& J) const override;
 
     void registerObserver(TaskObserver::WeakPtr obs) override;
 
@@ -149,7 +154,12 @@ private:
     /**
      * @brief Implementation-specific representation of task error
      */
-    Eigen::VectorXd _task_error;
+    std::optional<Eigen::VectorXd> _task_error;
+
+    /**
+     * @brief _task_error
+     */
+    std::optional<Eigen::MatrixXd> _task_error_jac;
 
     std::list<TaskObserver::WeakPtr> _observers;
 

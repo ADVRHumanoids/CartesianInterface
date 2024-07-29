@@ -14,7 +14,7 @@ RobotStatePublisher::RobotStatePublisher(ModelInterface::ConstPtr model):
 void RobotStatePublisher::publishTransforms(const ros::Time & time,
                                             const std::string & tf_prefix)
 {
-    const auto& urdf = _model->getUrdf();
+    const auto& urdf = *_model->getUrdf();
 
     _tf_vector.clear();
 

@@ -11,6 +11,8 @@
 
 #include "utils/DynamicLoading.h"
 
+#include <xbot2_interface/logger.h>
+
 using namespace XBot::Cartesian;
 
 namespace {
@@ -481,8 +483,7 @@ void CartesianInterfaceImpl::log_model()
 {
     if(_model->isFloatingBase())
     {
-        Eigen::Vector6d centroidal_momentum; ///TODO: put it in header!
-        _model->getCentroidalMomentum(centroidal_momentum);
+        Eigen::Vector6d centroidal_momentum = _model->computeCentroidalMomentum();
         _logger->add("ci_centroidal_momentum", centroidal_momentum);
     }
 }

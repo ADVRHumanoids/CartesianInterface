@@ -33,6 +33,8 @@ void AngularMomentumRos::run(ros::Time time)
                          msg.vector);
 
     _cur_ref_pub.publish(msg);
+
+    TaskRos::run(time);
 }
 
 void AngularMomentumRos::on_ref_recv(geometry_msgs::Vector3StampedConstPtr msg)

@@ -20,7 +20,8 @@
 #ifndef __XBOT_CARTESIAN_INTERPOLATOR_H__
 #define __XBOT_CARTESIAN_INTERPOLATOR_H__
 
-#include <XBotInterface/ModelInterface.h>
+#include <xbot2_interface/xbotinterface2.h>
+#include <xbot2_interface/common/utils.h>
 
 /* fi: this class is just a draft of a generic interpolator thet we will use for
  * any object with an arithmetic... Now it is just a copy-paste from Trajectory
@@ -112,8 +113,7 @@ namespace XBot { namespace Cartesian {
 			double t_end   =  it   ->time;
 			double t_start = (it-1)->time;
 
-			double tau, dtau, ddtau;
-			XBot::Utils::FifthOrderPlanning(0, 0, 0, 1, t_start, t_end, time, tau, dtau, ddtau);
+            auto [tau, dtau, ddtau] = XBot::Utils::quinticSplineDerivatives(t_start, t_end, time);
 			
 			T interpolated = (1 - tau)*start + tau*end;
 			

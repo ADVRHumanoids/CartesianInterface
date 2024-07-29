@@ -5,10 +5,13 @@
 #include "problem/Cartesian.h"
 #include "problem/Interaction.h"
 #include "problem/Com.h"
+#include "problem/Gaze.h"
 #include "problem/Postural.h"
 #include "problem/Limits.h"
 
 #include "problem/Subtask.h"
+
+#include "problem/OmniWheels4X.h"
 
 #include "fmt/format.h"
 
@@ -121,14 +124,22 @@ std::shared_ptr<TaskDescription> MakeTaskDescription(YAML::Node prob_desc,
     {
         task_desc = std::make_shared<JointLimitsImpl>(task_node,  context);
     }
+    else if(task_type == "JointLimitsInvariance")
+    {
+        task_desc = std::make_shared<JointLimitsInvarianceImpl>(task_node,  context);
+    }
     else if(task_type == "VelocityLimits")
     {
         task_desc = std::make_shared<VelocityLimitsImpl>(task_node,  context);
     }
-    //        else if(task_type == "Gaze")
-    //        {
-    //            task_desc = GazeTask::yaml_parse_gaze(task_node, model);
-    //        }
+    else if(task_type == "OmniWheels4X")
+    {
+        task_desc = std::make_shared<OmniWheels4X>(task_node,  context);
+    }
+    else if(task_type == "Gaze")
+    {
+        task_desc = std::make_shared<GazeTaskImpl>(task_node, context);
+    }
     //        else if(task_type == "MinJointVel")
     //        {
     //            task_desc = MinJointVelTask::yaml_parse_minjointvel(task_node, model);

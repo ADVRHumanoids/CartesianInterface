@@ -14,6 +14,8 @@
 #include "ros/client_api/CartesianRos.h"
 #include "ros/client_api/InteractionRos.h"
 
+#include <xbot2_interface/logger.h>
+
 #define THROW_NOT_IMPL throw std::runtime_error("Not implemented function " + std::string(__func__));
 
 using namespace XBot::Cartesian;
