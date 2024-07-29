@@ -3,9 +3,11 @@
 
 #include "AngularMomentum.h"
 #include <cartesian_interface/sdk/ros/server_api/TaskRos.h>
-#include <geometry_msgs/Vector3Stamped.h>
+#include <geometry_msgs/msg/vector3_stamped.hpp>
 
 namespace XBot { namespace Cartesian {
+
+using geometry_msgs::msg::Vector3Stamped;
 
 namespace ServerApi
 {
@@ -26,15 +28,15 @@ public:
     AngularMomentumRos(TaskDescription::Ptr task,
                        RosContext::Ptr ros_context);
 
-    void run(ros::Time time) override;
+    void run(rclcpp::Time time) override;
 
 
 private:
 
-    void on_ref_recv(geometry_msgs::Vector3StampedConstPtr msg);
+    void on_ref_recv(Vector3Stamped::ConstSharedPtr msg);
 
-    ros::Subscriber _ref_sub;
-    ros::Publisher _cur_ref_pub;
+    rclcpp::Subscription<Vector3Stamped>::SharedPtr _ref_sub;
+    rclcpp::Publisher<Vector3Stamped>::SharedPtr _cur_ref_pub;
 
     AngularMomentum::Ptr _ci_angmom;
 

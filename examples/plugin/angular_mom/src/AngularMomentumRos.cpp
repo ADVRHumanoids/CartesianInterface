@@ -1,5 +1,5 @@
 #include "AngularMomentumRos.h"
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.hpp>
 #include "fmt/format.h"
 
 using namespace XBot::Cartesian;
@@ -15,30 +15,31 @@ AngularMomentumRos::AngularMomentumRos(TaskDescription::Ptr task,
                                              "does not have expected type 'AngularMomentum'");
 
     /* Open topics */
-    _ref_sub = _ctx->nh().subscribe(task->getName() + "/reference", 1,
-                                   &AngularMomentumRos::on_ref_recv, this);
+    _ref_sub = _ctx->node()->create_subscription<Vector3Stamped>(
+        task->getName() + "/reference", 1,
+        std::bind(&AngularMomentumRos::on_ref_recv, this, std::placeholders::_1)
+        );
 
-    _cur_ref_pub = _ctx->nh().advertise<geometry_msgs::Vector3Stamped>(task->getName() + "/current_reference",
+    _cur_ref_pub = _ctx->node()->create_publisher<Vector3Stamped>(task->getName() + "/current_reference",
                                                                   1);
     /* Register type name */
     registerType("AngularMomentum");
 }
 
-void AngularMomentumRos::run(ros::Time time)
+void AngularMomentumRos::run(rclcpp::Time time)
 {
-    geometry_msgs::Vector3Stamped msg;
+    Vector3Stamped msg;
     msg.header.stamp = time;
 
-    tf::vectorEigenToMsg(_ci_angmom->getReference(),
-                         msg.vector);
+    tf2::toMsg(_ci_angmom->getReference(), msg.vector);
 
-    _cur_ref_pub.publish(msg);
+    _cur_ref_pub->publish(msg);
 }
 
-void AngularMomentumRos::on_ref_recv(geometry_msgs::Vector3StampedConstPtr msg)
+void AngularMomentumRos::on_ref_recv(Vector3Stamped::ConstSharedPtr msg)
 {
     Eigen::Vector3d ref;
-    tf::vectorMsgToEigen(msg->vector, ref);
+    tf2::fromMsg(msg->vector, ref);
 
     _ci_angmom->setReference(ref);
 }

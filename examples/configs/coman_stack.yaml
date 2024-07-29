@@ -1,38 +1,38 @@
 solver_options:
     regularization: 1e-3
-    back_end: "qpoases"
+    back_end: qpoases
 
 stack:
-    - ["LeftFoot", "RightFoot", "ComXY"]
-    - ["LeftArm", "RightArm"]
-    - ["Postural"]
+    - [LeftFoot, RightFoot, ComXY]
+    - [LeftArm, RightArm]
+    - [Postural]
 
-constraints: ["JointLimits", "VelocityLimits"]
+constraints: [JointLimits, VelocityLimits]
 
 LeftFoot:
-    type: "Cartesian"
-    name: "left_foot"
-    distal_link: "l_sole"
+    type: Cartesian
+    name: left_foot
+    distal_link: l_sole
 
 RightFoot:
-    type: "Cartesian"
-    name: "right_foot"
-    distal_link: "r_sole"
+    type: Cartesian
+    name: right_foot
+    distal_link: r_sole
 
 LeftArm:
-    type: "Cartesian"
-    name: "left_hand"
-    distal_link: "LSoftHand"
+    type: Cartesian
+    name: left_hand
+    distal_link: LSoftHand
     lambda: 0.1
 
 RightArm:
-    type: "Cartesian"
-    name: "right_hand"
-    distal_link: "RSoftHand"
+    type: Cartesian
+    name: right_hand
+    distal_link: RSoftHand
     lambda: 0.1
 
 Postural:
-    type: "Postural"
+    type: Postural
     lambda: 0.01
     weight:
         VIRTUALJOINT_1: 0.0
@@ -43,15 +43,15 @@ Postural:
         VIRTUALJOINT_6: 0.0
 
 ComXY:
-    type: "Com"
+    type: Com
     lambda: 0.1
     indices: [0, 1]
     weight: 10
 
 JointLimits:
-    type: "JointLimits"
+    type: JointLimits
     remove_indices: [0, 1, 2, 3, 4, 5]
 
 
 VelocityLimits:
-    type: "VelocityLimits"
+    type: VelocityLimits

@@ -1,163 +1,186 @@
 
-set(CATKIN_BUILD_BINARY_PACKAGE TRUE)
-
-find_package(catkin REQUIRED COMPONENTS roscpp
-    std_msgs
-    xbot_msgs
-    geometry_msgs
-    sensor_msgs
-    actionlib
-    robot_state_publisher
-    message_generation
-    interactive_markers
-    tf tf_conversions)
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(builtin_interfaces REQUIRED)
+find_package(tf2_eigen REQUIRED)
+find_package(tf2_kdl REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(interactive_markers REQUIRED)
+find_package(visualization_msgs REQUIRED)
 
 # Generate messages in the 'msg' folder
-add_message_files(
-    FILES
-    Impedance3.msg
-    Impedance6.msg
-    CartesianImpedanceBase.msg
-    CartesianImpedance.msg
-    CartesianImpedanceTimed.msg
-    JoystickStatus.msg
-    TaskInfo.msg
-    CartesianTaskInfo.msg
-    InteractionTaskInfo.msg
-    )
+set(msg_files
+    msg/Impedance3.msg
+    msg/Impedance6.msg
+    msg/CartesianImpedanceBase.msg
+    msg/CartesianImpedance.msg
+    msg/CartesianImpedanceTimed.msg
+    msg/JoystickStatus.msg
+    msg/TaskInfo.msg
+    msg/CartesianTaskInfo.msg
+    msg/InteractionTaskInfo.msg
+)
 
 # Generate services in the 'srv' folder
-add_service_files(
-    FILES
-    GetTaskInfo.srv
-    SetTaskActive.srv
-    LoadController.srv
-    GetTaskList.srv
-    ResetJoints.srv
-    ResetWorld.srv
-    GetImpedance.srv
-    SetImpedance.srv
-    ToggleAxis.srv
-    SetContactFrame.srv
-    SetJoystickActiveTask.srv
-    SetJoystickTaskMaxSpeed.srv
-    SetJoystickTaskBaseFrame.srv
-    GetCartesianTaskInfo.srv
-    GetInteractionTaskInfo.srv
-    SetWeight.srv
-    SetLambda.srv
-    SetLambda2.srv
-    SetBaseLink.srv
-    SetControlMode.srv
-    SetSafetyLimits.srv
-    SetTransform.srv
-    )
+set(srv_files
+    srv/GetTaskInfo.srv
+    srv/SetTaskActive.srv
+    srv/LoadController.srv
+    srv/GetTaskList.srv
+    srv/ResetJoints.srv
+    srv/ResetWorld.srv
+    srv/GetImpedance.srv
+    srv/SetImpedance.srv
+    srv/ToggleAxis.srv
+    srv/SetContactFrame.srv
+    srv/SetJoystickActiveTask.srv
+    srv/SetJoystickTaskMaxSpeed.srv
+    srv/SetJoystickTaskBaseFrame.srv
+    srv/GetCartesianTaskInfo.srv
+    srv/GetInteractionTaskInfo.srv
+    srv/SetWeight.srv
+    srv/SetLambda.srv
+    srv/SetLambda2.srv
+    srv/SetBaseLink.srv
+    srv/SetControlMode.srv
+    srv/SetSafetyLimits.srv
+    srv/SetTransform.srv
+)
 
 
 # Generate actions in the 'action' folder
-add_action_files(
-    FILES
-    ReachPose.action
-    ReachCartesianImpedance.action
-    )
+set(action_files
+    action/ReachPose.action
+    action/ReachCartesianImpedance.action
+)
 
-## Generate added messages and services with any dependencies listed here
-generate_messages(
+rosidl_generate_interfaces(${PROJECT_NAME}
+    ${msg_files}
+    ${srv_files}
+    ${action_files}
     DEPENDENCIES
-    std_msgs
-    geometry_msgs
+    builtin_interfaces
     sensor_msgs
-    actionlib_msgs
-    )
+    std_msgs
+)
 
-###################################
-## catkin specific configuration ##
-###################################
-## The catkin_package macro generates cmake config files for your package
-## Declare things to be passed to dependent projects
-## INCLUDE_DIRS: uncomment this if you package contains header files
-## LIBRARIES: libraries you create in this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## DEPENDS: system dependencies of this project that dependent projects also need
-catkin_package(
-    SKIP_CMAKE_CONFIG_GENERATION
-    SKIP_PKG_CONFIG_GENERATION
-    )
+ament_export_dependencies(rosidl_default_runtime)
 
-# ros1 source files
+ament_package()
+
+
+# ros source files
 set(CartesianInterfaceRos_SRC
     RosContext.cpp
     server_api/TaskRos.cpp
     server_api/CartesianRos.cpp
-    server_api/InteractionRos.cpp
+    #    server_api/InteractionRos.cpp
     server_api/PosturalRos.cpp
     client_api/TaskRos.cpp
     client_api/CartesianRos.cpp
-    client_api/InteractionRos.cpp
-    client_api/PosturalRos.cpp
-    RosImpl.cpp
+    #    client_api/InteractionRos.cpp
+    #    client_api/PosturalRos.cpp
+    #    RosImpl.cpp
     RosServerClass.cpp
     CartesianMarker.cpp
-    JoyStick.cpp
+    #    JoyStick.cpp
     RosExecutor.cpp
     utils/RobotStatePublisher.cpp
-    )
+)
 
 add_library(CartesianInterfaceRos STATIC
     ${CartesianInterfaceRos_SRC}
-    )
+    utils/RosUtils.h
+)
 
-add_dependencies(CartesianInterfaceRos ${${PROJECT_NAME}_EXPORTED_TARGETS})
+target_link_libraries(CartesianInterfaceRos
+    PUBLIC
+    CartesianInterfaceCore
+    rclcpp::rclcpp
+    tf2_eigen::tf2_eigen
+    tf2_kdl::tf2_kdl
+    tf2_geometry_msgs::tf2_geometry_msgs
+    std_srvs::std_srvs__rosidl_typesupport_cpp
+    ${PROJECT_NAME}__rosidl_typesupport_cpp
+    interactive_markers::interactive_markers
+    geometry_msgs::geometry_msgs__rosidl_typesupport_cpp
+    visualization_msgs::visualization_msgs__rosidl_typesupport_cpp
+)
+
+#add_dependencies(CartesianInterfaceRos ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 # Cartesian Server executable
 add_executable(ros_server_node RosServerNode.cpp)
-target_link_libraries(ros_server_node CartesianInterface dl)
-install(TARGETS ros_server_node ros_server_node
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-    )
+
+target_link_libraries(ros_server_node CartesianInterfaceRos rclcpp::rclcpp dl)
+
+install(TARGETS ros_server_node
+    DESTINATION lib/${PROJECT_NAME}
+)
 
 # Marker spawner executable
-add_executable(marker_spawner MarkerSpawner.cpp)
-target_link_libraries(marker_spawner CartesianInterface)
-install(TARGETS marker_spawner marker_spawner
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-    )
-
-# JoyStick spawner executable
-add_executable(joystick_spawner JoyStickSpawner.cpp)
-target_link_libraries(joystick_spawner CartesianInterface)
-install(TARGETS joystick_spawner joystick_spawner
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+add_executable(marker_spawner
+    MarkerSpawner.cpp
 )
 
-# CartesianAnalyzer executable
-add_executable(cartesian_analyzer CartesianAnalyzer.cpp)
-target_link_libraries(cartesian_analyzer CartesianInterface)
-install(TARGETS cartesian_analyzer cartesian_analyzer
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+target_link_libraries(marker_spawner
+    CartesianInterfaceRos
 )
 
-# Robot state publisher executable
-add_executable(robot_state_publisher utils/RobotStatePublisherNode.cpp)
-target_link_libraries(robot_state_publisher CartesianInterface)
-install(TARGETS robot_state_publisher robot_state_publisher
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+install(TARGETS marker_spawner
+   DESTINATION lib/${PROJECT_NAME}
+   )
+
+# Robot description publisher
+add_executable(robot_description_publisher
+    RobotDescriptionPublisher.cpp
 )
 
-## Mark other files for installation (e.g. launch and bag files, etc.)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/launch/
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-    FILES_MATCHING PATTERN "*.launch"
-    )
+target_link_libraries(robot_description_publisher
+    rclcpp::rclcpp
+    std_msgs::std_msgs__rosidl_typesupport_cpp
+)
 
-install(PROGRAMS ${CMAKE_SOURCE_DIR}/src/postural_gui DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(TARGETS robot_description_publisher
+   DESTINATION lib/${PROJECT_NAME}
+   )
+
+## JoyStick spawner executable
+#add_executable(joystick_spawner JoyStickSpawner.cpp)
+#target_link_libraries(joystick_spawner CartesianInterface)
+#install(TARGETS joystick_spawner joystick_spawner
+#    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
+
+## CartesianAnalyzer executable
+#add_executable(cartesian_analyzer CartesianAnalyzer.cpp)
+#target_link_libraries(cartesian_analyzer CartesianInterface)
+#install(TARGETS cartesian_analyzer cartesian_analyzer
+#    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
+
+## Robot state publisher executable
+#add_executable(robot_state_publisher utils/RobotStatePublisherNode.cpp)
+#target_link_libraries(robot_state_publisher CartesianInterface)
+#install(TARGETS robot_state_publisher robot_state_publisher
+#    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
+
+### Mark other files for installation (e.g. launch and bag files, etc.)
+#install(DIRECTORY ${CMAKE_SOURCE_DIR}/launch/
+#    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+#    FILES_MATCHING PATTERN "*.launch"
+#    )
+
+#install(PROGRAMS ${CMAKE_SOURCE_DIR}/src/postural_gui DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

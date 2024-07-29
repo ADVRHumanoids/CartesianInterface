@@ -1,66 +1,71 @@
 #include "fmt/format.h"
 #include "ros/client_api/CartesianRos.h"
-#include <cartesian_interface/GetCartesianTaskInfo.h>
-#include <cartesian_interface/SetBaseLink.h>
-#include <cartesian_interface/SetControlMode.h>
-#include <cartesian_interface/SetSafetyLimits.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/TwistStamped.h>
-#include <eigen_conversions/eigen_msg.h>
+#include "../utils/RosUtils.h"
+#include <tf2_eigen/tf2_eigen.hpp>
 
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ClientApi;
 using namespace cartesian_interface;
+using namespace std::chrono_literals;
 
 CartesianRos::CartesianRos(std::string name,
-                           ros::NodeHandle nh):
-    TaskRos(name, nh),
-    _action_cli(nh, name + "/reach", true),
+                           rclcpp::Node::SharedPtr node):
+    TaskRos(name, node),
     _Tref_recv(false), _vref_recv(false)
 {
-    _cart_info_cli = _nh.serviceClient<GetCartesianTaskInfo>(name + "/get_cartesian_task_properties");
-    if(!_cart_info_cli.waitForExistence(ros::Duration(1.0)) || !_cart_info_cli.exists())
+    _action_cli = rclcpp_action::create_client<ReachPose>(_node, name + "/reach");
+
+    _cart_info_cli = _node->create_client<GetCartesianTaskInfo>(name + "/get_cartesian_task_properties");
+
+    while(!_cart_info_cli->wait_for_service(1s))
     {
-        throw std::runtime_error(fmt::format("Non existent service '{}'",
-                                             _cart_info_cli.getService()));
+        RCLCPP_INFO_STREAM(_node->get_logger(),
+                           fmt::format("waiting for service '{}'",
+                                       _cart_info_cli->get_service_name())
+                           );
     }
 
-    if(!_action_cli.waitForServer(ros::Duration(2.0)))
+    while(!_action_cli->wait_for_action_server(1s))
     {
-        throw std::runtime_error(fmt::format("Unable to reach action server '{}'",
-                                             _nh.resolveName(getName() + "/reach")));
+        RCLCPP_INFO_STREAM(_node->get_logger(),
+                           "waiting for action server" << name << "/reach"
+                           );
     }
 
-    _set_base_link_cli = _nh.serviceClient<SetBaseLink>(name + "/set_base_link");
+    _set_base_link_cli = _node->create_client<SetBaseLink>(name + "/set_base_link");
 
-    _set_ctrl_mode_cli = _nh.serviceClient<SetControlMode>(name + "/set_control_mode");
+    _set_ctrl_mode_cli = _node->create_client<SetControlMode>(name + "/set_control_mode");
 
-    _pose_ref_pub = _nh.advertise<geometry_msgs::PoseStamped>(name + "/reference", 1);
+    _pose_ref_pub = _node->create_publisher<PoseStamped>(name + "/reference", 1);
 
-    _vel_ref_pub = _nh.advertise<geometry_msgs::TwistStamped>(name + "/velocity_reference", 1);
+    _vel_ref_pub = _node->create_publisher<TwistStamped>(name + "/velocity_reference", 1);
 
-    auto on_ref_recv = [this](geometry_msgs::PoseStampedConstPtr msg)
+    auto on_ref_recv = [this](PoseStamped::ConstSharedPtr msg)
     {
         _Tref_recv = true;
-        tf::poseMsgToEigen(msg->pose, _Tref);
+        tf2::fromMsg(msg->pose, _Tref);
     };
 
-    _pose_ref_sub = _nh.subscribe<geometry_msgs::PoseStamped>(name + "/current_reference", 1,
-                                                              on_ref_recv);
+    _pose_ref_sub = _node->create_subscription<PoseStamped>(name + "/current_reference",
+                                                            1, on_ref_recv
+                                                            );
 
-    auto on_vref_recv = [this](geometry_msgs::TwistStampedConstPtr msg)
+    auto on_vref_recv = [this](TwistStamped::ConstSharedPtr msg)
     {
         _vref_recv = true;
-        tf::twistMsgToEigen(msg->twist, _vref);
+        tf2::fromMsg(msg->twist, _vref);
     };
 
-    _vel_ref_sub = _nh.subscribe<geometry_msgs::TwistStamped>(name + "/current_velocity_reference", 1,
-                                                              on_vref_recv);
+    _vel_ref_sub = _node->create_subscription<TwistStamped>(name + "/current_velocity_reference", 1,
+                                                            on_vref_recv);
 
-    _set_safety_lims_cli = _nh.serviceClient<SetSafetyLimits>(name + "/set_safety_limits");
+    _set_safety_lims_cli = _node->create_client<SetSafetyLimits>(name + "/set_safety_limits");
 
-    _task_info_sub = _nh.subscribe(name + "/cartesian_task_properties", 10,
-                                 &CartesianRos::on_task_info_recv, this);
+    _task_info_sub = ::create_subscription<CartesianTaskInfo>(_node,
+                                                              name + "/cartesian_task_properties",
+                                                              &CartesianRos::on_task_info_recv,
+                                                              this,
+                                                              10);
 }
 
 bool CartesianRos::validate()
@@ -99,37 +104,69 @@ void CartesianRos::getAccelerationLimits(double & max_acc_lin,
 void CartesianRos::setVelocityLimits(double max_vel_lin,
                                      double max_vel_ang)
 {
-    SetSafetyLimits srv;
-    srv.request.max_vel_lin = max_vel_lin;
-    srv.request.max_vel_ang = max_vel_ang;
-    srv.request.max_acc_lin = -1.0;
-    srv.request.max_acc_ang = -1.0;
+    auto req = std::make_shared<SetSafetyLimits::Request>();
 
-    if(!_set_safety_lims_cli.call(srv))
+    req->max_vel_lin = max_vel_lin;
+    req->max_vel_ang = max_vel_ang;
+    req->max_acc_lin = -1.0;
+    req->max_acc_ang = -1.0;
+
+    auto cli = _set_safety_lims_cli;
+
+    auto fut = cli->async_send_request(req);
+
+    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
     {
-        throw std::runtime_error(fmt::format("Unable to call service '{}'",
-                                             _set_safety_lims_cli.getService()));
-    }
+        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
 
-    ROS_INFO("%s", srv.response.message.c_str());
+        if(fut.get()->success)
+        {
+            return;
+        }
+
+        throw std::runtime_error(fmt::format("service '{}' returned false: {}",
+                                             cli->get_service_name(),
+                                             fut.get()->message));
+    }
+    else
+    {
+        throw std::runtime_error(fmt::format("unable to call service '{}'",
+                                             cli->get_service_name()));
+    }
 }
 
 void CartesianRos::setAccelerationLimits(double max_acc_lin,
                                          double max_acc_ang)
 {
-    SetSafetyLimits srv;
-    srv.request.max_vel_lin = -1.0;
-    srv.request.max_vel_ang = -1.0;
-    srv.request.max_acc_lin = max_acc_lin;
-    srv.request.max_acc_ang = max_acc_ang;
+    auto req = std::make_shared<SetSafetyLimits::Request>();
 
-    if(!_set_safety_lims_cli.call(srv))
+    req->max_vel_lin = -1.0;
+    req->max_vel_ang = -1.0;
+    req->max_acc_lin = max_acc_lin;
+    req->max_acc_ang = max_acc_ang;
+
+    auto cli = _set_safety_lims_cli;
+
+    auto fut = cli->async_send_request(req);
+
+    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
     {
-        throw std::runtime_error(fmt::format("Unable to call service '{}'",
-                                             _set_safety_lims_cli.getService()));
-    }
+        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
 
-    ROS_INFO("%s", srv.response.message.c_str());
+        if(fut.get()->success)
+        {
+            return;
+        }
+
+        throw std::runtime_error(fmt::format("service '{}' returned false: {}",
+                                             cli->get_service_name(),
+                                             fut.get()->message));
+    }
+    else
+    {
+        throw std::runtime_error(fmt::format("unable to call service '{}'",
+                                             cli->get_service_name()));
+    }
 }
 
 State CartesianRos::getTaskState() const
@@ -145,18 +182,32 @@ const std::string & CartesianRos::getBaseLink() const
 
 bool CartesianRos::setBaseLink(const std::string & new_base_link)
 {
-    SetBaseLink srv;
-    srv.request.base_link = new_base_link;
+    auto req = std::make_shared<SetBaseLink::Request>();
 
-    if(!_set_base_link_cli.call(srv))
+    req->base_link = new_base_link;
+
+    auto cli = _set_base_link_cli;
+
+    auto fut = cli->async_send_request(req);
+
+    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
     {
-        throw std::runtime_error(fmt::format("Unable to call service '{}'",
-                                             _set_base_link_cli.getService()));
+        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
+
+        if(fut.get()->success)
+        {
+            return true;
+        }
+
+        throw std::runtime_error(fmt::format("service '{}' returned false: {}",
+                                             cli->get_service_name(),
+                                             fut.get()->message));
     }
-
-    ROS_INFO("%s", srv.response.message.c_str());
-
-    return srv.response.success;
+    else
+    {
+        throw std::runtime_error(fmt::format("unable to call service '{}'",
+                                             cli->get_service_name()));
+    }
 }
 
 const std::string & CartesianRos::getDistalLink() const
@@ -172,18 +223,32 @@ ControlType CartesianRos::getControlMode() const
 
 bool CartesianRos::setControlMode(const ControlType & value)
 {
-    SetControlMode srv;
-    srv.request.ctrl_mode = EnumToString(value);
+    auto req = std::make_shared<SetControlMode::Request>();
 
-    if(!_set_ctrl_mode_cli.call(srv))
+    req->ctrl_mode = EnumToString(value);
+
+    auto cli = _set_ctrl_mode_cli;
+
+    auto fut = cli->async_send_request(req);
+
+    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
     {
-        throw std::runtime_error(fmt::format("Unable to call service '{}'",
-                                             _set_ctrl_mode_cli.getService()));
+        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
+
+        if(fut.get()->success)
+        {
+            return true;
+        }
+
+        throw std::runtime_error(fmt::format("service '{}' returned false: {}",
+                                             cli->get_service_name(),
+                                             fut.get()->message));
     }
-
-    ROS_INFO("%s", srv.response.message.c_str());
-
-    return srv.response.success;
+    else
+    {
+        throw std::runtime_error(fmt::format("unable to call service '{}'",
+                                             cli->get_service_name()));
+    }
 }
 
 bool CartesianRos::getCurrentPose(Eigen::Affine3d& base_T_ee) const
@@ -210,11 +275,11 @@ bool CartesianRos::getPoseReferenceRaw(Eigen::Affine3d& base_T_ref, Eigen::Vecto
 
 bool CartesianRos::setPoseReference(const Eigen::Affine3d& base_T_ref)
 {
-    geometry_msgs::PoseStamped msg;
-    msg.header.stamp = ros::Time::now();
+    PoseStamped msg;
+    msg.header.stamp = _node->now();
     msg.header.frame_id = "";
-    tf::poseEigenToMsg(base_T_ref, msg.pose);
-    _pose_ref_pub.publish(msg);
+    msg.pose = tf2::toMsg(base_T_ref);
+    _pose_ref_pub->publish(msg);
 
     return true;
 }
@@ -239,18 +304,18 @@ bool CartesianRos::setAccelerationReference(const Eigen::Vector6d &base_acc_ref)
 bool CartesianRos::setVelocityReference(const Eigen::Vector6d& base_vel_ref,
                                         const std::string& base_frame)
 {
-    geometry_msgs::TwistStamped msg;
+    TwistStamped msg;
     msg.header.frame_id = base_frame;
-    msg.header.stamp = ros::Time::now();
-    tf::twistEigenToMsg(base_vel_ref, msg.twist);
-    _vel_ref_pub.publish(msg);
+    msg.header.stamp = _node->now();
+    msg.twist = tf2::toMsg(base_vel_ref);
+    _vel_ref_pub->publish(msg);
 
     return true;
 }
 
 bool CartesianRos::getPoseTarget(Eigen::Affine3d& base_T_ref) const
 {
-    throw std::runtime_error(fmt::format("Unsupported function '{}'",
+    throw std::runtime_error(fmt::format("unsupported function '{}'",
                                          __PRETTY_FUNCTION__));
 }
 
@@ -276,41 +341,82 @@ bool CartesianRos::setWayPoints(const Trajectory::WayPointVector& way_points)
 
 void CartesianRos::abort()
 {
-    _action_cli.cancelAllGoals();
+    auto fut = _action_cli->async_cancel_all_goals();
+
+    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(_node->get_logger(), "abort succeeded");
+    }
+    else
+    {
+        RCLCPP_ERROR(_node->get_logger(), "abort failed");
+    }
 }
 
 bool CartesianRos::waitReachCompleted(double timeout)
 {
-    return _action_cli.waitForResult(ros::Duration(timeout));
+    auto ret = rclcpp::spin_until_future_complete(_node,
+                                                  _action_future,
+                                                  std::chrono::duration<double>(timeout));
+
+    return (ret == rclcpp::FutureReturnCode::SUCCESS);
 }
 
 bool CartesianRos::setWayPoints(const Trajectory::WayPointVector& way_points,
                                 bool incremental)
 {
-    cartesian_interface::ReachPoseGoal goal;
+    if(!_action_cli->action_server_is_ready())
+    {
+        RCLCPP_ERROR(_node->get_logger(),
+                     "server not ready");
+
+        return false;
+    }
+
+    ReachPose::Goal goal;
+
     goal.incremental = incremental;
 
     for(const auto& f : way_points)
     {
-        geometry_msgs::Pose frame;
-        tf::poseEigenToMsg(f.frame, frame);
+        if(goal.time.size() > 0 && f.time <= goal.time.back())
+        {
+            RCLCPP_ERROR(_node->get_logger(),
+                         "time vector must be monotonically increasing");
+
+            return false;
+        }
+
+        auto frame = tf2::toMsg(f.frame);
 
         goal.frames.push_back(frame);
+
         goal.time.push_back(f.time);
     }
 
-    _action_cli.sendGoal(goal,
-                         boost::bind(&CartesianRos::on_action_done, this, _1, _2),
-                         boost::bind(&CartesianRos::on_action_active, this),
-                         boost::bind(&CartesianRos::on_reach_feedback_recv, this, _1));
+    auto send_goal_options = rclcpp_action::Client<ReachPose>::SendGoalOptions();
+
+    using namespace std::placeholders;
+
+    send_goal_options.goal_response_callback =
+        std::bind(&CartesianRos::on_action_active, this, _1);
+
+    send_goal_options.feedback_callback =
+        std::bind(&CartesianRos::on_reach_feedback_recv, this, _1, _2);
+
+    send_goal_options.result_callback =
+        std::bind(&CartesianRos::on_action_done, this, _1);
+
+    _action_future = _action_cli->async_send_goal(goal, send_goal_options);
+
     return true;
 }
 
-GetCartesianTaskInfoResponse CartesianRos::get_task_info() const
+GetCartesianTaskInfo::Response CartesianRos::get_task_info() const
 {
     if(asyncMode())
     {
-        GetCartesianTaskInfoResponse res;
+        GetCartesianTaskInfo::Response res;
         res.base_link         = _info.base_link        ;
         res.distal_link       = _info.distal_link      ;
         res.control_mode      = _info.control_mode     ;
@@ -324,37 +430,50 @@ GetCartesianTaskInfoResponse CartesianRos::get_task_info() const
         return res;
     }
 
-    cartesian_interface::GetCartesianTaskInfo srv;
-    if(!_cart_info_cli.call(srv))
+    auto req = std::make_shared<GetCartesianTaskInfo::Request>();
+
+    auto cli = _cart_info_cli;
+
+    auto fut = cli->async_send_request(req);
+
+    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
     {
-        throw std::runtime_error(fmt::format("Unable to call service '{}'",
-                                             _cart_info_cli.getService()));
+        return *fut.get();
     }
-
-    return srv.response;
+    else
+    {
+        throw std::runtime_error(fmt::format("unable to call service '{}'",
+                                             cli->get_service_name()));
+    }
 }
 
-void CartesianRos::on_reach_feedback_recv(const ReachPoseFeedbackConstPtr & feedback)
+void CartesianRos::on_reach_feedback_recv(ActionGoalHandle::SharedPtr goal_handle,
+                                          const std::shared_ptr<const ReachPose::Feedback> fb)
 {
-    _current_segment_idx = feedback->current_segment_id;
+    _current_segment_idx = fb->current_segment_id;
 }
 
-void CartesianRos::on_action_active()
+void CartesianRos::on_action_active(ActionGoalHandle::SharedPtr goal_handle)
 {
-    ROS_INFO("Reach action for task '%s' has become active",
-             getName().c_str());
+    RCLCPP_INFO(_node->get_logger(),
+                "reach action for task '%s' has become active",
+                getName().c_str());
+
+    _action_goal_handle = goal_handle;
 }
 
-void CartesianRos::on_action_done(const actionlib::SimpleClientGoalState & state,
-                                  const ReachPoseResultConstPtr & result)
+void CartesianRos::on_action_done(const ActionGoalHandle::WrappedResult& result)
 {
-    ROS_INFO("Reach action for task '%s' has been completed",
-             getName().c_str());
+    RCLCPP_INFO(_node->get_logger(),
+                "reach action for task '%s' has been completed",
+                getName().c_str());
 
     _current_segment_idx = -1;
+
+    _action_goal_handle.reset();
 }
 
-void CartesianRos::on_task_info_recv(CartesianTaskInfoConstPtr msg)
+void CartesianRos::on_task_info_recv(CartesianTaskInfo::ConstSharedPtr msg)
 {
     _info = *msg;
 }

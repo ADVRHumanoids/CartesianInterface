@@ -4,9 +4,14 @@
 #include <cartesian_interface/sdk/ros/server_api/TaskRos.h>
 
 #include <cartesian_interface/problem/Postural.h>
-#include <sensor_msgs/JointState.h>
+
+#include <sensor_msgs/msg/joint_state.hpp>
+
+#include <rclcpp/rclcpp.hpp>
 
 namespace XBot { namespace Cartesian {
+
+using sensor_msgs::msg::JointState;
 
 namespace ServerApi
 {
@@ -21,18 +26,18 @@ public:
     PosturalRos(PosturalTask::Ptr task,
                 RosContext::Ptr context);
 
-    virtual void run(ros::Time time) override;
+    virtual void run(rclcpp::Time time) override;
 
 protected:
 
 private:
 
-    void on_ref_recv(sensor_msgs::JointStateConstPtr msg);
+    void on_ref_recv(JointState::ConstSharedPtr msg);
 
     PosturalTask::Ptr _postural;
 
-    ros::Publisher _current_ref_pub;
-    ros::Subscriber _ref_sub;
+    rclcpp::Publisher<JointState>::SharedPtr _current_ref_pub;
+    rclcpp::SubscriptionBase::SharedPtr _ref_sub;
 
     Eigen::VectorXd _posture_ref;
 

@@ -14,6 +14,7 @@ find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
 find_package(estimation_utils REQUIRED)
 
+
 # optional packages
 find_package(GLPK QUIET)
 if(${GLPK_FOUND})
@@ -85,9 +86,11 @@ add_library(CartesianInterfaceCore STATIC
 
 target_link_libraries(CartesianInterfaceCore
     PUBLIC
-    OpenSoT::OpenSoT
+    Eigen3::Eigen
+    XBotInterface::XBotInterface
     yaml-cpp
     PRIVATE
+    OpenSoT::OpenSoT
     ${ReflexxesTypeII_LIBRARIES}
     ${alglib_LIBRARIES}
     )
@@ -107,7 +110,7 @@ add_library(CartesianInterface SHARED
     )
 
 # compile ros library
-#add_subdirectory(src/ros)
+add_subdirectory(src/ros)
 
 #target_link_libraries(CartesianInterface
 #    PRIVATE
@@ -171,6 +174,9 @@ install(DIRECTORY include/cartesian_interface/
     PATTERN ".svn" EXCLUDE
     )
 
+install(DIRECTORY launch
+    DESTINATION share/${PROJECT_NAME}
+    )
 
 
 include(ExportCartesianInterface)

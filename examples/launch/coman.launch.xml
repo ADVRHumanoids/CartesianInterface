@@ -1,0 +1,27 @@
+<launch>
+
+    <arg name="prefix" default=""/>
+    <arg name="gui" default="true"/>
+    <arg name="gui" default="true"/>
+
+    <node pkg="cartesian_interface" exec="robot_description_publisher" name="robot_description_publisher">
+        <param name="robot_description" type="str"
+            value="$(command 'cat $(find-pkg-share cartesian_interface)/examples/urdf/coman.urdf')"/>
+
+        <param name="robot_description_semantic" type="str"
+            value="$(command 'cat $(find-pkg-share cartesian_interface)/examples/srdf/coman.srdf')"/>
+    </node>
+
+    <include file="$(find-pkg-share cartesian_interface)/launch/cartesio.launch.xml">
+        <arg name="rate" value="100.0"/>
+        <arg name="prefix" value="$(var prefix)"/>
+        <arg name="problem_description_filename" value="$(find-pkg-share cartesian_interface)/examples/configs/coman_stack.yaml"/>
+    </include>
+
+    <node if="$(var gui)"
+            exec="rviz2"
+            name="rviz"
+            pkg="rviz2"
+            output="screen"/>
+
+</launch>

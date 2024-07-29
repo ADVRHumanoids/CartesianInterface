@@ -1,16 +1,17 @@
 #include <cartesian_interface/markers/CartesianMarker.h>
-#include <cartesian_interface/GetTaskInfo.h>
-#include <std_srvs/SetBool.h>
-#include <numeric> 
+#include <cartesian_interface/srv/get_task_info.hpp>
+#include <numeric>
 #include <XBotInterface/RtLog.hpp>
-#include <tf_conversions/tf_kdl.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.hpp>
+#include <tf2_kdl/tf2_kdl.hpp>
 
 #include "ros/client_api/CartesianRos.h"
+#include "utils/RosUtils.h"
 
 #define SECS 5
 
 using namespace XBot::Cartesian;
+using namespace std::chrono_literals;
 
 CartesianMarker::CartesianMarker(const std::string& task_name,
                                  const urdf::Model &robot_urdf,
@@ -21,7 +22,7 @@ CartesianMarker::CartesianMarker(const std::string& task_name,
     CartesianMarker(task_name,
                     robot_urdf,
                     control_type,
-                    ros::NodeHandle("cartesian"),
+                    rclcpp::Node::make_shared("cartesian_marker")->create_sub_node("cartesian"),
                     tf_prefix,
                     use_mesh)
 {
@@ -31,52 +32,54 @@ CartesianMarker::CartesianMarker(const std::string& task_name,
 CartesianMarker::CartesianMarker(const std::string& task_name,
                                  const urdf::Model& robot_urdf,
                                  const unsigned int control_type,
-                                 ros::NodeHandle nh,
+                                 rclcpp::Node::SharedPtr node,
                                  std::string tf_prefix,
                                  const bool use_mesh):
     _urdf(robot_urdf),
-    _server(task_name + "_cartesian_marker_server"),
+    _server(task_name + "_cartesian_marker_server", node),
     _tf_prefix(tf_prefix),
     _menu_entry_counter(0),
     _control_type(1),_is_continuous(1), _task_active(-1), _position_feedback_active(-1),
-    _nh(nh),
+    _node(node),
     _use_mesh(use_mesh)
 {
-    _task = std::make_shared<ClientApi::CartesianRos>(task_name, _nh);
+    _task = std::make_shared<ClientApi::CartesianRos>(task_name, node);
 
     _distal_link = _task->getDistalLink();
+
     _base_link = _task->getBaseLink();
 
     _urdf.getLinks(_links);
 
     _start_pose = getRobotActualPose();
+
     _actual_pose = _start_pose;
 
     MakeMarker(_distal_link, _base_link, false, control_type, true);
 
     MakeMenu();
 
-
-
     _server.applyChanges();
 
 
-    visualization_msgs::InteractiveMarkerFeedbackConstPtr foo;
+    InteractiveMarkerFeedback::SharedPtr foo;
     resetMarker(foo);
 
+    _clear_service = ::create_service<EmptySrv>(_node,
+                                                _int_marker.name + "/clear_marker",
+                                                &CartesianMarker::clearMarker,
+                                                this);
 
-    _clear_service = _nh.advertiseService(_int_marker.name + "/clear_marker",
-                                          &CartesianMarker::clearMarker, this);
-    _spawn_service = _nh.advertiseService(_int_marker.name + "/spawn_marker",
-                                          &CartesianMarker::spawnMarker, this);
+    _spawn_service = ::create_service<EmptySrv>(_node,
+                                                _int_marker.name + "/spawn_marker",
+                                                &CartesianMarker::spawnMarker,
+                                                this);
 
 
     std::string topic_name = task_name + "/wp";
-    _way_points_pub = _nh.advertise<geometry_msgs::PoseArray>(topic_name, 1, true);
-
+    _way_points_pub = _node->create_publisher<PoseArray>(topic_name, 1);
 
 }
-
 
 
 CartesianMarker::~CartesianMarker()
@@ -90,20 +93,38 @@ void CartesianMarker::MakeMenu()
 
     _menu_entry_counter = 0;
 
-    _reset_marker_entry = _menu_handler.insert("Reset Marker",std::bind(std::mem_fn(&CartesianMarker::resetMarker),
-                                                                          this, pl::_1));
+    // reset marker
+    _reset_marker_entry = _menu_handler.insert("Reset Marker",
+                                               std::bind(std::mem_fn(&CartesianMarker::resetMarker),
+                                                         this,
+                                                         pl::_1));
     _menu_entry_counter++;
 
-    _global_control_entry = _menu_handler.insert("Global Ctrl",std::bind(std::mem_fn(&CartesianMarker::setControlGlobalLocal),
-                                                                           this, pl::_1));
+
+    // global control
+    _global_control_entry
+        = _menu_handler.insert("Global Ctrl",
+                               std::bind(std::mem_fn(&CartesianMarker::setControlGlobalLocal),
+                                         this,
+                                         pl::_1));
+
     _menu_handler.setCheckState(_global_control_entry, interactive_markers::MenuHandler::UNCHECKED);
+
     _menu_entry_counter++;
 
-    _continuous_control_entry = _menu_handler.insert("Continuous Ctrl",std::bind(std::mem_fn(&CartesianMarker::setContinuousCtrl),
-                                                                                   this, pl::_1));
+
+    // continuous control
+    _continuous_control_entry
+        = _menu_handler.insert("Continuous Ctrl",
+                               std::bind(std::mem_fn(&CartesianMarker::setContinuousCtrl),
+                                         this,
+                                         pl::_1));
+
     _menu_handler.setCheckState(_continuous_control_entry, interactive_markers::MenuHandler::UNCHECKED);
+
     _menu_entry_counter++;
 
+    // add waypoint
     _way_point_entry = _menu_handler.insert("Add WayPoint");
     _menu_handler.setVisible(_way_point_entry, true);
     _menu_entry_counter++;
@@ -114,31 +135,51 @@ void CartesianMarker::MakeMenu()
     {
         std::ostringstream s;
         s <<i+1;
-        _T_last = _menu_handler.insert( _T_entry, s.str(),
-                                        std::bind(std::mem_fn(&CartesianMarker::wayPointCallBack),
-                                                    this, pl::_1));
+        _T_last = _menu_handler.insert(_T_entry,
+                                       s.str(),
+                                       std::bind(std::mem_fn(&CartesianMarker::wayPointCallBack),
+                                                 this,
+                                                 pl::_1));
         _menu_entry_counter++;
         _menu_handler.setCheckState(_T_last, interactive_markers::MenuHandler::UNCHECKED );
     }
-    _reset_all_way_points_entry = _menu_handler.insert(_way_point_entry, "Reset All",std::bind(std::mem_fn(&CartesianMarker::resetAllWayPoints),
-                                                                                                 this, pl::_1));
+    _reset_all_way_points_entry
+        = _menu_handler.insert(_way_point_entry,
+                               "Reset All",
+                               std::bind(std::mem_fn(&CartesianMarker::resetAllWayPoints),
+                                         this,
+                                         pl::_1));
     _menu_entry_counter++;
-    _reset_last_way_point_entry = _menu_handler.insert(_way_point_entry, "Reset Last",std::bind(std::mem_fn(&CartesianMarker::resetLastWayPoints),
-                                                                                                  this, pl::_1));
+    _reset_last_way_point_entry
+        = _menu_handler.insert(_way_point_entry,
+                               "Reset Last",
+                               std::bind(std::mem_fn(&CartesianMarker::resetLastWayPoints),
+                                         this,
+                                         pl::_1));
     _menu_entry_counter++;
 
-    _send_way_points_entry = _menu_handler.insert(_way_point_entry, "Send",std::bind(std::mem_fn(&CartesianMarker::sendWayPoints),
-                                                                                       this, pl::_1));
+    _send_way_points_entry = _menu_handler.insert(_way_point_entry,
+                                                  "Send",
+                                                  std::bind(std::mem_fn(
+                                                                &CartesianMarker::sendWayPoints),
+                                                            this,
+                                                            pl::_1));
     _menu_entry_counter++;
 
     _properties_entry = _menu_handler.insert("Properties");
     _menu_entry_counter++;
-    _task_is_active_entry = _menu_handler.insert(_properties_entry, "Task Active",std::bind(std::mem_fn(&CartesianMarker::activateTask),
-                                                                                              this, pl::_1));
+    _task_is_active_entry
+        = _menu_handler.insert(_properties_entry,
+                               "Task Active",
+                               std::bind(std::mem_fn(&CartesianMarker::activateTask), this, pl::_1));
     _menu_entry_counter++;
     _menu_handler.setCheckState(_task_is_active_entry, interactive_markers::MenuHandler::CHECKED );
-    _position_feedback_is_active_entry = _menu_handler.insert(_properties_entry, "Position FeedBack Active",std::bind(std::mem_fn(&CartesianMarker::activatePositionFeedBack),
-                                                                                                                        this, pl::_1));
+    _position_feedback_is_active_entry
+        = _menu_handler.insert(_properties_entry,
+                               "Position FeedBack Active",
+                               std::bind(std::mem_fn(&CartesianMarker::activatePositionFeedBack),
+                                         this,
+                                         pl::_1));
     _menu_entry_counter++;
     _menu_handler.setCheckState(_position_feedback_is_active_entry, interactive_markers::MenuHandler::CHECKED );
 
@@ -172,7 +213,7 @@ void CartesianMarker::MakeMenu()
     }
 
 
-    _menu_control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
+    _menu_control.interaction_mode = visualization_msgs::msg::InteractiveMarkerControl::BUTTON;
     _menu_control.always_visible = true;
 
     _int_marker.controls.push_back(_menu_control);
@@ -180,7 +221,7 @@ void CartesianMarker::MakeMenu()
     _menu_handler.apply(_server, _int_marker.name);
 }
 
-void CartesianMarker::sendWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+void CartesianMarker::sendWayPoints(InteractiveMarkerFeedback::ConstSharedPtr feedback)
 {
     if(_waypoints.empty()) return;
 
@@ -192,7 +233,7 @@ void CartesianMarker::sendWayPoints(const visualization_msgs::InteractiveMarkerF
     {
         Trajectory::WayPoint wp;
 
-        tf::poseMsgToEigen(_waypoints[i], wp.frame);
+        tf2::fromMsg(_waypoints[i], wp.frame);
         wp.time = _T.at(i);
 
         wpv.push_back(wp);
@@ -205,45 +246,54 @@ void CartesianMarker::sendWayPoints(const visualization_msgs::InteractiveMarkerF
     _T.clear();
 }
 
-void CartesianMarker::resetLastWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+void CartesianMarker::resetLastWayPoints(InteractiveMarkerFeedback::ConstSharedPtr feedback)
 {
     namespace pl = std::placeholders;
 
     _T.pop_back();
+
     _waypoints.pop_back();
+
     clearMarker(_req, _res);
 
-    ROS_INFO("RESET LAST WAYPOINT!");
+    RCLCPP_INFO(_node->get_logger(), "RESET LAST WAYPOINT!");
 
     if(_waypoints.empty())
+    {
         spawnMarker(_req, _res);
-    else{
+    }
+    else
+    {
         if(_server.empty())
         {
-            tf::poseMsgToKDL(_waypoints.back(),_start_pose);
-            //tf::PoseMsgToKDL(_waypoints.back(),_start_pose);
+            tf2::fromMsg(_waypoints.back(), _start_pose);
+
             _actual_pose = _start_pose;
 
-            KDLFrameToVisualizationPose(_start_pose, _int_marker);
+            _int_marker.pose = _waypoints.back();
 
-            _server.insert(_int_marker, std::bind(std::mem_fn(&CartesianMarker::MarkerFeedback),this, pl::_1));
+            _server.insert(_int_marker,
+                           std::bind(std::mem_fn(&CartesianMarker::MarkerFeedback), this, pl::_1));
+
             _menu_handler.apply(_server, _int_marker.name);
+
             _server.applyChanges();
         }
     }
+
     publishWP(_waypoints);
 }
 
-void CartesianMarker::resetAllWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+void CartesianMarker::resetAllWayPoints(InteractiveMarkerFeedback::ConstSharedPtr feedback)
 {
     _T.clear();
     _waypoints.clear();
     resetMarker(feedback);
     publishWP(_waypoints);
-    ROS_INFO("RESETTING ALL WAYPOINTS!");
+    RCLCPP_INFO(_node->get_logger(), "RESETTING ALL WAYPOINTS!");
 }
 
-void CartesianMarker::resetMarker(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+void CartesianMarker::resetMarker(InteractiveMarkerFeedback::ConstSharedPtr feedback)
 {
     if(_task->getActivationState() == ActivationState::Disabled)
     {
@@ -266,8 +316,7 @@ void CartesianMarker::resetMarker(const visualization_msgs::InteractiveMarkerFee
     auto current_base_link = _task->getBaseLink();
     if(current_base_link != _base_link)
     {
-        visualization_msgs::InteractiveMarkerFeedbackPtr feedback;
-        feedback = boost::make_shared<visualization_msgs::InteractiveMarkerFeedback>();
+        auto feedback = std::make_shared<InteractiveMarkerFeedback>();
         feedback->menu_entry_id = _map_link_entry[current_base_link];
         changeBaseLink(feedback);
     }
@@ -277,34 +326,44 @@ void CartesianMarker::resetMarker(const visualization_msgs::InteractiveMarkerFee
     spawnMarker(_req, _res);
 }
 
-void CartesianMarker::publishWP(const std::vector<geometry_msgs::Pose>& wps)
+void CartesianMarker::publishWP(const std::vector<geometry_msgs::msg::Pose>& wps)
 {
-    geometry_msgs::PoseArray msg;
+    PoseArray msg;
+
     for(unsigned int i = 0; i < wps.size(); ++i)
+    {
         msg.poses.push_back(wps[i]);
+    }
 
-    msg.header.frame_id = _tf_prefix+_base_link;
-    msg.header.stamp = ros::Time::now();
+    msg.header.frame_id = _tf_prefix + _base_link;
 
-    _way_points_pub.publish(msg);
+    msg.header.stamp = _node->now();
+
+    _way_points_pub->publish(msg);
 }
 
-void CartesianMarker::wayPointCallBack(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+void CartesianMarker::wayPointCallBack(InteractiveMarkerFeedback::ConstSharedPtr feedback)
 {
-    //In base_link
-    tf::poseMsgToKDL(feedback->pose, _actual_pose);
-    double qx,qy,qz,qw;
-    _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
+    tf2::fromMsg(feedback->pose, _actual_pose);
+
+    Eigen::Quaterniond actual_q(_actual_pose.linear());
 
     double T = double(feedback->menu_entry_id-offset_menu_entry);
 
-
     if(_is_continuous == 1)
     {
-        ROS_INFO("\n %s set waypoint @: \n pos = [%f, %f, %f],\n orient = [%f, %f, %f, %f],\n of %.1f secs",
-                 _int_marker.name.c_str(),
-                 _actual_pose.p.x(), _actual_pose.p.y(), _actual_pose.p.z(),
-                 qx,qy,qz,qw, T);
+        RCLCPP_INFO(_node->get_logger(),
+                    "\n %s set waypoint @: \n pos = [%f, %f, %f],\n orient = [%f, %f, %f, %f],\n "
+                    "of %.1f secs",
+                    _int_marker.name.c_str(),
+                    _actual_pose.translation().x(),
+                    _actual_pose.translation().y(),
+                    _actual_pose.translation().z(),
+                    actual_q.x(),
+                    actual_q.y(),
+                    actual_q.z(),
+                    actual_q.w(),
+                    T);
 
         _waypoints.push_back(feedback->pose);
         _T.push_back(T);
@@ -314,7 +373,7 @@ void CartesianMarker::wayPointCallBack(const visualization_msgs::InteractiveMark
     }
 }
 
-void CartesianMarker::changeBaseLink(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+void CartesianMarker::changeBaseLink(InteractiveMarkerFeedback::ConstSharedPtr feedback)
 {
     int entry_id = feedback->menu_entry_id;
 
@@ -354,7 +413,7 @@ void CartesianMarker::_activatePositionFeedBack(const bool is_active)
     _server.applyChanges();
 }
 
-void CartesianMarker::activatePositionFeedBack(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+void CartesianMarker::activatePositionFeedBack(InteractiveMarkerFeedback::ConstSharedPtr feedback)
 {
     _position_feedback_active *= -1;
 
@@ -396,7 +455,7 @@ void CartesianMarker::_activateTask(const bool is_active)
     _server.applyChanges();
 }
 
-void CartesianMarker::activateTask(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+void CartesianMarker::activateTask(InteractiveMarkerFeedback::ConstSharedPtr feedback)
 {
     _task_active *= -1;
 
@@ -415,7 +474,7 @@ void CartesianMarker::activateTask(const visualization_msgs::InteractiveMarkerFe
     _server.applyChanges();
 }
 
-void CartesianMarker::setContinuousCtrl(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+void CartesianMarker::setContinuousCtrl(InteractiveMarkerFeedback::ConstSharedPtr feedback)
 {
     _is_continuous *= -1;
 
@@ -440,23 +499,26 @@ void CartesianMarker::setContinuousCtrl(const visualization_msgs::InteractiveMar
     _server.applyChanges();
 }
 
-bool CartesianMarker::setContinuous(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+bool CartesianMarker::setContinuous(EmptySrv::Request::ConstSharedPtr req,
+                                    EmptySrv::Response::SharedPtr res)
 {
     clearMarker(req, res);
     spawnMarker(req,res);
     return true;
 }
 
-bool CartesianMarker::setTrj(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+bool CartesianMarker::setTrj(EmptySrv::Request::ConstSharedPtr req,
+                             EmptySrv::Response::SharedPtr res)
 {
     clearMarker(req, res);
     spawnMarker(req, res);
     return true;
 }
 
-void CartesianMarker::setControlGlobalLocal(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+void CartesianMarker::setControlGlobalLocal(InteractiveMarkerFeedback::ConstSharedPtr feedback)
 {
     _control_type *= -1;
+
     if(_control_type == 1)
     {
         _menu_handler.setCheckState(_global_control_entry, interactive_markers::MenuHandler::UNCHECKED);
@@ -472,51 +534,70 @@ void CartesianMarker::setControlGlobalLocal(const visualization_msgs::Interactiv
     _server.applyChanges();
 }
 
-bool CartesianMarker::setGlobal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+bool CartesianMarker::setGlobal(EmptySrv::Request::ConstSharedPtr req,
+                                EmptySrv::Response::SharedPtr res)
 {
     namespace pl = std::placeholders;
 
-    KDLFrameToVisualizationPose(_actual_pose, _int_marker);
+    _int_marker.pose = tf2::toMsg(_actual_pose);
 
     for(unsigned int i = 1; i < _int_marker.controls.size(); ++i)
-        _int_marker.controls[i].orientation_mode = visualization_msgs::InteractiveMarkerControl::FIXED;
+    {
+        _int_marker.controls[i].orientation_mode = visualization_msgs::msg::InteractiveMarkerControl::FIXED;
+    }
+
     _server.insert(_int_marker, std::bind(std::mem_fn(&CartesianMarker::MarkerFeedback), this, pl::_1));
+
     _server.applyChanges();
+
     return true;
 }
 
-bool CartesianMarker::setLocal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+bool CartesianMarker::setLocal(EmptySrv::Request::ConstSharedPtr req,
+                               EmptySrv::Response::SharedPtr res)
 {
     namespace pl = std::placeholders;
 
-    KDLFrameToVisualizationPose(_actual_pose, _int_marker);
+    _int_marker.pose = tf2::toMsg(_actual_pose);
 
     for(unsigned int i = 1; i < _int_marker.controls.size(); ++i)
-        _int_marker.controls[i].orientation_mode = visualization_msgs::InteractiveMarkerControl::INHERIT;
+    {
+        _int_marker.controls[i].orientation_mode = visualization_msgs::msg::InteractiveMarkerControl::INHERIT;
+    }
+
     _server.insert(_int_marker, std::bind(std::mem_fn(&CartesianMarker::MarkerFeedback), this, pl::_1));
+
     _server.applyChanges();
+
     return true;
 }
 
-bool CartesianMarker::spawnMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+bool CartesianMarker::spawnMarker(EmptySrv::Request::ConstSharedPtr req,
+                                  EmptySrv::Response::SharedPtr res)
 {
     namespace pl = std::placeholders;
 
     if(_server.empty())
     {
         _start_pose = getRobotActualPose();
+
         _actual_pose = _start_pose;
 
-        KDLFrameToVisualizationPose(_start_pose, _int_marker);
+        _int_marker.pose = tf2::toMsg(_start_pose);
 
-        _server.insert(_int_marker, std::bind(std::mem_fn(&CartesianMarker::MarkerFeedback),this, pl::_1));
+        _server.insert(_int_marker,
+                       std::bind(std::mem_fn(&CartesianMarker::MarkerFeedback), this, pl::_1));
+
         _menu_handler.apply(_server, _int_marker.name);
+
         _server.applyChanges();
     }
+
     return true;
 }
 
-bool CartesianMarker::clearMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+bool CartesianMarker::clearMarker(EmptySrv::Request::ConstSharedPtr req,
+                                  EmptySrv::Response::SharedPtr res)
 {
     if(!_server.empty())
     {
@@ -529,40 +610,46 @@ bool CartesianMarker::clearMarker(std_srvs::Empty::Request& req, std_srvs::Empty
 void CartesianMarker::createInteractiveMarkerControl(const double qw, const double qx, const double qy, const double qz,
                                                      const unsigned int interaction_mode)
 {
+    using visualization_msgs::msg::InteractiveMarkerControl;
+
     _control.orientation.w = qw;
     _control.orientation.x = qx;
     _control.orientation.y = qy;
     _control.orientation.z = qz;
-    if(interaction_mode == visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D)
+
+    if(interaction_mode == InteractiveMarkerControl::MOVE_ROTATE_3D)
     {
         _control.name = "rotate_x";
-        _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+        _control.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
         _int_marker.controls.push_back(_control);
         _control.name = "move_x";
-        _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+        _control.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
         _int_marker.controls.push_back(_control);
     }
-    else if(interaction_mode == visualization_msgs::InteractiveMarkerControl::MOVE_3D)
+    else if(interaction_mode == InteractiveMarkerControl::MOVE_3D)
     {
         _control.name = "move_x";
-        _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+        _control.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
         _int_marker.controls.push_back(_control);
     }
-    else if(interaction_mode == visualization_msgs::InteractiveMarkerControl::ROTATE_3D)
+    else if(interaction_mode == InteractiveMarkerControl::ROTATE_3D)
     {
         _control.name = "rotate_x";
-        _control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+        _control.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
         _int_marker.controls.push_back(_control);
     }
     else throw std::invalid_argument("Invalid interaction mode!");
 }
 
-void CartesianMarker::MakeMarker(const std::string &distal_link, const std::string &base_link,
-                                 bool fixed, unsigned int interaction_mode, bool show)
+void CartesianMarker::MakeMarker(const std::string &distal_link,
+                                 const std::string &base_link,
+                                 bool fixed,
+                                 unsigned int interaction_mode,
+                                 bool show)
 {
     namespace pl = std::placeholders;
 
-    ROS_INFO("Creating marker %s -> %s\n", base_link.c_str(), distal_link.c_str());
+    RCLCPP_INFO(_node->get_logger(), "Creating marker %s -> %s\n", base_link.c_str(), distal_link.c_str());
     _int_marker.header.frame_id = _tf_prefix+base_link;
     _int_marker.scale = 0.5;
 
@@ -572,41 +659,36 @@ void CartesianMarker::MakeMarker(const std::string &distal_link, const std::stri
     // insert STL
     makeSTLControl(_int_marker);
 
-
     _int_marker.controls[0].interaction_mode = interaction_mode;
-
 
     if(show)
     {
-        createInteractiveMarkerControl(1,1,0,0,interaction_mode);
-        createInteractiveMarkerControl(1,0,1,0,interaction_mode);
-        createInteractiveMarkerControl(1,0,0,1,interaction_mode);
+        createInteractiveMarkerControl(1, 1, 0, 0, interaction_mode);
+        createInteractiveMarkerControl(1, 0, 1, 0, interaction_mode);
+        createInteractiveMarkerControl(1, 0, 0, 1, interaction_mode);
     }
 
-    KDLFrameToVisualizationPose(_start_pose, _int_marker);
+    _int_marker.pose = tf2::toMsg(_start_pose);
 
-    _server.insert(_int_marker, std::bind(std::mem_fn(&CartesianMarker::MarkerFeedback),this, pl::_1));
+    _server.insert(_int_marker,
+                   std::bind(std::mem_fn(&CartesianMarker::MarkerFeedback), this, pl::_1));
 }
 
-void CartesianMarker::MarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+void CartesianMarker::MarkerFeedback(InteractiveMarkerFeedback::ConstSharedPtr feedback)
 {
     
     //In base_link
-    tf::poseMsgToKDL(feedback->pose, _actual_pose);
-    double qx,qy,qz,qw;
-    _actual_pose.M.GetQuaternion(qx,qy,qz,qw);
+    tf2::fromMsg(feedback->pose, _actual_pose);
 
     if(_is_continuous == -1)
     {
-        Eigen::Affine3d Tref;
-        tf::poseMsgToEigen(feedback->pose, Tref);
-
-        _task->setPoseReference(Tref);
+        _task->setPoseReference(_actual_pose);
     }
     
 }
 
-visualization_msgs::InteractiveMarkerControl& CartesianMarker::makeSTLControl(visualization_msgs::InteractiveMarker &msg )
+visualization_msgs::msg::InteractiveMarkerControl&
+CartesianMarker::makeSTLControl(visualization_msgs::msg::InteractiveMarker &msg )
 {
     _control2.always_visible = true;
 
@@ -620,10 +702,10 @@ visualization_msgs::InteractiveMarkerControl& CartesianMarker::makeSTLControl(vi
     return msg.controls.back();
 }
 
-visualization_msgs::Marker CartesianMarker::makeSphere( visualization_msgs::InteractiveMarker &msg )
+visualization_msgs::msg::Marker CartesianMarker::makeSphere( visualization_msgs::msg::InteractiveMarker &msg )
 {
-    _marker.type = visualization_msgs::Marker::SPHERE;
-    _marker.scale.x = msg.scale * 0.45;//0.45
+    _marker.type = visualization_msgs::msg::Marker::SPHERE;
+    _marker.scale.x = msg.scale * 0.45;
     _marker.scale.y = msg.scale * 0.45;
     _marker.scale.z = msg.scale * 0.45;
     _marker.color.r = 0.5;
@@ -634,18 +716,32 @@ visualization_msgs::Marker CartesianMarker::makeSphere( visualization_msgs::Inte
     return _marker;
 }
 
-visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::InteractiveMarker &msg )
+namespace
 {
+Eigen::Affine3d toEigen(urdf::Pose pose)
+{
+    Eigen::Quaterniond q;
+    pose.rotation.getQuaternion(q.x(), q.y(), q.z(), q.w());
+
+    Eigen::Affine3d ret;
+    ret.translation() << pose.position.x, pose.position.y, pose.position.z;
+    ret.linear() = q.toRotationMatrix();
+
+    return ret;
+}
+}
+
+visualization_msgs::msg::Marker CartesianMarker::makeSTL(visualization_msgs::msg::InteractiveMarker& msg)
+{
+    using visualization_msgs::msg::Marker;
+
+
     auto link = _urdf.getLink(_distal_link);
     auto controlled_link = link;
 
-#if ROS_VERSION_MINOR <= 12
-#define STATIC_POINTER_CAST boost::static_pointer_cast
-#else
-#define STATIC_POINTER_CAST std::static_pointer_cast
-#endif
+    Eigen::Affine3d T;
+    T.setIdentity();
 
-    KDL::Frame T; T.Identity();
     while(!link->visual)
     {
         if(!link->parent_joint)
@@ -657,10 +753,11 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
     }
     
     T = getPose(controlled_link->name, link->name);
-    KDL::Frame T_marker;
-    URDFPoseToKDLFrame(link->visual->origin, T_marker);
+
+    Eigen::Affine3d T_marker = ::toEigen(link->visual->origin);
     T = T*T_marker;
-    KDLFrameToVisualizationPose(T, _marker);
+
+    _marker.pose = tf2::toMsg(T);
 
     _marker.color.r = 0.5;
     _marker.color.g = 0.5;
@@ -668,10 +765,10 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
 
     if(link->visual->geometry->type == urdf::Geometry::MESH)
     {
-        _marker.type = visualization_msgs::Marker::MESH_RESOURCE;
+        _marker.type = Marker::MESH_RESOURCE;
 
         auto mesh =
-                STATIC_POINTER_CAST<urdf::Mesh>(link->visual->geometry);
+            std::static_pointer_cast<urdf::Mesh>(link->visual->geometry);
 
         _marker.mesh_resource = mesh->filename;
         _marker.scale.x = mesh->scale.x;
@@ -680,13 +777,10 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
     }
     else if(link->visual->geometry->type == urdf::Geometry::BOX)
     {
-        _marker.type = visualization_msgs::Marker::CUBE;
+        _marker.type = Marker::CUBE;
 
         auto mesh =
-                STATIC_POINTER_CAST<urdf::Box>(link->visual->geometry);
-
-        KDL::Frame T_marker;
-        URDFPoseToKDLFrame(link->visual->origin, T_marker);
+                std::static_pointer_cast<urdf::Box>(link->visual->geometry);
 
         _marker.scale.x = mesh->dim.x;
         _marker.scale.y = mesh->dim.y;
@@ -695,75 +789,56 @@ visualization_msgs::Marker CartesianMarker::makeSTL( visualization_msgs::Interac
     }
     else if(link->visual->geometry->type == urdf::Geometry::CYLINDER)
     {
-        _marker.type = visualization_msgs::Marker::CYLINDER;
+        _marker.type = Marker::CYLINDER;
 
         auto mesh =
-                STATIC_POINTER_CAST<urdf::Cylinder>(link->visual->geometry);
-
-        KDL::Frame T_marker;
-        URDFPoseToKDLFrame(link->visual->origin, T_marker);
+                std::static_pointer_cast<urdf::Cylinder>(link->visual->geometry);
 
         _marker.scale.x = _marker.scale.y = mesh->radius;
         _marker.scale.z = mesh->length;
     }
     else if(link->visual->geometry->type == urdf::Geometry::SPHERE)
     {
-        _marker.type = visualization_msgs::Marker::SPHERE;
+        _marker.type = Marker::SPHERE;
 
         auto mesh =
-                STATIC_POINTER_CAST<urdf::Sphere>(link->visual->geometry);
-
-        KDL::Frame T_marker;
-        URDFPoseToKDLFrame(link->visual->origin, T_marker);
+                std::static_pointer_cast<urdf::Sphere>(link->visual->geometry);
 
         _marker.scale.x = _marker.scale.y = _marker.scale.z = 2.*mesh->radius;
     }
 
     _marker.color.a = .9;
+
     return _marker;
 }
 
-KDL::Frame CartesianMarker::getRobotActualPose()
+Eigen::Affine3d CartesianMarker::getRobotActualPose()
 {
-    for(unsigned int i = 0; i < 10; ++i){
-        try{
-            ros::Time now = ros::Time::now();
-            _listener.waitForTransform(_tf_prefix+_base_link,
-                                       _tf_prefix+_distal_link,ros::Time(0),ros::Duration(1.0));
-
-            _listener.lookupTransform(_tf_prefix+_base_link, _tf_prefix+_distal_link,
-                                      ros::Time(0), _transform);
-        }
-        catch (tf::TransformException ex){
-            ROS_ERROR("%s",ex.what());
-            ros::Duration(1.0).sleep();
-        }}
-    KDL::Frame transform_KDL;
-    tf::TransformTFToKDL(_transform, transform_KDL);
-
-    return transform_KDL;
+    return getPose(_base_link, _distal_link);
 }
 
-KDL::Frame CartesianMarker::getPose(const std::string& base_link, const std::string& distal_link)
+Eigen::Affine3d CartesianMarker::getPose(const std::string& base_link, const std::string& distal_link)
 {
 
-    for(unsigned int i = 0; i < 10; ++i){
-        try{
-            ros::Time now = ros::Time::now();
-            _listener.waitForTransform(_tf_prefix+base_link, _tf_prefix+distal_link,ros::Time(0),ros::Duration(1.0));
+    Eigen::Affine3d T;
+    T.setIdentity();
 
-            _listener.lookupTransform(_tf_prefix+base_link, _tf_prefix+distal_link,
-                                      ros::Time(0), _transform);
-        }
-        catch (tf::TransformException ex){
-            ROS_ERROR("%s",ex.what());
-            ros::Duration(1.0).sleep();
-        }}
+    try
+    {
+        auto tf = _tf_buffer->lookupTransform(_tf_prefix + base_link,
+                                              _tf_prefix + distal_link,
+                                              tf2::TimePointZero,
+                                              1s);
 
-    KDL::Frame transform_KDL;
-    tf::TransformTFToKDL(_transform, transform_KDL);
+        T.matrix() = tf2::transformToEigen(tf.transform).matrix();
 
-    return transform_KDL;
+    }
+    catch (tf2::TransformException ex)
+    {
+        RCLCPP_ERROR_STREAM(_node->get_logger(), ex.what());
+    }
+
+    return T;
 }
 
 void XBot::Cartesian::CartesianMarker::setBaseLink(std::string base_link)

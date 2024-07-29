@@ -4,11 +4,17 @@
 #include <cartesian_interface/problem/Cartesian.h>
 #include <cartesian_interface/sdk/ros/client_api/TaskRos.h>
 
-#include <cartesian_interface/GetCartesianTaskInfo.h>
-#include <cartesian_interface/CartesianTaskInfo.h>
+#include <cartesian_interface/srv/get_cartesian_task_info.hpp>
+#include <cartesian_interface/msg/cartesian_task_info.hpp>
 
-#include <actionlib/client/simple_action_client.h>
-#include <cartesian_interface/ReachPoseAction.h>
+#include <cartesian_interface/srv/set_base_link.hpp>
+#include <cartesian_interface/srv/set_control_mode.hpp>
+#include <cartesian_interface/srv/set_safety_limits.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/twist_stamped.hpp>
+
+#include <rclcpp_action/rclcpp_action.hpp>
+#include <cartesian_interface/action/reach_pose.hpp>
 
 namespace XBot { namespace Cartesian {
 
@@ -17,19 +23,25 @@ namespace ClientApi
 class CartesianRos;
 }
 
+using cartesian_interface::action::ReachPose;
+using cartesian_interface::srv::GetCartesianTaskInfo;
+using cartesian_interface::msg::CartesianTaskInfo;
+using cartesian_interface::srv::SetBaseLink;
+using cartesian_interface::srv::SetControlMode;
+using cartesian_interface::srv::SetSafetyLimits;
+using geometry_msgs::msg::PoseStamped;
+using geometry_msgs::msg::TwistStamped;
+
 class ClientApi::CartesianRos : virtual public CartesianTask,
         public ClientApi::TaskRos
 {
 
-
-
-    // CartesianTask interface
 public:
 
     CARTESIO_DECLARE_SMART_PTR(CartesianRos)
 
     CartesianRos(std::string name,
-                 ros::NodeHandle nh);
+                 rclcpp::Node::SharedPtr node);
 
     bool validate() override;
     void enableOnlineTrajectoryGeneration() override;
@@ -71,41 +83,46 @@ protected:
 
 private:
 
-    typedef cartesian_interface::ReachPoseAction ActionType;
-    typedef actionlib::SimpleActionClient<ActionType> ActionClient;
+    GetCartesianTaskInfo::Response get_task_info() const;
 
-    cartesian_interface::GetCartesianTaskInfoResponse get_task_info() const;
-
-    ros::Publisher _pose_ref_pub;
-    ros::Publisher _vel_ref_pub;
-    ros::Subscriber _pose_ref_sub;
-    ros::Subscriber _vel_ref_sub;
-    ros::Subscriber _task_info_sub;
-    ros::ServiceClient _set_safety_lims_cli;
-    ros::ServiceClient _set_base_link_cli;
-    ros::ServiceClient _set_ctrl_mode_cli;
-    mutable ros::ServiceClient _cart_info_cli;
+    rclcpp::Publisher<PoseStamped>::SharedPtr _pose_ref_pub;
+    rclcpp::Publisher<TwistStamped>::SharedPtr _vel_ref_pub;
+    rclcpp::Subscription<PoseStamped>::SharedPtr _pose_ref_sub;
+    rclcpp::Subscription<TwistStamped>::SharedPtr _vel_ref_sub;
+    rclcpp::Subscription<CartesianTaskInfo>::SharedPtr _task_info_sub;
+    rclcpp::Client<SetSafetyLimits>::SharedPtr _set_safety_lims_cli;
+    rclcpp::Client<SetBaseLink>::SharedPtr _set_base_link_cli;
+    rclcpp::Client<SetControlMode>::SharedPtr _set_ctrl_mode_cli;
+    rclcpp::Client<GetCartesianTaskInfo>::SharedPtr _cart_info_cli;
 
     bool _Tref_recv, _vref_recv;
     Eigen::Affine3d _Tref;
     Eigen::Vector6d _vref;
-    cartesian_interface::CartesianTaskInfo _info;
+    CartesianTaskInfo _info;
 
-    ActionClient _action_cli;
+    rclcpp_action::Client<ReachPose>::SharedPtr _action_cli;
     int _current_segment_idx;
 
     std::list<CartesianTaskObserver::WeakPtr> _observers;
 
     mutable std::string _base_link, _distal_link;
 
-    void on_reach_feedback_recv(const cartesian_interface::ReachPoseFeedbackConstPtr& feedback);
+    typedef rclcpp_action::ClientGoalHandle<ReachPose> ActionGoalHandle;
 
-    void on_action_active();
+    void on_action_active(ActionGoalHandle::SharedPtr goal_handle);
 
-    void on_action_done(const actionlib::SimpleClientGoalState& state,
-                        const cartesian_interface::ReachPoseResultConstPtr& result);
+    void on_reach_feedback_recv(
+        ActionGoalHandle::SharedPtr goal_handle,
+        const std::shared_ptr<const ReachPose::Feedback> fb
+        );
 
-    void on_task_info_recv(cartesian_interface::CartesianTaskInfoConstPtr msg);
+    void on_action_done(const ActionGoalHandle::WrappedResult& result);
+
+    void on_task_info_recv(CartesianTaskInfo::ConstSharedPtr msg);
+
+    std::shared_future<ActionGoalHandle::SharedPtr> _action_future;
+
+    ActionGoalHandle::SharedPtr _action_goal_handle;
 
 };
 

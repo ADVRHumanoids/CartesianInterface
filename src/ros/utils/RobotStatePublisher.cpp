@@ -1,17 +1,18 @@
-#include "cartesian_interface/utils/RobotStatePublisher.h"
+#include "cartesian_interface/ros/utils/RobotStatePublisher.h"
 
-#include <tf2_eigen/tf2_eigen.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.hpp>
 
 namespace XBot { namespace Cartesian { namespace Utils {
 
-RobotStatePublisher::RobotStatePublisher(ModelInterface::ConstPtr model):
-    _model(model)
+RobotStatePublisher::RobotStatePublisher(rclcpp::Node::SharedPtr node,
+                                         ModelInterface::ConstPtr model):
+    _model(model),
+    _tf_broadcaster(node)
 {
 
 }
 
-void RobotStatePublisher::publishTransforms(const ros::Time & time,
+void RobotStatePublisher::publishTransforms(const rclcpp::Time & time,
                                             const std::string & tf_prefix)
 {
     const auto& urdf = _model->getUrdf();
@@ -29,13 +30,12 @@ void RobotStatePublisher::publishTransforms(const ros::Time & time,
         Eigen::Affine3d T;
         _model->getPose(child_link, parent_link, T);
 
-        geometry_msgs::TransformStamped tf;
-        tf::transformEigenToMsg(T, tf.transform);
-        tf.header.stamp = time;
-        tf.header.frame_id = tf_prefix + "/" + parent_link;
-        tf.child_frame_id = tf_prefix + "/" + child_link;
+        geometry_msgs::msg::TransformStamped t = tf2::eigenToTransform(T);
+        t.header.stamp = time;
+        t.header.frame_id = tf_prefix + "/" + parent_link;
+        t.child_frame_id = tf_prefix + "/" + child_link;
 
-        _tf_vector.push_back(tf);
+        _tf_vector.push_back(t);
     }
 
     _tf_broadcaster.sendTransform(_tf_vector);

@@ -1,23 +1,27 @@
 #ifndef _CARTESIAN_MARKER_H_
 #define _CARTESIAN_MARKER_H_
 
-#include <interactive_markers/interactive_marker_server.h>
-#include <interactive_markers/menu_handler.h>
-#include <ros/ros.h>
+#include <interactive_markers/interactive_marker_server.hpp>
+#include <interactive_markers/menu_handler.hpp>
+#include <rclcpp/rclcpp.hpp>
 #include <urdf/model.h>
-#include <kdl_conversions/kdl_msg.h>
-#include <tf/transform_listener.h>
-#include <std_srvs/Empty.h>
-#include <geometry_msgs/PoseArray.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/buffer.h>
+#include <std_srvs/srv/empty.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
+#include <visualization_msgs/msg/interactive_marker.hpp>
 
-#include <cartesian_interface/ReachPoseAction.h>
-#include <actionlib/client/simple_action_client.h>
+#include <cartesian_interface/action/reach_pose.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
 
 #include <cartesian_interface/problem/Cartesian.h>
 
 
 namespace XBot { namespace Cartesian {
 
+using EmptySrv = std_srvs::srv::Empty;
+using visualization_msgs::msg::InteractiveMarkerFeedback;
+using geometry_msgs::msg::PoseArray;
 
 class CartesianMarker
 {
@@ -32,9 +36,9 @@ public:
      * @param distal_link
      * @param robot_urdf
      * @param control_type is the type of control:
-     *  visualization_msgs::InteractiveMarkerControl::MOVE_ROTATE_3D
-     *  visualization_msgs::InteractiveMarkerControl::MOVE_3D
-     *  visualization_msgs::InteractiveMarkerControl::ROTATE_3D
+     *  visualization_msgs::msg::InteractiveMarkerControl::MOVE_ROTATE_3D
+     *  visualization_msgs::msg::InteractiveMarkerControl::MOVE_3D
+     *  visualization_msgs::msg::InteractiveMarkerControl::ROTATE_3D
      * @param tf_prefix
      * @param use_mesh, if false sphere is used
      */
@@ -47,7 +51,7 @@ public:
     CartesianMarker(const std::string& task_name,
                     const urdf::Model& robot_urdf,
                     const unsigned int control_type,
-                    ros::NodeHandle nh,
+                    rclcpp::Node::SharedPtr n,
                     std::string tf_prefix = "",
                     const bool use_mesh = true);
     
@@ -59,7 +63,8 @@ public:
      * @param res
      * @return true
      */
-    bool clearMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+    bool clearMarker(EmptySrv::Request::ConstSharedPtr req,
+                     EmptySrv::Response::SharedPtr res);
 
     /**
      * @brief spawnMarker will spawn the marker (if was cleared) in the actual pose of distal_link
@@ -67,13 +72,16 @@ public:
      * @param res
      * @return true
      */
-    bool spawnMarker(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+    bool spawnMarker(EmptySrv::Request::ConstSharedPtr req,
+                     EmptySrv::Response::SharedPtr res);
     
     void setBaseLink(std::string base_link);
 
-    bool setGlobal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+    bool setGlobal(EmptySrv::Request::ConstSharedPtr req,
+                   EmptySrv::Response::SharedPtr res);
 
-    bool setLocal(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+    bool setLocal(EmptySrv::Request::ConstSharedPtr req,
+                  EmptySrv::Response::SharedPtr res);
 
     /**
      * @brief setContinuous control mode
@@ -81,7 +89,8 @@ public:
      * @param res
      * @return
      */
-    bool setContinuous(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+    bool setContinuous(EmptySrv::Request::ConstSharedPtr req,
+                       EmptySrv::Response::SharedPtr res);
 
     /**
      * @brief setTrj control mode (enable waypoints)
@@ -89,7 +98,8 @@ public:
      * @param res
      * @return
      */
-    bool setTrj(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+    bool setTrj(EmptySrv::Request::ConstSharedPtr req,
+                EmptySrv::Response::SharedPtr res);
 
 
 private:
@@ -99,13 +109,13 @@ private:
     /**
      * @brief _nh
      */
-    ros::NodeHandle _nh;
+    rclcpp::Node::SharedPtr _node;
 
     /**
      * @brief _start_pose is the starting pose of the marker, taken from the current pose of the robot
      */
-    KDL::Frame _start_pose;
-    KDL::Frame _actual_pose;
+    Eigen::Affine3d _start_pose;
+    Eigen::Affine3d _actual_pose;
     
     std::string _tf_prefix;
     
@@ -128,22 +138,22 @@ private:
     /**
      * @brief _int_marker this is the actual interactive marker
      */
-    visualization_msgs::InteractiveMarker _int_marker;
+    visualization_msgs::msg::InteractiveMarker _int_marker;
 
     /**
      * @brief control
      */
-    visualization_msgs::InteractiveMarkerControl _control;
+    visualization_msgs::msg::InteractiveMarkerControl _control;
 
     /**
      * @brief _control2
      */
-    visualization_msgs::InteractiveMarkerControl _control2;
+    visualization_msgs::msg::InteractiveMarkerControl _control2;
 
     /**
      * @brief _marker
      */
-    visualization_msgs::Marker _marker;
+    visualization_msgs::msg::Marker _marker;
 
     interactive_markers::MenuHandler _menu_handler;
     interactive_markers::MenuHandler::EntryHandle _reset_marker_entry;
@@ -160,7 +170,7 @@ private:
     interactive_markers::MenuHandler::EntryHandle _position_feedback_is_active_entry;
     interactive_markers::MenuHandler::EntryHandle _base_link_entry;
     std::vector<interactive_markers::MenuHandler::EntryHandle> _link_entries;
-    visualization_msgs::InteractiveMarkerControl  _menu_control;
+    visualization_msgs::msg::InteractiveMarkerControl  _menu_control;
     int _control_type;
     int _menu_entry_counter;
     int _is_continuous;
@@ -168,20 +178,21 @@ private:
     int _task_active;
     int _position_feedback_active;
 
-    tf::TransformListener _listener;
-    tf::StampedTransform _transform;
+    std::unique_ptr<tf2_ros::Buffer> _tf_buffer;
+    std::unique_ptr<tf2_ros::TransformListener> _listener;
     
-    ros::ServiceServer _clear_service;
-    ros::ServiceServer _spawn_service;
-//    ros::ServiceServer _global_service;
-//    ros::ServiceServer _local_service;
+    rclcpp::ServiceBase::SharedPtr _clear_service;
+    rclcpp::ServiceBase::SharedPtr _spawn_service;
+
+    EmptySrv::Request::SharedPtr _req;
+    EmptySrv::Response::SharedPtr _res;
 
     bool _use_mesh;
 
     /**
      * @brief _waypoints contains all the waypoints BUT not the initial position!
      */
-    std::vector<geometry_msgs::Pose> _waypoints;
+    std::vector<geometry_msgs::msg::Pose> _waypoints;
     /**
      * @brief _T contains the times of each waypoint-trajectory
      */
@@ -190,9 +201,6 @@ private:
     std::vector<urdf::LinkSharedPtr> _links;
     int _base_link_entry_active;
     std::map<std::string, int> _map_link_entry;
-
-    std_srvs::EmptyRequest _req;
-    std_srvs::EmptyResponse _res;
 
     /**
      * @brief MakeMarker
@@ -210,76 +218,54 @@ private:
      * @param msg an interactive marker msg
      * @return the interactive marker control
      */
-    visualization_msgs::InteractiveMarkerControl& makeSTLControl(
-            visualization_msgs::InteractiveMarker &msg );
+    visualization_msgs::msg::InteractiveMarkerControl& makeSTLControl(
+        visualization_msgs::msg::InteractiveMarker &msg );
 
     /**
      * @brief makeSTL uses an STL for an interactive marker
      * @param msg an interactive marker msg
      * @return  the interactive marker
      */
-    visualization_msgs::Marker makeSTL( visualization_msgs::InteractiveMarker &msg );
+    visualization_msgs::msg::Marker makeSTL( visualization_msgs::msg::InteractiveMarker &msg );
 
-    visualization_msgs::Marker makeSphere( visualization_msgs::InteractiveMarker &msg );
+    visualization_msgs::msg::Marker makeSphere( visualization_msgs::msg::InteractiveMarker &msg );
 
     /**
      * @brief getRobotActualPose uses the tf to retrieve the actual pose of the robot
      * @return a KDL frame
      */
-    KDL::Frame getRobotActualPose();
+    Eigen::Affine3d getRobotActualPose();
 
-    KDL::Frame getPose(const std::string& base_link, const std::string& distal_link);
+    Eigen::Affine3d getPose(const std::string& base_link, const std::string& distal_link);
 
-    void MarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    void MarkerFeedback(InteractiveMarkerFeedback::ConstSharedPtr feedback);
 
     void MakeMenu();
 
-    void setControlGlobalLocal(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    void setControlGlobalLocal(InteractiveMarkerFeedback::ConstSharedPtr feedback);
 
-    void setContinuousCtrl(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    void setContinuousCtrl(InteractiveMarkerFeedback::ConstSharedPtr feedback);
 
-    void wayPointCallBack(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    void wayPointCallBack(InteractiveMarkerFeedback::ConstSharedPtr feedback);
 
-    void resetMarker(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    void resetMarker(InteractiveMarkerFeedback::ConstSharedPtr feedback);
 
-    void resetAllWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    void resetAllWayPoints(InteractiveMarkerFeedback::ConstSharedPtr feedback);
 
-    void resetLastWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    void resetLastWayPoints(InteractiveMarkerFeedback::ConstSharedPtr feedback);
 
-    void sendWayPoints(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    void sendWayPoints(InteractiveMarkerFeedback::ConstSharedPtr feedback);
 
     void _activateTask(const bool is_active);
-    void activateTask(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    void activateTask(InteractiveMarkerFeedback::ConstSharedPtr feedback);
 
     void _activatePositionFeedBack(const bool is_active);
-    void activatePositionFeedBack(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    void activatePositionFeedBack(InteractiveMarkerFeedback::ConstSharedPtr feedback);
 
-    void changeBaseLink(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+    void changeBaseLink(InteractiveMarkerFeedback::ConstSharedPtr feedback);
 
-    ros::Publisher _way_points_pub;
-    void publishWP(const std::vector<geometry_msgs::Pose>& wps);
-
-    template <class Marker_Type>
-    void KDLFrameToVisualizationPose(const KDL::Frame& Frame, Marker_Type& Marker)
-    {
-        Marker.pose.position.x = Frame.p.x();
-        Marker.pose.position.y = Frame.p.y();
-        Marker.pose.position.z = Frame.p.z();
-        double qx,qy,qz,qw;
-        Frame.M.GetQuaternion(qx,qy,qz,qw);
-        Marker.pose.orientation.x = qx;
-        Marker.pose.orientation.y = qy;
-        Marker.pose.orientation.z = qz;
-        Marker.pose.orientation.w = qw;
-    }
-
-    void URDFPoseToKDLFrame(const urdf::Pose& Pose, KDL::Frame& Frame)
-    {
-        Frame.p.x(Pose.position.x);
-        Frame.p.y(Pose.position.y);
-        Frame.p.z(Pose.position.z);
-        Frame.M = Frame.M.Quaternion(Pose.rotation.x, Pose.rotation.y, Pose.rotation.z, Pose.rotation.w);
-    }
+    rclcpp::Publisher<PoseArray>::SharedPtr _way_points_pub;
+    void publishWP(const std::vector<geometry_msgs::msg::Pose>& wps);
 
     void createInteractiveMarkerControl(const double qw, const double qx, const double qy, const double qz,
                                         const unsigned int interaction_mode);

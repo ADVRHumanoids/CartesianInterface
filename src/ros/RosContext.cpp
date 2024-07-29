@@ -5,10 +5,10 @@
 using namespace XBot::Cartesian;
 
 
-RosContext::RosContext(ros::NodeHandle nh,
+RosContext::RosContext(rclcpp::Node::SharedPtr node,
                        std::string tf_prefix,
                        Context::ConstPtr ci_context):
-    _nh(nh),
+    _node(node),
     _tf_prefix(tf_prefix),
     _tf_prefix_slash(tf_prefix == "" ? "" : (tf_prefix + "/")),
     _ci_ctx(ci_context)
@@ -16,9 +16,9 @@ RosContext::RosContext(ros::NodeHandle nh,
 }
 
 
-ros::NodeHandle & RosContext::nh()
+rclcpp::Node::SharedPtr RosContext::node()
 {
-    return _nh;
+    return _node;
 }
 
 const std::string & RosContext::tf_prefix() const
