@@ -8,8 +8,11 @@
 
 #include <tf2_eigen/tf2_eigen.hpp>
 
+#include <xbot2_interface/logger.h>
+
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ServerApi;
+using XBot::Logger;
 
 namespace  {
 
@@ -189,7 +192,7 @@ void CartesianRos::online_velocity_reference_cb(TwistStamped::ConstSharedPtr msg
     else if(msg->header.frame_id != "")
     {
 
-        if(!_model->getOrientation(msg->header.frame_id, _cart->getBaseLink(), b_R_f))
+        if(!_model->getLinkId(msg->header.frame_id) < 0)
         {
             XBot::Logger::error("Unable to set velocity reference for task '%s' (frame_id '%s' undefined)\n",
                                 _task->getName().c_str(),
@@ -198,6 +201,8 @@ void CartesianRos::online_velocity_reference_cb(TwistStamped::ConstSharedPtr msg
 
             return;
         }
+
+        b_R_f = _model->getPose(msg->header.frame_id, _cart->getBaseLink()).linear();
 
     }
 

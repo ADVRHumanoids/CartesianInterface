@@ -11,11 +11,5 @@ target_link_libraries(CartesioAngularMomentumAddon PRIVATE
 
 install(TARGETS CartesioAngularMomentumAddon
     EXPORT ${PROJECT_NAME}Targets
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
-# Mark cpp header files for installation
-install(FILES "src/AngularMomentum.h" "src/AngularMomentumRos.h"
-    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+    LIBRARY DESTINATION lib
     )

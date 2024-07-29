@@ -123,22 +123,24 @@ void XBot::Cartesian::RosServerClass::publish_solution(rclcpp::Time time)
             {
                 continue;
             }
-            _wrench_pubs.push_back(_nh.advertise<geometry_msgs::WrenchStamped>(p.first, 1, true));
+            _wrench_pubs.push_back(_node->create_publisher<WrenchStamped>(p.first, 1));
         }
         _wrench_pubs_inited = true;
     }
 
     bool no_subsribers = true;
 
-    if(_solution_pub.getNumSubscribers() != 0)
+    if(_solution_pub->get_subscription_count() != 0)
     {
         no_subsribers = false;
     }
 
     for(auto& pub : _wrench_pubs)
     {
-        if(pub.getNumSubscribers() != 0)
+        if(pub->get_subscription_count() != 0)
+        {
             no_subsribers = false;
+        }
     }
 
     if(no_subsribers)
@@ -148,15 +150,12 @@ void XBot::Cartesian::RosServerClass::publish_solution(rclcpp::Time time)
     _model->getJointVelocity(_sol_qdot);
     _model->getJointEffort(_sol_tau);
 
-    // apply log map to retrieve the motion representation of q
+    // get minimal representation of q
     // this has size = nv
 
     // TODO use positionToMinimal instead of difference
-    _sol_q = _model->difference(_sol_q, _model->getNeutralQ());
-    
-    // to deal with non-euclidean joints, we will publish the
-    // log map of q, i.e. the motion that brings the robot to q
-    // when applied for unit time starting from q0
+    _sol_q = _model->positionToMinimal(_sol_q);
+
 
     for(auto& p : solution)
     {
@@ -165,7 +164,7 @@ void XBot::Cartesian::RosServerClass::publish_solution(rclcpp::Time time)
             continue;
         }
 
-        geometry_msgs::WrenchStamped w;
+        WrenchStamped w;
         w.header.stamp = time;
         auto frame = p.first.substr(6); // removes "force_"
 
@@ -195,7 +194,7 @@ void XBot::Cartesian::RosServerClass::publish_solution(rclcpp::Time time)
 
 
     for(unsigned int i = 0; i < _wrench_pubs.size(); ++i)
-        _wrench_pubs[i].publish(w_msg[i]);
+        _wrench_pubs[i]->publish(w_msg[i]);
 
     msg.header.stamp = time;
     msg.name.reserve(_model->getNv());
@@ -211,7 +210,7 @@ void XBot::Cartesian::RosServerClass::publish_solution(rclcpp::Time time)
         i++;
     }
     
-    _solution_pub.publish(msg);
+    _solution_pub->publish(msg);
 }
 
 

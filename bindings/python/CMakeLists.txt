@@ -38,12 +38,6 @@ if(${pybind11_FOUND})
 #            DESTINATION ${PYTHON_SITE})
 
 
-    pybind11_add_module(affine3 pyAffine3d.cpp)
-
-    target_link_libraries(affine3 PRIVATE Eigen3::Eigen)
-
-    install(TARGETS affine3
-            DESTINATION ${PYTHON_SITE})
 
     pybind11_add_module(impedance pyImpedance.cpp)
     target_link_libraries(impedance PRIVATE CartesianInterfaceCore)

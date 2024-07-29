@@ -1,7 +1,7 @@
 #include <cartesian_interface/markers/CartesianMarker.h>
 #include <cartesian_interface/srv/get_task_info.hpp>
 #include <numeric>
-#include <XBotInterface/RtLog.hpp>
+#include <xbot2_interface/logger.h>
 #include <tf2_eigen/tf2_eigen.hpp>
 #include <tf2_kdl/tf2_kdl.hpp>
 

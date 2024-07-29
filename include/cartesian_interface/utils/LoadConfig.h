@@ -1,8 +1,8 @@
 #ifndef __CARTESIAN_INTERFACE_LOAD_CONFIG_H__
 #define __CARTESIAN_INTERFACE_LOAD_CONFIG_H__
 
-#include <XBotInterface/ConfigOptions.h>
-#include <RobotInterfaceROS2/ConfigFromParam.h>
+#include <xbot2_interface/xbotinterface2.h>
+#include <xbot2_interface/ros2/config_from_param.hpp>
 
 namespace XBot { namespace Cartesian { namespace Utils {
     

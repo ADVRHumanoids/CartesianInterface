@@ -47,7 +47,6 @@ TaskPtr OpenSotInteractionAdapter::constructTask()
 
     _opensot_adm = SotUtils::make_shared<AdmittanceSoT>
             ("adm_" + _ci_adm->getName(),
-             q,
              const_cast<ModelInterface&>(*_model),
              _ci_adm->getBaseLink(),
              ft

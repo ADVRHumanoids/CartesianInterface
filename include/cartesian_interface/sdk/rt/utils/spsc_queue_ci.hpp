@@ -25,6 +25,7 @@
 #include <boost/static_assert.hpp>
 #include <boost/utility.hpp>
 #include <boost/utility/enable_if.hpp>
+#include <boost/next_prior.hpp>
 
 #include <boost/type_traits/has_trivial_destructor.hpp>
 #include <boost/type_traits/is_convertible.hpp>
@@ -742,7 +743,7 @@ public:
 
 
     template <typename U>
-    explicit spsc_queue(typename boost::allocator_rebind<Alloc, U>::type const & alloc)
+    explicit spsc_queue(typename boost::allocator_rebind<allocator, U>::type const & alloc)
     {
         // just for API compatibility: we don't actually need an allocator
         BOOST_STATIC_ASSERT(!runtime_sized);
@@ -768,7 +769,7 @@ public:
     }
 
     template <typename U>
-    spsc_queue(size_type element_count, typename boost::allocator_rebind<Alloc, U>::type const & alloc):
+    spsc_queue(size_type element_count, typename boost::allocator_rebind<allocator, U>::type const & alloc):
         base_type(alloc, element_count)
     {
         BOOST_STATIC_ASSERT(runtime_sized);

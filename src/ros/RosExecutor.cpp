@@ -1,8 +1,8 @@
 #include <cartesian_interface/ros/RosExecutor.h>
-#include <cartesian_interface/utils/LoadConfig.h>
 #include "utils/RosUtils.h"
-
+#include <xbot2_interface/ros2/config_from_param.hpp>
 #include <rclcpp/wait_for_message.hpp>
+#include <xbot2_interface/logger.h>
 
 using namespace XBot::Cartesian;
 
@@ -84,24 +84,12 @@ void RosExecutor::init_ros()
 void RosExecutor::init_load_config()
 {
     /* Obtain xbot config object */
-    bool use_xbot_config = _node->get_parameter_or("use_xbot_config", false);
 
-    if(use_xbot_config)
-    {
-        _options_source = Utils::LoadFrom::CONFIG;
-        Logger::info("Configuring from file %s\n", XBot::Utils::getXBotConfig().c_str());
-    }
-    else
-    {
-        _options_source = Utils::LoadFrom::PARAM;
-        Logger::info("Configuring from ROS parameter server\n");
-    }
-
-    _xbot_cfg_robot = Utils::LoadOptions(_options_source, _node);
+    _xbot_cfg_robot = XBot::ConfigOptionsFromParams(_node, "");
 
     try
     {
-        _xbot_cfg = Utils::LoadOptions(_options_source, _node, "model_description/");
+        _xbot_cfg = XBot::ConfigOptionsFromParams(_node, "model_description/");
     }
     catch(std::exception& e)
     {
@@ -220,7 +208,7 @@ void RosExecutor::init_load_model()
 
     if(_model->isFloatingBase())
     {
-        _fb_pub = _nh.advertise<geometry_msgs::Twist>("floating_base_velocity", 1);
+        _fb_pub = _cnode->create_publisher<Twist>("floating_base_velocity", 1);
     }
 
 }
@@ -248,62 +236,64 @@ void RosExecutor::reset_model_state()
         _model->setJointPosition(qref);
         _model->update();
     }
-    else if(_nh.hasParam("home"))
+    else if(_cnode->has_parameter("home"))
     {
-        std::map<std::string, double> joint_map_orig;
-        _nh.getParam("home", joint_map_orig);
+        throw std::runtime_error("not supported as ROS2 does not allow for dict parameters");
 
-        /**
-         * @hack: when setting the map in the launch file it is not possible to use the character '@' which is used to set the the reference for
-         * the base, e.g. reference@v0. So we set in the launch file the character '_' and then we substitute it here:
-         */
-        std::map<std::string, double> joint_map;
-        for(auto pair : joint_map_orig)
-        {
-            if(pair.first == "reference_v0")
-            {
-                joint_map["reference@v0"] = pair.second;
-            }
-            else if(pair.first == "reference_v1")
-            {
-                joint_map["reference@v1"] = pair.second;
-            }
-            else if(pair.first == "reference_v2")
-            {
-                joint_map["reference@v2"] = pair.second;
-            }
-            else if(pair.first == "reference_v3")
-            {
-                joint_map["reference@v3"] = pair.second;
-            }
-            else if(pair.first == "reference_v4")
-            {
-                joint_map["reference@v4"] = pair.second;
-            }
-            else if(pair.first == "reference_v5")
-            {
-                joint_map["reference@v5"] = pair.second;
-            }
-            else
-            {
-                joint_map[pair.first] = pair.second;
-            }
-        }
+        // std::map<std::string, double> joint_map_orig;
+        // _cnode->get_parameter("home", joint_map_orig);
 
-        XBot::JointNameMap qref(joint_map.begin(),
-                                joint_map.end());
+        // /**
+        //  * @hack: when setting the map in the launch file it is not possible to use the character '@' which is used to set the the reference for
+        //  * the base, e.g. reference@v0. So we set in the launch file the character '_' and then we substitute it here:
+        //  */
+        // std::map<std::string, double> joint_map;
+        // for(auto pair : joint_map_orig)
+        // {
+        //     if(pair.first == "reference_v0")
+        //     {
+        //         joint_map["reference@v0"] = pair.second;
+        //     }
+        //     else if(pair.first == "reference_v1")
+        //     {
+        //         joint_map["reference@v1"] = pair.second;
+        //     }
+        //     else if(pair.first == "reference_v2")
+        //     {
+        //         joint_map["reference@v2"] = pair.second;
+        //     }
+        //     else if(pair.first == "reference_v3")
+        //     {
+        //         joint_map["reference@v3"] = pair.second;
+        //     }
+        //     else if(pair.first == "reference_v4")
+        //     {
+        //         joint_map["reference@v4"] = pair.second;
+        //     }
+        //     else if(pair.first == "reference_v5")
+        //     {
+        //         joint_map["reference@v5"] = pair.second;
+        //     }
+        //     else
+        //     {
+        //         joint_map[pair.first] = pair.second;
+        //     }
+        // }
 
-        // to deal with non-euclidean joints, we interpret this as
-        // the log of the actual q home
+        // XBot::JointNameMap qref(joint_map.begin(),
+        //                         joint_map.end());
 
-        Eigen::VectorXd qhome(_model->getNv()); qhome.setZero();
-        _model->mapToV(qref, qhome);
+        // // to deal with non-euclidean joints, we interpret this as
+        // // the log of the actual q home
 
-        // apply exp map to get the q config
-        Eigen::VectorXd q = _model->sum(_model->getNeutralQ(), qhome);
+        // Eigen::VectorXd qhome(_model->getNv()); qhome.setZero();
+        // _model->mapToV(qref, qhome);
 
-        _model->setJointPosition(q);
-        _model->update();
+        // // apply exp map to get the q config
+        // Eigen::VectorXd q = _model->sum(_model->getNeutralQ(), qhome);
+
+        // _model->setJointPosition(q);
+        // _model->update();
     }
     else
     {
@@ -401,9 +391,18 @@ bool RosExecutor::loader_callback(LoadController::Request::ConstSharedPtr req,
     }
     else if(!req->problem_description_name.empty()) // then, look if it was passed by name
     {
-        auto ik_yaml = Utils::LoadProblemDescription(_options_source,
-                                                     _node,
-                                                     req->problem_description_name);
+        std::string ik_str;
+
+        if(!_cnode->get_parameter(req->problem_description_name, ik_str))
+        {
+            RCLCPP_ERROR(_cnode->get_logger(),
+                         "could not read problem description from parmeter '%s'",
+                         req->problem_description_name.c_str());
+            res->success = false;
+            return true;
+        }
+
+        auto ik_yaml = YAML::Load(ik_str);
 
         ik_prob = ProblemDescription(ik_yaml, _ctx);
 
@@ -411,7 +410,17 @@ bool RosExecutor::loader_callback(LoadController::Request::ConstSharedPtr req,
     }
     else // use problem_description
     {
-        auto ik_yaml = Utils::LoadProblemDescription(_options_source, _node);
+        std::string ik_str;
+
+        if(!_cnode->get_parameter("problem_description", ik_str))
+        {
+            RCLCPP_ERROR(_cnode->get_logger(),
+                         "could not read problem description from parmeter 'problem_description'");
+            res->success = false;
+            return true;
+        }
+
+        auto ik_yaml = YAML::Load(ik_str);
 
         ik_prob = ProblemDescription(ik_yaml, _ctx);
 
@@ -664,11 +673,11 @@ bool RosExecutor::reset_joints_callback(ResetJoints::Request::ConstSharedPtr req
     return true;
 }
 
-bool RosExecutor::pause_cartesio_callback(std_srvs::SetBoolRequest& req,
-                                          std_srvs::SetBoolRequest& res)
+bool RosExecutor::pause_cartesio_callback(std_srvs::srv::SetBool::Request::ConstSharedPtr req,
+                                          std_srvs::srv::SetBool::Response::SharedPtr res)
 {
     /* If resume --> Update robot pos */
-    if(_pause_command && !req.data){
+    if(_pause_command && !req->data){
         reset_model_state();
 
         _current_impl->reset(_time);
@@ -678,7 +687,7 @@ bool RosExecutor::pause_cartesio_callback(std_srvs::SetBoolRequest& req,
         _current_impl->setReferencePosture(q_map);
     }
 
-    _pause_command = req.data;
+    _pause_command = req->data;
 
     return true;
 }

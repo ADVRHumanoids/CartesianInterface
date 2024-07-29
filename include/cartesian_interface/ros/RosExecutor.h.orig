@@ -4,12 +4,23 @@
 #include <rclcpp/rclcpp.hpp>
 #include <tf2_ros/transform_listener.h>
 
+<<<<<<< HEAD
 #include <xbot2_interface/robotinterface2.h>
-#include <xbot2_interface/common/utils.h>
 
+#include <cartesian_interface/ros/RosServerClass.h>
+#include <cartesian_interface/problem/ProblemDescription.h>
+#include <cartesian_interface/LoadController.h>
+#include <cartesian_interface/utils/LoadConfig.h>
+=======
+#include <XBotInterface/RobotInterface.h>
+#include <XBotInterface/SoLib.h>
+#include <XBotInterface/Utils.h>
+
+>>>>>>> b292c1da7e602733408ce5678a5eafdeafcde447
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/problem/ProblemDescription.h>
 #include <cartesian_interface/ros/RosServerClass.h>
+#include <cartesian_interface/utils/LoadConfig.h>
 
 #include <cartesian_interface/srv/reset_joints.hpp>
 #include <cartesian_interface/srv/load_controller.hpp>
@@ -29,11 +40,57 @@ class RosExecutor
 
 public:
 
+<<<<<<< HEAD
+        bool reset_joints_callback(cartesian_interface::ResetJointsRequest& req,
+                                   cartesian_interface::ResetJointsResponse& res);
+        
+        bool pause_cartesio_callback(std_srvs::SetBoolRequest& req,
+                                     std_srvs::SetBoolRequest& res);
+
+        void timer_callback(const ros::TimerEvent& timer_ev);
+=======
     RosExecutor(std::string ns = "cartesian");
+>>>>>>> b292c1da7e602733408ce5678a5eafdeafcde447
 
     void spin();
 
+<<<<<<< HEAD
+        ros::CallbackQueue _fb_queue;
+        ros::NodeHandle _nh, _nh_priv;
+        
+        XBot::ConfigOptions _xbot_cfg, _xbot_cfg_robot;
+        
+        RobotInterface::Ptr _robot;
+        ros::Publisher _fb_pub;
+        bool _visual_mode;
+        ModelInterface::Ptr _model;
+        
+        Eigen::VectorXd _q, _qdot, _qddot, _tau, _tau_offset;
+        
+        std::map<std::string, CartesianInterfaceImpl::Ptr>  _impl_map;
+        std::vector<CartesianInterfaceImpl::Ptr> _zombies;
+        CartesianInterfaceImpl::Ptr _current_impl;
+        
+        RosServerClass::Ptr _ros_api;
+        
+        ros::Publisher _ctrl_changed_pub;
+        ros::ServiceServer _loader_srv;
+        ros::ServiceServer _reset_srv;
+        ros::ServiceServer _reset_joints_srv;
+        ros::ServiceServer _pause_ci_srv;
+        ros::Subscriber _fb_sub;
+        
+        ros::Timer _loop_timer;
+        double _time, _period;
+        
+        MatLogger2::Ptr _logger;
+
+        bool _pause_command;       
+        
+    };
+=======
     void spin_once();
+>>>>>>> b292c1da7e602733408ce5678a5eafdeafcde447
 
     CartesianInterfaceImpl &solver();
 
@@ -68,9 +125,6 @@ private:
     bool reset_joints_callback(ResetJoints::Request::ConstSharedPtr req,
                                ResetJoints::Response::SharedPtr res);
 
-    bool pause_cartesio_callback(std_srvs::srv::SetBool::Request::ConstSharedPtr req,
-                                 std_srvs::srv::SetBool::Response::SharedPtr res);
-
     void timer_callback();
 
     void publish_fb_cmd_vel();
@@ -78,6 +132,8 @@ private:
     Context::Ptr _ctx;
 
     rclcpp::Node::SharedPtr _node, _prnode, _cnode;
+
+    Utils::LoadFrom _options_source;
 
     XBot::ConfigOptions _xbot_cfg, _xbot_cfg_robot;
 
@@ -106,8 +162,6 @@ private:
     double _time, _period;
 
     MatLogger2::Ptr _logger;
-
-    bool _pause_command;
 };
 
 } // namespace Cartesian
