@@ -1,5 +1,4 @@
-#include <XBotInterface/RobotInterface.h>
-#include <XBotInterface/Utils.h>
+#include <xbot2_interface/logger.h>
 
 #include <std_srvs/srv/trigger.hpp>
 #include <std_msgs/msg/empty.hpp>

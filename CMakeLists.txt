@@ -50,6 +50,8 @@ set(CartesianInterface_SRC
     src/problem/impl/TaskFactory.cpp
     src/problem/impl/Task.cpp
     src/problem/impl/Constraint.cpp
+    src/problem/impl/Gaze.cpp
+    src/problem/impl/OmniWheels4X.cpp
     src/rt/TaskRt.cpp
     src/rt/CartesianRt.cpp
     src/rt/CInteractionRt.cpp
