@@ -14,6 +14,7 @@
 #include <std_srvs/srv/trigger.hpp>
 
 #include <sensor_msgs/msg/joint_state.hpp>
+#include <geometry_msgs/msg/wrench_stamped.hpp>
 
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_eigen/tf2_eigen.hpp>
@@ -110,19 +111,29 @@ namespace XBot { namespace Cartesian {
         Options _opt;
         
         std::string _tf_prefix, _tf_prefix_slash;
-        
 
         CartesianInterface::Ptr _ci;
+
         ModelInterface::ConstPtr _model;
+
         std::unique_ptr<RsPub> _rspub;
+
         rclcpp::Publisher<PointStamped>::SharedPtr _com_pub;
+
         rclcpp::Publisher<JointState>::SharedPtr _solution_pub;
+
         rclcpp::ServiceBase::SharedPtr _reset_srv,
                            _tasklist_srv, 
                            _reset_world_srv, 
                            _reset_base_srv;
+
         rclcpp::TimerBase::SharedPtr _heartbeat_timer;
+
         rclcpp::Publisher<Empty>::SharedPtr _heartbeat_pub;
+
+        bool _wrench_pubs_inited = false;
+
+        std::vector<rclcpp::Publisher<WrenchStamped>::SharedPtr> _wrench_pubs;
 
         
         
