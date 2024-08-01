@@ -4,6 +4,7 @@
 #include <cartesian_interface/problem/Task.h>
 #include <cartesian_interface/sdk/rt/utils/spsc_queue_ci.hpp>
 #include <cartesian_interface/sdk/problem/Task.h>
+#include <cartesian_interface/sdk/rt/Plugin.h>
 
 namespace XBot { namespace Cartesian {
 
