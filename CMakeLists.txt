@@ -124,6 +124,9 @@ add_subdirectory(src/ros)
 
 target_link_libraries(CartesianInterface
     PUBLIC
+    OpenSoT::OpenSoT
+    yaml-cpp
+    PRIVATE
     "-Wl,--whole-archive"
     CartesianInterfaceCore
     "-Wl,--no-whole-archive"
@@ -134,10 +137,10 @@ install(TARGETS CartesianInterface
     LIBRARY DESTINATION lib
     )
 
-install(TARGETS CartesianInterfaceCore
-    EXPORT ${PROJECT_NAME}Targets
-    LIBRARY DESTINATION lib
-    )
+# install(TARGETS CartesianInterfaceCore
+#     EXPORT ${PROJECT_NAME}Targets
+#     LIBRARY DESTINATION lib
+#     )
 
 # compile opensot implementation
 add_library(CartesianInterfaceSolverOpenSot SHARED
