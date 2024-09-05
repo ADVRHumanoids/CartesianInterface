@@ -43,6 +43,10 @@ CartesianMarker::CartesianMarker(const std::string& task_name,
     _node(node),
     _use_mesh(use_mesh)
 {
+
+    _tf_buffer = std::make_unique<tf2_ros::Buffer>(node->get_clock());
+    _listener = std::make_unique<tf2_ros::TransformListener>(*_tf_buffer, node);
+
     _task = std::make_shared<ClientApi::CartesianRos>(task_name, node);
 
     _distal_link = _task->getDistalLink();

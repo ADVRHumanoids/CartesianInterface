@@ -2,7 +2,6 @@
 
     <arg name="prefix" default=""/>
     <arg name="gui" default="true"/>
-    <arg name="gui" default="true"/>
 
     <node pkg="cartesian_interface" exec="robot_description_publisher" name="robot_description_publisher">
         <param name="robot_description" type="str"
@@ -22,6 +21,7 @@
             exec="rviz2"
             name="rviz"
             pkg="rviz2"
-            output="screen"/>
+            output="screen"
+            args="-d $(find-pkg-share cartesian_interface)/examples/rviz/disp.rviz"/>
 
 </launch>

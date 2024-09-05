@@ -17,7 +17,6 @@ RosExecutor::RosExecutor(std::string ns):
     _logger = MatLogger2::MakeLogger("/tmp/ros_executor_log", logger_opt);
     _logger->set_buffer_mode(VariableBuffer::Mode::circular_buffer);
 
-
     init_ros();
 
     init_load_config();
@@ -29,8 +28,6 @@ RosExecutor::RosExecutor(std::string ns):
     init_load_model();
 
     init_load_world_frame();
-
-    init_load_torque_offset();
 
     init_create_loop_timer();
 
@@ -48,10 +45,6 @@ void RosExecutor::init_ros()
     _cnode = _node->create_sub_node("cartesian");
 
     _prnode = _node->create_sub_node(_node->get_name());
-
-    RCLCPP_INFO(_node->get_logger(), "hello");
-    RCLCPP_INFO(_cnode->get_logger(), "hello");
-    RCLCPP_INFO(_prnode->get_logger(), "hello");
 
     // TBD declare parameters
 
@@ -146,7 +139,7 @@ void RosExecutor::init_customize_command()
     XBot::CtrlModeMap ctrl_map;
 
     std::vector<std::string> joint_blacklist;
-    _xbot_cfg.get_parameter("joint_blacklist", joint_blacklist);
+    _node->get_parameter("joint_blacklist", joint_blacklist);
 
     for(auto j : joint_blacklist)
     {
@@ -159,7 +152,7 @@ void RosExecutor::init_customize_command()
     }
 
     std::vector<std::string> velocity_whitelist;
-    _xbot_cfg.get_parameter("velocity_whitelist", velocity_whitelist);
+    _node->get_parameter("velocity_whitelist", velocity_whitelist);
 
     for(auto j : velocity_whitelist)
     {
@@ -189,6 +182,9 @@ void RosExecutor::init_customize_command()
 void RosExecutor::init_load_model()
 {
     /* Get model */
+    std::string model_type;
+    _xbot_cfg.get_parameter("model_type", model_type);
+    std::cout << "will load model of type " << std::quoted(model_type) << "\n";
     _model = XBot::ModelInterface::getModel(_xbot_cfg);
 
     std::cout <<
@@ -307,18 +303,6 @@ void RosExecutor::reset_model_state()
 
 }
 
-
-void RosExecutor::init_load_torque_offset()
-{
-    /* Get torque offsets if available */
-    _tau_offset.setZero(_model->getNv());
-    XBot::JointNameMap tau_off_map;
-    if(_xbot_cfg.get_parameter("torque_offset", tau_off_map))
-    {
-        _model->mapToV(tau_off_map, _tau_offset);
-    }
-}
-
 void RosExecutor::init_load_world_frame()
 {
 
@@ -393,10 +377,10 @@ bool RosExecutor::loader_callback(LoadController::Request::ConstSharedPtr req,
     {
         std::string ik_str;
 
-        if(!_cnode->get_parameter(req->problem_description_name, ik_str))
+        if(!_node->get_parameter(req->problem_description_name, ik_str))
         {
             RCLCPP_ERROR(_cnode->get_logger(),
-                         "could not read problem description from parmeter '%s'",
+                         "could not read problem description from parameter '%s'",
                          req->problem_description_name.c_str());
             res->success = false;
             return true;
@@ -412,10 +396,10 @@ bool RosExecutor::loader_callback(LoadController::Request::ConstSharedPtr req,
     {
         std::string ik_str;
 
-        if(!_cnode->get_parameter("problem_description", ik_str))
+        if(!_node->get_parameter("problem_description", ik_str))
         {
             RCLCPP_ERROR(_cnode->get_logger(),
-                         "could not read problem description from parmeter 'problem_description'");
+                         "could not read problem description from parameter 'problem_description'");
             res->success = false;
             return true;
         }
@@ -493,7 +477,7 @@ void RosExecutor::load_ros_api()
 {
     RosServerClass::Options opt;
     opt.ros_namespace = _node->get_namespace();
-    _xbot_cfg.get_parameter("tf_prefix", opt.tf_prefix);
+    _node->get_parameter("tf_prefix", opt.tf_prefix);
     _ros_api.reset();
     _ros_api = std::make_shared<RosServerClass>(_current_impl, opt, _cnode);
 }
@@ -512,7 +496,7 @@ void RosExecutor::init_create_loop_timer()
     auto load_ctrl_req = std::make_shared<LoadController::Request>();
     auto load_ctrl_res = std::make_shared<LoadController::Response>();
 
-    if(!_xbot_cfg.get_parameter("solver", load_ctrl_req->controller_name))
+    if(!_node->get_parameter("solver", load_ctrl_req->controller_name))
     {
         throw std::runtime_error("'solver' parameter missing");
     }

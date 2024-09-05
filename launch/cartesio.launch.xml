@@ -23,7 +23,7 @@
 <!--        <remap from="robot_description_semantic" to="/xbotcore/robot_description_semantic"/>-->
         <param name="enable_otg" value="$(var enable_otg)"/>
         <param name="is_model_floating_base" value="$(var is_model_floating_base)"/>
-        <param name="model_type" value="RBDL"/>
+        <param name="model_type" value="pin"/>
         <param name="solver" value="$(var solver)"/>
         <param name="use_xbot_config" value="false"/>
         <param name="rate" value="$(var rate)"/>

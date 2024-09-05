@@ -48,7 +48,6 @@ private:
     void init_load_robot();
     void init_customize_command();
     void init_load_model();
-    void init_load_torque_offset();
     void init_load_world_frame();
     void init_create_loop_timer();
 

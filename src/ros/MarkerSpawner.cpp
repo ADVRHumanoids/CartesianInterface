@@ -48,16 +48,22 @@ int main(int argc, char **argv){
 
     g_node = sub_node;
 
+    std::cout << "created subnode with ns " << std::quoted(g_node->get_effective_namespace()) << "\n";
+
     /* Urdf model */
     std_msgs::msg::String urdf_string;
 
-    auto urdf_topic_name = "robot_description";
+    auto urdf_topic_name = "/robot_description";
 
-    while(!rclcpp::wait_for_message(urdf_string,
-                             g_node,
-                             urdf_topic_name,
-                                     1s))
-    {
+    auto urdf_sub = sub_node->create_subscription<std_msgs::msg::String>(
+        urdf_topic_name,
+        rclcpp::QoS(1).transient_local(),
+        [&](std_msgs::msg::String::ConstSharedPtr) {});
+
+    while (!rclcpp::wait_for_message(urdf_string,
+                                     urdf_sub,
+                                     sub_node->get_node_options().context(),
+                                     1s)) {
         RCLCPP_INFO_STREAM(g_node->get_logger(),
                            "waiting for urdf on topic "
                                << g_node->get_node_topics_interface()->resolve_topic_name(
@@ -156,7 +162,7 @@ void construct_markers()
         throw std::runtime_error("unable to call get_task_list service");
     }
 
-    const auto& res = *fut.get();
+    auto res = *fut.get();
 
     for(int i = 0; i < res.names.size(); i++)
     {
