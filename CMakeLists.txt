@@ -155,7 +155,9 @@ target_link_libraries(CartesianInterfaceSolverOpenSot
     estimation_utils::payload_estimation
     matlogger2::matlogger2
     )
+
 install(TARGETS CartesianInterfaceSolverOpenSot
+    EXPORT ${PROJECT_NAME}Targets
     LIBRARY DESTINATION lib
     )
 
