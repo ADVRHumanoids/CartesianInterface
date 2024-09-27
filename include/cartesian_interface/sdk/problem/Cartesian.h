@@ -47,6 +47,7 @@ public:
     /* Parameters */
     bool isSubtaskLocal() const override;
     bool isVelocityLocal() const override;
+    void setIsVelocityLocal(const bool is_velocity_local) override;
 
     /* Safety limits */
     virtual void getVelocityLimits(double& max_vel_lin,

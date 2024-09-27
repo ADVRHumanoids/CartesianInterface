@@ -69,6 +69,11 @@ bool CartesianRt::isVelocityLocal() const
     return _cli_data._is_velocity_local;
 }
 
+void CartesianRt::setIsVelocityLocal(const bool is_velocity_local)
+{
+    _cli_data._is_velocity_local = is_velocity_local;
+}
+
 void CartesianRt::getVelocityLimits(double & max_vel_lin, double & max_vel_ang) const
 {
     max_vel_lin = _cli_data._max_vel.first;

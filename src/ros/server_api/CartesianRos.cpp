@@ -87,6 +87,17 @@ CartesianRos::CartesianRos(CartesianTask::Ptr cart_task,
     _get_info_srv = _ctx->nh().advertiseService(_task->getName() + "/get_cartesian_task_properties",
                                                 &CartesianRos::get_task_info_cb, this);
 
+    _use_local_velocity_reference_srv = _ctx->nh().advertiseService(_task->getName() + "/use_local_velocity_reference",
+                                                                     &CartesianRos::use_local_velocity_reference_cb, this);
+
+}
+
+bool CartesianRos::use_local_velocity_reference_cb(std_srvs::SetBoolRequest& req,
+                                     std_srvs::SetBoolResponse& res)
+{
+    _cart->setIsVelocityLocal(req.data);
+    res.success = true;
+    return true;
 }
 
 void CartesianRos::run(ros::Time time)
@@ -171,14 +182,17 @@ void CartesianRos::online_velocity_reference_cb(geometry_msgs::TwistStampedConst
     Eigen::Matrix3d b_R_f;
     b_R_f.setIdentity();
 
-    if(msg->header.frame_id == "world")
+    if(!_cart->isVelocityLocal())
     {
-        b_R_f = _model->getPose(_cart->getBaseLink()).linear().transpose();
-    }
-    else if(msg->header.frame_id != "")
-    {
-        // throws if frame_id does not exist
-        b_R_f = _model->getPose(msg->header.frame_id, _cart->getBaseLink()).linear();
+        if(msg->header.frame_id == "world")
+        {
+            b_R_f = _model->getPose(_cart->getBaseLink()).linear().transpose();
+        }
+        else if(msg->header.frame_id != "")
+        {
+            // throws if frame_id does not exist
+            b_R_f = _model->getPose(msg->header.frame_id, _cart->getBaseLink()).linear();
+        }
     }
 
     vel.head<3>() = b_R_f * vel.head<3>();

@@ -142,6 +142,12 @@ public:
     virtual bool isVelocityLocal() const = 0;
 
     /**
+     * @brief setIsVelocityLocal sets the velocity reference to be local
+     * @param is_velocity_local if true, the velocity reference is local
+     */
+    virtual void setIsVelocityLocal(const bool is_velocity_local) = 0;
+
+    /**
      * @brief setAccelerationReference sets a new desired acceleration for the task.
      * @return
      */

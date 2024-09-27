@@ -354,6 +354,12 @@ bool CartesianTaskImpl::isVelocityLocal() const
     return _is_velocity_local;
 }
 
+void CartesianTaskImpl::setIsVelocityLocal(const bool is_velocity_local)
+{
+    _is_velocity_local = is_velocity_local;
+}
+
+
 bool CartesianTaskImpl::setAccelerationReference(const Eigen::Vector6d &base_acc_ref)
 {
     if(getActivationState() == ActivationState::Disabled)
