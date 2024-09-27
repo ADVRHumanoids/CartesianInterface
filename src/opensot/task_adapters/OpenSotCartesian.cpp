@@ -35,7 +35,7 @@ bool OpenSotCartesianAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 
 
     /* Cartesian task specific parameters */
-    _opensot_cart->setIsBodyJacobian(_ci_cart->isSubtaskLocal());
+    _opensot_cart->rotateToLocal(_ci_cart->isSubtaskLocal());
 
     /* Register observer */
     auto this_shared_ptr = std::dynamic_pointer_cast<OpenSotCartesianAdapter>(shared_from_this());
