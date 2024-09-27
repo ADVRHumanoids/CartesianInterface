@@ -26,6 +26,7 @@ public:
 
     void enableOnlineTrajectoryGeneration() override;
     bool isSubtaskLocal() const override;
+    bool isVelocityLocal() const override;
     void getVelocityLimits(double & max_vel_lin, double & max_vel_ang) const override;
     void getAccelerationLimits(double & max_acc_lin, double & max_acc_ang) const override;
     void setVelocityLimits(double max_vel_lin, double max_vel_ang) override;
@@ -58,7 +59,7 @@ private:
     {
         ControlType _ctrl_mode;
         std::string _base_link, _distal_link;
-        bool _is_body_jacobian;
+        bool _is_body_jacobian, _is_velocity_local;
         double _orientation_gain;
         Eigen::Affine3d _T;
         Eigen::Affine3d _Tcurr;

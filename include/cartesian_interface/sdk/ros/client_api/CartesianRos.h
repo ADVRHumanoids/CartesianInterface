@@ -34,6 +34,7 @@ public:
     bool validate() override;
     void enableOnlineTrajectoryGeneration() override;
     bool isSubtaskLocal() const override;
+    bool isVelocityLocal() const override;
     void getVelocityLimits(double & max_vel_lin, double & max_vel_ang) const override;
     void getAccelerationLimits(double & max_acc_lin, double & max_acc_ang) const override;
     void setVelocityLimits(double max_vel_lin, double max_vel_ang) override;

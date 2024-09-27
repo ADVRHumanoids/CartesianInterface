@@ -150,6 +150,7 @@ void CartesianRos::publish_task_info()
     msg.max_vel_lin = srv.response.max_vel_lin;
     msg.state = srv.response.state;
     msg.use_local_subtasks = srv.response.use_local_subtasks;
+    msg.use_local_velocity = srv.response.use_local_velocity;
 
     _task_info_pub.publish(msg);
 
@@ -193,6 +194,7 @@ bool CartesianRos::get_task_info_cb(cartesian_interface::GetCartesianTaskInfoReq
     res.distal_link = _cart->getDistalLink();
     res.control_mode = EnumToString(_cart->getControlMode());
     res.use_local_subtasks = _cart->isSubtaskLocal();
+    res.use_local_velocity = _cart->isVelocityLocal();
 
     _cart->getVelocityLimits(res.max_vel_lin,
                              res.max_vel_ang);

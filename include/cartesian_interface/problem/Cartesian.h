@@ -137,6 +137,11 @@ public:
     virtual bool setVelocityReference(const Eigen::Vector6d& base_vel_ref) = 0;
 
     /**
+     * @brief isVelocityLocal returns true if velocities are expressed in local (distal_link) frame
+     */
+    virtual bool isVelocityLocal() const = 0;
+
+    /**
      * @brief setAccelerationReference sets a new desired acceleration for the task.
      * @return
      */

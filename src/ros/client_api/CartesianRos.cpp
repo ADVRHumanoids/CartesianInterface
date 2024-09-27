@@ -80,6 +80,11 @@ bool CartesianRos::isSubtaskLocal() const
     return get_task_info().use_local_subtasks;
 }
 
+bool CartesianRos::isVelocityLocal() const
+{
+    return get_task_info().use_local_velocity;
+}
+
 void CartesianRos::getVelocityLimits(double & max_vel_lin,
                                      double & max_vel_ang) const
 {
@@ -316,6 +321,7 @@ GetCartesianTaskInfoResponse CartesianRos::get_task_info() const
         res.control_mode      = _info.control_mode     ;
         res.state             = _info.state            ;
         res.use_local_subtasks = _info.use_local_subtasks;
+        res.use_local_velocity = _info.use_local_velocity;
         res.max_vel_lin       = _info.max_vel_lin      ;
         res.max_vel_ang       = _info.max_vel_ang      ;
         res.max_acc_lin       = _info.max_acc_lin      ;

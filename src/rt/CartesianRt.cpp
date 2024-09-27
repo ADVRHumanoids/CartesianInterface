@@ -50,6 +50,8 @@ void CartesianRt::sendState(bool send)
 
     _rt_data._is_body_jacobian = _task_impl->isSubtaskLocal();
 
+    _rt_data._is_velocity_local = _task_impl->isVelocityLocal();
+
     _to_cli_queue.push(_rt_data);
 }
 
@@ -60,6 +62,11 @@ void CartesianRt::enableOnlineTrajectoryGeneration()
 bool CartesianRt::isSubtaskLocal() const
 {
     return _cli_data._is_body_jacobian;
+}
+
+bool CartesianRt::isVelocityLocal() const
+{
+    return _cli_data._is_velocity_local;
 }
 
 void CartesianRt::getVelocityLimits(double & max_vel_lin, double & max_vel_ang) const
