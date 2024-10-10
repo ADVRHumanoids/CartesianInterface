@@ -160,7 +160,7 @@ set(CartesianInterface_SRC
 set(CartesianInterfaceSOT_SRC
     src/opensot/task_adapters/OpenSotTask.cpp
     src/opensot/task_adapters/OpenSotCartesian.cpp
-    # src/opensot/task_adapters/OpenSotInteraction.cpp
+    src/opensot/task_adapters/OpenSotInteraction.cpp
     src/opensot/task_adapters/OpenSotCom.cpp
     src/opensot/task_adapters/OpenSotPostural.cpp
     src/opensot/task_adapters/OpenSotSubtask.cpp

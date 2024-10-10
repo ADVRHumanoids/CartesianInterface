@@ -14,14 +14,12 @@ OpenSotInteractionAdapter::OpenSotInteractionAdapter(TaskDescription::Ptr task,
     if(!_ci_adm) throw std::runtime_error("Provided task description "
                                           "does not have expected type 'AdmittanceTask'");
 
-
+    _K.setZero();
+    _D.setZero();
 }
 
 TaskPtr OpenSotInteractionAdapter::constructTask()
 {
-    Eigen::VectorXd q;
-    _model->getJointPosition(q);
-
     XBot::ForceTorqueSensor::ConstPtr ft;
 
     try
@@ -39,19 +37,12 @@ TaskPtr OpenSotInteractionAdapter::constructTask()
             _fest_upd = true;
         }
 
-        ft = _fest->add_link(_ci_adm->getDistalLink(),
-        {},
-                             _ci_adm->getForceEstimationChains());
+        ft = _fest->add_link(_ci_adm->getDistalLink(), {}, _ci_adm->getForceEstimationChains());
     }
 
 
     _opensot_adm = SotUtils::make_shared<AdmittanceSoT>
-            ("adm_" + _ci_adm->getName(),
-             q,
-             const_cast<ModelInterface&>(*_model),
-             _ci_adm->getBaseLink(),
-             ft
-             );
+            ("adm_" + _ci_adm->getName(), const_cast<ModelInterface&>(*_model), _ci_adm->getBaseLink(), ft);
 
     _opensot_adm->setDeadZone(_ci_adm->getForceDeadzone());
 
@@ -67,6 +58,15 @@ bool OpenSotInteractionAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 
 void OpenSotInteractionAdapter::update(double time, double period)
 {
+    _K = _ci_adm->getImpedance().stiffness.diagonal();
+    _D = _ci_adm->getImpedance().damping.diagonal();
+
+
+    _opensot_adm->setImpedanceParams(_K, _D, _ci_task->getLambda(), _ctx->params()->getControlPeriod());
+
+
+    _opensot_adm->setWrenchReference(_ci_adm->getForceReference());
+
     OpenSotCartesianAdapter::update(time, period);
 
     if(_fest_upd)

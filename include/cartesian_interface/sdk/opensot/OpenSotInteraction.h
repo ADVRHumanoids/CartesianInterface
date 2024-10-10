@@ -41,6 +41,10 @@ private:
 
     static Utils::ForceEstimation::WeakPtr _fest_weak;
 
+    Eigen::Vector6d _K;
+    Eigen::Vector6d _D;
+
+
 };
 
 } }
