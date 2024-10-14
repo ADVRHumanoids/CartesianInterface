@@ -29,11 +29,11 @@ before_script:
 # forest magic
 - sudo apt update
 - sudo apt install python3-pip python3-setuptools
-- sudo pip3 install hhcm-forest==0.0.27
+- sudo pip3 install hhcm-forest
 - SRC_FOLDER=$PWD
-- cd .. && mkdir forest_ws && cd forest_ws && forest --init  # create forest ws for building
+- cd .. && mkdir forest_ws && cd forest_ws && forest init  # create forest ws for building
 - ln -s $SRC_FOLDER src/cartesian_interface  # symlink original source folder
-- forest -a git@github.com:advrhumanoids/multidof_recipes.git master -u --clone-protocol ssh  # get recipes
+- forest add-recipes git@github.com:advrhumanoids/multidof_recipes.git -t master --clone-protocol https  # get recipes
 
 # apt update and core packages installation
 - sudo apt-get update
@@ -100,8 +100,7 @@ before_script:
 script: 
 - source setup.bash  # source forest ws
 - FOREST_ARGS="-m test --clone-protocol https --verbose -j2"
-- forest pybind11 $FOREST_ARGS  # force build from source due to MALEFICENT pybind11_catkin 
-- forest cartesian_interface $FOREST_ARGS  
+- forest grow pybind11 $FOREST_ARGS  # force build from source due to MALEFICENT pybind11_catkin 
+- forest grow cartesian_interface $FOREST_ARGS  
 - cd build/cartesian_interface  # run tests
 - ctest --output-on-failure
-
