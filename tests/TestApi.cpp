@@ -383,7 +383,7 @@ TEST_F(TestApi, checkLimits)
     const double dt = ci->getContext()->params()->getControlPeriod();
     
     
-    auto logger = XBot::MatLogger::getLogger("/tmp/checkLimits_logger");
+    auto logger = XBot::MatLogger2::MakeLogger("/tmp/checkLimits_logger");
     std::string ee = "arm1_8";
     ci->enableOtg(dt);
     ci->reset(0.0);
@@ -470,7 +470,7 @@ TEST_F(TestApi, checkLimits)
         
     }
     
-    logger->flush();
+
 }
 
    
