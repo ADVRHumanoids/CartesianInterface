@@ -86,7 +86,8 @@ CartesianTaskImpl::CartesianTaskImpl(YAML::Node task_node, Context::ConstPtr con
     _state(State::Online),
     _vref_time_to_live(-1.0),
     _orientation_gain(1.0),
-    _is_body_jacobian(false)
+    _is_body_jacobian(false),
+    _is_velocity_local(false)
 {
     bool is_com = task_node["type"].as<std::string>() == "Com";
 
@@ -106,6 +107,11 @@ CartesianTaskImpl::CartesianTaskImpl(YAML::Node task_node, Context::ConstPtr con
     if(task_node["use_local_subtasks"] && task_node["use_local_subtasks"].as<bool>())
     {
         _is_body_jacobian = true;
+    }
+
+    if(task_node["use_local_velocity"] && task_node["use_local_velocity"].as<bool>())
+    {
+        _is_velocity_local = true;
     }
 
     _otg_maxvel.setConstant(1.0);
@@ -342,6 +348,17 @@ bool CartesianTaskImpl::setVelocityReference(const Eigen::Vector6d & base_vel_re
 
     return true;
 }
+
+bool CartesianTaskImpl::isVelocityLocal() const
+{
+    return _is_velocity_local;
+}
+
+void CartesianTaskImpl::setIsVelocityLocal(const bool is_velocity_local)
+{
+    _is_velocity_local = is_velocity_local;
+}
+
 
 bool CartesianTaskImpl::setAccelerationReference(const Eigen::Vector6d &base_acc_ref)
 {

@@ -46,6 +46,8 @@ public:
 
     /* Parameters */
     bool isSubtaskLocal() const override;
+    bool isVelocityLocal() const override;
+    void setIsVelocityLocal(const bool is_velocity_local) override;
 
     /* Safety limits */
     virtual void getVelocityLimits(double& max_vel_lin,
@@ -130,6 +132,8 @@ private:
          * @brief Set Cartesian task in local (body) frame
          */
     bool _is_body_jacobian;
+
+    bool _is_velocity_local;
 
     /**
          * @brief Parameter that weights orientation errors w.r.t. position errors.

@@ -35,7 +35,7 @@ bool OpenSotCartesianAdapter::initialize(const OpenSoT::OptvarHelper& vars)
 
 
     /* Cartesian task specific parameters */
-    _opensot_cart->setIsBodyJacobian(_ci_cart->isSubtaskLocal());
+    _opensot_cart->rotateToLocal(_ci_cart->isSubtaskLocal());
 
     /* Register observer */
     auto this_shared_ptr = std::dynamic_pointer_cast<OpenSotCartesianAdapter>(shared_from_this());
@@ -61,7 +61,13 @@ void OpenSotCartesianAdapter::update(double time, double period)
     Eigen::Affine3d Tref;
     Eigen::Vector6d vref;
     _ci_cart->getPoseReference(Tref, &vref);
-    _opensot_cart->setReference(Tref, vref*_ctx->params()->getControlPeriod());
+    if(_ci_cart->isVelocityLocal())
+    {
+        _opensot_cart->setReference(Tref);
+        _opensot_cart->setVelocityLocalReference(vref*_ctx->params()->getControlPeriod());
+    }
+    else
+        _opensot_cart->setReference(Tref, vref*_ctx->params()->getControlPeriod());
 }
 
 bool OpenSotCartesianAdapter::onBaseLinkChanged()
