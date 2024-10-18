@@ -126,8 +126,7 @@ void ForceEstimation::compute_A_b()
         _b(idx) = _y(i);
         _A.row(idx) = _Jtot.col(i);
         idx++;
-    }
-    
+    }    
 }
 
 void ForceEstimation::solve()

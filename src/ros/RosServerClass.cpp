@@ -98,28 +98,6 @@ void RosServerClass::publish_ref_tf(ros::Time time)
     com_msg.header.frame_id = _tf_prefix_slash + "world";
     com_msg.header.stamp = time;
     _com_pub.publish(com_msg);
-    
-    /* Publish CoM tf */
-    Eigen::Affine3d w_T_com;
-    if(_model->isFloatingBase())
-    {
-        _model->getFloatingBasePose(w_T_com);
-    }
-    else
-    {
-        w_T_com.setIdentity();
-    }
-    
-    w_T_com.translation() = com;
-    
-    tf::Transform transform;
-    tf::transformEigenToTF(w_T_com, transform);
-
-    _tf_broadcaster.sendTransform(tf::StampedTransform(transform,
-                                                       time,
-                                                       _tf_prefix_slash + "world",
-                                                       _tf_prefix_slash + "com"));
-
 }
 
 void RosServerClass::heartbeat_cb(const ros::TimerEvent & ev)

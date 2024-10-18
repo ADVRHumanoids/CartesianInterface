@@ -20,6 +20,7 @@ public:
 
 private:
 
+    ros::Time _last_pub_time;
     ModelInterface::ConstPtr _model;
     tf2_ros::TransformBroadcaster _tf_broadcaster;
     tf2_ros::StaticTransformBroadcaster _static_tf_broadcaster;

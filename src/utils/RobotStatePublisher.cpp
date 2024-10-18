@@ -8,12 +8,18 @@ namespace XBot { namespace Cartesian { namespace Utils {
 RobotStatePublisher::RobotStatePublisher(ModelInterface::ConstPtr model):
     _model(model)
 {
-
 }
 
 void RobotStatePublisher::publishTransforms(const ros::Time & time,
                                             const std::string & tf_prefix)
 {
+    if(time == _last_pub_time)
+    {
+        return;
+    }
+
+    _last_pub_time = time;
+
     const auto& urdf = _model->getUrdf();
 
     _tf_vector.clear();
