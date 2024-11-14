@@ -485,8 +485,13 @@ void RosExecutor::load_ros_api()
 void RosExecutor::init_create_loop_timer()
 {
 
-    _loop_timer = _node->create_timer(std::chrono::duration<double>(_period),
-                        [this]()
+    //not available in humble
+    // _loop_timer = _node->create_timer(std::chrono::duration<double>(_period),
+    //                     [this]()
+    //                     {
+    //                         timer_callback();
+    //                     });
+    _loop_timer = rclcpp::create_timer(_node, _node->get_clock(), std::chrono::duration<double>(_period),[this]()
                         {
                             timer_callback();
                         });
