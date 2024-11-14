@@ -194,6 +194,9 @@ void RosExecutor::init_load_model()
         "  nq = " << _model->getNq() <<
         "  nv = " << _model->getNv() << std::endl;
 
+    _tau.setZero(_model->getJointNum());
+    _tau_offset.setZero(_model->getJointNum());
+
     /* Initialize to home or to current robot state */
     reset_model_state();
 
