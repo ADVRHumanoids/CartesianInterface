@@ -62,6 +62,7 @@ PYBIND11_MODULE(pyci, m) {
             .def("getSize", &TaskDescription::getSize)
             .def("getIndices", &TaskDescription::getIndices)
             .def("getActivationState", &TaskDescription::getActivationState)
+            .def("getTaskError", &TaskDescription::getTaskError)
             .def("setLambda", &TaskDescription::setLambda)
             .def("setLambda2", &TaskDescription::setLambda2)
             .def("setWeight", &TaskDescription::setWeight)
