@@ -288,10 +288,15 @@ void RosServerClass::init_heartbeat_pub()
 {
     _heartbeat_pub = _node->create_publisher<Empty>("heartbeat", 1);
 
-    _heartbeat_timer = _node->create_timer(100ms,
-                                           [this](){
-                                               heartbeat_cb();
-                                           });
+    // not available in humble
+    // _heartbeat_timer = _node->create_timer(100ms,
+    //                                        [this](){
+    //                                            heartbeat_cb();
+    //                                        });
+    _heartbeat_timer = rclcpp::create_timer(_node, _node->get_clock(), 100ms,
+                                            [this](){
+                                                heartbeat_cb();
+                                            });
 }
 
 void RosServerClass::init_load_ros_task_api()
