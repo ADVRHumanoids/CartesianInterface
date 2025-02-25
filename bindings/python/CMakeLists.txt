@@ -23,7 +23,7 @@ if(${pybind11_FOUND})
     target_link_libraries(pyest PUBLIC estimation_utils::payload_estimation)
 
     install(TARGETS pyest
-            DESTINATION ${PYTHON_SITE})
+            DESTINATION ${PYTHON_SITE}/cartesian_interface)
 
 #    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 #    pybind11_add_module(pyci pyRosImpl.cpp)
@@ -44,13 +44,13 @@ if(${pybind11_FOUND})
     target_link_libraries(impedance PRIVATE CartesianInterfaceCore)
 
     install(TARGETS impedance
-            DESTINATION ${PYTHON_SITE})
+            DESTINATION ${PYTHON_SITE}/cartesian_interface)
 
     install(FILES pyci_all.py
-            DESTINATION ${PYTHON_SITE})
+            DESTINATION ${PYTHON_SITE}/cartesian_interface)
 
     install(PROGRAMS interactive_client.py
-            DESTINATION ${PYTHON_SITE})
+            DESTINATION ${PYTHON_SITE}/cartesian_interface)
 
 else()
     message(STATUS "pybind not found")
