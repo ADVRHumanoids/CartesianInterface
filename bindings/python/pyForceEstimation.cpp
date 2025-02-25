@@ -1,4 +1,5 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include <pybind11/eigen.h>
 #include <estimation_utils/payload/force_estimation.h>
 #include <xbot2_interface/xbotinterface2.h>
