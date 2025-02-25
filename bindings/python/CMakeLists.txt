@@ -8,12 +8,13 @@ if(${pybind11_FOUND})
     message(STATUS "compiling python bindings")
 
     # get python install path
-    execute_process(
-        COMMAND ${PYTHON_EXECUTABLE} -c "import sys; version = sys.version_info[:3]; print('{0}.{1}'.format(*version))"
-        OUTPUT_VARIABLE PYTHON_VERSION_MIN
-        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    message(STATUS "Found python (${Python3_EXECUTABLE}) will compile python bindings")
 
-    set(PYTHON_SITE "lib/python${PYTHON_VERSION_MIN}/site-packages")
+    # get python install path
+    execute_process(
+        COMMAND ${Python3_EXECUTABLE} -c "import site, os; print(os.path.relpath(site.USER_SITE, site.USER_BASE))"
+        OUTPUT_VARIABLE PYTHON_SITE
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
 
     message(STATUS "Python install dir: ${PYTHON_SITE}")
 
