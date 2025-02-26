@@ -50,6 +50,9 @@ set(srv_files
     srv/SetControlMode.srv
     srv/SetSafetyLimits.srv
     srv/SetTransform.srv
+    srv/GetForceLimits.srv
+    srv/SetForceLimits.srv
+    srv/SetImpedanceRefLink.srv
 )
 
 
@@ -79,12 +82,12 @@ set(CartesianInterfaceRos_SRC
     RosContext.cpp
     server_api/TaskRos.cpp
     server_api/CartesianRos.cpp
-    #    server_api/InteractionRos.cpp
+    server_api/InteractionRos.cpp
     server_api/PosturalRos.cpp
     client_api/TaskRos.cpp
     client_api/CartesianRos.cpp
-    #    client_api/InteractionRos.cpp
-    #    client_api/PosturalRos.cpp
+    client_api/InteractionRos.cpp
+    client_api/PosturalRos.cpp
     #    RosImpl.cpp
     RosServerClass.cpp
     CartesianMarker.cpp

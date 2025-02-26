@@ -1,0 +1,4 @@
+geometry_msgs/Wrench fmax
+---
+bool success
+string message

@@ -1,210 +1,381 @@
 #include "fmt/format.h"
 #include "ros/client_api/InteractionRos.h"
 
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/TwistStamped.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/twist_stamped.hpp>
+#include <tf2_eigen/tf2_eigen.hpp>
+#include <xbot2_interface/logger.h>
 
+using XBot::Logger;
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ClientApi;
 using namespace cartesian_interface;
+using namespace std::chrono_literals;
 
 InteractionRos::InteractionRos(std::string name,
-							   ros::NodeHandle nh):
-    CartesianRos(name, nh),
-    _action_cli(nh, name + "/stiffness", false)
-    // ,_Tref_recv(false), _vref_recv(false)
+							   rclcpp::Node::SharedPtr node):
+    CartesianRos(name, node)
 {
-	_interaction_info_cli = _nh.serviceClient<GetInteractionTaskInfo>(name + "/get_interaction_task_properties");
-    
-	if(!_interaction_info_cli.waitForExistence(ros::Duration(1.0)) || !_interaction_info_cli.exists())
+    _action_cli = rclcpp_action::create_client<ReachCartesianImpedance>(_node, name + "/stiffness");
+    _interaction_info_cli = _node->create_client<GetInteractionTaskInfo>(name + "/get_interaction_task_properties");
+
+    // Ugly: Too many blocking calls?
+    while(!_action_cli->wait_for_action_server(1s))
     {
-        throw std::runtime_error(fmt::format("Non existent service '{}'",
-                                             _interaction_info_cli.getService()));
-    }
-    
-    _get_impedance_cli = _nh.serviceClient<GetImpedance>(name + "/get_impedance");
-    
-	if(!_get_impedance_cli.waitForExistence(ros::Duration(1.0)) || !_get_impedance_cli.exists())
-    {
-        throw std::runtime_error(fmt::format("Non existent service '{}'",
-                                             _get_impedance_cli.getService()));
+        RCLCPP_INFO_STREAM(_node->get_logger(),
+                           "Waiting for action server" << name << "/stiffness"
+                           );
     }
 
-    _set_impedance_cli = _nh.serviceClient<SetImpedance>(name + "/set_impedance");
+    while(!_interaction_info_cli->wait_for_service(1s))
+    {
+        RCLCPP_INFO_STREAM(_node->get_logger(),
+                           fmt::format("Waiting for service '{}'",
+                                       _interaction_info_cli->get_service_name())
+                           );
+    }
+    
+    _get_impedance_cli = _node->create_client<GetImpedance>(name + "/get_impedance");
 
-    if(!_set_impedance_cli.waitForExistence(ros::Duration(1.0)) || !_set_impedance_cli.exists())
+    // : wait for service to be available
+
+    while(!_get_impedance_cli->wait_for_service(1s))
     {
-        throw std::runtime_error(fmt::format("Non existent service '{}'",
-                                             _set_impedance_cli.getService()));
+        RCLCPP_INFO_STREAM(_node->get_logger(),
+                           fmt::format("Waiting for service '{}'",
+                                       _get_impedance_cli->get_service_name())
+                           );
     }
-        
-    if(!_action_cli.isServerConnected())
+
+    _set_impedance_cli = _node->create_client<SetImpedance>(name + "/set_impedance");
+
+    while(!_set_impedance_cli->wait_for_service(1s))
     {
-        /*throw std::runtime_error(fmt::format("Unable to reach action server '{}'",
-                                             nh.resolveName(name + "/stiffness")));*/
+        RCLCPP_INFO_STREAM(_node->get_logger(),
+                           fmt::format("Waiting for service '{}'",
+                                       _set_impedance_cli->get_service_name())
+                           );
     }
+
+    _set_impedance_ref_link_cli = _node->create_client<SetImpedanceRefLink>(name + "/set_impedance_ref_link");
+    
+    while(!_set_impedance_ref_link_cli->wait_for_service(1s))
+    {
+        RCLCPP_INFO_STREAM(_node->get_logger(),
+                           fmt::format("Waiting for service '{}'",
+                                       _set_impedance_ref_link_cli->get_service_name())
+                           );
+    }
+
+    _get_force_limits_cli = _node->create_client<GetForceLimits>(name + "/get_force_limits");
+    
+    while(!_get_force_limits_cli->wait_for_service(1s))
+    {
+        RCLCPP_INFO_STREAM(_node->get_logger(),
+                           fmt::format("Waiting for service '{}'",
+                                       _get_force_limits_cli->get_service_name())
+                           );
+    }
+
+    _set_force_limits_cli = _node->create_client<SetForceLimits>(name + "/set_force_limits");
+    
+    while(!_set_force_limits_cli->wait_for_service(1s))
+    {
+        RCLCPP_INFO_STREAM(_node->get_logger(),
+                           fmt::format("Waiting for service '{}'",
+                                       _set_force_limits_cli->get_service_name())
+                            );
+    }
+
+    _task_info_sub = _node->create_subscription<InteractionTaskInfo>(name + "/interaction_task_properties",
+                                                                    10,
+                                                                    std::bind(&InteractionRos::on_task_info_recv, this, std::placeholders::_1)); 
     
     _f.setZero();
 }
 
-GetInteractionTaskInfoResponse InteractionRos::get_task_info() const
+GetInteractionTaskInfo::Response::SharedPtr InteractionRos::get_task_info() const
 {
     if(asyncMode())
     {
-        GetInteractionTaskInfoResponse res;
+        GetInteractionTaskInfo::Response::SharedPtr res;
         
-		res.state = _info.state;
+		res->state = _info.state;
         
         return res;
     }
 
-    cartesian_interface::GetInteractionTaskInfo srv;
-    if(!_interaction_info_cli.call(srv))
+    auto req = std::make_shared<GetInteractionTaskInfo::Request>();
+    auto cli = _interaction_info_cli;
+    auto fut = cli->async_send_request(req);
+
+    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        return fut.get();
+    }
+    else
     {
         throw std::runtime_error(fmt::format("Unable to call service '{}'",
-                                             _interaction_info_cli.getService()));
+                                             cli->get_service_name()));
     }
 
-    return srv.response;
 }
 
 const Impedance & InteractionRos::getImpedance()
 {
-	cartesian_interface::GetImpedance srv;
-    if(!_get_impedance_cli.call(srv))
+	// cartesian_interface::GetImpedance srv;
+    // if(!_get_impedance_cli.call(srv))
+    // {
+        // throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                            //  _get_impedance_cli.getService()));
+    // }
+
+    auto req = std::make_shared<GetImpedance::Request>();
+    auto fut = _get_impedance_cli->async_send_request(req);
+
+    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        // get current state for task (note: should it be getPoseReference instead?)
+        Eigen::Vector3d temp1, temp2;
+        Eigen::Vector6d temp3;
+
+        tf2::fromMsg(fut.get()->impedance.linear.stiffness,  temp1);
+        tf2::fromMsg(fut.get()->impedance.angular.stiffness, temp2);
+                
+        temp3.head(3) = temp1; temp3.tail(3) = temp2;
+        
+        _impedance.stiffness = temp3.asDiagonal();
+        
+        tf2::fromMsg(fut.get()->impedance.linear.damping_ratio,  temp1);
+        tf2::fromMsg(fut.get()->impedance.angular.damping_ratio, temp2);
+        
+        temp3.head(3) = temp1; temp3.tail(3) = temp2;
+        
+        _impedance.damping = temp3.asDiagonal();
+        
+        _impedance.mass.setZero();
+        
+        return _impedance;
+    }
+    else
     {
         throw std::runtime_error(fmt::format("Unable to call service '{}'",
-                                             _get_impedance_cli.getService()));
+                                             _get_impedance_cli->get_service_name()));
     }
-	
-	// get current state for task (note: should it be getPoseReference instead?)
-	Eigen::Vector3d temp1, temp2;
-	Eigen::Vector6d temp3;
-		
-	tf::vectorMsgToEigen(srv.response.impedance.linear.stiffness,  temp1);
-	tf::vectorMsgToEigen(srv.response.impedance.angular.stiffness, temp2);
-			
-	temp3.head(3) = temp1; temp3.tail(3) = temp2;
-	
-	_impedance.stiffness = temp3.asDiagonal();
-	
-	tf::vectorMsgToEigen(srv.response.impedance.linear.damping_ratio,  temp1);
-	tf::vectorMsgToEigen(srv.response.impedance.angular.damping_ratio, temp2);
-	
-	temp3.head(3) = temp1; temp3.tail(3) = temp2;
-	
-	_impedance.damping = temp3.asDiagonal();
-	
-	_impedance.mass.setZero();
-	
-	return _impedance;
 }
 
 const Eigen::Vector6d& InteractionRos::getForceReference () const
 {
-	ROS_WARN("unsupported function: getForceReference");
-	
+	Logger::warning(Logger::Severity::MID, "Unsupported function: getForceReference()");
 	return _f;
-}
-
-void InteractionRos::getForceLimits (Eigen::Vector6d& fmin, Eigen::Vector6d& fmax) const
-{
-	ROS_WARN("unsupported function: getForceLimits");
-	
-	fmin.setZero();
-	fmax.setZero();
 }
 
 bool InteractionRos::setImpedance (const Impedance & impedance)
 {
-    cartesian_interface::SetImpedance srv;
+    // cartesian_interface::SetImpedance srv;
 
-    tf::vectorEigenToMsg(impedance.stiffness.diagonal().head(3), srv.request.impedance.linear.stiffness);
-    tf::vectorEigenToMsg(impedance.stiffness.diagonal().tail(3), srv.request.impedance.angular.stiffness);
+    auto req = std::make_shared<SetImpedance::Request>();
 
-    tf::vectorEigenToMsg(impedance.damping.diagonal().head(3), srv.request.impedance.linear.damping_ratio);
-    tf::vectorEigenToMsg(impedance.damping.diagonal().tail(3), srv.request.impedance.angular.damping_ratio);
+    tf2::toMsg(impedance.stiffness.diagonal().head(3), req->impedance.linear.stiffness);
+    tf2::toMsg(impedance.stiffness.diagonal().tail(3), req->impedance.angular.stiffness);
 
-    if(!_set_impedance_cli.call(srv))
+    tf2::toMsg(impedance.damping.diagonal().head(3), req->impedance.linear.damping_ratio);
+    tf2::toMsg(impedance.damping.diagonal().tail(3), req->impedance.angular.damping_ratio);
+    
+    auto cli = _set_impedance_cli;
+    auto fut = cli->async_send_request(req);
+
+    if((rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS))
+    {
+        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
+
+        return fut.get()->success;
+    }
+    else
     {
         throw std::runtime_error(fmt::format("Unable to call service '{}'",
-                                             _set_impedance_cli.getService()));
+                                             cli->get_service_name()));
     }
-
-    ROS_INFO("%s", srv.response.message.c_str());
-
-    return srv.response.success;
 }
 
 void InteractionRos::setForceReference (const Eigen::Vector6d& f)
 {
-	ROS_WARN("unsupported function: setForceReference");
+	Logger::warning(Logger::Severity::MID, "Unsupported function: setForceReference");
 }
 
-bool InteractionRos::setForceLimits (const Eigen::Vector6d& fmin, const Eigen::Vector6d& fmax)
+void InteractionRos::getForceLimits (Eigen::Vector6d& fmax) const
 {
-    ROS_WARN("unsupported function: setForceLimits");
-    return false;
+	// cartesian_interface::GetForceLimits srv;
+    auto req = std::make_shared<GetForceLimits::Request>();
+    auto cli = _get_force_limits_cli;
+    auto fut = cli->async_send_request(req);
+
+    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        // Note: get current state for task (should it be getPoseReference instead?)
+        Eigen::Vector3d force, torque;
+            
+        tf2::fromMsg(fut.get()->fmax.force, force);
+        tf2::fromMsg(fut.get()->fmax.torque, torque);
+                
+        fmax << force, torque;
+    }
+    else 
+    {
+        throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                             cli->get_service_name()));
+    }
+}
+
+bool InteractionRos::setForceLimits (const Eigen::Vector6d& fmax)
+{
+    
+    auto req = std::make_shared<SetForceLimits::Request>();
+    
+    tf2::toMsg(fmax.head(3), req->fmax.force);
+    tf2::toMsg(fmax.tail(3), req->fmax.torque);
+    
+    auto cli = _set_force_limits_cli;
+    auto fut = cli->async_send_request(req);
+    
+    if (rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
+        
+        return fut.get()->success;
+    }
+    else
+    {
+        throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                             cli->get_service_name()));
+    }
 }
 
 State InteractionRos::getStiffnessState() const
 {
-    return StringToEnum<State>(get_task_info().state);
+    return StringToEnum<State>(get_task_info()->state);
 }
 
 void InteractionRos::abortStiffnessTransition()
 {
-    _action_cli.cancelAllGoals();
+    auto fut = _action_cli->async_cancel_all_goals();
+    if (rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        Logger::info(Logger::Severity::HIGH, "Abort succeeded");
+    }
+    else    
+    {
+        Logger::error(Logger::Severity::HIGH, "Abort failed");
+    }
+    
 }
 
 bool InteractionRos::waitTransitionCompleted(double timeout)
 {
-    return _action_cli.waitForResult(ros::Duration(timeout));
+    auto ret = rclcpp::spin_until_future_complete(_node,
+                                                  _action_future,
+                                                  std::chrono::duration<double>(timeout));
+    return ret == rclcpp::FutureReturnCode::SUCCESS;
 }
 
 bool InteractionRos::setStiffnessTransition(const Interpolator<Eigen::Matrix6d>::WayPointVector & way_points)
 {
-    cartesian_interface::ReachCartesianImpedanceGoal goal;
-    
+    // cartesian_interface::ReachCartesianImpedanceGoal goal;
+
+    if (!_action_cli->action_server_is_ready())
+    {
+        Logger::error(Logger::Severity::HIGH, "Server not ready");
+        return false;
+    }
+
+    ReachCartesianImpedance::Goal goal;
 	Impedance impedance = getImpedance();
 	
 	for(const auto& wp : way_points)
     {
-		cartesian_interface::CartesianImpedanceTimed cit;
+		CartesianImpedanceTimed cit;
 		
-		tf::vectorEigenToMsg (wp.value.diagonal().head(3), cit.impedance.linear.stiffness );
-		tf::vectorEigenToMsg (wp.value.diagonal().tail(3), cit.impedance.angular.stiffness);
+		tf2::toMsg (wp.value.diagonal().head(3), cit.impedance.linear.stiffness );
+		tf2::toMsg (wp.value.diagonal().tail(3), cit.impedance.angular.stiffness);
 		
-		tf::vectorEigenToMsg (impedance.damping.diagonal().head(3), cit.impedance.linear.damping_ratio );
-		tf::vectorEigenToMsg (impedance.damping.diagonal().tail(3), cit.impedance.angular.damping_ratio);
+		tf2::toMsg (impedance.damping.diagonal().head(3), cit.impedance.linear.damping_ratio );
+		tf2::toMsg (impedance.damping.diagonal().tail(3), cit.impedance.angular.damping_ratio);
 		
 		cit.time = wp.time;
 		
 		goal.target.push_back(cit);
     }
 
-    _action_cli.sendGoal(goal,
-                         boost::bind(&InteractionRos::on_action_done, this, _1, _2),
-                         boost::bind(&InteractionRos::on_action_active, this),
-                         boost::bind(&InteractionRos::on_action_feedback, this, _1));
+    auto send_goal_option = rclcpp_action::Client<ReachCartesianImpedance>::SendGoalOptions();
+
+    using namespace std::placeholders;
+
+    send_goal_option.goal_response_callback = 
+        std::bind(&InteractionRos::on_action_active, this, _1);
+
+    send_goal_option.feedback_callback = 
+        std::bind(&InteractionRos::on_action_feedback, this, _1, _2);
+
+    send_goal_option.result_callback = 
+        std::bind(&InteractionRos::on_action_done, this, _1);
+    
     return true;
 }
 
-void InteractionRos::on_action_feedback(const ReachCartesianImpedanceFeedbackConstPtr & feedback)
+const std::string & InteractionRos::getImpedanceRefLink() const
 {
+    _impedance_ref_link = get_task_info()->impedance_ref_link;
+    return _impedance_ref_link;
+}
+
+bool InteractionRos::setImpedanceRefLink(const std::string & new_impedance_ref_link)
+{
+
+    auto req = std::make_shared<SetImpedanceRefLink::Request>();
+    req->impedance_ref_link = new_impedance_ref_link;
     
+    auto cli = _set_impedance_ref_link_cli;
+    auto fut = cli->async_send_request(req);
+
+    if (rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
+        
+        return fut.get()->success;
+    }
+    else
+    {
+        throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                             cli->get_service_name()));
+    }
+
 }
 
-void InteractionRos::on_action_active()
+void InteractionRos::on_task_info_recv(InteractionTaskInfo::ConstSharedPtr msg)
 {
-    ROS_INFO("Reach action for task '%s' has become active",
-             getName().c_str());
+    _info = *msg;
 }
 
-void InteractionRos::on_action_done(const actionlib::SimpleClientGoalState & state,
-                                  const ReachCartesianImpedanceResultConstPtr & result)
+void InteractionRos::on_action_feedback(ActionGoalHandle::SharedPtr goal_handle,
+                                        const std::shared_ptr<const ReachCartesianImpedance::Feedback> feedback)
 {
-    ROS_INFO("Reach action for task '%s' has been completed",
-             getName().c_str());
+    // TODO: Implement Feedback?
+}
+
+void InteractionRos::on_action_active(ActionGoalHandle::SharedPtr goal_handle)
+{
+    RCLCPP_INFO(_node->get_logger(),
+                "reach action for task '%s' has become active",
+                getName().c_str());
+
+    _action_goal_handle = goal_handle;
+}
+
+void InteractionRos::on_action_done(const ActionGoalHandle::WrappedResult& result)
+{
+    RCLCPP_INFO(_node->get_logger(),
+                "reach action for task '%s' has been completed",
+                getName().c_str());
+                
+    _action_goal_handle.reset();
 }

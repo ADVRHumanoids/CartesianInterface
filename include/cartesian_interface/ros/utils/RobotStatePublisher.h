@@ -20,7 +20,8 @@ public:
 
 
 private:
-
+    // Note: Unused Variable 
+    // rclcpp::Time _last_pub_time;
     ModelInterface::ConstPtr _model;
     tf2_ros::TransformBroadcaster _tf_broadcaster;
     std::vector<geometry_msgs::msg::TransformStamped> _tf_vector;

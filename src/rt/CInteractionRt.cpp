@@ -39,8 +39,9 @@ void InteractionRt::sendState(bool send)
 	_rt_data._force           = _task_impl->getForceReference();
 	_rt_data._stiffness_state = _task_impl->getStiffnessState();
 	
-	_task_impl->getForceLimits(_rt_data._force_min,
-							   _rt_data._force_max);
+	_task_impl->getForceLimits(_rt_data._force_max);
+	
+	_rt_data._impedance_ref_link = _task_impl->getImpedanceRefLink();
 	
 	_to_cli_queue.push(_rt_data);
 }
@@ -55,9 +56,8 @@ const Eigen::Vector6d& InteractionRt::getForceReference() const
     return _cli_data._force;
 }
 
-void InteractionRt::getForceLimits(Eigen::Vector6d& fmin, Eigen::Vector6d& fmax) const
+void InteractionRt::getForceLimits(Eigen::Vector6d& fmax) const
 {
-	fmin = _cli_data._force_min;
 	fmax = _cli_data._force_max;
 }
 
@@ -80,11 +80,11 @@ void InteractionRt::setForceReference(const Eigen::Vector6d& f)
     _cb_queue.push(cb);
 }
 
-bool InteractionRt::setForceLimits(const Eigen::Vector6d& fmin,	const Eigen::Vector6d& fmax)
+bool InteractionRt::setForceLimits(const Eigen::Vector6d& fmax)
 {
 	/* fi: why this returns a bool? */
 	
-	auto cb = std::bind(&InteractionTask::setForceLimits, pl::_1, fmin, fmax);
+	auto cb = std::bind(&InteractionTask::setForceLimits, pl::_1, fmax);
 	_cb_queue.push(cb);
 	
 	return true;
@@ -99,6 +99,19 @@ void InteractionRt::abortStiffnessTransition()
 bool InteractionRt::setStiffnessTransition(const Interpolator<Eigen::Matrix6d>::WayPointVector & way_points)
 {
 	auto cb = std::bind(&InteractionTask::setStiffnessTransition, pl::_1, way_points);
+    return _cb_queue.push(cb);
+}
+
+const std::string & InteractionRt::getImpedanceRefLink() const
+{
+    return _rt_data._impedance_ref_link;
+}
+
+bool InteractionRt::setImpedanceRefLink(const std::string & new_impedance_ref_link)
+{
+    auto cb = std::bind(&InteractionTask::setImpedanceRefLink,
+                        pl::_1, new_impedance_ref_link);
+
     return _cb_queue.push(cb);
 }
 

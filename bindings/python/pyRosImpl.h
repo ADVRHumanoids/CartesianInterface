@@ -120,9 +120,9 @@ auto py_task_get_acc_lims(const CartesianTask& t)
 
 auto py_task_get_force_lims(const InteractionTask& t)
 {
-    Eigen::Vector6d l, a;
-    t.getForceLimits(l, a);
-    return std::make_tuple(l, a);
+    Eigen::Vector6d l;
+    t.getForceLimits(l);
+    return l;
 }
 
 auto py_get_pose_reference(const RosClient& r, const std::string& ee)

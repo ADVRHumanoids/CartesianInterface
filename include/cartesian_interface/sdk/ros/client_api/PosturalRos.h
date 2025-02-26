@@ -4,7 +4,8 @@
 #include <cartesian_interface/problem/Postural.h>
 #include <cartesian_interface/sdk/ros/client_api/TaskRos.h>
 
-#include <sensor_msgs/JointState.h>
+#include <sensor_msgs/msg/joint_state.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 namespace XBot { namespace Cartesian {
 
@@ -22,7 +23,7 @@ public:
     CARTESIO_DECLARE_SMART_PTR(PosturalRos)
 
     PosturalRos(std::string name,
-                ros::NodeHandle nh);
+                rclcpp::Node::SharedPtr node);
 
     bool validate() override;
 
@@ -44,13 +45,14 @@ public:
 
 private:
 
-    void on_current_ref_recv(sensor_msgs::JointStateConstPtr msg);
+    void on_current_ref_recv(sensor_msgs::msg::JointState::ConstSharedPtr msg);
 
-    ros::Publisher  _ref_pub;
-    bool _curr_ref_recv;
-    ros::Subscriber _current_ref_sub;
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr  _ref_pub;
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr _current_ref_sub;
 
     JointNameMap _current_ref;
+
+    bool _curr_ref_recv;
 
 };
 

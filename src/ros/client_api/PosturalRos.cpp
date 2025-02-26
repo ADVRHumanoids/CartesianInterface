@@ -4,15 +4,14 @@
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ClientApi;
 
-
-PosturalRos::PosturalRos(std::string name, ros::NodeHandle nh):
-    TaskRos(name, nh),
+PosturalRos::PosturalRos(std::string name, rclcpp::Node::SharedPtr node):
+    TaskRos(name, node),
     _curr_ref_recv(false)
 {
-    _ref_pub = _nh.advertise<sensor_msgs::JointState>(name + "/reference", 5);
+    _ref_pub = _node->create_publisher<sensor_msgs::msg::JointState>(name + "/reference", 5);
 
-    _current_ref_sub = _nh.subscribe(name + "/current_reference", 1,
-                                     &PosturalRos::on_current_ref_recv, this);
+    _current_ref_sub = _node->create_subscription<sensor_msgs::msg::JointState>(name + "/current_reference", 1,
+                                     std::bind(&PosturalRos::on_current_ref_recv, this, std::placeholders::_1));
 }
 
 bool PosturalRos::validate()
@@ -39,8 +38,8 @@ void PosturalRos::getReferencePosture(XBot::JointNameMap & qref) const
 
 void PosturalRos::setReferencePosture(const XBot::JointNameMap & qref)
 {
-    sensor_msgs::JointState msg;
-    msg.header.stamp = ros::Time::now();
+    sensor_msgs::msg::JointState msg;
+    msg.header.stamp = _node->get_clock()->now();
     msg.name.reserve(qref.size());
     msg.position.reserve(qref.size());
 
@@ -50,7 +49,7 @@ void PosturalRos::setReferencePosture(const XBot::JointNameMap & qref)
         msg.position.push_back(pair.second);
     }
 
-    _ref_pub.publish(msg);
+    _ref_pub->publish(msg);
 }
 
 void PosturalRos::setReferencePosture(const Eigen::VectorXd & qref)
@@ -58,7 +57,7 @@ void PosturalRos::setReferencePosture(const Eigen::VectorXd & qref)
     ///TODO
 }
 
-void PosturalRos::on_current_ref_recv(sensor_msgs::JointStateConstPtr msg)
+void PosturalRos::on_current_ref_recv(sensor_msgs::msg::JointState::ConstSharedPtr msg)
 {
     _curr_ref_recv = true;
 
