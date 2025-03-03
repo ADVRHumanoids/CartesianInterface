@@ -78,13 +78,13 @@ void RosExecutor::init_load_config()
 {
     /* Obtain xbot config object */
 
-    _xbot_cfg_robot = XBot::ConfigOptionsFromParams(_node, "");
+    _xbot_cfg_robot = XBot::ConfigOptionsFromParams(_node, "", 10s);
 
-    try
+    if(_node->get_parameter_or("use_model_description", false))
     {
-        _xbot_cfg = XBot::ConfigOptionsFromParams(_node, "model_description/");
+        _xbot_cfg = XBot::ConfigOptionsFromParams(_node, "model_description/", 10s);
     }
-    catch(std::exception& e)
+    else
     {
         _xbot_cfg = _xbot_cfg_robot;
     }
@@ -487,18 +487,6 @@ void RosExecutor::load_ros_api()
 
 void RosExecutor::init_create_loop_timer()
 {
-
-    //not available in humble
-    // _loop_timer = _node->create_timer(std::chrono::duration<double>(_period),
-    //                     [this]()
-    //                     {
-    //                         timer_callback();
-    //                     });
-    _loop_timer = rclcpp::create_timer(_node, _node->get_clock(), std::chrono::duration<double>(_period),[this]()
-                        {
-                            timer_callback();
-                        });
-
     _time = 0.0;
 
     auto load_ctrl_req = std::make_shared<LoadController::Request>();
@@ -510,6 +498,11 @@ void RosExecutor::init_create_loop_timer()
     }
 
     loader_callback(load_ctrl_req, load_ctrl_res);
+
+    _loop_timer = rclcpp::create_timer(_node, _node->get_clock(), std::chrono::duration<double>(_period),[this]()
+                        {
+                            timer_callback();
+                        });
 
 }
 
