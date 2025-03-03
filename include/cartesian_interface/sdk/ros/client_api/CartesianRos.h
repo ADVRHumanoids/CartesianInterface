@@ -4,17 +4,17 @@
 #include <cartesian_interface/problem/Cartesian.h>
 #include <cartesian_interface/sdk/ros/client_api/TaskRos.h>
 
-#include <cartesian_interface/srv/get_cartesian_task_info.hpp>
-#include <cartesian_interface/msg/cartesian_task_info.hpp>
+#include <cartesian_interface_ros/srv/get_cartesian_task_info.hpp>
+#include <cartesian_interface_ros/msg/cartesian_task_info.hpp>
 
-#include <cartesian_interface/srv/set_base_link.hpp>
-#include <cartesian_interface/srv/set_control_mode.hpp>
-#include <cartesian_interface/srv/set_safety_limits.hpp>
+#include <cartesian_interface_ros/srv/set_base_link.hpp>
+#include <cartesian_interface_ros/srv/set_control_mode.hpp>
+#include <cartesian_interface_ros/srv/set_safety_limits.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
 
 #include <rclcpp_action/rclcpp_action.hpp>
-#include <cartesian_interface/action/reach_pose.hpp>
+#include <cartesian_interface_ros/action/reach_pose.hpp>
 
 namespace XBot { namespace Cartesian {
 
@@ -23,12 +23,12 @@ namespace ClientApi
 class CartesianRos;
 }
 
-using cartesian_interface::action::ReachPose;
-using cartesian_interface::srv::GetCartesianTaskInfo;
-using cartesian_interface::msg::CartesianTaskInfo;
-using cartesian_interface::srv::SetBaseLink;
-using cartesian_interface::srv::SetControlMode;
-using cartesian_interface::srv::SetSafetyLimits;
+using cartesian_interface_ros::action::ReachPose;
+using cartesian_interface_ros::srv::GetCartesianTaskInfo;
+using cartesian_interface_ros::msg::CartesianTaskInfo;
+using cartesian_interface_ros::srv::SetBaseLink;
+using cartesian_interface_ros::srv::SetControlMode;
+using cartesian_interface_ros::srv::SetSafetyLimits;
 using geometry_msgs::msg::PoseStamped;
 using geometry_msgs::msg::TwistStamped;
 

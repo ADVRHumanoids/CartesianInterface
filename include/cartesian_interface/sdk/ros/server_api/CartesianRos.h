@@ -10,21 +10,21 @@
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
 
-#include <cartesian_interface/action/reach_pose.hpp>
+#include <cartesian_interface_ros/action/reach_pose.hpp>
 
-#include <cartesian_interface/srv/get_cartesian_task_info.hpp>
-#include <cartesian_interface/srv/set_base_link.hpp>
-#include <cartesian_interface/srv/set_control_mode.hpp>
-#include <cartesian_interface/srv/set_safety_limits.hpp>
+#include <cartesian_interface_ros/srv/get_cartesian_task_info.hpp>
+#include <cartesian_interface_ros/srv/set_base_link.hpp>
+#include <cartesian_interface_ros/srv/set_control_mode.hpp>
+#include <cartesian_interface_ros/srv/set_safety_limits.hpp>
 
-#include <cartesian_interface/msg/cartesian_task_info.hpp>
+#include <cartesian_interface_ros/msg/cartesian_task_info.hpp>
 
 
 namespace XBot { namespace Cartesian {
 
-using namespace cartesian_interface::msg;
-using namespace cartesian_interface::srv;
-using namespace cartesian_interface::action;
+using namespace cartesian_interface_ros::msg;
+using namespace cartesian_interface_ros::srv;
+using namespace cartesian_interface_ros::action;
 using namespace geometry_msgs::msg;
 
 class ReachActionManager

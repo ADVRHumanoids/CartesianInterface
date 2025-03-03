@@ -3,7 +3,7 @@
 #include <std_srvs/srv/trigger.hpp>
 #include <std_msgs/msg/empty.hpp>
 #include <std_msgs/msg/string.hpp>
-#include <cartesian_interface/srv/get_task_list.hpp>
+#include <cartesian_interface_ros/srv/get_task_list.hpp>
 #include <cartesian_interface/markers/CartesianMarker.h>
 
 #include <rclcpp/wait_for_message.hpp>
@@ -141,7 +141,7 @@ void construct_markers()
     g_markers.clear();
 
     // get task list from cartesian server
-    auto task_list_client = g_node->create_client<cartesian_interface::srv::GetTaskList>("get_task_list");
+    auto task_list_client = g_node->create_client<cartesian_interface_ros::srv::GetTaskList>("get_task_list");
     while(!task_list_client->wait_for_service(1s))
     {
         RCLCPP_INFO_STREAM(g_node->get_logger(),
@@ -149,7 +149,7 @@ void construct_markers()
                            );
     }
 
-    auto req = std::make_shared<cartesian_interface::srv::GetTaskList::Request>();
+    auto req = std::make_shared<cartesian_interface_ros::srv::GetTaskList::Request>();
 
     auto fut = task_list_client->async_send_request(req);
 

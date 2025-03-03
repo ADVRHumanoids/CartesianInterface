@@ -11,7 +11,7 @@
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <visualization_msgs/msg/interactive_marker.hpp>
 
-#include <cartesian_interface/action/reach_pose.hpp>
+#include <cartesian_interface_ros/action/reach_pose.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 
 #include <cartesian_interface/problem/Cartesian.h>

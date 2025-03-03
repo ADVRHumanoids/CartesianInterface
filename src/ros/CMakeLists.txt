@@ -1,3 +1,4 @@
+project(cartesian_interface_ros)
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -69,10 +70,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     std_msgs
 )
 
-ament_export_dependencies(rosidl_default_runtime)
-
-ament_package()
-
+ament_export_dependencies(rosidl_default_runtime interactive_markers)
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 # ros source files
 set(CartesianInterfaceRos_SRC
@@ -100,19 +99,25 @@ add_library(CartesianInterfaceRos STATIC
 
 target_link_libraries(CartesianInterfaceRos
     PUBLIC
-    CartesianInterfaceCore
     rclcpp::rclcpp
     tf2_eigen::tf2_eigen
     tf2_kdl::tf2_kdl
     tf2_geometry_msgs::tf2_geometry_msgs
     std_srvs::std_srvs__rosidl_typesupport_cpp
     ${PROJECT_NAME}__rosidl_typesupport_cpp
-    interactive_markers::interactive_markers
     geometry_msgs::geometry_msgs__rosidl_typesupport_cpp
     visualization_msgs::visualization_msgs__rosidl_typesupport_cpp
+    CartesianInterfaceCore
+    interactive_markers::interactive_markers
+    PRIVATE
 )
 
-#add_dependencies(CartesianInterfaceRos ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
+# install CartesianInterfaceRos library
+install(TARGETS CartesianInterfaceRos
+    EXPORT export_${PROJECT_NAME}
+    DESTINATION lib
+)
 
 # Cartesian Server executable
 add_executable(ros_server_node RosServerNode.cpp)
@@ -129,6 +134,7 @@ add_executable(marker_spawner
 )
 
 target_link_libraries(marker_spawner
+    interactive_markers::interactive_markers
     CartesianInterfaceRos
 )
 
@@ -184,3 +190,6 @@ install(TARGETS robot_description_publisher
 #    )
 
 #install(PROGRAMS ${CMAKE_SOURCE_DIR}/src/postural_gui DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+
+ament_package()

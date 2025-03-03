@@ -9,20 +9,20 @@
 #include <std_msgs/msg/float32.hpp>
 #include <std_msgs/msg/float64_multi_array.hpp>
 
-#include <cartesian_interface/srv/get_task_info.hpp>
-#include <cartesian_interface/srv/set_weight.hpp>
-#include <cartesian_interface/srv/set_lambda.hpp>
-#include <cartesian_interface/srv/set_lambda2.hpp>
-#include <cartesian_interface/srv/set_task_active.hpp>
-#include <cartesian_interface/msg/task_info.hpp>
+#include <cartesian_interface_ros/srv/get_task_info.hpp>
+#include <cartesian_interface_ros/srv/set_weight.hpp>
+#include <cartesian_interface_ros/srv/set_lambda.hpp>
+#include <cartesian_interface_ros/srv/set_lambda2.hpp>
+#include <cartesian_interface_ros/srv/set_task_active.hpp>
+#include <cartesian_interface_ros/msg/task_info.hpp>
 
 #include <cartesian_interface/sdk/ros/RosContext.h>
 #include <cartesian_interface/sdk/ros/Plugin.h>
 
 namespace XBot { namespace Cartesian {
 
-using namespace cartesian_interface::msg;
-using namespace cartesian_interface::srv;
+using namespace cartesian_interface_ros::msg;
+using namespace cartesian_interface_ros::srv;
 
 namespace ServerApi
 {

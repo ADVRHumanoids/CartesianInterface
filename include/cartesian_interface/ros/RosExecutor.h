@@ -11,14 +11,14 @@
 #include <cartesian_interface/problem/ProblemDescription.h>
 #include <cartesian_interface/ros/RosServerClass.h>
 
-#include <cartesian_interface/srv/reset_joints.hpp>
-#include <cartesian_interface/srv/load_controller.hpp>
+#include <cartesian_interface_ros/srv/reset_joints.hpp>
+#include <cartesian_interface_ros/srv/load_controller.hpp>
 
 namespace XBot {
 namespace Cartesian {
 
-using namespace cartesian_interface::msg;
-using namespace cartesian_interface::srv;
+using namespace cartesian_interface_ros::msg;
+using namespace cartesian_interface_ros::srv;
 using namespace geometry_msgs::msg;
 using namespace sensor_msgs::msg;
 using namespace std_srvs::srv;
