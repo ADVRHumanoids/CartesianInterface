@@ -4,14 +4,14 @@
 #include <cartesian_interface/problem/Task.h>
 #include <rclcpp/rclcpp.hpp>
 
-#include <cartesian_interface/srv/get_task_info.hpp>
-#include <cartesian_interface/msg/task_info.hpp>
+#include <cartesian_interface_ros/srv/get_task_info.hpp>
+#include <cartesian_interface_ros/msg/task_info.hpp>
 #include <std_msgs/msg/string.hpp>
-#include <cartesian_interface/srv/set_task_active.hpp>
-#include <cartesian_interface/srv/set_lambda.hpp>
-#include <cartesian_interface/srv/set_lambda2.hpp>
-#include <cartesian_interface/srv/set_weight.hpp>
-#include <cartesian_interface/srv/set_task_active.hpp>
+#include <cartesian_interface_ros/srv/set_task_active.hpp>
+#include <cartesian_interface_ros/srv/set_lambda.hpp>
+#include <cartesian_interface_ros/srv/set_lambda2.hpp>
+#include <cartesian_interface_ros/srv/set_weight.hpp>
+#include <cartesian_interface_ros/srv/set_task_active.hpp>
 
 namespace XBot { namespace Cartesian {
 
@@ -20,12 +20,12 @@ namespace ClientApi
     class TaskRos;
 }
 
-using cartesian_interface::msg::TaskInfo;
-using cartesian_interface::srv::GetTaskInfo;
-using cartesian_interface::srv::SetWeight;
-using cartesian_interface::srv::SetLambda;
-using cartesian_interface::srv::SetLambda2;
-using cartesian_interface::srv::SetTaskActive;
+using cartesian_interface_ros::msg::TaskInfo;
+using cartesian_interface_ros::srv::GetTaskInfo;
+using cartesian_interface_ros::srv::SetWeight;
+using cartesian_interface_ros::srv::SetLambda;
+using cartesian_interface_ros::srv::SetLambda2;
+using cartesian_interface_ros::srv::SetTaskActive;
 
 class ClientApi::TaskRos : virtual public TaskDescription
 {
@@ -95,7 +95,7 @@ private:
 
     GetTaskInfo::Response get_task_info() const;
 
-    void on_task_info_recv(cartesian_interface::msg::TaskInfo::ConstSharedPtr msg);
+    void on_task_info_recv(cartesian_interface_ros::msg::TaskInfo::ConstSharedPtr msg);
     void on_task_changed_ev_recv(std_msgs::msg::String::ConstSharedPtr msg);
 
     bool _async_update;
@@ -120,7 +120,7 @@ private:
     rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _task_changed_sub;
     rclcpp::Subscription<TaskInfo>::SharedPtr _task_info_sub;
 
-    cartesian_interface::msg::TaskInfo _info;
+    cartesian_interface_ros::msg::TaskInfo _info;
 
     bool _async;
 

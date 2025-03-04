@@ -1,4 +1,4 @@
-cartesian_interface/CartesianImpedance impedance
+cartesian_interface_ros/CartesianImpedance impedance
 ---
 bool success
 string message

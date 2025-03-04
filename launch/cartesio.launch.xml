@@ -15,7 +15,7 @@
 
 
 
-    <node pkg="cartesian_interface" exec="ros_server_node"
+    <node pkg="cartesian_interface_ros" exec="ros_server_node"
                                     name="ros_server_node"
                                     output="screen"
                                     launch-prefix="$(var prefix)">
@@ -34,7 +34,7 @@
 
     </node>
 
-    <node if="$(var markers)" pkg="cartesian_interface" exec="marker_spawner" name="interactive_markers" output="screen">
+    <node if="$(var markers)" pkg="cartesian_interface_ros" exec="marker_spawner" name="interactive_markers" output="screen">
         <param name="tf_prefix" value="$(var tf_prefix)"/>
     </node>
 

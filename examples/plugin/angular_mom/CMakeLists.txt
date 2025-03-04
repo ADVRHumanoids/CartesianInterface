@@ -5,7 +5,7 @@ add_library(CartesioAngularMomentumAddon SHARED
     src/AngularMomentumRos.cpp)
 
 target_link_libraries(CartesioAngularMomentumAddon PRIVATE
-    ${OpenSoT_LIBRARIES}
+    OpenSoT::OpenSoT
     CartesianInterface
     CartesianInterfaceRos)
 

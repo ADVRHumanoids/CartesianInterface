@@ -1,12 +1,12 @@
 # Goal
 
-cartesian_interface/CartesianImpedanceTimed[] target
+cartesian_interface_ros/CartesianImpedanceTimed[] target
 
 ---
 
 # Result
 
-cartesian_interface/CartesianImpedance        impedance_final
+cartesian_interface_ros/CartesianImpedance        impedance_final
 float32                                       error_mean
 float32                                       error_sigma
 
@@ -14,8 +14,8 @@ float32                                       error_sigma
 
 # Feedback message
 
-cartesian_interface/CartesianImpedance        impedance_reference
-cartesian_interface/CartesianImpedance        impedance_actual
+cartesian_interface_ros/CartesianImpedance        impedance_reference
+cartesian_interface_ros/CartesianImpedance        impedance_actual
 float32                                       progress
 float32                                       time_to_finish
 

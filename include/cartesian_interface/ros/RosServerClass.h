@@ -5,9 +5,9 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-#include <cartesian_interface/srv/get_task_list.hpp>
-#include <cartesian_interface/srv/reset_world.hpp>
-#include <cartesian_interface/srv/set_transform.hpp>
+#include <cartesian_interface_ros/srv/get_task_list.hpp>
+#include <cartesian_interface_ros/srv/reset_world.hpp>
+#include <cartesian_interface_ros/srv/set_transform.hpp>
 
 #include <std_msgs/msg/empty.hpp>
 #include <std_srvs/srv/set_bool.hpp>
@@ -26,8 +26,8 @@
 
 namespace XBot { namespace Cartesian {
 
-    using namespace cartesian_interface::msg;
-    using namespace cartesian_interface::srv;
+    using namespace cartesian_interface_ros::msg;
+    using namespace cartesian_interface_ros::srv;
     using namespace geometry_msgs::msg;
     using namespace sensor_msgs::msg;
     using namespace std_srvs::srv;

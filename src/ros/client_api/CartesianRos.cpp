@@ -5,7 +5,7 @@
 
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ClientApi;
-using namespace cartesian_interface;
+using namespace cartesian_interface_ros;
 using namespace std::chrono_literals;
 
 CartesianRos::CartesianRos(std::string name,

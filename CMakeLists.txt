@@ -85,7 +85,7 @@ if(${alglib_FOUND})
 endif()
 
 # compile core library
-add_library(CartesianInterfaceCore STATIC
+add_library(CartesianInterfaceCore SHARED
     ${CartesianInterface_SRC}
     ${Trajectory_SRC}
     )
@@ -95,7 +95,7 @@ target_link_libraries(CartesianInterfaceCore
     OpenSoT::OpenSoT
     yaml-cpp
     PRIVATE
-    ${ReflexxesTypeII_LIBRARIES}
+    ReflexxesTypeII::ReflexxesTypeII
     ${alglib_LIBRARIES}
     )
 
@@ -127,7 +127,7 @@ target_link_libraries(CartesianInterface
     PUBLIC
     OpenSoT::OpenSoT
     yaml-cpp
-    PRIVATE
+    
     "-Wl,--whole-archive"
     CartesianInterfaceCore
     "-Wl,--no-whole-archive"
@@ -138,10 +138,10 @@ install(TARGETS CartesianInterface
     LIBRARY DESTINATION lib
     )
 
-# install(TARGETS CartesianInterfaceCore
-#     EXPORT ${PROJECT_NAME}Targets
-#     LIBRARY DESTINATION lib
-#     )
+install(TARGETS CartesianInterfaceCore
+    EXPORT ${PROJECT_NAME}Targets
+    LIBRARY DESTINATION lib
+    )
 
 # compile opensot implementation
 add_library(CartesianInterfaceSolverOpenSot SHARED
@@ -183,7 +183,7 @@ install(DIRECTORY include/cartesian_interface/
     )
 
 install(DIRECTORY launch
-    DESTINATION share/${PROJECT_NAME}
+    DESTINATION share/${PROJECT_NAME}_ros
     )
 
 
