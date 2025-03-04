@@ -1,3 +1,6 @@
+#include "utils/DynamicLoading.h"
+#include "fmt/format.h"
+
 #include "rt/TaskRt.h"
 #include "rt/CartesianRt.h"
 #include "rt/CInteractionRt.h"
@@ -153,6 +156,7 @@ void TaskRt::sendState(bool send)
     _rt_data._name = _task_impl->getName();
     _rt_data._size = _task_impl->getSize();
     _rt_data._type = _task_impl->getType();
+    _rt_data._lib_name = _task_impl->getLibName();
     _rt_data._lambda = _task_impl->getLambda();
     _rt_data._lambda2 = _task_impl->getLambda2();
     _rt_data._weight = _task_impl->getWeight();
@@ -171,6 +175,34 @@ TaskRt::Ptr TaskRt::MakeInstance(TaskDescription::Ptr task)
     else if(auto cart = std::dynamic_pointer_cast<CartesianTask>(task))
     {
         return std::make_shared<CartesianRt>(cart);
+    }
+    else if(!task->getLibName().empty()) /* Otherwise, construct plugin, or fallback to generic Task interface */
+    {
+        TaskRt * task_rt = nullptr;
+        try
+        {
+            task_rt = CallFunction<TaskRt*>(task->getLibName(),
+                                                "create_cartesio_" + task->getType() + "_rt_api",
+                                                task,
+                                                detail::Version CARTESIO_ABI_VERSION); 
+        }
+        catch(LibNotFound&)
+        {
+            fmt::print("Unable to construct TaskRt instance for task '{}': "
+                       "lib '{}' not found for task type '{}' \n",
+                       task->getName(), task->getLibName(), task->getType());
+
+        }
+        catch(SymbolNotFound&)
+        {
+            fmt::print("Unable to construct TaskRt instance for task '{}': "
+                       "factory not found for task type '{}' \n",
+                       task->getName(), task->getType());
+
+        }
+
+        Ptr shared_task_rt(task_rt);
+        return shared_task_rt;
     }
     else
     {
