@@ -14,6 +14,13 @@ using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ClientApi;
 using namespace std::chrono_literals;
 
+template <typename SrvType>
+auto create_client(auto node, auto name)
+{
+    return std::make_shared<SyncServiceClient<SrvType>>(node, name);
+}
+
+
 TaskRos::TaskRos(std::string name,
                  rclcpp::Node::SharedPtr node):
     _node(node),
@@ -21,21 +28,21 @@ TaskRos::TaskRos(std::string name,
     _async(false)
 {
     // task property getter service
-    _task_prop_cli = _node->create_client<GetTaskInfo>(name + "/get_task_properties");
+    _task_prop_cli = create_client<GetTaskInfo>(node, name + "/get_task_properties");
 
-    while(!_task_prop_cli->wait_for_service(1s))
+    while(!_task_prop_cli->get_client()->wait_for_service(1s))
     {
         RCLCPP_INFO_STREAM(_node->get_logger(),
                            fmt::format("waiting for service '{}'",
-                                       _task_prop_cli->get_service_name())
+                                       _task_prop_cli->get_client()->get_service_name())
                            );
     }
 
     // task property setter services
-    _set_lambda_cli = _node->create_client<SetLambda>(name + "/set_lambda");
-    _set_lambda2_cli = _node->create_client<SetLambda2>(name + "/set_lambda2");
-    _set_weight_cli = _node->create_client<SetWeight>(name + "/set_weight");
-    _activate_cli = _node->create_client<SetTaskActive>(name + "/set_active");
+    _set_lambda_cli = create_client<SetLambda>(node, name + "/set_lambda");
+    _set_lambda2_cli = create_client<SetLambda2>(node, name + "/set_lambda2");
+    _set_weight_cli = create_client<SetWeight>(node, name + "/set_weight");
+    _activate_cli = create_client<SetTaskActive>(node, name + "/set_active");
 
     //
     _task_changed_sub = ::create_subscription<std_msgs::msg::String>(
@@ -110,24 +117,11 @@ bool TaskRos::setWeight(const Eigen::MatrixXd& value)
     Eigen::MatrixXf::Map(req->weight.data(),
                          size, size) = value.cast<float>();
 
-    auto fut = _set_weight_cli->async_send_request(req);
+    auto res = _set_weight_cli->call(req);
 
-    if(rclcpp::spin_until_future_complete(_node, fut, 1s)
-        == rclcpp::FutureReturnCode::SUCCESS)
-    {
-        RCLCPP_INFO_STREAM(_node->get_logger(),
-                           fut.get()->message.c_str());
-    }
-    else
-    {
-        RCLCPP_ERROR(_node->get_logger(),
-                     "service %s failed",
-                     _set_weight_cli->get_service_name());
+    RCLCPP_INFO_STREAM(_node->get_logger(), res->message.c_str());
 
-        return false;
-    }
-
-    return fut.get()->success;
+    return res->success;
 
 }
 
@@ -160,20 +154,20 @@ void TaskRos::setLambda(double value)
 
     req->lambda1 = value;
 
-    auto fut = _set_lambda_cli->async_send_request(req);
+    auto res = _set_lambda_cli->call(req);
 
-    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    if(res)
     {
-        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
+        RCLCPP_INFO_STREAM(_node->get_logger(), res->message);
 
-        if(fut.get()->success)
+        if(res->success)
         {
             return;
         }
 
         throw std::runtime_error(fmt::format("service '{}' returned false: {}",
                                              _set_lambda_cli->get_service_name(),
-                                             fut.get()->message));
+                                             res->message));
     }
     else
     {
@@ -200,20 +194,20 @@ bool TaskRos::setLambda2(double value)
 
     req->auto_lambda2 = (value == -1.0);
 
-    auto fut = cli->async_send_request(req);
+    auto res = cli->call(req);
 
-    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    if(res)
     {
-        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
+        RCLCPP_INFO_STREAM(_node->get_logger(), res->message);
 
-        if(fut.get()->success)
+        if(res->success)
         {
             return true;
         }
 
         throw std::runtime_error(fmt::format("service '{}' returned false: {}",
                                              cli->get_service_name(),
-                                             fut.get()->message));
+                                             res->message));
     }
     else
     {
@@ -250,20 +244,20 @@ bool TaskRos::setActivationState(const ActivationState& value)
 
     req->activation_state = (value == ActivationState::Enabled);
 
-    auto fut = cli->async_send_request(req);
+    auto res = cli->call(req);
 
-    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    if(res)
     {
-        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
+        RCLCPP_INFO_STREAM(_node->get_logger(), res->message);
 
-        if(fut.get()->success)
+        if(res->success)
         {
             return true;
         }
 
         throw std::runtime_error(fmt::format("service '{}' returned false: {}",
                                              cli->get_service_name(),
-                                             fut.get()->message));
+                                             res->message));
     }
     else
     {
@@ -336,17 +330,7 @@ GetTaskInfo::Response TaskRos::get_task_info() const
 
     auto cli = _task_prop_cli;
 
-    auto fut = cli->async_send_request(req);
-
-    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
-    {
-        return *fut.get();
-    }
-    else
-    {
-        throw std::runtime_error(fmt::format("unable to call service '{}'",
-                                             cli->get_service_name()));
-    }
+    return *cli->call(req);
 
 }
 

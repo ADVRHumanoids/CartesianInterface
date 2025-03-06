@@ -8,6 +8,12 @@ using namespace XBot::Cartesian::ClientApi;
 using namespace cartesian_interface_ros;
 using namespace std::chrono_literals;
 
+template <typename SrvType>
+auto create_client(auto node, auto name)
+{
+    return std::make_shared<SyncServiceClient<SrvType>>(node, name);
+}
+
 CartesianRos::CartesianRos(std::string name,
                            rclcpp::Node::SharedPtr node):
     TaskRos(name, node),
@@ -15,15 +21,7 @@ CartesianRos::CartesianRos(std::string name,
 {
     _action_cli = rclcpp_action::create_client<ReachPose>(_node, name + "/reach");
 
-    _cart_info_cli = _node->create_client<GetCartesianTaskInfo>(name + "/get_cartesian_task_properties");
-
-    while(!_cart_info_cli->wait_for_service(1s))
-    {
-        RCLCPP_INFO_STREAM(_node->get_logger(),
-                           fmt::format("waiting for service '{}'",
-                                       _cart_info_cli->get_service_name())
-                           );
-    }
+    _cart_info_cli = create_client<GetCartesianTaskInfo>(node, name + "/get_cartesian_task_properties");
 
     while(!_action_cli->wait_for_action_server(1s))
     {
@@ -32,9 +30,9 @@ CartesianRos::CartesianRos(std::string name,
                            );
     }
 
-    _set_base_link_cli = _node->create_client<SetBaseLink>(name + "/set_base_link");
+    _set_base_link_cli = create_client<SetBaseLink>(node, name + "/set_base_link");
 
-    _set_ctrl_mode_cli = _node->create_client<SetControlMode>(name + "/set_control_mode");
+    _set_ctrl_mode_cli = create_client<SetControlMode>(node, name + "/set_control_mode");
 
     _pose_ref_pub = _node->create_publisher<PoseStamped>(name + "/reference", 1);
 
@@ -59,7 +57,7 @@ CartesianRos::CartesianRos(std::string name,
     _vel_ref_sub = _node->create_subscription<TwistStamped>(name + "/current_velocity_reference", 1,
                                                             on_vref_recv);
 
-    _set_safety_lims_cli = _node->create_client<SetSafetyLimits>(name + "/set_safety_limits");
+    _set_safety_lims_cli = create_client<SetSafetyLimits>(node, name + "/set_safety_limits");
 
     _task_info_sub = ::create_subscription<CartesianTaskInfo>(_node,
                                                               name + "/cartesian_task_properties",
@@ -113,20 +111,20 @@ void CartesianRos::setVelocityLimits(double max_vel_lin,
 
     auto cli = _set_safety_lims_cli;
 
-    auto fut = cli->async_send_request(req);
+    auto res = cli->call(req);
 
-    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    if(res)
     {
-        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
+        RCLCPP_INFO_STREAM(_node->get_logger(), res->message);
 
-        if(fut.get()->success)
+        if(res->success)
         {
             return;
         }
 
         throw std::runtime_error(fmt::format("service '{}' returned false: {}",
                                              cli->get_service_name(),
-                                             fut.get()->message));
+                                             res->message));
     }
     else
     {
@@ -147,20 +145,20 @@ void CartesianRos::setAccelerationLimits(double max_acc_lin,
 
     auto cli = _set_safety_lims_cli;
 
-    auto fut = cli->async_send_request(req);
+    auto res = cli->call(req);
 
-    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    if(res)
     {
-        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
+        RCLCPP_INFO_STREAM(_node->get_logger(), res->message);
 
-        if(fut.get()->success)
+        if(res->success)
         {
             return;
         }
 
         throw std::runtime_error(fmt::format("service '{}' returned false: {}",
                                              cli->get_service_name(),
-                                             fut.get()->message));
+                                             res->message));
     }
     else
     {
@@ -188,20 +186,20 @@ bool CartesianRos::setBaseLink(const std::string & new_base_link)
 
     auto cli = _set_base_link_cli;
 
-    auto fut = cli->async_send_request(req);
+    auto res = cli->call(req);
 
-    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    if(res)
     {
-        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
+        RCLCPP_INFO_STREAM(_node->get_logger(), res->message);
 
-        if(fut.get()->success)
+        if(res->success)
         {
             return true;
         }
 
         throw std::runtime_error(fmt::format("service '{}' returned false: {}",
                                              cli->get_service_name(),
-                                             fut.get()->message));
+                                             res->message));
     }
     else
     {
@@ -229,20 +227,20 @@ bool CartesianRos::setControlMode(const ControlType & value)
 
     auto cli = _set_ctrl_mode_cli;
 
-    auto fut = cli->async_send_request(req);
+    auto res = cli->call(req);
 
-    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    if(res)
     {
-        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
+        RCLCPP_INFO_STREAM(_node->get_logger(), res->message);
 
-        if(fut.get()->success)
+        if(res->success)
         {
             return true;
         }
 
         throw std::runtime_error(fmt::format("service '{}' returned false: {}",
                                              cli->get_service_name(),
-                                             fut.get()->message));
+                                             res->message));
     }
     else
     {
@@ -434,11 +432,11 @@ GetCartesianTaskInfo::Response CartesianRos::get_task_info() const
 
     auto cli = _cart_info_cli;
 
-    auto fut = cli->async_send_request(req);
+    auto res = cli->call(req);
 
-    if(rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
+    if(res)
     {
-        return *fut.get();
+        return *res;
     }
     else
     {
