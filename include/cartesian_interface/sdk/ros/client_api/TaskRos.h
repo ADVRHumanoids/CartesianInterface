@@ -13,6 +13,8 @@
 #include <cartesian_interface_ros/srv/set_weight.hpp>
 #include <cartesian_interface_ros/srv/set_task_active.hpp>
 
+#include <cartesian_interface/sdk/ros/utils/sync_service_client.h>
+
 namespace XBot { namespace Cartesian {
 
 namespace ClientApi
@@ -112,11 +114,11 @@ private:
 
     std::list<TaskObserver::WeakPtr> _observers;
 
-    rclcpp::Client<GetTaskInfo>::SharedPtr _task_prop_cli;
-    rclcpp::Client<SetWeight>::SharedPtr _set_weight_cli;
-    rclcpp::Client<SetLambda>::SharedPtr _set_lambda_cli;
-    rclcpp::Client<SetLambda2>::SharedPtr _set_lambda2_cli;
-    rclcpp::Client<SetTaskActive>::SharedPtr _activate_cli;
+    SyncServiceClient<GetTaskInfo>::SharedPtr _task_prop_cli;
+    SyncServiceClient<SetWeight>::SharedPtr _set_weight_cli;
+    SyncServiceClient<SetLambda>::SharedPtr _set_lambda_cli;
+    SyncServiceClient<SetLambda2>::SharedPtr _set_lambda2_cli;
+    SyncServiceClient<SetTaskActive>::SharedPtr _activate_cli;
     rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _task_changed_sub;
     rclcpp::Subscription<TaskInfo>::SharedPtr _task_info_sub;
 

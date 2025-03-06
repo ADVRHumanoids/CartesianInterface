@@ -90,10 +90,10 @@ private:
     rclcpp::Subscription<PoseStamped>::SharedPtr _pose_ref_sub;
     rclcpp::Subscription<TwistStamped>::SharedPtr _vel_ref_sub;
     rclcpp::Subscription<CartesianTaskInfo>::SharedPtr _task_info_sub;
-    rclcpp::Client<SetSafetyLimits>::SharedPtr _set_safety_lims_cli;
-    rclcpp::Client<SetBaseLink>::SharedPtr _set_base_link_cli;
-    rclcpp::Client<SetControlMode>::SharedPtr _set_ctrl_mode_cli;
-    rclcpp::Client<GetCartesianTaskInfo>::SharedPtr _cart_info_cli;
+    SyncServiceClient<SetSafetyLimits>::SharedPtr _set_safety_lims_cli;
+    SyncServiceClient<SetBaseLink>::SharedPtr _set_base_link_cli;
+    SyncServiceClient<SetControlMode>::SharedPtr _set_ctrl_mode_cli;
+    SyncServiceClient<GetCartesianTaskInfo>::SharedPtr _cart_info_cli;
 
     bool _Tref_recv, _vref_recv;
     Eigen::Affine3d _Tref;
