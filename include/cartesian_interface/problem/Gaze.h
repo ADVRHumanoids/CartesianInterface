@@ -8,29 +8,11 @@ namespace XBot { namespace Cartesian {
     /**
      * @brief Description of a Gaze task
      */
-    struct GazeTask : CartesianTask {
+    struct GazeTask : virtual CartesianTask {
 
         typedef std::shared_ptr<GazeTask> Ptr;
         typedef std::shared_ptr<const GazeTask> ConstPtr;
-
-        GazeTask() = default;
-        GazeTask(std::string base_link = "world");
-
-        static TaskDescription::Ptr yaml_parse_gaze(YAML::Node node, ModelInterface::ConstPtr model);
     };
-
-    /**
-     * @brief Make a Gaze task and return a shared pointer
-     */
-    GazeTask::Ptr MakeGaze(std::string base_link = "world");
-
-    /**
-     * @brief Dynamic cast a generic task to a GazeTask
-     *
-     * @return A null pointer if the cast is unsuccessful (i.e. task is not a GazeTask)
-     */
-    GazeTask::Ptr GetAsGaze(TaskDescription::Ptr task);
-
   
     
 } }
