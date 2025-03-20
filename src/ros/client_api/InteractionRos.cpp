@@ -9,7 +9,7 @@
 using XBot::Logger;
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ClientApi;
-using namespace cartesian_interface;
+using namespace cartesian_interface_ros;
 using namespace std::chrono_literals;
 
 InteractionRos::InteractionRos(std::string name,

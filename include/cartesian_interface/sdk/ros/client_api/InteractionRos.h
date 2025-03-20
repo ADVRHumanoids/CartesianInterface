@@ -4,18 +4,18 @@
 #include <cartesian_interface/problem/Interaction.h>
 #include <cartesian_interface/sdk/ros/client_api/CartesianRos.h>
 
-#include <cartesian_interface/action/reach_cartesian_impedance.hpp>
-#include <cartesian_interface/srv/get_interaction_task_info.hpp>
-#include <cartesian_interface/srv/get_impedance.hpp>
-#include <cartesian_interface/srv/set_impedance.hpp>
+#include <cartesian_interface_ros/action/reach_cartesian_impedance.hpp>
+#include <cartesian_interface_ros/srv/get_interaction_task_info.hpp>
+#include <cartesian_interface_ros/srv/get_impedance.hpp>
+#include <cartesian_interface_ros/srv/set_impedance.hpp>
 
-#include <cartesian_interface/msg/interaction_task_info.hpp>
-#include <cartesian_interface/msg/cartesian_impedance_timed.hpp>
+#include <cartesian_interface_ros/msg/interaction_task_info.hpp>
+#include <cartesian_interface_ros/msg/cartesian_impedance_timed.hpp>
 
-#include <cartesian_interface/srv/set_impedance_ref_link.hpp>
+#include <cartesian_interface_ros/srv/set_impedance_ref_link.hpp>
 
-#include <cartesian_interface/srv/get_force_limits.hpp>
-#include <cartesian_interface/srv/set_force_limits.hpp>
+#include <cartesian_interface_ros/srv/get_force_limits.hpp>
+#include <cartesian_interface_ros/srv/set_force_limits.hpp>
 
 #include <rclcpp_action/rclcpp_action.hpp>
 
@@ -26,17 +26,17 @@ namespace ClientApi
 class InteractionRos;
 }
 
-using cartesian_interface::action::ReachCartesianImpedance;
+using cartesian_interface_ros::action::ReachCartesianImpedance;
 
-using cartesian_interface::msg::CartesianImpedanceTimed;
-using cartesian_interface::msg::InteractionTaskInfo;
+using cartesian_interface_ros::msg::CartesianImpedanceTimed;
+using cartesian_interface_ros::msg::InteractionTaskInfo;
 
-using cartesian_interface::srv::GetInteractionTaskInfo;
-using cartesian_interface::srv::SetImpedanceRefLink;
-using cartesian_interface::srv::GetForceLimits;
-using cartesian_interface::srv::SetForceLimits;
-using cartesian_interface::srv::GetImpedance;
-using cartesian_interface::srv::SetImpedance;
+using cartesian_interface_ros::srv::GetInteractionTaskInfo;
+using cartesian_interface_ros::srv::SetImpedanceRefLink;
+using cartesian_interface_ros::srv::GetForceLimits;
+using cartesian_interface_ros::srv::SetForceLimits;
+using cartesian_interface_ros::srv::GetImpedance;
+using cartesian_interface_ros::srv::SetImpedance;
 
 class ClientApi::InteractionRos : virtual public InteractionTask,
         public ClientApi::CartesianRos

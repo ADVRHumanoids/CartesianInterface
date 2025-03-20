@@ -8,21 +8,21 @@
 
 #include <cartesian_interface/problem/Interaction.h>
 
-#include <cartesian_interface/action/reach_cartesian_impedance.hpp>
-#include <cartesian_interface/srv/get_interaction_task_info.hpp>
-#include <cartesian_interface/srv/get_impedance.hpp>
-#include <cartesian_interface/srv/set_impedance.hpp>
-#include <cartesian_interface/srv/set_impedance_ref_link.hpp>
-#include <cartesian_interface/srv/get_force_limits.hpp>
-#include <cartesian_interface/srv/set_force_limits.hpp>
+#include <cartesian_interface_ros/action/reach_cartesian_impedance.hpp>
+#include <cartesian_interface_ros/srv/get_interaction_task_info.hpp>
+#include <cartesian_interface_ros/srv/get_impedance.hpp>
+#include <cartesian_interface_ros/srv/set_impedance.hpp>
+#include <cartesian_interface_ros/srv/set_impedance_ref_link.hpp>
+#include <cartesian_interface_ros/srv/get_force_limits.hpp>
+#include <cartesian_interface_ros/srv/set_force_limits.hpp>
 
-#include <cartesian_interface/msg/interaction_task_info.hpp>
+#include <cartesian_interface_ros/msg/interaction_task_info.hpp>
 
 namespace XBot { namespace Cartesian {
 
-using cartesian_interface::action::ReachCartesianImpedance;
-using namespace cartesian_interface::msg;
-using namespace cartesian_interface::srv;
+using cartesian_interface_ros::action::ReachCartesianImpedance;
+using namespace cartesian_interface_ros::msg;
+using namespace cartesian_interface_ros::srv;
 using namespace geometry_msgs::msg;	
 
 namespace ServerApi
