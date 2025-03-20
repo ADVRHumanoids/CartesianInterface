@@ -1,2 +1,4 @@
+std_msgs/Header header
+
 cartesian_interface_ros/CartesianImpedanceBase linear
 cartesian_interface_ros/CartesianImpedanceBase angular
