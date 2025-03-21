@@ -12,6 +12,7 @@
     <arg name="solution_topic" default="!"/>
     <arg name="enable_otg" default="true"/>
     <arg name="problem_description_filename"/>
+    <arg name="home" default="$(var home)"/>
 
 
 
@@ -29,6 +30,7 @@
         <param name="rate" value="$(var rate)"/>
         <param name="tf_prefix" value="$(var tf_prefix)"/>
         <param name="problem_description" type="str" value="$(command 'cat $(var problem_description_filename)')"/>
+        <param name="home" value="$(var home)" type="str"/>
 <!--            <param if="$(eval arg('world_frame_link') != '!')" name="world_frame_link" value="$(arg world_frame_link)"/>-->
 <!--            <remap if="$(eval arg('solution_topic') != '!')" from="cartesian/solution" to="$(arg solution_topic)"/>-->
 

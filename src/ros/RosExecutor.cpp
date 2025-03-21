@@ -237,10 +237,18 @@ void RosExecutor::reset_model_state()
     }
     else if(_cnode->has_parameter("home"))
     {
-        throw std::runtime_error("not supported as ROS2 does not allow for dict parameters");
+        std::string home_name;
 
-        // std::map<std::string, double> joint_map_orig;
-        // _cnode->get_parameter("home", joint_map_orig);
+        home_name = _cnode->get_parameter("home").as_string();
+        
+        Eigen::VectorXd qhome;
+        if(!_model->getRobotState(home_name, qhome))
+        {
+            throw std::runtime_error("unable to get robot state '" + home_name + "'");
+        }
+
+        _model->setJointPosition(qhome);
+        _model->update();
 
         // /**
         //  * @hack: when setting the map in the launch file it is not possible to use the character '@' which is used to set the the reference for
