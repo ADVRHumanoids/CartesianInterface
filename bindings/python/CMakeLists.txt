@@ -25,12 +25,12 @@ if(${pybind11_FOUND})
     install(TARGETS pyest
             DESTINATION ${PYTHON_SITE}/cartesian_interface)
 
-#    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-#    pybind11_add_module(pyci pyRosImpl.cpp)
-#    target_link_libraries(pyci PRIVATE CartesianInterface)
-
-#    install(TARGETS pyci
-#            DESTINATION ${PYTHON_SITE})
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+    pybind11_add_module(pyci pyRosImpl.cpp)
+    target_link_libraries(pyci PRIVATE CartesianInterface CartesianInterfaceRos)
+ 
+    install(TARGETS pyci
+            DESTINATION ${PYTHON_SITE}/cartesian_interface)
 
 #    pybind11_add_module(roscpp_utils pyRosInit.cpp)
 #    target_link_libraries(roscpp_utils PRIVATE ${catkin_LIBRARIES})
