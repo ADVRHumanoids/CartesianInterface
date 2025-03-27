@@ -268,16 +268,16 @@ const char * RosApiNotFound::what() const noexcept
 
 
 TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
-                                  RosContext::Ptr context)
+                                   RosContext::Ptr context)
 {
     Ptr rosapi_shared_ptr;
 
    /* Try all supported dynamic casts, from the most derived to the least derived class */
-   if(auto inter = std::dynamic_pointer_cast<InteractionTask>(task))
-   {
-       // ros_adapter = new InteractionRos(inter, context);
-   }
-   else if(auto cart = std::dynamic_pointer_cast<CartesianTask>(task))
+//    if(auto inter = std::dynamic_pointer_cast<InteractionTask>(task))
+//    {
+//        ros_adapter = new InteractionRos(inter, context);
+//    }
+   if(auto cart = std::dynamic_pointer_cast<CartesianTask>(task))
    {
        rosapi_shared_ptr = std::make_shared<CartesianRos>(cart, context);
    }
