@@ -28,7 +28,7 @@ public:
         _exe->add_callback_group(_cb_group, _node->get_node_base_interface());
 
         _cli = node->create_client<SrvType>(service_name, 
-                                            rclcpp::ServicesQoS(), 
+                                            rmw_qos_profile_services_default, 
                                             _cb_group);
 
         while(!_cli->wait_for_service(timeout))
