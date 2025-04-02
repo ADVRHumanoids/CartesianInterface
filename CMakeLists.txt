@@ -57,6 +57,7 @@ set(CartesianInterface_SRC
     src/rt/CartesianRt.cpp
     src/rt/CInteractionRt.cpp
     src/utils/AccMaxComputer.cpp
+    src/utils/LockfreeBufferImpl.cpp
     #        src/problem/MinJointVel.cpp
     )
 
