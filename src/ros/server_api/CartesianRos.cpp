@@ -303,7 +303,8 @@ ReachActionManager::ReachActionManager(rclcpp::Node::SharedPtr node,
                                        CartesianTask::Ptr task):
     _task(task),
     _state(ReachActionState::IDLE),
-    _name(task_name)
+    _name(task_name),
+    _node(node)
 {
     using namespace std::placeholders;
 
