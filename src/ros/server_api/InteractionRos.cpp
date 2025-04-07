@@ -14,9 +14,10 @@ RCIAManager::RCIAManager(rclcpp::Node::SharedPtr node,
 						 InteractionTask::Ptr task):
 	
     // _server (new ActionServer(nh, task->getName() + "/stiffness", false)),
-    _task   (task),
-    _state  (ReachActionState::IDLE),
-    _name   (task->getName())
+    _task(task),
+    _state(ReachActionState::IDLE),
+    _name(task->getName()),
+    _node(node)
 {
     using namespace std::placeholders;
     _server = rclcpp_action::create_server<ReachCartesianImpedance>(
@@ -293,14 +294,14 @@ bool InteractionRos::get_impedance_cb(GetImpedance::Request::ConstSharedPtr req,
 {
 	Impedance impedance = _ci_inter->getImpedance();
 
-	tf2::toMsg (impedance.stiffness.diagonal().head(3), res->impedance.linear.stiffness);
+    tf2::toMsg (impedance.stiffness.diagonal().head(3), res->impedance.linear.stiffness);
 	tf2::toMsg (impedance.stiffness.diagonal().tail(3), res->impedance.angular.stiffness);
-	
+
 	tf2::toMsg (impedance.damping.diagonal().head(3), res->impedance.linear.damping_ratio);
 	tf2::toMsg (impedance.damping.diagonal().tail(3), res->impedance.angular.damping_ratio);
 
     res->impedance.header.frame_id = _ci_inter->getImpedanceRefLink();
-
+    
     return true;
 }
 
@@ -416,8 +417,13 @@ void InteractionRos::run(rclcpp::Time time)
 
 void InteractionRos::on_fref_recv(WrenchStamped::ConstSharedPtr msg)
 {
-    Eigen::Vector6d fref;
-    tf2::fromMsg(msg->wrench, fref);
+    Eigen::Vector6d fref = Eigen::Vector6d::Zero();
+    Eigen::Vector3d force = Eigen::Vector3d::Zero();
+    Eigen::Vector3d torque = Eigen::Vector3d::Zero();
+
+    tf2::fromMsg(msg->wrench.force, force);
+    tf2::fromMsg(msg->wrench.torque, torque);    
+    fref << force, torque;
 
     _ci_inter->setForceReference(fref);
 }
