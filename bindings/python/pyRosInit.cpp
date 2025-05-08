@@ -1,14 +1,15 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <list>
 
 bool init(std::string name, std::list<std::string> args)
 {
-    if(ros::ok())
+    if(rclcpp::ok())
     {
-        ROS_ERROR("Ros node already initialized with name %s", 
-                  ros::this_node::getName().c_str());
+        //ROS_ERROR("Ros node already initialized with name %s", 
+        //          ros::this_node::getName().c_str());
+        std::cout << "Ros node already initialized" << std::endl;
         return false;
     }
     
@@ -24,11 +25,13 @@ bool init(std::string name, std::list<std::string> args)
     
     name += "_cpp";
     
-    ros::init(argc, argv, name, ros::init_options::NoSigintHandler);
-    
-    ROS_INFO("Initialized roscpp under namespace %s with name %s", 
-             ros::this_node::getNamespace().c_str(),
-             ros::this_node::getName().c_str()
+    rclcpp::init(argc, argv);
+    auto node = rclcpp::Node::make_shared(name);
+
+    RCLCPP_INFO(node->get_logger(), 
+                "Initialized roscpp under namespace %s with name %s", 
+                    node->get_namespace(),
+                    node->get_name()
             );
     
     return true;
@@ -36,10 +39,12 @@ bool init(std::string name, std::list<std::string> args)
 
 bool shutdown()
 {
-    if(ros::ok())
+    if(rclcpp::ok())
     {
-        ROS_INFO("Shutting down ros node");
-        ros::shutdown();
+        //ROS_INFO("Shutting down ros node");
+        std::cout << "Shutting down ros node" << std::endl;
+
+        rclcpp::shutdown();
         return true;
     }
     

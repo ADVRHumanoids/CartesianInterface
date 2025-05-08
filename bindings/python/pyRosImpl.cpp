@@ -14,7 +14,7 @@
 #include "problem/Com.h"
 #include "../../examples/plugin/angular_mom/src/AngularMomentum.h"
 
-#include <cartesian_interface/utils/RobotStatePublisher.h>
+#include <cartesian_interface/ros/utils/RobotStatePublisher.h>
 
 PYBIND11_MODULE(pyci, m) {
 
