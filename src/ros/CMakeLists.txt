@@ -93,7 +93,7 @@ set(CartesianInterfaceRos_SRC
     client_api/CartesianRos.cpp
     client_api/InteractionRos.cpp
     client_api/PosturalRos.cpp
-    #    RosImpl.cpp
+    RosImpl.cpp
     RosServerClass.cpp
     CartesianMarker.cpp
     #    JoyStick.cpp

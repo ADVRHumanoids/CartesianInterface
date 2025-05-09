@@ -6,6 +6,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <tf2_ros/transform_listener.h>
+#include <tf2_ros/buffer.h>
 
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 
@@ -24,6 +25,7 @@ private:
 
     rclcpp::CallbackGroup::SharedPtr _ros2_cbg;
     rclcpp::Node::SharedPtr _node;
+    std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> _exec;
 };
 
 class RosClient : public CartesianInterfaceImpl,
@@ -78,10 +80,11 @@ public:
                        const std::string& target_frame,
                        Eigen::Affine3d& t_T_s);
 
+    std::string _ns;
 
 private:
-
-    std::unique_ptr<tf2_ros::TransformListener> _listener;
+    
+    std::shared_ptr<tf2_ros::TransformListener> _listener;
     std::unique_ptr<tf2_ros::Buffer> _tf_buffer;
     rclcpp::Client<cartesian_interface_ros::srv::LoadController>::SharedPtr _load_ctrl_srv;
 

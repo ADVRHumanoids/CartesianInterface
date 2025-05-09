@@ -140,9 +140,9 @@ PYBIND11_MODULE(pyci, m) {
             PosturalTask,
             ClientApi::PosturalRos::Ptr>(m, "PosturalRos", py::multiple_inheritance());
 
-    py::class_<ClientApi::AngularMomentumRos,
-            AngularMomentum,
-            ClientApi::AngularMomentumRos::Ptr>(m, "AngularMomentumRos", py::multiple_inheritance());
+//     py::class_<ClientApi::AngularMomentumRos,
+//             AngularMomentum,
+//             ClientApi::AngularMomentumRos::Ptr>(m, "AngularMomentumRos", py::multiple_inheritance());
 
     py::class_<CartesianTaskImpl,
             CartesianTask,
@@ -156,9 +156,9 @@ PYBIND11_MODULE(pyci, m) {
             PosturalTask,
             PosturalTaskImpl::Ptr>(m, "PosturalTaskImpl", py::multiple_inheritance());
 
-    py::class_<AngularMomentumImpl,
-            AngularMomentum,
-            AngularMomentumImpl::Ptr>(m, "AngularMomentumImpl", py::multiple_inheritance());
+//     py::class_<AngularMomentumImpl,
+//             AngularMomentum,
+//             AngularMomentumImpl::Ptr>(m, "AngularMomentumImpl", py::multiple_inheritance());
 
     py::class_<CartesianInterfaceImpl,
             CartesianInterfaceImpl::Ptr>(m, "CartesianInterface")
@@ -235,14 +235,14 @@ PYBIND11_MODULE(pyci, m) {
 
 
     /* Robot state pub util */
-    py::class_<Utils::RobotStatePublisher>(m, "RobotStatePublisher")
-        .def(py::init<XBot::ModelInterface::ConstPtr>())
-        .def("publishTransforms",
-             [](Utils::RobotStatePublisher& r, std::string pref)
-             {
-                 r.publishTransforms(ros::Time::now(), pref);
-             })
-        ;
+//     py::class_<Utils::RobotStatePublisher>(m, "RobotStatePublisher")
+//         .def(py::init<XBot::ModelInterface::ConstPtr>())
+//         .def("publishTransforms",
+//              [](Utils::RobotStatePublisher& r, std::string pref)
+//              {
+//                 r.publishTransforms(ros::Time::now(), pref);
+//              })
+//         ;
 
 
 }

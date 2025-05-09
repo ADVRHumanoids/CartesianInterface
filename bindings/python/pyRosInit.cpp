@@ -9,7 +9,8 @@ bool init(std::string name, std::list<std::string> args)
     {
         //ROS_ERROR("Ros node already initialized with name %s", 
         //          ros::this_node::getName().c_str());
-        std::cout << "Ros node already initialized" << std::endl;
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Ros node already initialized");
+        
         return false;
     }
     
@@ -41,8 +42,7 @@ bool shutdown()
 {
     if(rclcpp::ok())
     {
-        //ROS_INFO("Shutting down ros node");
-        std::cout << "Shutting down ros node" << std::endl;
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Shutting down ros node");
 
         rclcpp::shutdown();
         return true;
