@@ -19,14 +19,14 @@ CartesianRos::CartesianRos(std::string name,
     TaskRos(name, node),
     _Tref_recv(false), _vref_recv(false)
 {
-    _action_cli = rclcpp_action::create_client<ReachPose>(_node, name + "/reach");
+    _action_cli = rclcpp_action::create_client<ReachPose>(_node, "/" + name + "/reach");
 
     _cart_info_cli = create_client<GetCartesianTaskInfo>(node, name + "/get_cartesian_task_properties");
 
     while(!_action_cli->wait_for_action_server(1s))
     {
         RCLCPP_INFO_STREAM(_node->get_logger(),
-                           "waiting for action server" << name << "/reach"
+                           "waiting for action server " << name << "/reach"
                            );
     }
 

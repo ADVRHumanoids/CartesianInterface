@@ -103,9 +103,12 @@ ProblemDescription construct_problem(rclcpp::Node::SharedPtr node)
     ProblemDescription ik_pb(tasks);
 
     int attempts = 100;
-    auto cbg = node->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-    rclcpp::executors::SingleThreadedExecutor exec;
-    exec.add_callback_group(cbg, node->get_node_base_interface()); 
+    //TODO how to use callback group, when it must be given to the subscribers?
+    //is it so bad to use the generic rclcpp::spin here?
+    
+    //auto cbg = node->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+    //rclcpp::executors::SingleThreadedExecutor exec;
+    //exec.add_callback_group(cbg, node->get_node_base_interface()); 
 
     while(--attempts && !ik_pb.validate())
     {
@@ -114,8 +117,8 @@ ProblemDescription construct_problem(rclcpp::Node::SharedPtr node)
         // auto queue = static_cast<ros::CallbackQueue*>(nh.getCallbackQueue());
         // queue->callAvailable();
 
-        exec.spin_some(); //or spin_all(); or spin_once???
-
+        //exec.spin_all(1s); //or spin_all(); or spin_once???
+        rclcpp::spin_some(node);
         usleep(0.1 * 1e6);
     }
 
