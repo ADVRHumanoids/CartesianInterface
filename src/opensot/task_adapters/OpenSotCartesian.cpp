@@ -61,7 +61,13 @@ void OpenSotCartesianAdapter::update(double time, double period)
     Eigen::Affine3d Tref;
     Eigen::Vector6d vref;
     _ci_cart->getPoseReference(Tref, &vref);
-    _opensot_cart->setReference(Tref, vref*_ctx->params()->getControlPeriod());
+    if(_ci_cart->isVelocityLocal())
+    {
+        _opensot_cart->setReference(Tref);
+        _opensot_cart->setVelocityLocalReference(vref*_ctx->params()->getControlPeriod());
+    }
+    else
+        _opensot_cart->setReference(Tref, vref*_ctx->params()->getControlPeriod());
 }
 
 bool OpenSotCartesianAdapter::onBaseLinkChanged()

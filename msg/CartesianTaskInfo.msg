@@ -3,6 +3,7 @@ string distal_link
 string control_mode
 string state
 bool use_local_subtasks
+bool use_local_velocity
 float64 max_vel_lin
 float64 max_vel_ang
 float64 max_acc_lin

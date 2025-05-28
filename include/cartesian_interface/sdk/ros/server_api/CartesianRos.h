@@ -16,6 +16,8 @@
 #include <cartesian_interface/SetSafetyLimits.h>
 #include <cartesian_interface/CartesianTaskInfo.h>
 
+#include <std_srvs/SetBool.h>
+
 
 namespace XBot { namespace Cartesian {
 
@@ -94,11 +96,14 @@ private:
     bool set_safety_lims_cb(cartesian_interface::SetSafetyLimitsRequest& req,
                              cartesian_interface::SetSafetyLimitsResponse& res);
 
+    bool use_local_velocity_reference_cb(std_srvs::SetBoolRequest& req,
+                                         std_srvs::SetBoolResponse& res);
+
 
 
     ros::Publisher _pose_ref_pub, _vel_ref_pub, _acc_ref_pub, _task_info_pub;
     ros::Subscriber _pose_ref_sub, _vel_ref_sub;
-    ros::ServiceServer _get_info_srv, _set_base_link_srv, _set_ctrl_srv, _set_safety_srv;
+    ros::ServiceServer _get_info_srv, _set_base_link_srv, _set_ctrl_srv, _set_safety_srv, _use_local_velocity_reference_srv;
 
     CartesianTask::Ptr _cart;
 

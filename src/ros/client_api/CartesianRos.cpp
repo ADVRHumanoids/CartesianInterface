@@ -7,6 +7,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <std_srvs/SetBool.h>
 
 using namespace XBot::Cartesian;
 using namespace XBot::Cartesian::ClientApi;
@@ -59,6 +60,8 @@ CartesianRos::CartesianRos(std::string name,
 
     _set_safety_lims_cli = _nh.serviceClient<SetSafetyLimits>(name + "/set_safety_limits");
 
+    _set_is_velocity_local_cli = _nh.serviceClient<std_srvs::SetBool>(name + "/use_local_velocity_reference");
+
     _task_info_sub = _nh.subscribe(name + "/cartesian_task_properties", 10,
                                  &CartesianRos::on_task_info_recv, this);
 }
@@ -78,6 +81,24 @@ void CartesianRos::enableOnlineTrajectoryGeneration()
 bool CartesianRos::isSubtaskLocal() const
 {
     return get_task_info().use_local_subtasks;
+}
+
+void CartesianRos::setIsVelocityLocal(const bool is_velocity_local)
+{
+    std_srvs::SetBool srv;
+    srv.request.data = is_velocity_local;
+    if(!_set_is_velocity_local_cli.call(srv))
+    {
+        throw std::runtime_error(fmt::format("Unable to call service '{}'",
+                                             _set_is_velocity_local_cli.getService()));
+    }
+
+    ROS_INFO("%s", srv.response.message.c_str());
+}
+
+bool CartesianRos::isVelocityLocal() const
+{
+    return get_task_info().use_local_velocity;
 }
 
 void CartesianRos::getVelocityLimits(double & max_vel_lin,
@@ -316,6 +337,7 @@ GetCartesianTaskInfoResponse CartesianRos::get_task_info() const
         res.control_mode      = _info.control_mode     ;
         res.state             = _info.state            ;
         res.use_local_subtasks = _info.use_local_subtasks;
+        res.use_local_velocity = _info.use_local_velocity;
         res.max_vel_lin       = _info.max_vel_lin      ;
         res.max_vel_ang       = _info.max_vel_ang      ;
         res.max_acc_lin       = _info.max_acc_lin      ;

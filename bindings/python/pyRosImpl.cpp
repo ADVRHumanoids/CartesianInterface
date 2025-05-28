@@ -91,6 +91,8 @@ PYBIND11_MODULE(pyci, m) {
             .def("setVelocityLimits", &CartesianTask::setVelocityLimits)
             .def("setAccelerationLimits", &CartesianTask::setAccelerationLimits)
             .def("getPoseReference", py_task_get_pose_reference)
+            .def("setIsVelocityLocal", &CartesianTask::setIsVelocityLocal)
+            .def("isVelocityLocal", &CartesianTask::isVelocityLocal)
             .def("abort", &CartesianTask::abort);
 
     py::class_<ComTask,

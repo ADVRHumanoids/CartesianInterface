@@ -34,6 +34,8 @@ public:
     bool validate() override;
     void enableOnlineTrajectoryGeneration() override;
     bool isSubtaskLocal() const override;
+    bool isVelocityLocal() const override;
+    void setIsVelocityLocal(const bool is_velocity_local) override;
     void getVelocityLimits(double & max_vel_lin, double & max_vel_ang) const override;
     void getAccelerationLimits(double & max_acc_lin, double & max_acc_ang) const override;
     void setVelocityLimits(double max_vel_lin, double max_vel_ang) override;
@@ -84,6 +86,7 @@ private:
     ros::ServiceClient _set_safety_lims_cli;
     ros::ServiceClient _set_base_link_cli;
     ros::ServiceClient _set_ctrl_mode_cli;
+    ros::ServiceClient _set_is_velocity_local_cli;
     mutable ros::ServiceClient _cart_info_cli;
 
     bool _Tref_recv, _vref_recv;
