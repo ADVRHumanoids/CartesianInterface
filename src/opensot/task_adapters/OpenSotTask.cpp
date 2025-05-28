@@ -247,6 +247,30 @@ bool OpenSotConstraintAdapter::initialize(const OpenSoT::OptvarHelper& vars)
                                              _ci_constr->getName()));
     }
 
+    // active joint mask
+    if(_ci_constr->getDisabledJoints().size() > 0)
+    {
+        std::vector<bool> active_joints_mask(_model->getNv(), true);
+
+        for(auto jstr : _ci_constr->getDisabledJoints())
+        {
+            try{
+                auto jinfo = _model->getJointInfo(jstr);
+                std::fill_n(active_joints_mask.begin() + jinfo.iv,
+                            jinfo.nv,
+                            false);
+            }
+            catch(...)
+            {
+                auto id = _model->getVIndexFromVName(jstr);
+                active_joints_mask[id] = false;
+            }
+
+        }
+
+        _opensot_constr->setActiveJointsMask(active_joints_mask);
+    }
+
     // indices
     if(_ci_constr->getIndices().size() != _ci_constr->getSize())
     {
