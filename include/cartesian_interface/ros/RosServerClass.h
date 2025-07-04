@@ -102,6 +102,8 @@ namespace XBot { namespace Cartesian {
 
         rclcpp::Node::SharedPtr _node;
 
+        rclcpp::executors::SingleThreadedExecutor::UniquePtr _exe;
+
         bool _spin_node;
 
         RosContext::Ptr _ros_ctx;

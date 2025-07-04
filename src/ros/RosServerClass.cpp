@@ -55,9 +55,15 @@ RosServerClass::RosServerClass(CartesianInterfaceImpl::Ptr intfc,
     {
         _node = rclcpp::Node::make_shared("cartesio_ros2_server");
         _node = _node->create_sub_node(opt.ros_namespace);
+        
+        // create executor to spin node
+        _exe = rclcpp::executors::SingleThreadedExecutor::make_unique();
+        _exe->add_node(_node);
         _spin_node = true;
+
     }
 
+    
     // ros context
     _ros_ctx = std::make_shared<RosContext>(_node, _tf_prefix, intfc->getContext());
     _tf_prefix = _opt.tf_prefix;
@@ -218,7 +224,7 @@ void RosServerClass::run()
 {
     if(_spin_node)
     {
-        rclcpp::spin_some(_node);
+        _exe->spin_all(0s);
     }
     
     auto now = _node->get_clock()->now();
