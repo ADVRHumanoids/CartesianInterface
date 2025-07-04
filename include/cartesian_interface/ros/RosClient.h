@@ -4,11 +4,13 @@
 #include <string>
 #include <vector>
 
-#include <ros/ros.h>
-#include <tf/transform_listener.h>
+#include <rclcpp/rclcpp.hpp>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/buffer.h>
 
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 
+#include <cartesian_interface_ros/srv/load_controller.hpp>
 
 namespace XBot { namespace Cartesian {
 
@@ -16,13 +18,14 @@ struct RosInitializer
 {
     RosInitializer(std::string ns);
 
-    ros::NodeHandle& nh();
+    rclcpp::Node::SharedPtr node();
     void callAvailable();
 
 private:
 
-    ros::CallbackQueue _queue;
-    std::unique_ptr<ros::NodeHandle> _nh;
+    rclcpp::CallbackGroup::SharedPtr _ros2_cbg;
+    rclcpp::Node::SharedPtr _node;
+    std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> _exec;
 };
 
 class RosClient : public CartesianInterfaceImpl,
@@ -77,12 +80,13 @@ public:
                        const std::string& target_frame,
                        Eigen::Affine3d& t_T_s);
 
+    std::string _ns;
 
 private:
-
-    tf::TransformListener _listener;
-    ros::ServiceClient _load_ctrl_srv;
-
+    
+    std::shared_ptr<tf2_ros::TransformListener> _listener;
+    std::unique_ptr<tf2_ros::Buffer> _tf_buffer;
+    rclcpp::Client<cartesian_interface_ros::srv::LoadController>::SharedPtr _load_ctrl_srv;
 
 };
 

@@ -16,16 +16,19 @@ InteractionRos::InteractionRos(std::string name,
 							   rclcpp::Node::SharedPtr node):
     CartesianRos(name, node)
 {
-    _action_cli = rclcpp_action::create_client<ReachCartesianImpedance>(_node, name + "/stiffness");
-    _interaction_info_cli = _node->create_client<GetInteractionTaskInfo>(name + "/get_interaction_task_properties");
+    //NOTE: namespace not correctly detected with actions, so we need to prepend the slash before the name, for actions
+    _action_cli = rclcpp_action::create_client<ReachCartesianImpedance>(_node, "/" + name + "/stiffness");
 
     // Ugly: Too many blocking calls?
     while(!_action_cli->wait_for_action_server(1s))
     {
         RCLCPP_INFO_STREAM(_node->get_logger(),
-                           "Waiting for action server" << name << "/stiffness"
+                            fmt::format("Waiting for action server '{}'",
+                                "/"+name+"/stiffness")
                            );
     }
+
+    _interaction_info_cli = _node->create_client<GetInteractionTaskInfo>(name + "/get_interaction_task_properties");
 
     while(!_interaction_info_cli->wait_for_service(1s))
     {
@@ -139,15 +142,18 @@ const Impedance & InteractionRos::getImpedance()
         Eigen::Vector3d temp1, temp2;
         Eigen::Vector6d temp3;
 
-        tf2::fromMsg(fut.get()->impedance.linear.stiffness,  temp1);
-        tf2::fromMsg(fut.get()->impedance.angular.stiffness, temp2);
+        //issue https://github.com/ros2/rclcpp/issues/1968
+        auto result = *fut.get();
+
+        tf2::fromMsg(result.impedance.linear.stiffness,  temp1);
+        tf2::fromMsg(result.impedance.angular.stiffness, temp2);
                 
         temp3.head(3) = temp1; temp3.tail(3) = temp2;
         
         _impedance.stiffness = temp3.asDiagonal();
         
-        tf2::fromMsg(fut.get()->impedance.linear.damping_ratio,  temp1);
-        tf2::fromMsg(fut.get()->impedance.angular.damping_ratio, temp2);
+        tf2::fromMsg(result.impedance.linear.damping_ratio,  temp1);
+        tf2::fromMsg(result.impedance.angular.damping_ratio, temp2);
         
         temp3.head(3) = temp1; temp3.tail(3) = temp2;
         
@@ -187,9 +193,12 @@ bool InteractionRos::setImpedance (const Impedance & impedance)
 
     if((rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS))
     {
-        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
-
-        return fut.get()->success;
+        
+        //issue https://github.com/ros2/rclcpp/issues/1968
+        auto result = *fut.get();
+        RCLCPP_INFO_STREAM(_node->get_logger(), result.message);
+        
+        return result.success;
     }
     else
     {
@@ -214,9 +223,12 @@ void InteractionRos::getForceLimits (Eigen::Vector6d& fmax) const
     {
         // Note: get current state for task (should it be getPoseReference instead?)
         Eigen::Vector3d force, torque;
+
+        //issue https://github.com/ros2/rclcpp/issues/1968
+        auto result = *fut.get();
             
-        tf2::fromMsg(fut.get()->fmax.force, force);
-        tf2::fromMsg(fut.get()->fmax.torque, torque);
+        tf2::fromMsg(result.fmax.force, force);
+        tf2::fromMsg(result.fmax.torque, torque);
                 
         fmax << force, torque;
     }
@@ -240,9 +252,11 @@ bool InteractionRos::setForceLimits (const Eigen::Vector6d& fmax)
     
     if (rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
     {
-        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
+        //issue https://github.com/ros2/rclcpp/issues/1968
+        auto result = *fut.get();
+        RCLCPP_INFO_STREAM(_node->get_logger(), result.message);
         
-        return fut.get()->success;
+        return result.success;
     }
     else
     {
@@ -339,9 +353,11 @@ bool InteractionRos::setImpedanceRefLink(const std::string & new_impedance_ref_l
 
     if (rclcpp::spin_until_future_complete(_node, fut, 1s) == rclcpp::FutureReturnCode::SUCCESS)
     {
-        RCLCPP_INFO_STREAM(_node->get_logger(), fut.get()->message);
+        //issue https://github.com/ros2/rclcpp/issues/1968
+        auto result = *fut.get();
+        RCLCPP_INFO_STREAM(_node->get_logger(), result.message);
         
-        return fut.get()->success;
+        return result.success;
     }
     else
     {

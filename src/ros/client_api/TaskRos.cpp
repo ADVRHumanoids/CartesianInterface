@@ -4,9 +4,9 @@
 
 #include "../utils/RosUtils.h"
 
-// #include "ros/client_api/CartesianRos.h"
-// #include "ros/client_api/InteractionRos.h"
-// #include "ros/client_api/PosturalRos.h"
+#include "ros/client_api/CartesianRos.h"
+#include "ros/client_api/InteractionRos.h"
+#include "ros/client_api/PosturalRos.h"
 
 #include <xbot2_interface/logger.h>
 
@@ -394,18 +394,18 @@ TaskDescription::Ptr TaskRos::MakeInstance(std::string name,
         {
             return task;
         }
-  //       else if(type == "Interaction")
-        // {
-        // 	return std::make_shared<InteractionRos>(name, nh);
-        // }
-  //       else if(type == "Cartesian")
-  //       {
-  //           return std::make_shared<CartesianRos>(name, nh);
-  //       }
-  //       else if(type == "Postural")
-  //       {
-  //           return std::make_shared<PosturalRos>(name, nh);
-  //       }
+        else if(type == "Interaction")
+        {
+        	return std::make_shared<InteractionRos>(name, node);
+        }
+        else if(type == "Cartesian")
+        {
+            return std::make_shared<CartesianRos>(name, node);
+        }
+        else if(type == "Postural")
+        {
+            return std::make_shared<PosturalRos>(name, node);
+        }
         else
         {
             return std::make_shared<TaskRos>(name, node);

@@ -14,7 +14,7 @@
 #include "problem/Com.h"
 #include "../../examples/plugin/angular_mom/src/AngularMomentum.h"
 
-#include <cartesian_interface/utils/RobotStatePublisher.h>
+#include <cartesian_interface/ros/utils/RobotStatePublisher.h>
 
 PYBIND11_MODULE(pyci, m) {
 
@@ -138,11 +138,11 @@ PYBIND11_MODULE(pyci, m) {
 
     py::class_<ClientApi::PosturalRos,
             PosturalTask,
-            ClientApi::PosturalRos::Ptr>(m, "PosturalRos", py::multiple_inheritance())
+            ClientApi::PosturalRos::Ptr>(m, "PosturalRos", py::multiple_inheritance());
 
-    py::class_<ClientApi::AngularMomentumRos,
-            AngularMomentum,
-            ClientApi::AngularMomentumRos::Ptr>(m, "AngularMomentumRos", py::multiple_inheritance());
+//     py::class_<ClientApi::AngularMomentumRos,
+//             AngularMomentum,
+//             ClientApi::AngularMomentumRos::Ptr>(m, "AngularMomentumRos", py::multiple_inheritance());
 
     py::class_<CartesianTaskImpl,
             CartesianTask,
@@ -156,9 +156,9 @@ PYBIND11_MODULE(pyci, m) {
             PosturalTask,
             PosturalTaskImpl::Ptr>(m, "PosturalTaskImpl", py::multiple_inheritance());
 
-    py::class_<AngularMomentumImpl,
-            AngularMomentum,
-            AngularMomentumImpl::Ptr>(m, "AngularMomentumImpl", py::multiple_inheritance());
+//     py::class_<AngularMomentumImpl,
+//             AngularMomentum,
+//             AngularMomentumImpl::Ptr>(m, "AngularMomentumImpl", py::multiple_inheritance());
 
     py::class_<CartesianInterfaceImpl,
             CartesianInterfaceImpl::Ptr>(m, "CartesianInterface")
@@ -235,14 +235,14 @@ PYBIND11_MODULE(pyci, m) {
 
 
     /* Robot state pub util */
-    py::class_<Utils::RobotStatePublisher>(m, "RobotStatePublisher")
-        .def(py::init<XBot::ModelInterface::ConstPtr>())
-        .def("publishTransforms",
-             [](Utils::RobotStatePublisher& r, std::string pref)
-             {
-                 r.publishTransforms(ros::Time::now(), pref);
-             })
-        ;
+//     py::class_<Utils::RobotStatePublisher>(m, "RobotStatePublisher")
+//         .def(py::init<XBot::ModelInterface::ConstPtr>())
+//         .def("publishTransforms",
+//              [](Utils::RobotStatePublisher& r, std::string pref)
+//              {
+//                 r.publishTransforms(ros::Time::now(), pref);
+//              })
+//         ;
 
 
 }
