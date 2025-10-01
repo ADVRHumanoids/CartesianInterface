@@ -70,7 +70,14 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     std_msgs
 )
 
-ament_export_dependencies(rosidl_default_runtime interactive_markers)
+ament_export_dependencies(
+    rosidl_default_runtime 
+    interactive_markers 
+    tf2_kdl
+    tf2_geometry_msgs
+    tf2_eigen
+    std_srvs
+    geometry_msgs)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 # ros source files
