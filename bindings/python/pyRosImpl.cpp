@@ -45,14 +45,14 @@ PYBIND11_MODULE(pyci, m) {
             .def("getBounds", &ProblemDescription::getBounds)
             ;
 
-//     py::class_<RosServerClass>(m, "RosServerClass")
-//             .def(py::init(&make_ros_server_class),
-//                  py::arg("ci"),
-//                  py::arg("ros_namespace") = "cartesian",
-//                  py::arg("tf_prefix") = "ci",
-//                  py::arg("publish_tf") = true)
-//             .def("run", &RosServerClass::run)
-//             ;
+    py::class_<RosServerClass>(m, "RosServerClass")
+            .def(py::init(&make_ros_server_class),
+                 py::arg("ci"),
+                 py::arg("ros_namespace") = "cartesian",
+                 py::arg("tf_prefix") = "ci",
+                 py::arg("publish_tf") = true)
+            .def("run", &RosServerClass::run)
+            ;
 
 
     py::class_<TaskDescription,

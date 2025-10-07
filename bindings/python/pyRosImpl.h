@@ -34,19 +34,19 @@ CartesianInterfaceImpl::Ptr make_ci(std::string solver_name,
 
 }
 
-// RosServerClass::UniquePtr make_ros_server_class(
-//         CartesianInterfaceImpl::Ptr ci,
-//         std::string ros_namespace,
-//         std::string tf_prefix,
-//         bool publish_tf)
-// {
-//     RosServerClass::Options opt;
-//     opt.ros_namespace = ros_namespace;
-//     opt.tf_prefix = tf_prefix;
-//     opt.publish_tf = publish_tf;
+RosServerClass::UniquePtr make_ros_server_class(
+        CartesianInterfaceImpl::Ptr ci,
+        std::string ros_namespace,
+        std::string tf_prefix,
+        bool publish_tf)
+{
+    RosServerClass::Options opt;
+    opt.ros_namespace = ros_namespace;
+    opt.tf_prefix = tf_prefix;
+    opt.publish_tf = publish_tf;
 
-//     return std::make_unique<RosServerClass>(ci, opt);
-// }
+    return std::make_unique<RosServerClass>(ci, opt);
+}
 
 auto pb_get_task_id(const ProblemDescription& self,
                  int id)
