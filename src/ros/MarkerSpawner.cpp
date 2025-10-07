@@ -147,6 +147,7 @@ void construct_markers()
         RCLCPP_INFO_STREAM(g_node->get_logger(),
                            "waiting for server " << task_list_client->get_service_name()
                            );
+        sleep(1);
     }
 
     auto req = std::make_shared<cartesian_interface_ros::srv::GetTaskList::Request>();
