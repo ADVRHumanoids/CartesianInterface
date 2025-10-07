@@ -283,7 +283,7 @@ TaskRos::Ptr TaskRos::MakeInstance(TaskDescription::Ptr task,
    }
    else if(auto post = std::dynamic_pointer_cast<PosturalTask>(task))
    {
-       // ros_adapter = new PosturalRos(post, context);
+       rosapi_shared_ptr = std::make_shared<PosturalRos>(post, context);
    }
    else if(!task->getLibName().empty()) /* Otherwise, construct plugin, or fallback to generic Task interface */
    {
