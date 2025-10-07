@@ -10,6 +10,7 @@
 #include <cartesian_interface_ros/srv/set_transform.hpp>
 
 #include <std_msgs/msg/empty.hpp>
+#include <std_msgs/msg/string.hpp>
 #include <std_srvs/srv/set_bool.hpp>
 #include <std_srvs/srv/trigger.hpp>
 
@@ -119,6 +120,8 @@ namespace XBot { namespace Cartesian {
         ModelInterface::ConstPtr _model;
 
         std::unique_ptr<RsPub> _rspub;
+
+        rclcpp::Publisher<String>::SharedPtr _rdesc_pub;
 
         rclcpp::Publisher<PointStamped>::SharedPtr _com_pub;
 

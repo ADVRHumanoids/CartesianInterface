@@ -77,6 +77,15 @@ RosServerClass::RosServerClass(CartesianInterfaceImpl::Ptr intfc,
     init_heartbeat_pub();
     init_load_ros_task_api();
 
+    // publish robot description
+    _rdesc_pub = _node->create_publisher<String>(
+        "robot_description", 
+        rclcpp::QoS(1).transient_local().reliable()
+    );
+    std_msgs::msg::String rdesc_msg;
+    rdesc_msg.data = _model->getUrdfString();
+    _rdesc_pub->publish(rdesc_msg);
+
 }
 
 void RosServerClass::init_state_broadcasting()
