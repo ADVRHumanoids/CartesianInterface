@@ -97,6 +97,7 @@ set(CartesianInterfaceRos_SRC
     #    JoyStick.cpp
     RosExecutor.cpp
     utils/RobotStatePublisher.cpp
+    utils/RobotMarkerPublisher.cpp
 )
 
 add_library(CartesianInterfaceRos STATIC
@@ -146,6 +147,19 @@ target_link_libraries(marker_spawner
 )
 
 install(TARGETS marker_spawner
+   DESTINATION lib/${PROJECT_NAME}
+   )
+
+# Collision marker publisher executable
+add_executable(collision_marker_publisher
+    CollisionMarkerPublisherNode.cpp
+)
+
+target_link_libraries(collision_marker_publisher
+    CartesianInterfaceRos
+)
+
+install(TARGETS collision_marker_publisher
    DESTINATION lib/${PROJECT_NAME}
    )
 
