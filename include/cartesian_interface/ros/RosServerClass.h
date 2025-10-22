@@ -121,7 +121,7 @@ namespace XBot { namespace Cartesian {
 
         std::unique_ptr<RsPub> _rspub;
 
-        rclcpp::Publisher<String>::SharedPtr _rdesc_pub;
+        rclcpp::Publisher<String>::SharedPtr _rdesc_pub, _rdesc_sem_pub;
 
         rclcpp::Publisher<PointStamped>::SharedPtr _com_pub;
 
