@@ -185,7 +185,8 @@ void RosExecutor::init_customize_command()
 
         if(!_robot->hasJoint(j))
         {
-            throw std::runtime_error("Joint ctrl mode map contains non existing joint '" + j + "'");
+            RCLCPP_WARN(_node->get_logger(), "Joint '%s' in joint_ctrl_mode does not exist, skipping", j.c_str());
+            continue;
         }
 
         XBot::ControlMode::Type mode = static_cast<XBot::ControlMode::Type>(mode_int);
