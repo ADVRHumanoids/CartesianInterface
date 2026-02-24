@@ -172,8 +172,24 @@ void RosExecutor::init_customize_command()
         {
             ctrl_map[j] = XBot::ControlMode::Position() + XBot::ControlMode::Velocity();
         }
+    }
 
+    std::string joint_ctrl_mode_str = "{}";
+    _node->get_parameter("joint_ctrl_mode", joint_ctrl_mode_str);
+    auto joint_ctrl_mode_map = YAML::Load(joint_ctrl_mode_str).as<std::map<std::string, int>>();
 
+    for(auto pair : joint_ctrl_mode_map)
+    {
+        auto j = pair.first;
+        auto mode_int = pair.second;
+
+        if(!_robot->hasJoint(j))
+        {
+            throw std::runtime_error("Joint ctrl mode map contains non existing joint '" + j + "'");
+        }
+
+        XBot::ControlMode::Type mode = static_cast<XBot::ControlMode::Type>(mode_int);
+        ctrl_map[j] = mode;
     }
 
     _robot->setControlMode(ctrl_map);
