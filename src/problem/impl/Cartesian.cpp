@@ -405,6 +405,13 @@ bool CartesianTaskImpl::setWayPoints(const Trajectory::WayPointVector & way_poin
         return false;
     }
 
+    if(getActivationState() == ActivationState::Disabled)
+    {
+        XBot::Logger::error("Unable to set target pose. Task '%s' is in DISABLED mode \n",
+                            getName().c_str());
+        return false;
+    }
+
     _state = State::Reaching;
     _trajectory->clear();
     _trajectory->addWayPoint(getTime(), _T);
