@@ -34,7 +34,7 @@ namespace XBot { namespace Cartesian {
         static const int DEFAULT_QUEUE_SIZE = 10;
         
         template <typename T, int N = DEFAULT_QUEUE_SIZE>
-        using LockFreeQueue = boost::lockfree::spsc_queue<T, boost::lockfree::capacity<N>>;
+        using LockFreeQueue = XBot::detail::SpscQueue<T, N>;
         
         LockFreeQueue<CallbackType, CALL_QUEUE_SIZE> _cb_queue;
 
