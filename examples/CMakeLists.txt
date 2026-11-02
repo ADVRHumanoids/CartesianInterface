@@ -2,7 +2,7 @@ add_subdirectory(plugin)
 
 add_subdirectory(cpp)
 
-set(AMENT_PACKAGE_SHARE_DESTINATION "share/${PROJECT_NAME}")
+set(AMENT_PACKAGE_SHARE_DESTINATION "share/${PROJECT_NAME}_ros")
 
 install(DIRECTORY configs/
   DESTINATION ${AMENT_PACKAGE_SHARE_DESTINATION}/examples/configs
