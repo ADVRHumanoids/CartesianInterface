@@ -104,7 +104,6 @@ target_compile_definitions(CartesianInterfaceCore
 target_include_directories(CartesianInterfaceCore
     PUBLIC
     $<INSTALL_INTERFACE:include>
-    $<INSTALL_INTERFACE:include/${PROJECT_NAME}/external>
     )
 
 # link shared library with core and ros
