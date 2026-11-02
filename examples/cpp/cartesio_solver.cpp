@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 
     // some additional parameters..
     xbot_cfg.set_parameter("is_model_floating_base", true);
-    xbot_cfg.set_parameter<std::string>("model_type", "RBDL");
+    xbot_cfg.set_parameter<std::string>("model_type", "pin");
 
     // and we can make the model class
     XBot::ModelInterface::Ptr model = XBot::ModelInterface::getModel(xbot_cfg);
@@ -172,7 +172,8 @@ int main(int argc, char **argv)
         model->getJointVelocity(qdot);
         model->getJointAcceleration(qddot);
 
-        q += dt * qdot + 0.5 * std::pow(dt, 2) * qddot;
+        // Pinocchio uses quaternion floating-base coordinates (nq != nv).
+        q = model->sum(q, dt * qdot + 0.5 * std::pow(dt, 2) * qddot);
         qdot += dt * qddot;
 
         model->setJointPosition(q);
