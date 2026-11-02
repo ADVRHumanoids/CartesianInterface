@@ -38,6 +38,21 @@ void RobotStatePublisher::publishTransforms(const rclcpp::Time & time,
         _tf_vector.push_back(t);
     }
 
+    // CoM tasks use the synthetic "com" frame in the interactive marker
+    // client. It is not an URDF joint, so publish it explicitly.
+    if(!urdf.getLink("com"))
+    {
+        const auto& root = urdf.getRoot()->name;
+        Eigen::Affine3d world_T_com = Eigen::Affine3d::Identity();
+        world_T_com.translation() = _model->getCOM();
+        auto transform = tf2::eigenToTransform(
+            Eigen::Affine3d(_model->getPose(root).inverse() * world_T_com));
+        transform.header.stamp = time;
+        transform.header.frame_id = tf_prefix + "/" + root;
+        transform.child_frame_id = tf_prefix + "/com";
+        _tf_vector.push_back(transform);
+    }
+
     _tf_broadcaster.sendTransform(_tf_vector);
 
 }
